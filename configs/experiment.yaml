@@ -1,0 +1,61 @@
+schema_version: 1
+project: apertus-v1.5-speculative-decoding
+
+environment:
+  cluster: clariden
+  hardware: 1x GH200 node (4 GPUs)
+  target_tensor_parallel_size: 4
+  model_launch_revision: 909026a990454557f1b54d26f24ec3ad92e51e35
+  vllm_revision: a601a9d998ddeb488f0c17e8512874b116aa7658
+  target_model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+  draft_model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+  max_model_len: 262144
+  gpu_memory_utilization: 0.8
+
+factors:
+  methods:
+    - method: none
+      name: baseline
+    - method: draft_model
+      num_speculative_tokens: [2, 3, 5, 8]
+      draft_tensor_parallel_size: [1, 4]
+    - method: ngram
+      num_speculative_tokens: [2, 3, 5, 8]
+      prompt_lookup_min: 1
+      prompt_lookup_max: 4
+  workloads:
+    - open_chat
+    - code
+    - long_context_summarization
+  generation:
+    temperature: 0.0
+    top_p: 1.0
+    seed: 1
+    ignore_eos: false
+
+design:
+  screening:
+    concurrency: [1, 8]
+    independent_deployment_repeats: 2
+    purpose: eliminate consistently slower configurations
+  confirmation:
+    concurrency: [1, 8, 32]
+    independent_deployment_repeats: 5
+    purpose: compare baseline, n-gram, and selected draft candidates with confidence intervals
+  capacity:
+    arrival_process: poisson
+    tool: swiss-ai/bench-agent
+    purpose: compare sustainable request rate at fixed TTFT, TPOT, and error gates
+
+validity_gates:
+  minimum_success_rate: 0.99
+  require_usage_in_stream: true
+  require_non_decreasing_prometheus_counters: true
+  require_exact_greedy_smoke_match: true
+  maximum_repeat_spread_fraction: 0.10
+
+extensions:
+  - temperature_0.8
+  - thinking_variant
+  - kv_cache_capacity_and_max_concurrency
+  - gpu_kernel_profile_of_winner_and_baseline
