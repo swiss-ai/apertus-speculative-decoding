@@ -25,12 +25,12 @@ echo "target_model=${TARGET_MODEL}"
 echo "draft_model=${DRAFT_MODEL}"
 
 sml advanced \
-  --system clariden \
+  --firecrest-system clariden \
   --partition normal \
-  --slurm-nodes 1 \
-  --framework vllm \
-  --time "${SML_TIME}" \
-  --environment src/swiss_ai_model_launch/assets/envs/vllm_apertus_1.5_release.toml \
+  --slurm-nodes-per-replica 1 \
+  --serving-framework vllm \
+  --slurm-time "${SML_TIME}" \
+  --slurm-environment src/swiss_ai_model_launch/assets/envs/vllm_apertus_1.5_release.toml \
   --framework-args "--model ${TARGET_MODEL} \
     --served-model-name ${SERVED_MODEL} \
     --chat-template-content-format string \
