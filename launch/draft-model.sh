@@ -7,6 +7,7 @@ TARGET_MODEL="${TARGET_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/mode
 DRAFT_MODEL="${DRAFT_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B}"
 NUM_SPECULATIVE_TOKENS="${NUM_SPECULATIVE_TOKENS:-3}"
 DRAFT_TP="${DRAFT_TP:-4}"
+MAX_MODEL_LEN="${MAX_MODEL_LEN:-131072}"
 SML_PARTITION="${SML_PARTITION:-normal}"
 SML_TIME="${SML_TIME:-04:00:00}"
 ENV_SOURCE="${ENV_SOURCE:-${MODEL_LAUNCH_ROOT}/src/swiss_ai_model_launch/assets/envs/vllm_apertus_1.5_release.toml}"
@@ -42,7 +43,7 @@ sml advanced \
     --chat-template-content-format string \
     --tensor-parallel-size 4 \
     --gpu-memory-utilization 0.8 \
-    --max-model-len 262144 \
+    --max-model-len ${MAX_MODEL_LEN} \
     --enable-auto-tool-choice \
     --tool-call-parser apertus \
     --speculative-config.method draft_model \

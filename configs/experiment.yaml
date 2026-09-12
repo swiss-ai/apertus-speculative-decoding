@@ -9,7 +9,9 @@ environment:
   vllm_revision: a601a9d998ddeb488f0c17e8512874b116aa7658
   target_model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
   draft_model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
-  max_model_len: 262144
+  # The drafter's weights leave too little room to reserve KV cache for one
+  # 262144-token request, and no workload exceeds 65,536 input tokens.
+  max_model_len: 131072
   gpu_memory_utilization: 0.8
 
 factors:
