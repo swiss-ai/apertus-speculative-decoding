@@ -1,0 +1,19 @@
+Apertus 1.5 exposes image_token_id, not image_token_index, so the draft-model
+proposer raised AttributeError while loading the drafter and the engine never
+came up. Treat it like the other architectures that use image_token_id.
+
+    AttributeError: 'Apertus1p5Config' object has no attribute
+    'image_token_index'. Did you mean: 'image_token_id'?
+      vllm/v1/spec_decode/llm_base_proposer.py:1386
+
+--- a/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py
++++ b/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py
+@@ -1356,7 +1356,8 @@
+         if supports_multimodal(target_model):
+             # handle multimodality
+             assert hasattr(target_model, "config")
+             if self.get_model_name(target_model) in [
++                "Apertus1p5ForConditionalGeneration",
+                 "Cohere2VisionForConditionalGeneration",
+                 "Exaone4_5_ForConditionalGeneration",
+                 "GlmOcrForConditionalGeneration",

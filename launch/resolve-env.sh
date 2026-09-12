@@ -20,6 +20,9 @@ SML_ARCH="${SML_ARCH:-arm64}"
 # copying it, so it has to live on a shared filesystem: a node-local /tmp copy
 # is invisible to the job. Home is shared on Alps.
 SML_ENV_DIR="${SML_ENV_DIR:-${HOME}/.sml}"
+# Additional "host:container" pyxis mounts, whitespace- or comma-separated.
+# See launch/patch-vllm.sh for overlaying a file inside the read-only image.
+EXTRA_MOUNTS="${EXTRA_MOUNTS:-}"
 
 if [ ! -f "${ENV_SOURCE}" ]; then
   echo "environment toml not found: ${ENV_SOURCE}" >&2
@@ -29,6 +32,24 @@ fi
 mkdir -p "${SML_ENV_DIR}"
 RESOLVED="$(mktemp "${SML_ENV_DIR}/env_resolved_${SML_ARCH}_XXXXXX.toml")"
 sed "s|{arch}|${SML_ARCH}|g" "${ENV_SOURCE}" > "${RESOLVED}"
+
+if [ -n "${EXTRA_MOUNTS}" ]; then
+  awk -v specs="${EXTRA_MOUNTS}" '
+    { print }
+    /^mounts *= *\[/ && !injected {
+      n = split(specs, a, /[,[:space:]]+/)
+      for (i = 1; i <= n; i++) {
+        if (a[i] != "") printf "  \"%s\",\n", a[i]
+      }
+      injected = 1
+    }
+    END { if (!injected) exit 1 }
+  ' "${RESOLVED}" > "${RESOLVED}.new" || {
+    echo "no mounts array to extend in ${ENV_SOURCE}" >&2
+    exit 1
+  }
+  mv "${RESOLVED}.new" "${RESOLVED}"
+fi
 
 IMAGE="$(sed -n 's|^ *image *= *"\(/[^"]*\)".*|\1|p' "${RESOLVED}" | head -1)"
 # Only enforce existence where the image store is actually mounted, so this

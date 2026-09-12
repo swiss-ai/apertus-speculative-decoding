@@ -112,6 +112,21 @@ GH200) under `~/.sml` and the launchers pass that. Override the source toml with
 architecture with `SML_ARCH`, and the partition with `SML_PARTITION`; any extra arguments are
 forwarded to `sml advanced`, so `--no-tui` works for non-interactive launches.
 
+`draft_model` speculation additionally needs a source fix that the pinned image predates: vLLM
+reads `image_token_index` off the target config, which Apertus 1.5 does not define (it uses
+`image_token_id`), so the drafter fails to load and the engine never starts. `patches/` holds the
+one-line fix and `launch/patch-vllm.sh` binds a corrected copy over the read-only image:
+
+```bash
+IMAGE=/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+EXTRA_MOUNTS="$(./launch/patch-vllm.sh "$IMAGE" patches/vllm-apertus-image-token.patch)" \
+  ./launch/draft-model.sh --no-tui
+```
+
+Record the overlay alongside any measurement taken with it, and drop `EXTRA_MOUNTS` once a
+rebuilt image carries the fix. The baseline and n-gram variants never load a drafter, so they do
+not need it.
+
 ## Greedy correctness sanity check on one node
 
 Capture the baseline outputs, stop the baseline job, launch the speculative variant, and capture
