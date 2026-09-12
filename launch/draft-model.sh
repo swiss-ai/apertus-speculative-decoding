@@ -31,12 +31,12 @@ echo "draft_model=${DRAFT_MODEL}"
 echo "environment=${SML_ENVIRONMENT}"
 
 sml advanced \
-  --firecrest-system clariden \
+  --system clariden \
   --partition "${SML_PARTITION}" \
-  --slurm-nodes-per-replica 1 \
-  --serving-framework vllm \
-  --slurm-time "${SML_TIME}" \
-  --slurm-environment "${SML_ENVIRONMENT}" \
+  --nodes-per-replica 1 \
+  --framework vllm \
+  --time "${SML_TIME}" \
+  --environment "${SML_ENVIRONMENT}" \
   --framework-args "--model ${TARGET_MODEL} \
     --served-model-name ${SERVED_MODEL} \
     --chat-template-content-format string \

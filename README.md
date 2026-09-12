@@ -93,12 +93,24 @@ NUM_SPECULATIVE_TOKENS=5 PROMPT_LOOKUP_MAX=4 ./launch/ngram.sh
 Each launcher prints its unique served model name. Do not begin measurement merely because the
 name appears in `/v1/models`; require one successful short chat completion first.
 
-The packaged environment toml carries a literal `{arch}` in its image path, and only some `sml`
-builds substitute it on the node; one that does not makes pyxis reject the placeholder and the job
-dies seconds after it starts. `launch/resolve-env.sh` therefore writes a resolved copy (`arm64`
-for GH200) under `~/.sml` and the launchers pass that, so the outcome no longer depends on which
-`sml` is on `PATH`. Override the source toml with `ENV_SOURCE`, the architecture with `SML_ARCH`,
-and the partition with `SML_PARTITION`.
+The launchers speak the pinned `model-launch` CLI (`--system`, `--framework`, `--environment`,
+`--nodes-per-replica`, `--time`). Later revisions rename those to `--firecrest-system`,
+`--serving-framework`, `--slurm-environment`, and also rename the OpenTela share mount from
+`/ocfbin` to `/opentelabin`, so a newer or older `sml` paired with the pinned environment toml
+fails on the node rather than at submission. Install the pin and put it first on `PATH`:
+
+```bash
+python3 -m venv ~/venvs/sml-apertus
+~/venvs/sml-apertus/bin/pip install -e "$MODEL_LAUNCH_ROOT"
+export PATH="$HOME/venvs/sml-apertus/bin:$PATH"
+```
+
+The packaged environment toml also carries a literal `{arch}` in its image path, which only some
+`sml` builds substitute on the node; one that does not makes pyxis reject the placeholder and the
+job dies seconds after it starts. `launch/resolve-env.sh` writes a resolved copy (`arm64` for
+GH200) under `~/.sml` and the launchers pass that. Override the source toml with `ENV_SOURCE`, the
+architecture with `SML_ARCH`, and the partition with `SML_PARTITION`; any extra arguments are
+forwarded to `sml advanced`, so `--no-tui` works for non-interactive launches.
 
 ## Greedy correctness sanity check on one node
 
