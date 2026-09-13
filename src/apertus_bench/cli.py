@@ -9,9 +9,12 @@ from pathlib import Path
 from apertus_bench.analysis import add_speedups, collect_rows, write_csv
 from apertus_bench.client import StreamingChatClient
 from apertus_bench.correctness import (
+    DEFAULT_TOLERANCE,
+    GateTolerance,
     capture_greedy_outputs,
     compare_capture_files,
     compare_greedy_outputs,
+    run_correctness_gate,
 )
 from apertus_bench.runner import CellSettings, GenerationSettings, Variant, run_cell
 from apertus_bench.workloads import available_workloads, load_prompts
@@ -124,6 +127,45 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("baseline", type=Path)
     compare.add_argument("candidate", type=Path)
     compare.add_argument("--output", type=Path, required=True)
+
+    gate = subparsers.add_parser(
+        "correctness-gate",
+        help="judge a greedy comparison against same-configuration calibration controls",
+    )
+    gate.add_argument(
+        "--treatment",
+        type=Path,
+        nargs=2,
+        metavar=("BASELINE", "CANDIDATE"),
+        required=True,
+        help="the two captures whose losslessness is in question",
+    )
+    gate.add_argument(
+        "--control",
+        type=Path,
+        nargs=2,
+        action="append",
+        default=[],
+        metavar=("BASELINE", "CANDIDATE"),
+        required=True,
+        help="two captures of one configuration, measuring nondeterminism; may be repeated",
+    )
+    gate.add_argument(
+        "--common-prefix-fraction-margin",
+        type=float,
+        default=DEFAULT_TOLERANCE.common_prefix_fraction_margin,
+    )
+    gate.add_argument(
+        "--normalized-edit-distance-margin",
+        type=float,
+        default=DEFAULT_TOLERANCE.normalized_edit_distance_margin,
+    )
+    gate.add_argument(
+        "--completion-token-difference-margin",
+        type=int,
+        default=DEFAULT_TOLERANCE.completion_token_difference_margin,
+    )
+    gate.add_argument("--output", type=Path, required=True)
 
     analyze = subparsers.add_parser("analyze", help="flatten result cells and add speedups")
     analyze.add_argument("results", type=Path)
@@ -305,6 +347,20 @@ def main() -> None:
                     {key: value for key, value in report.items() if key != "cases"}, indent=2
                 )
             )
+        elif args.command == "correctness-gate":
+            gate_report = run_correctness_gate(
+                (args.treatment[0], args.treatment[1]),
+                [(baseline, candidate) for baseline, candidate in args.control],
+                args.output,
+                GateTolerance(
+                    normalized_edit_distance_margin=args.normalized_edit_distance_margin,
+                    common_prefix_fraction_margin=args.common_prefix_fraction_margin,
+                    completion_token_difference_margin=args.completion_token_difference_margin,
+                ),
+            )
+            print(json.dumps(gate_report, indent=2))
+            if not gate_report["passed"]:
+                raise SystemExit(1)
         elif args.command == "analyze":
             rows = collect_rows(args.results)
             add_speedups(rows)

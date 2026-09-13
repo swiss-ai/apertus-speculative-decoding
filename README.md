@@ -34,7 +34,8 @@ is in [docs/literature.md](docs/literature.md), and the staged matrix is machine
   stream-event gaps;
 - before/after snapshots of vLLM's exact speculative-decoding Prometheus counters;
 - closed-loop fixed-concurrency matrix execution with warmup and deployment-level repeats;
-- sequential greedy-output capture, so correctness can be checked while using only one model node;
+- sequential greedy-output capture, so correctness can be checked while using only one model node,
+  and a greedy correctness gate calibrated against same-configuration deployments;
 - immutable raw cell artifacts plus a CSV analysis step;
 - a small smoke corpus and a specified schema for the real benchmark corpus.
 
@@ -129,7 +130,7 @@ Record the overlay alongside any measurement taken with it, and drop `EXTRA_MOUN
 rebuilt image carries the fix. The baseline and n-gram variants never load a drafter, so they do
 not need it.
 
-## Greedy correctness sanity check on one node
+## Greedy correctness gate on one node
 
 Capture the baseline outputs, stop the baseline job, launch the speculative variant, and capture
 again with the same corpus and sampling settings:
@@ -156,7 +157,23 @@ apertus-bench compare-captures \
   --output results/correctness/comparison.json
 ```
 
-Exact greedy agreement is a useful integration test, not a proof of distributional equivalence.
+The comparison alone decides nothing. Independently launched deployments do not reproduce each
+other's greedy tokens — two identically configured draft deployments agreed on 0 of 6 smoke prompts
+— so a mismatch is not evidence that speculation is lossy. Capture a **calibration control** as
+well: a second capture from the same deployment, and a capture from another deployment of one
+configuration. Then judge the comparison against it:
+
+```bash
+apertus-bench correctness-gate \
+  --treatment results/correctness/baseline.json results/correctness/draft-n3-tp4.json \
+  --control results/correctness/draft-n3-tp4.json results/correctness/draft-n3-tp4-repeat2.json \
+  --output results/correctness/gate.json
+```
+
+The gate passes when the two arms diverge no more than two deployments of one configuration do,
+which is consistent with losslessness rather than a proof of it, and it refuses to run without a
+control. [docs/protocol.md](docs/protocol.md) states the criterion, both control kinds, and why a
+same-deployment paired check is impossible here.
 
 ## Run one deployed variant
 

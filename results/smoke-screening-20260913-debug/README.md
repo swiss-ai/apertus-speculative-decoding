@@ -193,18 +193,23 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
   below the 16k–65k target in `workloads/README.md`, so the
   `long_context_summarization` rows here measure almost no prefill. Prefill-heavy behaviour, where
   speculation has the most room to help TTFT, is untested.
-- **`require_exact_greedy_smoke_match` fails, and the second repeat shows the gate is measuring
-  nondeterminism rather than speculation.** Baseline against draft repeat 1 gives 0 of 6 exact
-  matches (`../correctness/smoke-20260913-debug/comparison.json`); baseline against draft repeat 2
-  gives 3 of 6 (`comparison-repeat2.json`); and **the two identically configured draft deployments
-  agree with each other on 0 of 6** (`comparison-draft-repeat1-vs-repeat2.json`). Two deployments of
-  the same speculative configuration disagreeing as much as speculation disagrees with the baseline
-  rules out a rejection-sampling explanation. Mismatching pairs share a long prefix — 297–564
-  characters in the repeat-1 comparison — and then diverge into a different but equally fluent
-  continuation with completion token counts within 3, which is what floating-point nondeterminism in
-  the target forward pass looks like across nodes and batch shapes with prefix caching enabled. The
-  gate as written cannot pass across independently launched deployments; it needs to be reformulated
-  as a same-deployment or same-node check, or replaced by a distributional comparison.
+- **Exact greedy agreement fails and was the wrong criterion; under the calibrated gate this run
+  shows no correctness violation.** Baseline against draft repeat 1 gives 0 of 6 exact matches
+  (`../correctness/smoke-20260913-debug/comparison.json`); baseline against draft repeat 2 gives 3 of
+  6 (`comparison-repeat2.json`); and **the two identically configured draft deployments agree with
+  each other on 0 of 6** (`comparison-draft-repeat1-vs-repeat2.json`). Two deployments of the same
+  speculative configuration disagreeing as much as speculation disagrees with the baseline rules out
+  a rejection-sampling explanation. Mismatching pairs share a long prefix — 297–564 characters in the
+  repeat-1 comparison — and then diverge into a different but equally fluent continuation with
+  completion token counts within 3, which is what floating-point nondeterminism in the target forward
+  pass looks like across nodes and batch shapes with prefix caching enabled. The gate was
+  reformulated accordingly (`docs/protocol.md`, "Greedy correctness gate"): the same captures were
+  re-analysed against the draft-repeat pair as a calibration control, and both baseline-versus-draft
+  comparisons land inside that control's divergence envelope
+  (`gate-baseline-vs-draft-repeat1.json`, `gate-baseline-vs-draft-repeat2.json`). That is consistent
+  with losslessness and is not a proof of it; a same-deployment paired check is impossible here
+  because one deployment serves exactly one speculative configuration, and no baseline-vs-baseline
+  control exists yet.
 - Concurrency 32 and the confirmation matrix were not run; there is no `ignore_eos` control, no
   capacity study, and no n-gram arm.
 - The 24 requests per cell cycle through only 2 prompts per stratum, so latency distributions are

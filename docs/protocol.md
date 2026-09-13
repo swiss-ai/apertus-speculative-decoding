@@ -101,7 +101,7 @@ serving mechanics, but its results must not be pooled with natural generation.
    command, Slurm job and node IDs, model paths, GPU clocks/power policy when available, and the
    corpus digest.
 2. Wait for model registration, then require a real short chat completion.
-3. Capture greedy outputs for correctness on the smoke set.
+3. Capture greedy outputs on the smoke set, twice per deployment, for the correctness gate below.
 4. Warm up the same workload and concurrency shape before collecting counters or timing.
 5. Snapshot `/metrics`, run a fixed request count in closed loop, then snapshot again.
 6. Save request rows, metric snapshots, and logs. Reject runs with server restarts/counter resets.
@@ -110,6 +110,72 @@ serving mechanics, but its results must not be pooled with natural generation.
 The load generator should run on-cluster to minimize uncontrolled network variance. One client
 process must be shown capable of driving the server at the largest tested load without CPU,
 socket, or scheduling saturation.
+
+## Greedy correctness gate
+
+Speculative decoding with modified rejection sampling is distribution-equivalent to the target model
+in exact arithmetic, so under greedy decoding the two arms should produce the same tokens. That
+theorem is about exact arithmetic. It does not survive contact with two independently launched
+distributed deployments, and the gate must be written against what is measurable.
+
+### Why exact token equality cannot be the criterion
+
+- **A single deployment cannot serve both arms.** `speculative_config` is engine-level in the pinned
+  vLLM revision, fixed at launch and not selectable per request, so one deployment serves exactly
+  one speculative configuration. **A same-deployment paired baseline-versus-speculative check is
+  therefore impossible by construction**, and no reformulation of the harness can create one.
+- **A same-node paired check is possible but does not hold the numerical environment fixed.** Both
+  launches can be pinned to one node, which removes the node factor. It does not remove the rest:
+  vLLM shrinks the per-step token budget for speculation (7168 against `max_num_batched_tokens=8192`)
+  and disables asynchronous scheduling, so batch shapes and reduction orders differ *because*
+  speculation is enabled. Floating-point addition is not associative, and prefix caching adds a
+  further path dependence. Pinning the node narrows the gap; it cannot close it.
+- **Measured consequence.** Two identically configured deployments of one speculative variant, on
+  different nodes, agreed on 0 of 6 greedy smoke prompts — as often as speculation agreed with the
+  baseline. A criterion that fails on a pair with identical math is measuring nondeterminism, not
+  correctness. See `results/correctness/smoke-20260913-debug/`.
+
+### The criterion
+
+For each prompt, compare the two greedy generations on: exact match, longest common prefix in
+characters and as a fraction of the shorter output, character-level edit distance normalized by the
+longer output, and the difference in completion-token counts. Aggregate each over the corpus as a
+distribution and as a worst observed value.
+
+A comparison is judged **relative to a calibration control**: a comparison of two captures of one
+single configuration, which measures exactly the nondeterminism the gate must not attribute to
+speculation. Two control kinds are useful and are not interchangeable.
+
+- **Within-deployment control:** capture twice against one server. Isolates in-server nondeterminism
+  from batching and prefix caching. Cheap; run it on every deployment.
+- **Cross-deployment control:** two independently launched deployments of one configuration. Adds
+  node-to-node and run-to-run variation. Required to judge a cross-deployment comparison, which the
+  baseline-versus-speculative comparison always is.
+
+The gate passes when the compared pair's worst case stays inside the control's worst case plus a
+declared margin, on all of: minimum common-prefix fraction, maximum normalized edit distance, and
+maximum completion-token difference; and when every prompt produced a successful response on both
+arms. Margins are in `configs/experiment.yaml`. Exact-match counts are recorded but not gated: at
+six prompts the count is a noisy statistic that cannot separate the two explanations, and the raw
+captures are kept so the old exact-match comparison stays computable.
+
+### What a pass and a failure mean
+
+A pass means the divergence between the arms is not distinguishable from the divergence between two
+deployments that must agree, so this project has **no evidence that speculation changes the output
+distribution**. That is consistent with losslessness; it is not a proof of it, and it is not a
+statement about the sampler's internals. A failure — divergence beyond what identical configurations
+produce — is positive evidence of a real violation and blocks the arm until it is explained.
+
+Without a control the gate has no null distribution and returns no verdict. **A losslessness claim
+requires the control**; do not report the comparison alone. State the control's own worst case
+alongside any claim, because a loose control is a weak gate: the pass is only as strong as the
+nondeterminism the control actually exercised. A control drawn from a speculative pair calibrates
+the speculative arm's numerics but leaves baseline-side variation unmeasured; record which arm the
+control came from.
+
+Token-level rather than character-level comparison would be sharper and needs the Apertus tokenizer
+in the analysis path. The harness compares the streamed text, which is what the client observes.
 
 ## Outcomes
 
@@ -148,7 +214,9 @@ whether configuration selection was performed on the same samples used for final
 - Reject a metric window if cumulative speculative counters decrease.
 - Disclose missing usage records; token throughput is invalid without exact token counts.
 - Do not call individual streamed chunks tokens. vLLM may emit several accepted tokens together.
-- Exact greedy agreement is an integration sanity check, not proof of the lossless theorem.
+- Judge greedy correctness only against a calibration control, as the gate above specifies. Exact
+  greedy agreement across independently launched deployments is not attainable, so its absence is
+  not evidence that speculation is lossy, and a pass is not proof of the lossless theorem.
 - Sampling comparisons require identical seeds and parameters but may not be bitwise identical
   across separate distributed executions; compare distributions when studying temperature.
 - Report selection bias, workload licensing, gateway/network effects, and node-to-node variability.

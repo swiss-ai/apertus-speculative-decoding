@@ -58,8 +58,22 @@ validity_gates:
   minimum_success_rate: 0.99
   require_usage_in_stream: true
   require_non_decreasing_prometheus_counters: true
-  require_exact_greedy_smoke_match: true
   maximum_repeat_spread_fraction: 0.10
+  # Exact greedy agreement was the gate until 2026-09-13 and cannot pass across
+  # independently launched deployments: one deployment serves exactly one
+  # speculative configuration, and the per-step token budget and async scheduling
+  # change with `method`, so batch shapes and reduction orders differ by
+  # construction. Two identically configured draft deployments matched on 0 of 6
+  # prompts. The gate now judges baseline-vs-speculative divergence against a
+  # same-configuration control instead; see docs/protocol.md.
+  greedy_correctness:
+    criterion: calibrated_greedy_divergence
+    require_calibration_control: true
+    require_cross_deployment_control: true
+    common_prefix_fraction_margin: 0.05
+    normalized_edit_distance_margin: 0.05
+    completion_token_difference_margin: 2
+    gate_exact_match: false
 
 extensions:
   - temperature_0.8
