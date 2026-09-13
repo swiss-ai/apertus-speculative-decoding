@@ -32,17 +32,23 @@ chat template, request corpus, request order, and generation parameters are cont
 Two serving properties cannot be held constant across methods in the pinned vLLM revision, so they
 are confounded with `method` and must be reported with every comparison:
 
-- asynchronous scheduling is enabled by default but is switched off automatically for
-  `draft_model` speculation (`Async scheduling not supported with draft_model-based speculative
-  decoding and will be disabled`), so the baseline overlaps CPU scheduling with GPU execution and
-  the draft-model arm does not;
-- the scheduler shrinks its per-step token budget for speculation
+- asynchronous scheduling is enabled by default and is switched off automatically for both
+  speculative methods measured so far (`Async scheduling not supported with draft_model-based
+  speculative decoding and will be disabled`, and the same sentence with `ngram`), so the baseline
+  overlaps CPU scheduling with GPU execution and no speculative arm does. This one separates
+  speculation from the baseline but is **common to the speculative arms**, so it cannot explain
+  differences between them;
+- the scheduler shrinks its per-step token budget for `draft_model` only
   (`max_num_scheduled_tokens is set to 7168 based on the speculative decoding settings`, against
-  `max_num_batched_tokens=8192` on the baseline), and vLLM itself warns this may be suboptimal.
+  `max_num_batched_tokens=8192` on both the baseline and the n-gram arm), and vLLM itself warns this
+  may be suboptimal. This one is **asymmetric between the speculative arms** and inflates any
+  draft-model-versus-n-gram comparison.
 
 Both effects work against the speculative arm independently of acceptance, so a measured
 regression is a regression of the shipped configuration, not evidence that speculation itself is
-slower. Do not describe such a result as an acceptance-driven effect without separating them.
+slower. Do not describe such a result as an acceptance-driven effect without separating them, and
+check the launch log for each arm rather than assuming which effects apply: both were established by
+reading the arm's own log, and the token-budget shrink turned out not to generalise across methods.
 
 The manipulated serving factors are:
 
@@ -126,9 +132,10 @@ distributed deployments, and the gate must be written against what is measurable
   therefore impossible by construction**, and no reformulation of the harness can create one.
 - **A same-node paired check is possible but does not hold the numerical environment fixed.** Both
   launches can be pinned to one node, which removes the node factor. It does not remove the rest:
-  vLLM shrinks the per-step token budget for speculation (7168 against `max_num_batched_tokens=8192`)
-  and disables asynchronous scheduling, so batch shapes and reduction orders differ *because*
-  speculation is enabled. Floating-point addition is not associative, and prefix caching adds a
+  vLLM disables asynchronous scheduling for every speculative method measured, and shrinks the
+  per-step token budget for `draft_model` specifically (7168 against `max_num_batched_tokens=8192`,
+  which the n-gram arm keeps), so batch shapes and reduction orders differ *because* speculation is
+  enabled. Floating-point addition is not associative, and prefix caching adds a
   further path dependence. Pinning the node narrows the gap; it cannot close it.
 - **Measured consequence.** Two identically configured deployments of one speculative variant, on
   different nodes, agreed on 0 of 6 greedy smoke prompts — as often as speculation agreed with the
