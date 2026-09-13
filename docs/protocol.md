@@ -28,6 +28,21 @@ valid when traffic can be routed by workload; otherwise evaluate the declared tr
 The target model, tokenizer, vLLM image, target TP=4, maximum context, GPU-memory utilization,
 chat template, request corpus, request order, and generation parameters are controlled.
 
+Two serving properties cannot be held constant across methods in the pinned vLLM revision, so they
+are confounded with `method` and must be reported with every comparison:
+
+- asynchronous scheduling is enabled by default but is switched off automatically for
+  `draft_model` speculation (`Async scheduling not supported with draft_model-based speculative
+  decoding and will be disabled`), so the baseline overlaps CPU scheduling with GPU execution and
+  the draft-model arm does not;
+- the scheduler shrinks its per-step token budget for speculation
+  (`max_num_scheduled_tokens is set to 7168 based on the speculative decoding settings`, against
+  `max_num_batched_tokens=8192` on the baseline), and vLLM itself warns this may be suboptimal.
+
+Both effects work against the speculative arm independently of acceptance, so a measured
+regression is a regression of the shipped configuration, not evidence that speculation itself is
+slower. Do not describe such a result as an acceptance-driven effect without separating them.
+
 The manipulated serving factors are:
 
 | Factor | Levels |
@@ -81,8 +96,9 @@ serving mechanics, but its results must not be pooled with natural generation.
 
 ## Run procedure
 
-1. Record Git revisions, container path/digest, launch command, Slurm job and node IDs, model paths,
-   GPU clocks/power policy when available, and the corpus digest.
+1. Record Git revisions, container path/digest, any source file bind-mounted over the image, launch
+   command, Slurm job and node IDs, model paths, GPU clocks/power policy when available, and the
+   corpus digest.
 2. Wait for model registration, then require a real short chat completion.
 3. Capture greedy outputs for correctness on the smoke set.
 4. Warm up the same workload and concurrency shape before collecting counters or timing.
