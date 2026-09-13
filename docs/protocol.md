@@ -201,6 +201,28 @@ Mechanistic outcomes:
 - preemptions, queue depth, GPU utilization, SM/tensor activity, power, and communication metrics;
 - initialization time and failure modes.
 
+### Acceptance quantities
+
+Three quantities are named after acceptance and they are not interchangeable. All three are computed
+from deltas of the vLLM counters over a cell's measurement window, in `speculative_delta`:
+
+- **acceptance rate** = `accepted_tokens / draft_tokens`, the share of *proposed tokens* that
+  verification accepted. This is `acceptance_rate` in each cell's `summary.json` and in
+  `analysis.csv`. Unqualified "acceptance" in this project's reports and figures means this.
+- **mean acceptance length** = `1 + accepted_tokens / drafts`, the number of tokens the engine emits
+  per speculative step, counting the always-accepted bonus token. Its maximum is
+  `1 + num_speculative_tokens`, and it is the upper bound on speedup that would be attained if a
+  speculative step cost exactly one baseline decode step.
+- **per-position acceptance**, position `i` = `accepted_tokens_at_position_i / drafts`. The
+  denominator is every proposal, not the proposals that reached position `i`, so the vector sums to
+  mean acceptance length minus one.
+
+`acceptance_rate` equals `(mean_acceptance_length - 1) / num_speculative_tokens` only when every
+proposal is full depth, which `draft_model` satisfies but `ngram` need not: prompt lookup proposes
+fewer than `num_speculative_tokens` tokens when the matched continuation is shorter, so
+`draft_tokens < num_speculative_tokens × drafts` and the two quantities come apart. Report which
+quantity a figure shows, and never convert between them by assuming full-depth proposals.
+
 ## Analysis
 
 The independent unit is a deployment repeat, not an individual request. Report every repeat,

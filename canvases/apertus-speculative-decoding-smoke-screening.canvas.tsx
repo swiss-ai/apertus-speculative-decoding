@@ -748,9 +748,9 @@ function Headline() {
     <Grid columns="1.5fr 1fr" gap={20} align="start">
       <Stack gap={16}>
         <Text weight="semibold" style={{ fontSize: 17, lineHeight: 1.45 }}>
-          The 8B drafter's tokens are accepted {spanPct(allAcceptances)} of the time and it loses in all
-          twelve of its cells. N-gram accepts only {spanPct(ngramAcceptances)} and is the only arm that
-          wins anything, taking {span(ngramRatios, 3)}× of baseline throughput and beating the baseline
+          The 8B drafter's proposed tokens are accepted at {spanPct(allAcceptances)} and it loses in all
+          twelve of its cells. N-gram's acceptance rate is only {spanPct(ngramAcceptances)}, yet it is
+          the only arm that wins anything, taking {span(ngramRatios, 3)}× of baseline throughput and beating the baseline
           outright on long-context summarization. Acceptance is not the binding constraint — the arm
           that accepts worst is the arm that wins.
         </Text>
@@ -826,9 +826,9 @@ function DeploymentSpread() {
         Jobs 3391426 and 3392153 served the identical configuration on different nodes at different
         times. The protocol's independent unit is the deployment repeat, so the gap between these two
         is the measurement's own noise floor — and it is not the same size for every quantity.
-        Acceptance moves by {span(acceptanceSpreads.map((s) => s * 100), 1)}%, the throughput ratio by{" "}
-        {span(ratioSpreads.map((s) => s * 100), 1)}%. The drafter's acceptance is a property of the
-        model pair; the speedup is a property of the deployment.
+        The acceptance rate moves by {span(acceptanceSpreads.map((s) => s * 100), 1)}%, the throughput
+        ratio by {span(ratioSpreads.map((s) => s * 100), 1)}%. The drafter's acceptance rate is a
+        property of the model pair; the speedup is a property of the deployment.
       </Text>
       <Grid columns="1.4fr 1fr" gap={20} align="start">
         <Stack gap={8}>
@@ -836,12 +836,12 @@ function DeploymentSpread() {
             categories={CATEGORIES}
             series={[
               {
-                name: "Acceptance rate",
+                name: "Spread of the acceptance rate",
                 data: acceptanceSpreads.map((s) => round(s * 100, 1)),
                 tone: "success",
               },
               {
-                name: "Output-throughput ratio vs baseline",
+                name: "Spread of the output-throughput ratio vs baseline",
                 data: ratioSpreads.map((s) => round(s * 100, 1)),
                 tone: "danger",
               },
@@ -885,8 +885,8 @@ function DeploymentSpread() {
         headers={[
           "Workload",
           "Conc.",
-          "Acceptance r1 → r2",
-          "Acceptance spread",
+          "Acceptance rate r1 → r2",
+          "Acceptance-rate spread",
           "Output tok/s r1 → r2",
           "Ratio to baseline r1 → r2",
           "Ratio spread",
@@ -1179,6 +1179,41 @@ function AcceptanceSection() {
   return (
     <Stack gap={12}>
       <H2>Acceptance does not buy throughput, and across methods it inverts</H2>
+      <Callout tone="info" title="Three different quantities, all called “acceptance”">
+        <Stack gap={4}>
+          <Text size="small">
+            <Text size="small" weight="semibold">
+              Acceptance rate
+            </Text>{" "}
+            = accepted tokens ÷ proposed draft tokens. This is `analysis.csv`'s `acceptance_rate` and
+            the only quantity this canvas calls acceptance unqualified: {spanPct(allAcceptances)} for
+            the drafter, {spanPct(ngramAcceptances)} for n-gram.
+          </Text>
+          <Text size="small">
+            <Text size="small" weight="semibold">
+              Mean acceptance length
+            </Text>{" "}
+            = 1 + accepted tokens ÷ proposals, so it counts the always-accepted bonus token and is
+            bounded by 1 + `num_speculative_tokens` = 4 here: {span(allMals)} for the drafter,{" "}
+            {span(CELLS.map((c) => c.ngram.meanAcceptanceLength))} for n-gram.
+          </Text>
+          <Text size="small">
+            <Text size="small" weight="semibold">
+              Per-position acceptance
+            </Text>{" "}
+            = tokens accepted at that position ÷ proposals, so the three positions sum to mean
+            acceptance length minus one, and each is a share of every proposal rather than of the
+            proposals that reached that position.
+          </Text>
+          <Text size="small" tone="tertiary">
+            The first two coincide as `acceptance_rate = (mean_acceptance_length − 1) ÷ 3` only when
+            every proposal is full depth. That holds for the drafter, and not quite for n-gram: on
+            `code` prompt lookup sometimes proposes fewer than 3 tokens (12,444 draft tokens over
+            4,164 proposals), so the two differ in the third decimal. Definitions as computed in
+            `src/apertus_bench/prometheus.py` and stated in `docs/protocol.md`.
+          </Text>
+        </Stack>
+      </Callout>
       <Text tone="secondary">
         The 8B drafter has {span(allMals)} tokens accepted per verification step out of a possible 4
         (3 drafted + 1 bonus); n-gram manages only {span(CELLS.map((c) => c.ngram.meanAcceptanceLength))}.
@@ -1257,8 +1292,9 @@ function AcceptanceSection() {
             height={264}
           />
           <Caption>
-            y: tokens accepted per verification step, `1 + accepted/drafts`, including the bonus token
-            (maximum 4 at `num_speculative_tokens=3`) · x: workload × concurrency cell · for the
+            y: mean acceptance length, `1 + accepted tokens / proposals`, including the bonus token
+            (maximum 4 at `num_speculative_tokens=3`); this is not the acceptance rate · x: workload ×
+            concurrency cell · for the
             drafter `code` is highest and the two deployments sit on top of each other, the stability
             H2 predicts in direction; for n-gram the ranking is different — summarization leads and
             `code` is no better than open chat, because prompt lookup rewards outputs that quote the
@@ -1269,7 +1305,7 @@ function AcceptanceSection() {
 
       <Divider />
 
-      <H3>Per-position acceptance, draft model against n-gram</H3>
+      <H3>Per-position acceptance (accepted at position ÷ proposals), draft model against n-gram</H3>
       <BarChart
         categories={CATEGORIES}
         series={[
@@ -1302,10 +1338,13 @@ function AcceptanceSection() {
         height={320}
       />
       <Caption>
-        y: acceptance (% of drafted tokens at that position) · x: workload × concurrency cell ·
-        positions are vLLM's 0/1/2 within each 3-token proposal · draft repeat 2 is omitted here and
-        tabulated below · acceptance decays with position in every cell of every arm, from 88.6→70.3%
-        for the drafter on `code` at c1 down to 21.6→6.6% for n-gram on the same cell · source:
+        y: per-position acceptance, tokens accepted at that position ÷ proposals, in percent — the
+        denominator is every proposal, not the proposals that reached the position, so the three
+        positions of a cell sum to its mean acceptance length minus one · x: workload × concurrency
+        cell · positions are vLLM's 0/1/2 within each 3-token proposal · draft repeat 2 is omitted here
+        and tabulated below · acceptance decays with position in every cell of every arm, from
+        88.6→70.3% for the drafter on `code` at c1 down to 21.6→6.6% for n-gram on the same cell ·
+        source:
         `vllm:spec_decode_num_accepted_tokens_per_pos_total` deltas in each cell's `summary.json`.
       </Caption>
 
@@ -1320,12 +1359,12 @@ function AcceptanceSection() {
               "Workload",
               "Conc.",
               "Deployment",
-              "Drafts",
+              "Proposals",
               "Draft tokens",
               "Accepted",
-              "Acceptance",
-              "Mean acc. length",
-              "Per-position (0/1/2)",
+              "Acceptance rate",
+              "Mean acceptance length",
+              "Per-position acceptance (0/1/2)",
             ]}
             columnAlign={[
               "left",
@@ -1364,8 +1403,11 @@ function AcceptanceSection() {
       </Card>
       <Caption>
         Deltas across each measured window, from `/metrics` snapshots taken immediately before and
-        after the cell. No counter decreased in any window, so no window was rejected for a server
-        restart.
+        after the cell: `vllm:spec_decode_num_drafts_total` (proposals),
+        `vllm:spec_decode_num_draft_tokens_total`, `vllm:spec_decode_num_accepted_tokens_total` and the
+        per-position counter. Acceptance rate is accepted ÷ draft tokens; mean acceptance length is
+        1 + accepted ÷ proposals; per-position acceptance is accepted at that position ÷ proposals. No
+        counter decreased in any window, so no window was rejected for a server restart.
       </Caption>
     </Stack>
   );
@@ -1732,11 +1774,17 @@ function MemorySection() {
             />
           </Grid>
           <Text tone="secondary">
-            The memory cost splits the same way the step cost does, and not as expected. Speculation
-            alone costs {pct(1 - KV_CACHE.ngram.tokens / KV_CACHE.baseline.tokens, 1)} of the
-            baseline's advertised capacity with no drafter resident at all; the 8B weights then cost a
-            further {pct(1 - KV_CACHE.draft1.tokens / KV_CACHE.ngram.tokens, 1)}, for{" "}
-            {pct(1 - kvRatio, 1)} in total. At the configured `max_model_len` the draft deployments
+            The memory cost splits the same way the step cost does, and not as expected. All three
+            shares below are of the <Text weight="semibold">baseline's</Text> advertised capacity, so
+            they add up: speculation alone costs{" "}
+            {pct(1 - KV_CACHE.ngram.tokens / KV_CACHE.baseline.tokens, 1)} with no drafter resident at
+            all, the 8B weights cost a further{" "}
+            {pct((KV_CACHE.ngram.tokens - KV_CACHE.draft1.tokens) / KV_CACHE.baseline.tokens, 1)}, and
+            the total is {pct(1 - kvRatio, 1)}. Put the other way, of everything the draft arm gives
+            up, {pct((KV_CACHE.baseline.tokens - KV_CACHE.ngram.tokens) / (KV_CACHE.baseline.tokens - KV_CACHE.draft1.tokens), 0)}{" "}
+            is speculation machinery and{" "}
+            {pct((KV_CACHE.ngram.tokens - KV_CACHE.draft1.tokens) / (KV_CACHE.baseline.tokens - KV_CACHE.draft1.tokens), 0)}{" "}
+            is drafter weights. At the configured `max_model_len` the draft deployments
             advertise capacity for fewer than two full-length requests. This is a capacity result
             independent of any latency measurement, and it holds even if the latency regression turns
             out to be a configuration artefact. The two draft deployments sized their cache within{" "}
@@ -1969,7 +2017,10 @@ function Provenance() {
     ["baseline", "job 3391425, nid007645, replica head 172.28.51.237, stock image"],
     ["draft repeat 1", "job 3391426, nid006633, replica head 172.28.32.244, patched overlay"],
     ["draft repeat 2", "job 3392153, nid006687, replica head 172.28.33.172, patched overlay"],
-    ["ngram-n3", "job 3392370, nid006687, stock image, prompt lookup 1–4"],
+    [
+      "ngram-n3",
+      "job 3392370, nid006687, replica head 172.28.33.172, stock image, prompt_lookup_min 1, prompt_lookup_max 4",
+    ],
     [
       "measurement windows",
       "2026-09-13T15:35:52Z → 16:35:24Z (baseline and draft repeat 1), 17:19Z → 17:35Z (draft repeat 2), 18:00Z → 18:15Z (n-gram)",
@@ -1980,7 +2031,10 @@ function Provenance() {
       "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh",
     ],
     ["model-launch", "909026a990454557f1b54d26f24ec3ad92e51e35"],
-    ["harness", "apertus-bench 0.1.0 at 270413f22f41ad008a72fffae5359cb3bd03785f, Python 3.13.9"],
+    [
+      "harness",
+      "apertus-bench 0.1.0, Python 3.13.9; 270413f22f41ad008a72fffae5359cb3bd03785f for the baseline and both draft repeats, a32a5e0c1c8fcb53aacf3bb305e2ad44acf5692a for ngram-n3 (per-cell `metadata.json`)",
+    ],
     [
       "corpus",
       "workloads/smoke.jsonl, sha256 316fb566a18e32305b98929e34fdac515b9a43c6c7329994b319870f879952af",
