@@ -1,0 +1,55 @@
+(Worker pid=40539) INFO 09-13 19:01:32 [parallel_state.py:1607] world_size=4 rank=2 local_rank=2 distributed_init_method=tcp://127.0.0.1:57107 backend=nccl
+(Worker pid=40539) WARNING 09-13 19:01:42 [llm_base_proposer.py:330] Speculative Decoding with draft models or parallel drafting does not fully support multimodal models yet. Proceeding with text-only speculative decoding.
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901] WorkerProc failed to start.
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901] Traceback (most recent call last):
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/v1/executor/multiproc_executor.py", line 868, in worker_main
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     worker = WorkerProc(*args, **kwargs)
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     return func(*args, **kwargs)
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/v1/executor/multiproc_executor.py", line 629, in __init__
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     self.worker.init_device()
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/v1/worker/worker_base.py", line 331, in init_device
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     self.worker.init_device()  # type: ignore
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     ^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     return func(*args, **kwargs)
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/v1/worker/gpu_worker.py", line 402, in init_device
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     self.model_runner = GPUModelRunnerV1(self.vllm_config, self.device)
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/v1/worker/gpu_model_runner.py", line 592, in __init__
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     self.drafter = DraftModelProposer(
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]                    ^^^^^^^^^^^^^^^^^^^
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/v1/spec_decode/draft_model.py", line 32, in __init__
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     self._raise_if_draft_tp_mismatch()
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]   File "/workspace/vllm/vllm/v1/spec_decode/draft_model.py", line 74, in _raise_if_draft_tp_mismatch
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901]     raise ValueError(
+(Worker pid=40539) ERROR 09-13 19:01:42 [multiproc_executor.py:901] ValueError: Currently, 'draft_tensor_parallel_size' and 'tensor_parallel_size' must be the same. Got 1 and 4. Please pass 'draft_tensor_parallel_size' in the speculative_config.
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231] EngineCore failed to start.
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231] Traceback (most recent call last):
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/v1/engine/core.py", line 1200, in run_engine_core
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     return func(*args, **kwargs)
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/v1/engine/core.py", line 966, in __init__
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     super().__init__(
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/v1/engine/core.py", line 123, in __init__
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     self.model_executor = executor_class(vllm_config)
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/v1/executor/multiproc_executor.py", line 108, in __init__
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     super().__init__(vllm_config)
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     return func(*args, **kwargs)
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/v1/executor/abstract.py", line 109, in __init__
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     self._init_executor()
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/v1/executor/multiproc_executor.py", line 201, in _init_executor
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     self.workers = WorkerProc.wait_for_ready(unready_workers)
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]   File "/workspace/vllm/vllm/v1/executor/multiproc_executor.py", line 765, in wait_for_ready
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231]     raise e from None
+(EngineCore pid=40227) ERROR 09-13 19:01:44 [core.py:1231] Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.

@@ -19,7 +19,8 @@ valid when traffic can be routed by workload; otherwise evaluate the declared tr
 - H3: optimal speculative depth decreases as concurrency rises because target-model batching
   becomes more efficient and draft overhead competes for GPU time.
 - H4: TP=1 reduces draft communication but introduces memory/compute imbalance; TP=4 can win at
-  higher concurrency despite collective overhead.
+  higher concurrency despite collective overhead. Untestable at the pinned vLLM revision, which
+  refuses draft TP != target TP; see `results/deployment-failures/draft-n3-tp1-3392110/`.
 - H5: n-gram speculation is competitive on prompts whose outputs reuse prompt spans, especially
   summarization, with much smaller memory cost.
 
@@ -49,7 +50,7 @@ The manipulated serving factors are:
 |---|---|
 | method | baseline, Apertus-8B draft, n-gram |
 | speculative tokens | 2, 3, 5, 8 |
-| draft TP | 1, 4 |
+| draft TP | 4 (1 is unservable at the pinned vLLM revision) |
 | workload | open chat, code, long-context summarization |
 | concurrency | 1, 8, 32 |
 

@@ -20,7 +20,12 @@ factors:
       name: baseline
     - method: draft_model
       num_speculative_tokens: [2, 3, 5, 8]
-      draft_tensor_parallel_size: [1, 4]
+      # draft_tensor_parallel_size=1 is not servable at the pinned vLLM revision:
+      # DraftModelProposer asserts draft TP == target TP because all ranks would
+      # compile the draft model as rank 0 and corrupt the torch.compile cache.
+      # See results/deployment-failures/draft-n3-tp1-3392110/. Restore the [1, 4]
+      # sweep only against a revision that implements mismatched draft TP.
+      draft_tensor_parallel_size: [4]
     - method: ngram
       num_speculative_tokens: [2, 3, 5, 8]
       prompt_lookup_min: 1

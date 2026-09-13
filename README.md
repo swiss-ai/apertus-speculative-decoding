@@ -15,8 +15,10 @@ conditions under which a configuration wins or loses.
    1, 8, and 32?
 2. How strongly do draft acceptance rate and mean accepted length predict TTFT, TPOT, and output
    throughput?
-3. Which combination of speculative depth `{2,3,5,8}` and draft TP `{1,4}` is best, and when does
-   draft overhead outweigh accepted work?
+3. Which combination of speculative depth `{2,3,5,8}` and draft TP is best, and when does draft
+   overhead outweigh accepted work? Draft TP is pinned to 4 for now: the pinned vLLM refuses draft
+   TP != target TP, so only a depth sweep is answerable
+   (`results/deployment-failures/draft-n3-tp1-3392110/`).
 4. When is n-gram speculation a better operational choice than the 8B draft model?
 5. Does the winning setting increase sustainable request rate without unacceptable tail latency
    or loss of KV-cache capacity?

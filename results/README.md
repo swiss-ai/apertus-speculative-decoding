@@ -16,3 +16,5 @@ Secrets and bearer tokens are not written by the harness.
   measurement, smoke corpus, concurrency 1 and 8, one deployment repeat per arm. Its `README.md`
   carries the provenance, the headline comparison, and the deviations.
 - `correctness/smoke-20260913-debug/`: the sequential greedy captures and comparison for that pair.
+- `deployment-failures/`: launches that never reached a serving endpoint, with the log excerpt and
+  the design consequence. A failure that removes a factor level from the design is a result.
