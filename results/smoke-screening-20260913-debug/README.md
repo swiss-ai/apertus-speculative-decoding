@@ -37,7 +37,9 @@ Correctness captures are in `../correctness/smoke-20260913-debug/`.
 `../../canvases/apertus-speculative-decoding-smoke-screening.canvas.tsx` renders this run as a
 Cursor canvas: the paired per-cell comparison, the acceptance breakdown, the KV-cache cost, and the
 caveats. Copy it into the workspace's managed `canvases/` directory to open it beside a chat. It
-covers draft deployment repeat 1 only, and predates the repeat-2 and draft-TP=1 results below.
+covers all four deployments: the between-deployment spread of the two draft repeats, the n-gram arm,
+the derived step-cost decomposition, the corrected correctness gate, and the unservable draft TP=1
+level.
 
 ## Results
 
