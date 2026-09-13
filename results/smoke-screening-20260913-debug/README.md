@@ -20,6 +20,10 @@ two shipped-configuration effects that are confounded with `method` here.
 `/v1/models` response and the required pre-measurement chat completion. Correctness captures are in
 `../correctness/smoke-20260913-debug/`.
 
+`../../canvases/apertus-speculative-decoding-smoke-screening.canvas.tsx` renders this run as a
+Cursor canvas: the paired per-cell comparison, the acceptance breakdown, the KV-cache cost, and the
+caveats. Copy it into the workspace's managed `canvases/` directory to open it beside a chat.
+
 ## Results
 
 All 12 cells had a 1.000 success rate with exact token usage on every request. `b` is baseline,
