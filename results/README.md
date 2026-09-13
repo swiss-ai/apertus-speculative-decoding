@@ -9,3 +9,10 @@ Commit canonical raw result directories here. A cell contains:
 
 Use a new top-level run directory for every deployed variant. Never overwrite a completed cell.
 Secrets and bearer tokens are not written by the harness.
+
+## Recorded runs
+
+- `smoke-screening-20260913-debug/`: first paired baseline vs. 8B `draft_model` depth-3 TP=4
+  measurement, smoke corpus, concurrency 1 and 8, one deployment repeat per arm. Its `README.md`
+  carries the provenance, the headline comparison, and the deviations.
+- `correctness/smoke-20260913-debug/`: the sequential greedy captures and comparison for that pair.

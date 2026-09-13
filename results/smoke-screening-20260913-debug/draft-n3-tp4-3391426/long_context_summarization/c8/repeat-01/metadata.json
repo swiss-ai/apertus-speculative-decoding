@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "harness_version": "0.1.0",
+  "harness_git_revision": "270413f22f41ad008a72fffae5359cb3bd03785f",
+  "python": "3.13.9",
+  "started_at": "2026-09-13T16:32:31.481145+00:00",
+  "ended_at": "2026-09-13T16:32:58.013716+00:00",
+  "base_url": "http://172.28.32.244:8080",
+  "metrics_url": "http://172.28.32.244:8080/metrics",
+  "model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-draft-n3-tp4-faruk_zahiragic-20260913T152358Z",
+  "variant": {
+    "name": "draft-n3-tp4",
+    "method": "draft_model",
+    "num_speculative_tokens": 3,
+    "draft_tensor_parallel_size": 4,
+    "prompt_lookup_max": null
+  },
+  "cell": {
+    "workload": "long_context_summarization",
+    "concurrency": 8,
+    "requests": 24,
+    "warmup_requests": 8,
+    "repeat": 1,
+    "generation": {
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "seed": 1,
+      "max_tokens": null,
+      "ignore_eos": false
+    }
+  },
+  "workload_file": "workloads/smoke.jsonl",
+  "workload_file_sha256": "316fb566a18e32305b98929e34fdac515b9a43c6c7329994b319870f879952af",
+  "prompt_ids": [
+    "summary-001",
+    "summary-002"
+  ],
+  "extra": {
+    "slurm_job_id": "3391426",
+    "slurm_node_id": "nid006633",
+    "slurm_partition": "debug",
+    "replica_head_ip": "172.28.32.244",
+    "load_generator": "clariden login node, direct to replica node IP (no public gateway)",
+    "max_model_len": "131072",
+    "gpu_memory_utilization": "0.8",
+    "tensor_parallel_size": "4",
+    "hardware": "1x Clariden GH200 node (4 GPUs)",
+    "model_launch_revision": "909026a990454557f1b54d26f24ec3ad92e51e35",
+    "vllm_revision": "a601a9d998ddeb488f0c17e8512874b116aa7658",
+    "vllm_build": "0.23.1rc1.dev1029+ga601a9d99",
+    "container_image": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh",
+    "vllm_source_overlay": "patches/vllm-apertus-image-token.patch bind-mounted over /workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py",
+    "async_scheduling": "disabled automatically by vLLM for draft_model speculation"
+  }
+}
