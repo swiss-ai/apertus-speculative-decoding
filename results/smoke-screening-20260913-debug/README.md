@@ -1,16 +1,18 @@
 # Smoke screening, 2026-09-13, `debug` partition
 
 Screening of Apertus-v1.5-70B at depth 3 on one Clariden GH200 node: plain serving, 8B
-`draft_model` speculation at draft TP=4 (two deployments), and model-free n-gram speculation. Same
-corpus, same `max_model_len`, same client, same on-cluster load path.
+`draft_model` speculation at draft TP=4 (two deployments), and model-free n-gram speculation (two
+deployments). Same corpus, same `max_model_len`, same client, same on-cluster load path.
 
 **Headline: the 8B drafter accepts well and loses badly; n-gram accepts poorly and is the only arm
-that wins anything.** The drafter's tokens are accepted 60–80% of the time (mean acceptance length
-2.81–3.39 of a possible 4) yet output throughput falls to 0.375–0.472× of baseline. N-gram accepts
-only 13–27% and reaches 0.85–1.13× of baseline, winning on long-context summarization and beating the
-draft arm by 1.8–2.7× everywhere.
+that wins anything, and its win reproduces across two independent deployments.** The drafter's tokens
+are accepted 60–80% of the time (mean acceptance length 2.81–3.39 of a possible 4) yet output
+throughput falls to 0.375–0.472× of baseline. N-gram accepts only 13–29% and reaches 0.85–1.20× of
+baseline, beating the draft arm by 1.8–2.7× everywhere and beating the **baseline** on long-context
+summarization in both of its deployments (1.127× and 1.204× at concurrency 1, 1.071× and 1.093× at
+concurrency 8). All six n-gram cells reproduce within the protocol's 10% spread gate, worst 6.6%.
 
-Splitting the two arms locates the cost. Verifying a depth-3 proposal costs **1.26–1.36×** a plain
+Splitting the two arms locates the cost. Verifying a depth-3 proposal costs **1.23–1.36×** a plain
 decode step; proposing with the 8B drafter costs a further **4.9–6.2×** a decode step. Draft cost
 dominates verification cost by an order of magnitude — but it is also about an order of magnitude
 larger than an 8B forward pass can account for, so it is draft-path overhead rather than drafter
@@ -24,13 +26,15 @@ arithmetic. See [the decomposition](#step-cost-decomposition-draft-cost-versus-v
 | `draft-n3-tp4` (`method=draft_model`) | 1 | 3391426 | nid006633 | `draft-n3-tp4-3391426/<workload>/c{1,8}/repeat-01` |
 | `draft-n3-tp4` (`method=draft_model`) | 2 | 3392153 | nid006687 | `draft-n3-tp4-3392153/<workload>/c{1,8}/repeat-02` |
 | `ngram-n3` (`method=ngram`) | 1 | 3392370 | nid006687 | `ngram-n3-3392370/<workload>/c{1,8}/repeat-01` |
+| `ngram-n3` (`method=ngram`) | 2 | 3403354 | nid007500 | `ngram-n3-3403354/<workload>/c{1,8}/repeat-02` |
 
 A `draft_tensor_parallel_size=1` cell was attempted between the draft repeats and the n-gram arm, and
 is not servable at the pinned vLLM revision; see `../deployment-failures/draft-n3-tp1-3392110/`. The
-draft arm therefore has two deployment repeats at TP=4, and the baseline and n-gram arms have one
-each.
+draft and n-gram arms therefore have two deployment repeats each, and **the baseline has one**, which
+is now the design's weakest point: every ratio quoted here still divides by a single baseline
+deployment.
 
-`analysis.csv` is `apertus-bench analyze` over all four deployments (24 rows). `provenance/` holds
+`analysis.csv` is `apertus-bench analyze` over all five deployments (30 rows). `provenance/` holds
 each deployment's `/v1/models` response and the required pre-measurement chat completion.
 Correctness captures are in `../correctness/smoke-20260913-debug/`.
 
@@ -39,13 +43,14 @@ Cursor canvas: the paired per-cell comparison, the acceptance breakdown, the KV-
 caveats. Copy it into the workspace's managed `canvases/` directory to open it beside a chat. It
 covers all four deployments: the between-deployment spread of the two draft repeats, the n-gram arm,
 the derived step-cost decomposition, the corrected correctness gate, and the unservable draft TP=1
-level.
+level. It predates n-gram deployment repeat 2 (job 3403354) and so shows the n-gram arm as a single
+deployment.
 
 ## Results
 
-All 24 cells had a 1.000 success rate with exact token usage on every request, and total completion
-tokens agree within 0.1% across arms (36,148 / 36,160 / 36,184), so the arms really did do the same
-work. The table below pairs the baseline against draft repeat 1; repeat 2 and the n-gram arm have
+All 30 cells had a 1.000 success rate with exact token usage on every request, and total completion
+tokens agree within 0.2% across all five deployments (36,148 baseline; 36,160 and 36,164 draft;
+36,184 and 36,115 n-gram), so the arms really did do the same work. The table below pairs the baseline against draft repeat 1; repeat 2 and the n-gram arm have
 their own sections. `b` is baseline, `d` is `draft-n3-tp4`.
 
 | Workload | Concurrency | TTFT p50 (ms) b→d | TTFT p95 (ms) b→d | TPOT p50 (ms) b→d | Output tok/s b→d | Throughput ratio |
@@ -110,6 +115,72 @@ the document. Code accepts 0.127–0.132, no better than open chat, because thes
 *generation* prompts with short instructions and little text to copy forward. Prompt lookup rewards
 prompts whose output quotes the prompt, not prompts about code.
 
+#### N-gram deployment repeat 2: the summarization win reproduces
+
+Job 3403354 on nid007500 re-ran the identical configuration — depth 3, `prompt_lookup_min=1`,
+`prompt_lookup_max=4`, `max_model_len=131072`, stock image, same corpus, same 8 warmup and 24 measured
+requests per cell, same direct-node-IP load path. Spread is the absolute difference over the mean of
+the two repeats, judged against `maximum_repeat_spread_fraction: 0.10`.
+
+| Workload | Conc. | Output tok/s r1→r2 | Ratio to baseline r1→r2 | Ratio spread | Gate |
+|---|---:|---|---|---:|---|
+| open_chat | 1 | 63.3 → 64.3 | 0.902 → 0.917 | 1.7% | pass |
+| open_chat | 8 | 366.5 → 372.9 | 0.848 → 0.863 | 1.7% | pass |
+| code | 1 | 66.5 → 69.1 | 0.943 → 0.980 | 3.9% | pass |
+| code | 8 | 464.3 → 480.3 | 0.859 → 0.888 | 3.4% | pass |
+| long_context_summarization | 1 | 79.2 → 84.5 | **1.127 → 1.204** | 6.6% | pass |
+| long_context_summarization | 8 | 528.7 → 539.8 | **1.071 → 1.093** | 2.1% | pass |
+
+**The win reproduces.** `long_context_summarization` exceeds 1.0× baseline in both deployments at both
+concurrencies, and repeat 2 is the larger win. Every cell clears the 10% spread gate, worst case 6.6%,
+so the n-gram arm is markedly more reproducible than the draft arm, which spread 1.7–11.1% and
+breached the gate in one cell. Repeat 2 is slightly *faster* than repeat 1 in all six cells, the
+opposite direction from the draft repeats, so the uniform shift between the two draft deployments was
+not a systematic "later run is slower" artefact of the harness or the partition.
+
+The TTFT advantage also reproduces: n-gram is below baseline in all six cells at both p50 and p95 in
+repeat 2 as well, so it holds in 12 of 12 measured cells. TTFT spread between the two n-gram
+deployments is 0.7–6.4%.
+
+| Workload | Conc. | TTFT p50 (ms) base → r1 → r2 | TTFT p95 (ms) base → r1 → r2 | TPOT p50 (ms) base → r1 → r2 |
+|---|---:|---|---|---|
+| open_chat | 1 | 31.0 → 24.1 → 25.3 | 35.5 → 24.6 → 26.0 | 14.13 → 16.03 → 15.69 |
+| open_chat | 8 | 44.4 → 39.5 → 38.1 | 64.9 → 48.8 → 51.6 | 14.69 → 17.36 → 17.02 |
+| code | 1 | 27.8 → 26.5 → 25.0 | 30.5 → 27.5 → 25.8 | 14.15 → 14.91 → 14.48 |
+| code | 8 | 44.8 → 39.4 → 37.6 | 66.7 → 55.2 → 53.6 | 14.70 → 16.04 → 15.44 |
+| long_context_summarization | 1 | 33.6 → 27.7 → 26.3 | 36.5 → 28.4 → 27.5 | 14.16 → 12.51 → 11.69 |
+| long_context_summarization | 8 | 45.7 → 41.0 → 39.2 | 70.5 → 57.1 → 56.8 | 14.72 → 13.36 → 12.85 |
+
+Repeat 2's counters, and the acceptance stability question:
+
+| Workload | Conc. | Drafts | Draft tokens | Accepted | Acceptance rate r1→r2 | Spread | Mean acceptance length r1→r2 | Spread | Per-position (0/1/2) |
+|---|---:|---:|---:|---:|---|---:|---|---:|---|
+| open_chat | 1 | 1068 | 3204 | 456 | 0.139 → 0.142 | 2.2% | 1.42 → 1.43 | 0.7% | 0.213 / 0.135 / 0.079 |
+| open_chat | 8 | 1100 | 3300 | 431 | 0.140 → 0.131 | 7.1% | 1.42 → 1.39 | 2.0% | 0.201 / 0.123 / 0.068 |
+| code | 1 | 4032 | 12048 | 1584 | 0.127 → 0.131 | 3.2% | 1.38 → 1.39 | 0.9% | 0.223 / 0.104 / 0.065 |
+| code | 8 | 4102 | 12252 | 1649 | 0.132 → 0.135 | 2.0% | 1.39 → 1.40 | 0.6% | 0.227 / 0.107 / 0.068 |
+| long_context_summarization | 1 | 2136 | 6408 | 1824 | 0.248 → 0.285 | 13.9% | 1.74 → 1.85 | 6.2% | 0.365 / 0.275 / 0.213 |
+| long_context_summarization | 8 | 2172 | 6516 | 1801 | 0.265 → 0.276 | 4.1% | 1.80 → 1.83 | 1.9% | 0.358 / 0.271 / 0.200 |
+
+**Acceptance is not the near-invariant for n-gram that it was for the draft arm.** The drafter's
+acceptance rate moved 0.5–4.3% between deployments; n-gram's moves 2.0–13.9%, and the largest move is
+in the cell that matters most (`long_context_summarization` at concurrency 1, 0.248 → 0.285). The
+mechanism is visible in the design: the drafter's acceptance is a property of a fixed model pair
+scoring fixed text, whereas prompt lookup matches against the prompt *plus the tokens generated so
+far*. Because the two deployments' greedy outputs diverge numerically (see the correctness note
+below), they generate different text, and different text offers different n-grams to match. N-gram
+acceptance therefore inherits output nondeterminism in a way model-based acceptance does not. Mean
+acceptance length is the steadier of the two quantities (0.6–6.2%).
+
+Both are reported because they are not interconvertible in general (`docs/protocol.md`, "Acceptance
+quantities"). On this corpus they nearly are, and the residual is measurable rather than hypothetical:
+`draft_tokens / drafts` is exactly 3.000 in the open-chat and summarization cells and 2.987–2.988 in
+the two code cells, so prompt lookup proposed short only on code, in both deployments. Where it is
+3.000 the two quantities coincide exactly; on the code cells `(mean_acceptance_length − 1) / 3`
+understates `acceptance_rate` by 0.4% relative (0.1313 against 0.1319 at concurrency 8). Small here,
+but it is the wrong conversion, and on the research corpus — longer prompts, more short partial
+matches — there is no reason to expect the gap to stay this small.
+
 ### Step-cost decomposition: draft cost versus verification cost
 
 Speculation changes tokens per engine step, so per-token latency understates per-step cost. Mean
@@ -117,20 +188,25 @@ step time is recovered from the counters as `mean TPOT × T / (T − accepted)`,
 completion tokens: total steps are `T − accepted`, because every accepted draft token is a token that
 did not need its own step.
 
-| Workload | Conc. | Baseline step | N-gram step | Draft step r1/r2 | N-gram × | Draft × r1/r2 |
-|---|---:|---:|---:|---:|---:|---:|
-| open_chat | 1 | 14.13 ms | 18.64 ms | 91.15 / 100.41 ms | 1.32× | 6.45 / 7.11× |
-| open_chat | 8 | 14.67 ms | 20.00 ms | 94.24 / 101.27 ms | 1.36× | 6.42 / 6.90× |
-| code | 1 | 14.15 ms | 18.13 ms | 101.62 / 104.25 ms | 1.28× | 7.18 / 7.37× |
-| code | 8 | 14.70 ms | 19.54 ms | 101.34 / 106.45 ms | 1.33× | 6.89 / 7.24× |
-| long_context_summarization | 1 | 14.16 ms | 17.79 ms | 96.63 / 105.52 ms | 1.26× | 6.82 / 7.45× |
-| long_context_summarization | 8 | 14.71 ms | 19.42 ms | 91.77 / 98.56 ms | 1.32× | 6.24 / 6.70× |
+Both speculative arms now have two deployments, so every figure below is a range over two independent
+deployments rather than a single measurement.
 
-Verifying a depth-3 proposal costs **1.26–1.36×** a plain decode step. Proposing with the 8B drafter
-costs **another 72.3–87.7 ms**, or 4.9–6.2× a full 70B target step, taking the total to 6.2–7.5×.
-So of the speculative step cost, **verification and the scheduling change account for roughly a
-quarter to a third of one baseline step, and the draft model accounts for about five to six whole
-baseline steps.** Draft cost dominates by an order of magnitude over verification cost.
+| Workload | Conc. | Baseline step | N-gram step r1/r2 | Draft step r1/r2 | N-gram × r1/r2 | Draft × r1/r2 |
+|---|---:|---:|---:|---:|---:|---:|
+| open_chat | 1 | 14.13 ms | 18.64 / 18.32 ms | 91.15 / 100.41 ms | 1.32 / 1.30× | 6.45 / 7.11× |
+| open_chat | 8 | 14.67 ms | 20.00 / 19.61 ms | 94.24 / 101.27 ms | 1.36 / 1.34× | 6.42 / 6.90× |
+| code | 1 | 14.15 ms | 18.13 / 17.45 ms | 101.62 / 104.25 ms | 1.28 / 1.23× | 7.18 / 7.37× |
+| code | 8 | 14.70 ms | 19.54 / 18.88 ms | 101.34 / 106.45 ms | 1.33 / 1.28× | 6.89 / 7.24× |
+| long_context_summarization | 1 | 14.16 ms | 17.79 / 17.36 ms | 96.63 / 105.52 ms | 1.26 / 1.23× | 6.82 / 7.45× |
+| long_context_summarization | 8 | 14.71 ms | 19.42 / 18.98 ms | 91.77 / 98.56 ms | 1.32 / 1.29× | 6.24 / 6.70× |
+
+Verifying a depth-3 proposal costs **1.23–1.36×** a plain decode step, over 12 cells from two
+deployments; the second n-gram deployment lands slightly cheaper than the first in all six cells, so
+the range widened downwards rather than moving. Proposing with the 8B drafter costs **another
+72.3–88.2 ms**, or 4.9–6.2× a full 70B target step, taking the total to 6.2–7.5×. So of the
+speculative step cost, **verification and the scheduling change account for roughly a quarter to a
+third of one baseline step, and the draft model accounts for about five to six whole baseline steps.**
+Draft cost dominates by an order of magnitude over verification cost.
 
 That confirms the draft-plus-verify cost is located in the drafter, and it simultaneously rules out
 the intuitive version of the explanation. Three sequential 8B forward passes at TP=4 should cost a
@@ -146,9 +222,12 @@ time; mean TPOT over a cell is a fair average step cost despite mixing prefill-a
 steady-state steps; verification cost is the same in both speculative arms; and the arms are
 comparable across nodes. The third assumption is imperfect and the direction is known —
 `draft_model` runs with a 7168-token per-step budget while n-gram runs with the baseline's 8192, so
-part of the 72–87 ms gap is budget, not drafter. The fourth is also imperfect, though the n-gram arm
-and draft repeat 2 share node nid006687, which makes that pairing node-matched: against repeat 2 the
-gap is 79.1–87.7 ms, wider than against repeat 1, so node effects do not explain it away.
+part of the 72–88 ms gap is budget, not drafter. The fourth is also imperfect, though the n-gram arm's
+repeat 1 and draft repeat 2 share node nid006687, which makes that pairing node-matched: against
+repeat 2 the gap is 79.1–87.7 ms, wider than against repeat 1, so node effects do not explain it away.
+The n-gram arm's own two deployments, on nid006687 and nid007500, put step cost within 1.7–3.9% of
+each other in every cell, which bounds how much of the drafter's five-to-six-step cost could be a node
+effect: not much.
 
 Job 3392153 on nid006687 re-ran the identical configuration and workload. It reproduces the
 regression in every cell and shifts slightly further from baseline. `r1→r2` is repeat 1 → repeat 2;
@@ -182,7 +261,7 @@ interval, and the baseline still has only one deployment.
 | Arm | KV cache | Max concurrency at 131072 tokens/request | Loss vs baseline |
 |---|---:|---:|---:|
 | baseline | 513,696 tokens | 3.92× | — |
-| ngram-n3 | 416,640 tokens | 3.18× | −18.9% |
+| ngram-n3 (repeat 1 / 2) | 416,640 / 416,640 tokens | 3.18× | −18.9% |
 | draft-n3-tp4 (repeat 1 / 2) | 251,472 / 251,488 tokens | 1.92× | −51.0% |
 
 The n-gram arm splits the draft arm's capacity cost in two, and the answer is not the expected one.
@@ -192,8 +271,10 @@ verifying four positions at once. The drafter's weights then cost a further 165,
 draft arm's halved capacity is roughly 37% speculation machinery and 63% drafter weights, not purely
 the weights.
 
-The two draft deployments sized their cache within 16 tokens of each other, so these figures are
-stable rather than run-to-run noise.
+These are the most reproducible numbers in the study. The two n-gram deployments sized their cache to
+**the same 416,640 tokens on different nodes**, byte-for-byte, and the two draft deployments came
+within 16 tokens of each other, so the −18.9% and −51.0% capacity costs are deterministic properties
+of the configuration rather than run-to-run noise.
 
 ## Interpretation
 
@@ -212,20 +293,27 @@ matters for reading the earlier draft-versus-baseline comparison:
   arm never logs it and runs at the baseline's `max_num_batched_tokens=8192`. This one is asymmetric
   between the speculative arms and inflates part of the draft-versus-n-gram step-cost gap.
 
+Both were re-verified from n-gram repeat 2's own server log rather than assumed to carry over, and
+both hold identically: `Async scheduling not supported with ngram-based speculative decoding and will
+be disabled` followed by `synchronous scheduling is disabled`, `Chunked prefill is enabled with
+max_num_batched_tokens=8192`, and no `max_num_scheduled_tokens` line anywhere in the log. So the
+n-gram arm's win over baseline is achieved *while* giving up async scheduling, in both deployments.
+
 With the n-gram arm in hand, the draft arm's regression is no longer attributable to speculation as
-such. The verification-plus-scheduling package costs 1.26–1.36× a decode step, which n-gram converts
-into a net win where acceptance is high enough. The drafter adds roughly five more baseline steps per
+such. The verification-plus-scheduling package costs 1.23–1.36× a decode step, which n-gram converts
+into a net win where acceptance is high enough, reproducibly. The drafter adds roughly five more baseline steps per
 step, and that is what turns speculation into a 2.1–2.7× regression. Async scheduling being disabled
 in both arms while n-gram still beats baseline on summarization also bounds that confound: it cannot
 be worth more than the margin n-gram wins by.
 
-One unexplained observation: **n-gram has lower TTFT than the baseline in all six cells**, p50 and
-p95. One plausible mechanism is that async scheduling, which the baseline has and n-gram does not,
-prepares the next step before the current step's output is handled and so adds latency to the first
-token. That is a hypothesis, not a measurement; the clean test is a baseline relaunched with async
-scheduling explicitly disabled, which the pinned vLLM supports through the same config field. Node
-effects are not separated either, though the TTFT gap exceeds the node-to-node spread seen between
-the two draft deployments.
+One unexplained observation: **n-gram has lower TTFT than the baseline in all twelve cells**, p50 and
+p95, across both deployments and both nodes. One plausible mechanism is that async scheduling, which
+the baseline has and n-gram does not, prepares the next step before the current step's output is
+handled and so adds latency to the first token. That is a hypothesis, not a measurement; the clean
+test is a baseline relaunched with async scheduling explicitly disabled, which the pinned vLLM
+supports through the same config field. Node effects are not separated either, but the effect now
+reproduces on two nodes with a between-deployment spread of 0.7–6.4%, against a TTFT gap to baseline
+of 4.6–31%, so it is not a single node's quirk.
 
 ## Provenance
 
@@ -237,20 +325,27 @@ the two draft deployments.
   `QOSMaxJobs`, so the arms ran sequentially rather than concurrently.
 - Draft job 3392153 (repeat 2) on nid006687, replica head IP 172.28.33.172, started 19:03:40 CEST,
   ready 19:18 CEST, cancelled 19:36 CEST after measurement.
-- N-gram job 3392370 on nid006687, replica head IP 172.28.33.172, started 19:48:00 CEST, ready
-  20:01 CEST, cancelled 20:09 CEST after measurement. Same physical node as draft repeat 2, so that
-  one pairing is node-matched; `prompt_lookup_min=1`, `prompt_lookup_max=4`,
+- N-gram job 3392370 (repeat 1) on nid006687, replica head IP 172.28.33.172, started 19:48:00 CEST,
+  ready 20:01 CEST, cancelled 20:09 CEST after measurement. Same physical node as draft repeat 2, so
+  that one pairing is node-matched; `prompt_lookup_min=1`, `prompt_lookup_max=4`,
   `num_speculative_tokens=3`.
+- N-gram job 3403354 (repeat 2) on **nid007500**, replica head IP 172.28.44.144, submitted
+  2026-09-14 23:58:13 CEST, ready 2026-09-15 00:10:56 CEST, cancelled 00:18:59 CEST after
+  measurement. A fifth distinct node, so this repeat is *not* node-matched to anything: it samples
+  node effect and deployment effect together, which is what a deployment repeat is for.
+  `prompt_lookup_min=1`, `prompt_lookup_max=4`, `num_speculative_tokens=3`,
+  `max_model_len=131072`, `gpu_memory_utilization=0.8`, target TP=4 — identical to repeat 1.
 - Served model names:
   `faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-baseline-faruk_zahiragic-20260913T152337Z`,
   `faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-draft-n3-tp4-faruk_zahiragic-20260913T152358Z`,
-  `faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-draft-n3-tp4-faruk_zahiragic-20260913T170332Z`, and
-  `faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-ngram-n3-faruk_zahiragic-20260913T174747Z`.
-- KV cache: 513,696 tokens on the baseline (3.92×), 416,640 on the n-gram arm (3.18×), 251,472 and
-  251,488 on the draft repeats (1.92×), all at `max_model_len=131072`.
-- **The n-gram arm ran on the stock pinned image with no overlay**, because it loads no drafter and
-  the `image_token_index` bug is in the draft-model proposer path. Its image provenance therefore
-  matches the baseline exactly, unlike the draft arm.
+  `faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-draft-n3-tp4-faruk_zahiragic-20260913T170332Z`,
+  `faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-ngram-n3-faruk_zahiragic-20260913T174747Z`, and
+  `faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-ngram-n3-faruk_zahiragic-20260914T215813Z`.
+- KV cache: 513,696 tokens on the baseline (3.92×), 416,640 on both n-gram deployments (3.18×),
+  251,472 and 251,488 on the draft repeats (1.92×), all at `max_model_len=131072`.
+- **Both n-gram deployments ran on the stock pinned image with no overlay**, because n-gram loads no
+  drafter and the `image_token_index` bug is in the draft-model proposer path. Their image provenance
+  therefore matches the baseline exactly, unlike the draft arm.
 - Target `swiss-ai/Apertus-v1.5-70B`, draft `swiss-ai/Apertus-v1.5-8B`, both from the Capstor
   cache; target TP=4, draft TP=4, `num_speculative_tokens=3` on every speculative arm.
 - `max_model_len=131072` and `gpu_memory_utilization=0.8` on all arms.
@@ -266,9 +361,13 @@ the two draft deployments.
   reproducing the draft arm needs the same overlay, and any rebuilt image carrying the fix should
   be treated as a different build.
 - Harness revision `270413f22f41ad008a72fffae5359cb3bd03785f` for the baseline and both draft
-  deployments, `a32a5e0c1c8fcb53aacf3bb305e2ad44acf5692a` for the n-gram arm; `src/`, `tests/` and
-  `pyproject.toml` are byte-identical between those two commits, so the harness itself did not
-  change. `apertus-bench` 0.1.0, Python 3.13.9, run from a venv on login node clariden-ln004.
+  deployments, `a32a5e0c1c8fcb53aacf3bb305e2ad44acf5692a` for n-gram repeat 1, and
+  `85ccf4dcf65366cd3927f80eebc2fcf046fa1f4d` for n-gram repeat 2. The first two are byte-identical in
+  `src/`, `tests/` and `pyproject.toml`. The third adds correctness-gate code and a CLI subcommand and
+  leaves the measurement path — `runner.py`, `client.py`, `prometheus.py`, `workloads.py`, `stats.py` —
+  byte-identical to the other two, verified by `git diff` over those files, so the n-gram repeat pair
+  measured with the same instrument. `apertus-bench` 0.1.0, Python 3.13.9, run from a venv on login
+  node clariden-ln004.
 - Load generator: on-cluster, hitting the replica node IP directly on port 8080. The public
   gateway was not used, so gateway latency and OpenTela routing are excluded. Every deployment did
   register with the gateway (`replica_health.json` reached `HEALTHY` with a non-null `peer_id`).
@@ -279,13 +378,15 @@ the two draft deployments.
 - Per cell: 8 warmup requests at the cell's concurrency, then 24 measured requests in closed loop,
   with a `/metrics` snapshot immediately before and after the measured window. Repeat 1 was driven by
   `apertus-bench matrix`; draft repeat 2 by `apertus-bench run` per cell so each cell carries its
-  deployment repeat index; the n-gram arm by `apertus-bench matrix` again. The workload, request
+  deployment repeat index; n-gram repeat 1 by `apertus-bench matrix` again, and n-gram repeat 2 by
+  `apertus-bench run` per cell for the same reason as draft repeat 2. The workload, request
   counts, warmup, sampling and load path are identical throughout.
 - Measurement windows 2026-09-13T15:35:52Z to 16:35:24Z (baseline and draft repeat 1), 17:19Z to
-  17:35Z (draft repeat 2), and 18:02Z to 18:09Z (n-gram).
+  17:35Z (draft repeat 2), 18:02Z to 18:09Z (n-gram repeat 1), and 2026-09-14T22:12:26Z to
+  22:18:11Z (n-gram repeat 2).
 
 Each deployment answered `/v1/models` and then completed a real short chat completion before any
-measurement, as the protocol requires. All four returned the same text for the verification prompt:
+measurement, as the protocol requires. All five returned the same text for the verification prompt:
 
 > Speculative decoding is an optimization technique in large language models that predicts and
 > generates multiple future tokens in parallel before committing to the final output, allowing the
@@ -295,24 +396,26 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
 
 ## Deviations and caveats
 
-- **Only the draft arm has two deployment repeats.** `configs/experiment.yaml` screening asks for two
-  independent deployments per configuration. The baseline and n-gram arms have one each, so they
-  contribute no deployment-level spread and every ratio against them inherits single-deployment
-  uncertainty. The draft arm's own spread was 1.7–11.1% on the throughput ratio, which is the best
-  available guide to how much of the n-gram arm's 0.85–1.13× range is real. **In particular, n-gram's
-  6–15% losses on open chat and code are within a plausible one-deployment error, while its 7–13%
-  summarization win is at the same scale — that comparison needs a repeat before it is claimed.**
-  Two repeats also support a spread but not the bootstrap confidence interval over deployment effects
-  the protocol's analysis section asks for.
-- **`maximum_repeat_spread_fraction: 0.10` is breached in one cell**, `long_context_summarization`
-  at concurrency 1 (11.1% on the throughput ratio). Treat that cell's effect size as the least
-  settled of the six; its direction matches the others.
-- **Node effects are not separated from `method`.** The four deployments used nid007645, nid006633,
-  nid006687 and nid006687, at four different times. Draft repeat 2 and the n-gram arm share a node,
-  so that one pairing is clean; every comparison involving the baseline crosses nodes. The protocol
-  treats node/date as a nuisance block; this run cannot. Draft repeat 2 being uniformly slower than
-  repeat 1 is consistent with a node effect and is a reason not to read small differences as anything
-  else.
+- **Only the baseline has a single deployment.** `configs/experiment.yaml` screening asks for two
+  independent deployments per configuration; both speculative arms now have two, and the baseline has
+  one. So the baseline contributes no deployment-level spread and **every ratio quoted in this run
+  divides by one deployment**. The spread figures here are between-deployment spreads of the
+  numerator only, and a baseline repeat would widen them. This is now the single highest-value missing
+  cell: it is the cheapest measurement that would firm up the summarization win, more so than a third
+  n-gram repeat. Two repeats also support a spread but not the bootstrap confidence interval over
+  deployment effects the protocol's analysis section asks for.
+- **`maximum_repeat_spread_fraction: 0.10` is breached in one cell of the draft arm**,
+  `long_context_summarization` at concurrency 1 (11.1% on the throughput ratio). Treat that cell's
+  effect size as the least settled of the draft arm's six; its direction matches the others. All six
+  n-gram cells clear the gate (worst 6.6%).
+- **Node effects are not separated from `method`.** The five deployments used nid007645, nid006633,
+  nid006687, nid006687 and nid007500, at five different times. Draft repeat 2 and n-gram repeat 1
+  share a node, so that one pairing is clean; every comparison involving the baseline crosses nodes.
+  The protocol treats node/date as a nuisance block; this run cannot. Draft repeat 2 being uniformly
+  slower than repeat 1 is consistent with a node effect and is a reason not to read small differences
+  as anything else — though n-gram repeat 2 being uniformly *faster* than n-gram repeat 1, on a
+  different node again, shows the shift is not a fixed direction and so behaves like a node/deployment
+  effect rather than drift in the harness or the cluster.
 - **The smoke corpus is not the research corpus.** Its "long context" prompts are 270 and 295
   Apertus tokens (6,780 prompt tokens over the 24 requests of a cell, ~283 per request), far
   below the 16k–65k target in `workloads/README.md`, so the `long_context_summarization` rows here
@@ -323,7 +426,8 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
 - **Exact greedy agreement fails and was the wrong criterion; under the calibrated gate this run
   shows no correctness violation.** Baseline against draft repeat 1 gives 0 of 6 exact matches
   (`../correctness/smoke-20260913-debug/comparison.json`); baseline against draft repeat 2 gives 3 of
-  6 (`comparison-repeat2.json`); the n-gram arm gives 2 of 6 (`comparison-ngram-n3.json`); and **the
+  6 (`comparison-repeat2.json`); the n-gram deployments give 2 of 6 and 1 of 6
+  (`comparison-ngram-n3.json`, `comparison-ngram-repeat2.json`); and **the
   two identically configured draft deployments agree with each other on 0 of 6**
   (`comparison-draft-repeat1-vs-repeat2.json`). Two deployments of the same speculative configuration
   disagreeing as much as speculation disagrees with the baseline rules out a rejection-sampling
@@ -336,8 +440,23 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
   that control's divergence envelope (`gate-baseline-vs-draft-repeat1.json`,
   `gate-baseline-vs-draft-repeat2.json`). That is consistent with losslessness and is not a proof of
   it; a same-deployment paired check is impossible here because one deployment serves exactly one
-  speculative configuration, and no baseline-vs-baseline control exists yet. The n-gram capture has
-  not been run through the calibrated gate, because no same-configuration control exists for it.
+  speculative configuration, and no baseline-vs-baseline control exists yet.
+- **The n-gram arm now has its own calibration control, and the gate splits on it — which says the
+  gate is under-powered at six prompts, not that n-gram is unsound.** The second n-gram deployment
+  supplies the same-configuration cross-deployment control the n-gram arm previously lacked
+  (`comparison-ngram-repeat1-vs-repeat2.json`: 1 of 6 exact, worst-case normalized edit distance
+  0.264). Judged against it, **baseline-versus-n-gram-repeat-1 passes** (worst-case edit distance
+  0.308 against an allowance of 0.314) and **baseline-versus-n-gram-repeat-2 fails that one check of
+  four** (0.392 against 0.314), while both pass on comparable cases, common prefix and completion-token
+  difference: `gate-baseline-vs-ngram-repeat1.json`, `gate-baseline-vs-ngram-repeat2.json`. Two
+  deployments of one configuration returning opposite verdicts against an identical control is the
+  clearest possible sign that the instrument's resolution is coarser than the effect it is asked to
+  detect: the allowance is a worst-of-six order statistic from a single control pair, so it is itself a
+  noisy quantity, and adding the draft-repeat pair as a second control does not loosen it because the
+  gate takes the tightest control's envelope. **Do not present "the gate passes for n-gram" as a
+  result.** What is presentable: the divergence between arms is of the same character and roughly the
+  same size as the divergence between two deployments of one arm, and deciding losslessness at this
+  resolution needs many more prompts and a baseline-versus-baseline control.
 - **The step-cost decomposition is an inference, not a direct measurement.** It rests on the
   assumptions listed with it, and one is known to be violated in a direction that inflates the
   drafter's share: the draft arm's per-step token budget is 7168 against n-gram's 8192. A kernel-level
