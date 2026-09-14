@@ -313,7 +313,8 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
   treats node/date as a nuisance block; this run cannot. Draft repeat 2 being uniformly slower than
   repeat 1 is consistent with a node effect and is a reason not to read small differences as anything
   else.
-- **The smoke corpus is not the research corpus.** Its "long context" prompts are ~350 tokens, far
+- **The smoke corpus is not the research corpus.** Its "long context" prompts are 270 and 295
+  Apertus tokens (6,780 prompt tokens over the 24 requests of a cell, ~283 per request), far
   below the 16k–65k target in `workloads/README.md`, so the `long_context_summarization` rows here
   measure almost no prefill. That matters most for the n-gram result: prompt lookup is expected to do
   best exactly where there is a long document to copy spans from, so **this corpus probably

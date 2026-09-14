@@ -11,6 +11,13 @@
  *     the calibrated divergence gate that replaced them),
  *   - `results/deployment-failures/draft-n3-tp1-3392110/` (unservable draft TP).
  * Derived quantities are labelled as derived. Nothing is extrapolated.
+ *
+ * The configuration diff in `ConfigDiff` is read from
+ * `examples/clariden/cli/swiss-ai/apertus-ai-1.5-release/Apertus-v1.5-70B-spec-decode.sh`
+ * in `swiss-ai/model-launch` against this repository's `launch/draft-model.sh`.
+ * Pull-request states are as of 2026-09-14.
+ *
+ * Narrative companion: `docs/hackathon-20260915.md`.
  */
 import {
   BarChart,
@@ -562,6 +569,66 @@ const KV_CACHE = {
 const MAX_REPEAT_SPREAD = 0.1;
 
 /**
+ * `launch/draft-model.sh` against
+ * `examples/clariden/cli/swiss-ai/apertus-ai-1.5-release/Apertus-v1.5-70B-spec-decode.sh`
+ * in `swiss-ai/model-launch`, the starting point suggested on apertus-program#1057.
+ */
+const CONFIG_DIFF: Array<{
+  setting: string;
+  example: string;
+  measured: string;
+  kind: "same" | "forced" | "operational";
+}> = [
+  { setting: "speculative method", example: "draft_model", measured: "draft_model", kind: "same" },
+  {
+    setting: "draft model",
+    example: "swiss-ai/Apertus-v1.5-8B",
+    measured: "same, Capstor cache path",
+    kind: "same",
+  },
+  { setting: "num_speculative_tokens", example: "3", measured: "3", kind: "same" },
+  { setting: "draft_tensor_parallel_size", example: "4", measured: "4", kind: "same" },
+  { setting: "tensor-parallel-size", example: "4", measured: "4", kind: "same" },
+  { setting: "gpu-memory-utilization", example: "0.8", measured: "0.8", kind: "same" },
+  {
+    setting: "compilation-config fuse_allreduce_rms",
+    example: "false",
+    measured: "false",
+    kind: "same",
+  },
+  {
+    setting: "max-model-len",
+    example: "262144",
+    measured: "131072 — 262144 cannot reserve KV cache once the drafter is resident",
+    kind: "forced",
+  },
+  {
+    setting: "container image",
+    example: "stock pinned image",
+    measured: "pinned image + image_token_index overlay, or the drafter never loads",
+    kind: "forced",
+  },
+  {
+    setting: "environment toml",
+    example: "packaged asset, {arch} unresolved",
+    measured: "resolved copy under ~/.sml",
+    kind: "forced",
+  },
+  {
+    setting: "served-model-name",
+    example: "swiss-ai/Apertus-v1.5-70B",
+    measured: "unique per launch",
+    kind: "operational",
+  },
+  {
+    setting: "partition / time",
+    example: "normal / 12:00:00",
+    measured: "debug / 01:00:00 as run",
+    kind: "operational",
+  },
+];
+
+/**
  * `results/correctness/smoke-20260913-debug/`. Exact-match counts come from the
  * original `comparison*.json`; divergence statistics and verdicts from the
  * `divergence-*.json` and `gate-*.json` re-analysis of the same captures.
@@ -738,8 +805,47 @@ function Header() {
         <Pill size="sm" tone="warning">
           draft TP=1 unservable
         </Pill>
+        <Pill size="sm" tone="warning">
+          draft arm needs an unmerged vLLM fix
+        </Pill>
       </Row>
+      <Text size="small" tone="tertiary">
+        Narrative companion, with reproduction commands and the group asks:
+        `docs/hackathon-20260915.md`.
+      </Text>
     </Stack>
+  );
+}
+
+function Verdict() {
+  return (
+    <Grid columns="1.6fr 1fr" gap={20} align="start">
+      <Callout
+        tone="danger"
+        title="Do not enable draft_model speculation for Apertus 1.5 70B on this stack"
+      >
+        <Text size="small">
+          The 8B drafter accepts {spanPct(allAcceptances)} of its proposed tokens and still returns{" "}
+          {span(allThroughputRatios, 3)}× baseline output throughput in all twelve of its cells,
+          across two independent deployments. The cost is not acceptance and not verification: a
+          speculative step with the drafter costs {span(draftStepCost, 1)}× a baseline decode step,
+          of which the drafter alone is {span(draftCost, 1)}×. Three 8B forward passes at TP=4 cannot
+          be five to six whole 70B steps, so that is per-step overhead in the draft path — the one
+          thing worth profiling next.
+        </Text>
+      </Callout>
+      <Callout tone="success" title="N-gram is the only candidate worth carrying forward">
+        <Text size="small">
+          It accepts {spanPct(ngramAcceptances)}, beats baseline on long-context summarization (
+          {ngramRatios
+            .filter((r) => r > 1)
+            .map((r) => `${num(r, 3)}×`)
+            .join(" and ")}
+          ), and is the only arm with lower TTFT than baseline in every cell. It ran once, so that
+          win is at the scale of single-deployment error and is not yet claimable.
+        </Text>
+      </Callout>
+    </Grid>
   );
 }
 
@@ -1797,6 +1903,185 @@ function MemorySection() {
   );
 }
 
+function ConfigDiff() {
+  const forced = CONFIG_DIFF.filter((r) => r.kind === "forced");
+  const same = CONFIG_DIFF.filter((r) => r.kind === "same");
+  return (
+    <Stack gap={12}>
+      <H2>Against the published `Apertus-v1.5-70B-spec-decode.sh`</H2>
+      <Text tone="secondary">
+        The starting point suggested on apertus-program#1057 is `model-launch`'s own
+        speculative-decoding example. Its {same.length} speculative and parallelism settings are
+        reproduced exactly, so the numbers on this canvas are numbers for the published
+        configuration. {forced.length} settings had to change, and each one is a bug or a limit
+        rather than a tuning choice — which means{" "}
+        <Text weight="semibold">the example as published does not currently run.</Text>
+      </Text>
+      <Table
+        headers={["Setting", "Published example", "As measured here", "Why"]}
+        columnAlign={["left", "left", "left", "left"]}
+        rowTone={CONFIG_DIFF.map((r) => (r.kind === "forced" ? "danger" : undefined))}
+        rows={CONFIG_DIFF.map((r) => [
+          r.setting,
+          r.example,
+          r.measured,
+          r.kind === "same" ? "identical" : r.kind === "forced" ? "forced" : "operational",
+        ])}
+        striped
+      />
+      <Callout tone="warning" title="The example's header comment claims the outputs are lossless">
+        <Text size="small">
+          “Lossless — outputs match the plain 70B” is a theorem about exact arithmetic. On this stack
+          two identically configured draft deployments agree on{" "}
+          {CORRECTNESS.pairs[2].exactMatches} of {CORRECTNESS.totalCases} greedy prompts, so “outputs
+          match” is not a checkable property of a launch here and should not be advertised as one.
+          The supportable statement is the calibrated one below: divergence from the baseline is not
+          distinguishable from divergence between two deployments that must agree.
+        </Text>
+      </Callout>
+    </Stack>
+  );
+}
+
+function PlatformFindings() {
+  return (
+    <Stack gap={12}>
+      <H2>Platform findings that affect anyone else trying this</H2>
+      <Grid columns={2} gap={16} align="start">
+        <Callout
+          tone="danger"
+          title="draft_model with an Apertus 1.5 target crashes at drafter load on the pinned image"
+        >
+          <Text size="small">
+            vLLM's `SpecDecodeBaseProposer.load_model()` reads `image_token_index` off the target
+            config for any architecture not on an allow-list.
+            `Apertus1p5ForConditionalGeneration` is multimodal but absent from that list, and
+            `Apertus1p5Config` defines `image_token_id` instead — so the 70B loads, the drafter
+            raises `AttributeError`, and the engine never comes up. The one-line fix is
+            `patches/vllm-apertus-image-token.patch`, bind-mounted over the read-only image by
+            `launch/patch-vllm.sh`, and is open as swiss-ai/vllm#20 against `apertus-1-5`.
+          </Text>
+        </Callout>
+        <Callout tone="danger" title="No image contains the fix, and the upstreaming PRs do not carry it">
+          <Text size="small">
+            swiss-ai/vllm#20 is unmerged, and the maintainers' position is that `apertus-1-5` is the
+            reference branch for the upstream PR and should not take experimental changes. Neither
+            swiss-ai/vllm#16 nor its upstream counterpart vllm-project/vllm#50496 touches any file
+            under `vllm/v1/spec_decode/`, so the bug ships upstream as-is. Today nobody can run
+            draft-model speculation with Apertus 1.5 without a bind-mount overlay.
+          </Text>
+        </Callout>
+        <Callout tone="warning" title="max_model_len had to come down from 262144 to 131072">
+          <Text size="small">
+            With the drafter resident, job 3374717 could not reserve cache for a single full-context
+            request: “To serve at least one request with the model's max seq len (262144), 28.0 GiB
+            KV cache is needed, which is larger than the available KV cache memory (26.86 GiB).” No
+            protocol workload exceeds 65,536 input tokens, so 131072 was applied to every arm to keep
+            them comparable. Anyone copying the example at its default 262144 hits this the moment a
+            drafter is added.
+          </Text>
+        </Callout>
+        <Callout tone="warning" title="Two launch-path hazards, both worked around in `launch/`">
+          <Text size="small">
+            The environment toml ships a literal `{"{arch}"}` in its image path; an `sml` build that
+            does not substitute it on the node makes pyxis reject the placeholder and the job dies
+            seconds after start (`launch/resolve-env.sh` writes a resolved copy). And `model-launch`
+            commit `4413441` renamed both the CLI flags (`--firecrest-system` → `--system`, and
+            friends) and the OpenTela share mount (`/ocfbin` → `/opentelabin`) together, so an `sml`
+            from the other side of that commit paired with the pinned environment toml submits fine,
+            starts its container, then dies on a missing binary — a failure on the node rather than
+            at submission, which is the expensive kind.
+          </Text>
+        </Callout>
+      </Grid>
+    </Stack>
+  );
+}
+
+function NextSteps() {
+  const steps: Array<{ title: string; body: Node }> = [
+    {
+      title: "Profile the draft path",
+      body: (
+        <Text size="small">
+          A kernel-level trace of `draft-n3-tp4` against the baseline, to find where{" "}
+          {span(draftCost, 1)}× a decode step goes when three 8B forward passes should cost a
+          fraction of one 70B step. Hypotheses to discriminate: drafter steps not using captured or
+          compiled graphs, per-step model-switch and synchronisation overhead, and the 7168-token
+          budget. If that overhead is fixable, the whole conclusion changes. Highest-value item, and
+          a vLLM question rather than a workload question.
+        </Text>
+      ),
+    },
+    {
+      title: "Repeat the n-gram arm, and add a second baseline",
+      body: (
+        <Text size="small">
+          `ngram-n3` ran once and its summarization win ({span(ngramRatios.filter((r) => r > 1), 3)}
+          ×) is at the scale of the draft arm's own between-deployment spread (
+          {spanPct(ratioSpreads, 1)}). Two more deployments make it claimable, give the correctness
+          gate a same-configuration control for n-gram, and let every ratio here stop resting on a
+          single baseline.
+        </Text>
+      ),
+    },
+    {
+      title: "Launch a baseline with async scheduling explicitly disabled",
+      body: (
+        <Text size="small">
+          One launch removes the last confound between the baseline and both speculative arms, and
+          tests the leading hypothesis for why n-gram has lower TTFT than the baseline in all six
+          cells. The pinned vLLM supports it through the same config field.
+        </Text>
+      ),
+    },
+    {
+      title: "A genuinely long-context summarization workload",
+      body: (
+        <Text size="small">
+          16k–64k input tokens, against the ~283 prompt tokens per request this corpus actually
+          carries. Prompt lookup should do best exactly where there is a document to copy spans from,
+          so n-gram's best regime is currently untested and its advantage is probably understated.
+        </Text>
+      ),
+    },
+    {
+      title: "Decide a path for swiss-ai/vllm#20",
+      body: (
+        <Text size="small">
+          Get the one line into a built image, whether through `apertus-1-5`, a dedicated branch, or
+          upstream. Until then every draft-model measurement on Apertus 1.5 carries a bind-mount
+          overlay in its provenance and no stock image can reproduce it.
+        </Text>
+      ),
+    },
+  ];
+  return (
+    <Stack gap={12}>
+      <H2>What would move this forward</H2>
+      <Stack gap={10}>
+        {steps.map((s, i) => (
+          <Row key={s.title} gap={14} align="start">
+            <Text weight="semibold" tone="tertiary" style={{ minWidth: 20 }}>
+              {i + 1}
+            </Text>
+            <Stack gap={2}>
+              <Text weight="semibold">{s.title}</Text>
+              {s.body}
+            </Stack>
+          </Row>
+        ))}
+      </Stack>
+      <Caption>
+        Two open cells a later result slots straight into: the depth sweep at draft TP=4
+        (`num_speculative_tokens` 2, 5, 8) and the n-gram depth sweep. Neither is expected to change
+        the sign of the draft-model result, because depth changes how much drafting happens per step
+        and not the per-step overhead the decomposition isolates.
+      </Caption>
+    </Stack>
+  );
+}
+
 const CAVEATS: Array<{ title: string; tone: "warning" | "danger"; body: Node }> = [
   {
     title: "The draft arm did not run the same image as the others",
@@ -2008,6 +2293,7 @@ function AllCells() {
 
 function Provenance() {
   const lines: Array<[string, string]> = [
+    ["narrative companion", "docs/hackathon-20260915.md"],
     ["run directory", "results/smoke-screening-20260913-debug"],
     [
       "correctness artifacts",
@@ -2070,9 +2356,8 @@ export default function ApertusSpeculativeDecodingSmokeScreening() {
   return (
     <Stack gap={28} style={{ padding: 24, maxWidth: 1180 }}>
       <Header />
+      <Verdict />
       <Headline />
-      <Divider />
-      <DeploymentSpread />
       <Divider />
       <PairedComparison />
       <Divider />
@@ -2080,13 +2365,21 @@ export default function ApertusSpeculativeDecodingSmokeScreening() {
       <Divider />
       <StepCost />
       <Divider />
-      <Correctness />
+      <PlatformFindings />
+      <Divider />
+      <ConfigDiff />
       <Divider />
       <DraftTpOne />
       <Divider />
       <MemorySection />
       <Divider />
+      <Correctness />
+      <Divider />
+      <DeploymentSpread />
+      <Divider />
       <Caveats />
+      <Divider />
+      <NextSteps />
       <Divider />
       <AllCells />
       <Provenance />

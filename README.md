@@ -27,6 +27,11 @@ The full experimental contract is in [docs/protocol.md](docs/protocol.md), the i
 is in [docs/literature.md](docs/literature.md), and the staged matrix is machine-readable in
 [configs/experiment.yaml](configs/experiment.yaml).
 
+**Current findings:** [docs/hackathon-20260915.md](docs/hackathon-20260915.md) is the standing
+summary of what has been measured — the headline result, the step-cost decomposition that explains
+it, the platform bugs it surfaced, the diff against the published `model-launch` speculative-decoding
+example, and what remains unanswered.
+
 ## What is implemented
 
 - parameterized baseline, draft-model, and n-gram `sml` launchers using Capstor model paths;
@@ -97,10 +102,11 @@ Each launcher prints its unique served model name. Do not begin measurement mere
 name appears in `/v1/models`; require one successful short chat completion first.
 
 The launchers speak the pinned `model-launch` CLI (`--system`, `--framework`, `--environment`,
-`--nodes-per-replica`, `--time`). Later revisions rename those to `--firecrest-system`,
-`--serving-framework`, `--slurm-environment`, and also rename the OpenTela share mount from
-`/ocfbin` to `/opentelabin`, so a newer or older `sml` paired with the pinned environment toml
-fails on the node rather than at submission. Install the pin and put it first on `PATH`:
+`--nodes-per-replica`, `--time`). Builds from before `model-launch` commit `4413441` call those
+`--firecrest-system`, `--serving-framework`, `--slurm-environment`, and that same commit renamed the
+OpenTela share mount from `/ocfbin` to `/opentelabin`, so an `sml` from the other side of it paired
+with the pinned environment toml fails on the node rather than at submission. Install the pin and
+put it first on `PATH`:
 
 ```bash
 python3 -m venv ~/venvs/sml-apertus
