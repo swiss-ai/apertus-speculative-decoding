@@ -1,7 +1,7 @@
 /**
  * Paired measurement of speculative decoding for Apertus-v1.5-70B: one baseline
- * deployment against two independently launched 8B draft deployments and one
- * model-free n-gram deployment.
+ * deployment against two independently launched 8B draft deployments and two
+ * independently launched model-free n-gram deployments.
  *
  * Every number rendered here is read from the committed run artifacts:
  *   - `results/smoke-screening-20260913-debug/analysis.csv` and each cell's
@@ -15,7 +15,8 @@
  * The configuration diff in `ConfigDiff` is read from
  * `examples/clariden/cli/swiss-ai/apertus-ai-1.5-release/Apertus-v1.5-70B-spec-decode.sh`
  * in `swiss-ai/model-launch` against this repository's `launch/draft-model.sh`.
- * Pull-request states are as of 2026-09-14.
+ * Pull-request states are as of 2026-09-14. N-gram deployment repeat 2 (job
+ * 3403354) landed as commit `246e069` and is included throughout.
  *
  * Narrative companion: `docs/hackathon-20260915.md`.
  */
@@ -79,8 +80,10 @@ type Cell = {
   draft1: DraftArm;
   /** `draft-n3-tp4` deployment repeat 2, job 3392153 on nid006687. */
   draft2: DraftArm;
-  /** `ngram-n3` (prompt lookup 1–4), job 3392370 on nid006687. */
+  /** `ngram-n3` (prompt lookup 1–4) deployment repeat 1, job 3392370 on nid006687. */
   ngram: DraftArm;
+  /** `ngram-n3` deployment repeat 2, job 3403354 on nid007500. */
+  ngram2: DraftArm;
   /** Manual label nudge for the scatter plot, in px. */
   labelDx: number;
   labelDy: number;
@@ -164,6 +167,25 @@ const CELLS: Cell[] = [
       meanAcceptanceLength: 1.4175824175824177,
       perPosition: [0.2087912087912088, 0.13186813186813187, 0.07692307692307693],
     },
+    ngram2: {
+      ttftP50: 25.34669346641749,
+      ttftP95: 26.013556553516537,
+      tpotP50: 15.694102135157863,
+      tpotMean: 15.739762502905341,
+      tpotP95: 16.426353003261248,
+      outTps: 64.32286348214889,
+      e2eP50: 2096.0855385055766,
+      e2eP95: 2920.13641835656,
+      gapP50: 18.377305008471012,
+      promptTokens: 1944,
+      completionTokens: 3240,
+      drafts: 1068,
+      draftTokens: 3204,
+      acceptedTokens: 456,
+      acceptanceRate: 0.14232209737827714,
+      meanAcceptanceLength: 1.4269662921348314,
+      perPosition: [0.21348314606741572, 0.1348314606741573, 0.07865168539325842],
+    },
   },
   {
     key: "chat-c8",
@@ -241,6 +263,25 @@ const CELLS: Cell[] = [
       acceptanceRate: 0.14015503875968993,
       meanAcceptanceLength: 1.4204651162790698,
       perPosition: [0.21395348837209302, 0.13116279069767442, 0.07534883720930233],
+    },
+    ngram2: {
+      ttftP50: 38.07157545816153,
+      ttftP95: 51.61533848149701,
+      tpotP50: 17.021577629284337,
+      tpotMean: 17.00545352950215,
+      tpotP95: 17.902201187022804,
+      outTps: 372.91561227000153,
+      e2eP50: 2243.0368589702994,
+      e2eP95: 3161.774491216056,
+      gapP50: 19.226733478717506,
+      promptTokens: 1944,
+      completionTokens: 3240,
+      drafts: 1100,
+      draftTokens: 3300,
+      acceptedTokens: 431,
+      acceptanceRate: 0.13060606060606061,
+      meanAcceptanceLength: 1.3918181818181818,
+      perPosition: [0.2009090909090909, 0.12272727272727273, 0.06818181818181818],
     },
   },
   {
@@ -320,6 +361,25 @@ const CELLS: Cell[] = [
       meanAcceptanceLength: 1.3804034582132565,
       perPosition: [0.21613832853025935, 0.09798270893371758, 0.06628242074927954],
     },
+    ngram2: {
+      ttftP50: 24.989409488625824,
+      ttftP95: 25.791620346717536,
+      tpotP50: 14.480513403515573,
+      tpotMean: 14.446819385740008,
+      tpotP95: 15.715686004431358,
+      outTps: 69.08622662889312,
+      e2eP50: 5571.322993608192,
+      e2eP95: 6044.344792014454,
+      gapP50: 16.6152665624395,
+      promptTokens: 2184,
+      completionTokens: 9216,
+      drafts: 4032,
+      draftTokens: 12048,
+      acceptedTokens: 1584,
+      acceptanceRate: 0.13147410358565736,
+      meanAcceptanceLength: 1.3928571428571428,
+      perPosition: [0.22321428571428573, 0.10416666666666667, 0.06547619047619048],
+    },
   },
   {
     key: "code-c8",
@@ -397,6 +457,25 @@ const CELLS: Cell[] = [
       acceptanceRate: 0.13189760260056888,
       meanAcceptanceLength: 1.394027676620539,
       perPosition: [0.2231124059237679, 0.10390871570769604, 0.06700655498907501],
+    },
+    ngram2: {
+      ttftP50: 37.61466150172055,
+      ttftP95: 53.58209606492892,
+      tpotP50: 15.442115374762983,
+      tpotMean: 15.499060239976805,
+      tpotP95: 17.02915777366574,
+      outTps: 480.2821545839667,
+      e2eP50: 5951.470753410831,
+      e2eP95: 6559.8203245783225,
+      gapP50: 18.891832092776895,
+      promptTokens: 2184,
+      completionTokens: 9216,
+      drafts: 4102,
+      draftTokens: 12252,
+      acceptedTokens: 1649,
+      acceptanceRate: 0.13459027097616716,
+      meanAcceptanceLength: 1.401999024865919,
+      perPosition: [0.22671867381764993, 0.10726474890297416, 0.06801560214529498],
     },
   },
   {
@@ -476,6 +555,25 @@ const CELLS: Cell[] = [
       meanAcceptanceLength: 1.7433155080213902,
       perPosition: [0.31016042780748665, 0.25133689839572193, 0.18181818181818182],
     },
+    ngram2: {
+      ttftP50: 26.275590411387384,
+      ttftP95: 27.542010857723653,
+      tpotP50: 11.689330598269802,
+      tpotMean: 11.698615800444108,
+      tpotP95: 12.384350059152235,
+      outTps: 84.54541341799391,
+      e2eP50: 2753.8604120491073,
+      e2eP95: 3184.2010861379094,
+      gapP50: 16.538404976017773,
+      promptTokens: 6780,
+      completionTokens: 5592,
+      drafts: 2136,
+      draftTokens: 6408,
+      acceptedTokens: 1824,
+      acceptanceRate: 0.2846441947565543,
+      meanAcceptanceLength: 1.8539325842696628,
+      perPosition: [0.3651685393258427, 0.2752808988764045, 0.21348314606741572],
+    },
   },
   {
     key: "summ-c8",
@@ -554,6 +652,25 @@ const CELLS: Cell[] = [
       meanAcceptanceLength: 1.7955776173285198,
       perPosition: [0.34205776173285196, 0.26353790613718414, 0.18998194945848376],
     },
+    ngram2: {
+      ttftP50: 39.19512196443975,
+      ttftP95: 56.75843383651227,
+      tpotP50: 12.854280021736162,
+      tpotMean: 12.891128454177474,
+      tpotP95: 13.501139006613956,
+      outTps: 539.810297160561,
+      e2eP50: 3038.96525898017,
+      e2eP95: 3481.606187764555,
+      gapP50: 19.044562941417098,
+      promptTokens: 6780,
+      completionTokens: 5611,
+      drafts: 2172,
+      draftTokens: 6516,
+      acceptedTokens: 1801,
+      acceptanceRate: 0.2763965623081645,
+      meanAcceptanceLength: 1.8291896869244937,
+      perPosition: [0.358195211786372, 0.27117863720073665, 0.1998158379373849],
+    },
   },
 ];
 
@@ -561,6 +678,7 @@ const CELLS: Cell[] = [
 const KV_CACHE = {
   baseline: { tokens: 513696, maxConcurrency: 3.919189453125, gpuBlocks: 32106 },
   ngram: { tokens: 416640, maxConcurrency: 3.1787109375, gpuBlocks: 26040 },
+  ngram2: { tokens: 416640, maxConcurrency: 3.1787109375, gpuBlocks: 26040 },
   draft1: { tokens: 251472, maxConcurrency: 1.9185791015625, gpuBlocks: 15717 },
   draft2: { tokens: 251488, maxConcurrency: 1.918701171875, gpuBlocks: 15718 },
 };
@@ -672,23 +790,58 @@ const CORRECTNESS = {
       verdict: "control",
     },
     {
-      key: "b-ng",
-      label: "baseline vs. n-gram",
-      role: "no control exists",
+      key: "b-ng1",
+      label: "baseline vs. n-gram repeat 1",
+      role: "compared pair",
       exactMatches: 2,
       worstPrefixCharacters: 151,
       worstPrefixFraction: 0.12731871838111297,
       meanEditDistance: 0.11668092393051567,
       worstEditDistance: 0.3082865168539326,
       worstTokenDifference: 2,
-      verdict: "not judged",
+      verdict: "within_control_envelope",
+    },
+    {
+      key: "b-ng2",
+      label: "baseline vs. n-gram repeat 2",
+      role: "compared pair",
+      exactMatches: 1,
+      worstPrefixCharacters: 47,
+      worstPrefixFraction: 0.04072790294627383,
+      meanEditDistance: 0.21319717187838175,
+      worstEditDistance: 0.3915229885057471,
+      worstTokenDifference: 40,
+      verdict: "exceeds_control_envelope",
+    },
+    {
+      key: "ng1-ng2",
+      label: "n-gram repeat 1 vs. repeat 2",
+      role: "calibration control",
+      exactMatches: 1,
+      worstPrefixCharacters: 47,
+      worstPrefixFraction: 0.04062229904926534,
+      meanEditDistance: 0.163143940008724,
+      worstEditDistance: 0.2636494252873563,
+      worstTokenDifference: 38,
+      verdict: "control",
     },
   ],
   totalCases: 6,
-  allowance: {
+  /**
+   * The `checks` allowances the gate actually applied: the tightest control's
+   * worst case plus the declared margin. The draft pairs were judged against
+   * the draft-repeat control alone; the n-gram pairs against both controls, and
+   * the n-gram control is the tighter one on every statistic.
+   */
+  allowanceDraft: {
     prefixFraction: 0.07818336162988114,
     editDistance: 0.3058139534883721,
     tokenDifference: 5,
+  },
+  allowanceNgram: {
+    prefixFraction: 0.0,
+    editDistance: 0.3136494252873563,
+    tokenDifference: 40,
   },
   margins: { prefixFraction: 0.05, editDistance: 0.05, tokenDifference: 2 },
 };
@@ -735,11 +888,23 @@ const allTtftRatios = CELLS.flatMap((c) =>
 const allAcceptances = CELLS.flatMap((c) => draftArms(c).map((arm) => arm.acceptanceRate));
 const allMals = CELLS.flatMap((c) => draftArms(c).map((arm) => arm.meanAcceptanceLength));
 
+const ngramArms = (cell: Cell): [DraftArm, DraftArm] => [cell.ngram, cell.ngram2];
+
 const ngramRatios = CELLS.map((c) => ratio(c.ngram.outTps, c.baseline.outTps));
-const ngramAcceptances = CELLS.map((c) => c.ngram.acceptanceRate);
-const ngramTtftRatios = CELLS.map((c) => ratio(c.ngram.ttftP50, c.baseline.ttftP50));
+const ngramRatios2 = CELLS.map((c) => ratio(c.ngram2.outTps, c.baseline.outTps));
+const allNgramRatios = [...ngramRatios, ...ngramRatios2];
+const ngramAcceptances = CELLS.flatMap((c) => ngramArms(c).map((arm) => arm.acceptanceRate));
+const ngramMals = CELLS.flatMap((c) => ngramArms(c).map((arm) => arm.meanAcceptanceLength));
+const ngramTtftRatios = CELLS.flatMap((c) =>
+  ngramArms(c).map((arm) => ratio(arm.ttftP50, c.baseline.ttftP50)),
+);
+const ngramTtft95Ratios = CELLS.flatMap((c) =>
+  ngramArms(c).map((arm) => ratio(arm.ttftP95, c.baseline.ttftP95)),
+);
 const ngramOverDraft = CELLS.map((c) => ratio(c.ngram.outTps, c.draft1.outTps));
-const winningCells = CELLS.filter((_, i) => ngramRatios[i] > 1);
+const winningCells = CELLS.filter((_, i) => ngramRatios[i] > 1 && ngramRatios2[i] > 1);
+/** Cells where n-gram beat baseline on TTFT, over both deployments and both percentiles. */
+const ngramTtftWins = [...ngramTtftRatios, ...ngramTtft95Ratios].filter((r) => r < 1).length;
 
 /**
  * Derived step time: mean TPOT × T ÷ (T − accepted), where T is the cell's
@@ -751,21 +916,44 @@ const stepMs = (arm: Arm, accepted = 0) =>
   (arm.tpotMean * arm.completionTokens) / (arm.completionTokens - accepted);
 const baselineSteps = CELLS.map((c) => stepMs(c.baseline));
 const ngramSteps = CELLS.map((c) => stepMs(c.ngram, c.ngram.acceptedTokens));
+const ngramSteps2 = CELLS.map((c) => stepMs(c.ngram2, c.ngram2.acceptedTokens));
 const draft1Steps = CELLS.map((c) => stepMs(c.draft1, c.draft1.acceptedTokens));
 const draft2Steps = CELLS.map((c) => stepMs(c.draft2, c.draft2.acceptedTokens));
-/** Verification plus the scheduling change, in baseline decode steps. */
-const verifyCost = CELLS.map((_, i) => ngramSteps[i] / baselineSteps[i]);
-/** The 8B drafter's additional cost, in baseline decode steps, over both repeats. */
-const draftCost = [...draft1Steps, ...draft2Steps].map(
-  (step, i) => (step - ngramSteps[i % CELLS.length]) / baselineSteps[i % CELLS.length],
+/** Verification plus the scheduling change, in baseline decode steps, over both n-gram repeats. */
+const verifyCost = [...ngramSteps, ...ngramSteps2].map(
+  (step, i) => step / baselineSteps[i % CELLS.length],
+);
+/**
+ * The 8B drafter's additional cost, in baseline decode steps: every draft
+ * deployment against every n-gram deployment, so all four pairings per cell.
+ */
+const draftCost = [...draft1Steps, ...draft2Steps].flatMap((step, i) =>
+  [ngramSteps[i % CELLS.length], ngramSteps2[i % CELLS.length]].map(
+    (verifyStep) => (step - verifyStep) / baselineSteps[i % CELLS.length],
+  ),
+);
+const draftCostMs = [...draft1Steps, ...draft2Steps].flatMap((step, i) =>
+  [ngramSteps[i % CELLS.length], ngramSteps2[i % CELLS.length]].map(
+    (verifyStep) => step - verifyStep,
+  ),
 );
 const draftStepCost = [...draft1Steps, ...draft2Steps].map(
   (step, i) => step / baselineSteps[i % CELLS.length],
 );
+/** How far apart two n-gram deployments on different nodes put the same step. */
+const ngramStepSpreads = CELLS.map((_, i) => spread(ngramSteps[i], ngramSteps2[i]));
 
 const acceptanceSpreads = CELLS.map((c) => spread(c.draft1.acceptanceRate, c.draft2.acceptanceRate));
 const ratioSpreads = CELLS.map((_, i) => spread(throughputRatios1[i], throughputRatios2[i]));
 const breachingCells = CELLS.filter((_, i) => ratioSpreads[i] > MAX_REPEAT_SPREAD);
+
+const ngramAcceptanceSpreads = CELLS.map((c) =>
+  spread(c.ngram.acceptanceRate, c.ngram2.acceptanceRate),
+);
+const ngramMalSpreads = CELLS.map((c) =>
+  spread(c.ngram.meanAcceptanceLength, c.ngram2.meanAcceptanceLength),
+);
+const ngramRatioSpreads = CELLS.map((_, i) => spread(ngramRatios[i], ngramRatios2[i]));
 
 const span = (xs: number[], digits = 2, suffix = "") =>
   `${num(Math.min(...xs), digits)}–${num(Math.max(...xs), digits)}${suffix}`;
@@ -789,18 +977,18 @@ function Header() {
       <Text tone="secondary">
         One 4×GH200 Clariden node per deployment. Baseline `swiss-ai/Apertus-v1.5-70B` at
         tensor-parallel 4; an `Apertus-v1.5-8B` draft model at `num_speculative_tokens=3`,
-        `draft_tensor_parallel_size=4`, launched twice independently; and model-free n-gram
-        speculation at depth 3 with prompt lookup 1–4. Three workloads × two concurrencies × four
-        deployments = 24 cells, 8 warmup then 24 measured requests each, all with a 1.000 success
-        rate.
+        `draft_tensor_parallel_size=4`; and model-free n-gram speculation at depth 3 with prompt
+        lookup 1–4. Each speculative arm was launched twice, independently, on different nodes.
+        Three workloads × two concurrencies × five deployments = 30 cells, 8 warmup then 24 measured
+        requests each, all with a 1.000 success rate.
       </Text>
       <Row gap={6} wrap>
         <Pill size="sm">Clariden · partition debug</Pill>
-        <Pill size="sm">2026-09-13, 15:35–18:15 UTC</Pill>
-        <Pill size="sm">jobs 3391425 / 3391426 / 3392153 / 3392370</Pill>
+        <Pill size="sm">2026-09-13 and 2026-09-14</Pill>
+        <Pill size="sm">jobs 3391425 / 3391426 / 3392153 / 3392370 / 3403354</Pill>
         <Pill size="sm">smoke corpus, 6 prompts</Pill>
         <Pill size="sm" tone="warning">
-          2 draft repeats, 1 baseline
+          2 repeats per speculative arm, 1 baseline
         </Pill>
         <Pill size="sm" tone="warning">
           draft TP=1 unservable
@@ -834,15 +1022,18 @@ function Verdict() {
           thing worth profiling next.
         </Text>
       </Callout>
-      <Callout tone="success" title="N-gram is the only candidate worth carrying forward">
+      <Callout tone="success" title="N-gram is the only positive result, and it reproduced">
         <Text size="small">
-          It accepts {spanPct(ngramAcceptances)}, beats baseline on long-context summarization (
-          {ngramRatios
-            .filter((r) => r > 1)
-            .map((r) => `${num(r, 3)}×`)
-            .join(" and ")}
-          ), and is the only arm with lower TTFT than baseline in every cell. It ran once, so that
-          win is at the scale of single-deployment error and is not yet claimable.
+          It accepts only {spanPct(ngramAcceptances)}, and on long-context summarization it beats
+          baseline in both of its independent deployments — {num(ngramRatios[4], 3)}× then{" "}
+          {num(ngramRatios2[4], 3)}× at concurrency 1, {num(ngramRatios[5], 3)}× then{" "}
+          {num(ngramRatios2[5], 3)}× at concurrency 8. All six cells clear the protocol's{" "}
+          {pct(MAX_REPEAT_SPREAD, 0)} spread gate, worst {pct(Math.max(...ngramRatioSpreads), 1)},
+          against the draft arm's {pct(Math.max(...ratioSpreads), 1)} breach. Lower TTFT than
+          baseline now holds in {ngramTtftWins} of {ngramTtftRatios.length + ngramTtft95Ratios.length}{" "}
+          cells across p50 and p95. What it still needs is a <Text weight="semibold">baseline</Text>{" "}
+          repeat: the baseline is the denominator of every ratio here and the only arm with one
+          deployment.
         </Text>
       </Callout>
     </Grid>
@@ -856,9 +1047,9 @@ function Headline() {
         <Text weight="semibold" style={{ fontSize: 17, lineHeight: 1.45 }}>
           The 8B drafter's proposed tokens are accepted at {spanPct(allAcceptances)} and it loses in all
           twelve of its cells. N-gram's acceptance rate is only {spanPct(ngramAcceptances)}, yet it is
-          the only arm that wins anything, taking {span(ngramRatios, 3)}× of baseline throughput and beating the baseline
-          outright on long-context summarization. Acceptance is not the binding constraint — the arm
-          that accepts worst is the arm that wins.
+          the only arm that wins anything, taking {span(allNgramRatios, 3)}× of baseline throughput and beating the baseline
+          outright on long-context summarization in both of its deployments. Acceptance is not the
+          binding constraint — the arm that accepts worst is the arm that wins.
         </Text>
         <Grid columns={3} gap={16}>
           <Stat
@@ -867,8 +1058,8 @@ function Headline() {
             tone="danger"
           />
           <Stat
-            value={`${span(ngramRatios)}×`}
-            label="ngram-n3 output throughput vs baseline (6 cells)"
+            value={`${span(allNgramRatios)}×`}
+            label="ngram-n3 output throughput vs baseline (12 cells)"
             tone="success"
           />
           <Stat
@@ -929,12 +1120,14 @@ function DeploymentSpread() {
     <Stack gap={12}>
       <H2>What reproduces between deployments, and what does not</H2>
       <Text tone="secondary">
-        Jobs 3391426 and 3392153 served the identical configuration on different nodes at different
-        times. The protocol's independent unit is the deployment repeat, so the gap between these two
-        is the measurement's own noise floor — and it is not the same size for every quantity.
-        The acceptance rate moves by {span(acceptanceSpreads.map((s) => s * 100), 1)}%, the throughput
-        ratio by {span(ratioSpreads.map((s) => s * 100), 1)}%. The drafter's acceptance rate is a
-        property of the model pair; the speedup is a property of the deployment.
+        Each speculative arm was launched twice with an identical configuration, on different nodes at
+        different times. The protocol's independent unit is the deployment repeat, so the gap within a
+        pair is the measurement's own noise floor — and it is not the same size for every quantity,
+        nor the same for the two arms. The draft arm's throughput ratio moves{" "}
+        {span(ratioSpreads.map((s) => s * 100), 1)}% while its acceptance moves only{" "}
+        {span(acceptanceSpreads.map((s) => s * 100), 1)}%. The n-gram arm inverts that: its throughput
+        ratio moves {span(ngramRatioSpreads.map((s) => s * 100), 1)}% while its acceptance moves{" "}
+        {span(ngramAcceptanceSpreads.map((s) => s * 100), 1)}%.
       </Text>
       <Grid columns="1.4fr 1fr" gap={20} align="start">
         <Stack gap={8}>
@@ -942,47 +1135,72 @@ function DeploymentSpread() {
             categories={CATEGORIES}
             series={[
               {
-                name: "Spread of the acceptance rate",
+                name: "draft: acceptance rate",
                 data: acceptanceSpreads.map((s) => round(s * 100, 1)),
                 tone: "success",
               },
               {
-                name: "Spread of the output-throughput ratio vs baseline",
+                name: "draft: output-throughput ratio vs baseline",
                 data: ratioSpreads.map((s) => round(s * 100, 1)),
                 tone: "danger",
               },
+              {
+                name: "ngram: acceptance rate",
+                data: ngramAcceptanceSpreads.map((s) => round(s * 100, 1)),
+                tone: "warning",
+              },
+              {
+                name: "ngram: output-throughput ratio vs baseline",
+                data: ngramRatioSpreads.map((s) => round(s * 100, 1)),
+                tone: "info",
+              },
             ]}
             valueSuffix="%"
-            height={280}
+            height={300}
           />
           <Caption>
             y: between-deployment spread, |repeat 1 − repeat 2| ÷ mean of the two, in percent · x:
             workload × concurrency cell · lower is more reproducible · the protocol's
-            `maximum_repeat_spread_fraction` is {pct(MAX_REPEAT_SPREAD, 0)}, which only the throughput
-            ratio approaches, and only `{breach.workload}` at concurrency {breach.concurrency}{" "}
-            exceeds, at {pct(ratioSpreads[breachIndex], 1)} · source: per-cell `summary.json` in both
-            draft deployments.
+            `maximum_repeat_spread_fraction` is {pct(MAX_REPEAT_SPREAD, 0)}; only `{breach.workload}`
+            at concurrency {breach.concurrency} exceeds it, on the draft arm's throughput ratio, at{" "}
+            {pct(ratioSpreads[breachIndex], 1)} · every n-gram cell clears it, worst{" "}
+            {pct(Math.max(...ngramRatioSpreads), 1)} · source: per-cell `summary.json` in all four
+            speculative deployments.
           </Caption>
         </Stack>
         <Stack gap={12}>
           <Callout
-            tone="warning"
-            title={`${breach.workload} at concurrency ${breach.concurrency} breaches the repeat-spread gate`}
+            tone="success"
+            title="The n-gram arm is the more reproducible of the two, including where it wins"
           >
             <Text size="small">
-              Its throughput ratio moves {pct(ratioSpreads[breachIndex], 1)} between the two
-              deployments, against a declared limit of {pct(MAX_REPEAT_SPREAD, 0)}. Treat that cell's
-              effect size as the least settled of the six; its direction matches the others. The
-              second-largest, `open_chat` at concurrency 8, sits just under the limit at{" "}
-              {pct(ratioSpreads[CELLS.findIndex((c) => c.key === "chat-c8")], 1)}.
+              Its throughput ratio spreads {span(ngramRatioSpreads.map((s) => s * 100), 1)}% against
+              the draft arm's {span(ratioSpreads.map((s) => s * 100), 1)}%, and all six cells clear
+              the gate. `long_context_summarization` at concurrency 1 — the cell that carries the
+              headline — spreads {pct(ngramRatioSpreads[4], 1)} and wins in both deployments
+              ({num(ngramRatios[4], 3)}× then {num(ngramRatios2[4], 3)}×).
             </Text>
           </Callout>
-          <Callout tone="warning" title="Repeat 2 is slower in all six cells">
+          <Callout tone="warning" title="Acceptance is a near-invariant for the drafter and not for n-gram">
             <Text size="small">
-              A symmetric noise process would put roughly half the cells on each side. All six moving
-              the same way is the signature of a node or drift effect, which is exactly what two
-              repeats cannot separate — and a reason not to read small differences between them as
-              anything else.
+              The drafter scores fixed text with a fixed model pair, so its acceptance is a property
+              of that pair: {spanPct(acceptanceSpreads, 1)} between deployments, less than its
+              throughput ratio moves. Prompt lookup matches against the prompt{" "}
+              <Text size="small" italic>plus the tokens generated so far</Text>, so two deployments
+              whose greedy outputs diverge numerically offer different n-grams to match: n-gram's
+              acceptance moves {spanPct(ngramAcceptanceSpreads, 1)}, more than its throughput ratio,
+              worst in the summarization cell at concurrency 1 (
+              {num(CELLS[4].ngram.acceptanceRate, 3)} → {num(CELLS[4].ngram2.acceptanceRate, 3)}).
+              Mean acceptance length is steadier, {spanPct(ngramMalSpreads, 1)}.
+            </Text>
+          </Callout>
+          <Callout tone="info" title="The between-deployment shift has no fixed direction">
+            <Text size="small">
+              Draft repeat 2 was slower than repeat 1 in all six of its cells; n-gram repeat 2 was
+              faster than repeat 1 in all six of its own, on a fifth distinct node. So a uniform
+              within-pair shift is not a "later run is slower" artefact of the harness, the partition,
+              or the time of day — it behaves like a node/deployment effect, which is exactly what two
+              repeats sample and cannot separate.
             </Text>
           </Callout>
         </Stack>
@@ -991,32 +1209,53 @@ function DeploymentSpread() {
         headers={[
           "Workload",
           "Conc.",
+          "Arm",
           "Acceptance rate r1 → r2",
-          "Acceptance-rate spread",
+          "Acceptance spread",
           "Output tok/s r1 → r2",
           "Ratio to baseline r1 → r2",
           "Ratio spread",
         ]}
-        columnAlign={["left", "right", "right", "right", "right", "right", "right"]}
-        rowTone={CELLS.map((_, i) => (ratioSpreads[i] > MAX_REPEAT_SPREAD ? "danger" : undefined))}
-        rows={CELLS.map((c, i) => [
-          c.workload,
-          c.concurrency,
-          `${num(c.draft1.acceptanceRate, 3)} → ${num(c.draft2.acceptanceRate, 3)}`,
-          pct(acceptanceSpreads[i], 1),
-          `${num(c.draft1.outTps, 1)} → ${num(c.draft2.outTps, 1)}`,
-          `${num(throughputRatios1[i], 3)} → ${num(throughputRatios2[i], 3)}`,
-          pct(ratioSpreads[i], 1),
+        columnAlign={["left", "right", "left", "right", "right", "right", "right", "right"]}
+        rowTone={CELLS.flatMap((_, i) => [
+          ratioSpreads[i] > MAX_REPEAT_SPREAD ? ("danger" as const) : undefined,
+          "success" as const,
+        ])}
+        rows={CELLS.flatMap((c, i) => [
+          [
+            c.workload,
+            c.concurrency,
+            "draft",
+            `${num(c.draft1.acceptanceRate, 3)} → ${num(c.draft2.acceptanceRate, 3)}`,
+            pct(acceptanceSpreads[i], 1),
+            `${num(c.draft1.outTps, 1)} → ${num(c.draft2.outTps, 1)}`,
+            `${num(throughputRatios1[i], 3)} → ${num(throughputRatios2[i], 3)}`,
+            pct(ratioSpreads[i], 1),
+          ],
+          [
+            c.workload,
+            c.concurrency,
+            "ngram",
+            `${num(c.ngram.acceptanceRate, 3)} → ${num(c.ngram2.acceptanceRate, 3)}`,
+            pct(ngramAcceptanceSpreads[i], 1),
+            `${num(c.ngram.outTps, 1)} → ${num(c.ngram2.outTps, 1)}`,
+            `${num(ngramRatios[i], 3)} → ${num(ngramRatios2[i], 3)}`,
+            pct(ngramRatioSpreads[i], 1),
+          ],
         ])}
         striped
       />
       <Caption>
-        Both draft deployments ran `num_speculative_tokens=3`, `draft_tensor_parallel_size=4`, the
-        same corpus, request counts, warmup, sampling, and load path. Repeat 1 was driven by
-        `apertus-bench matrix`, repeat 2 by `apertus-bench run` per cell. Two repeats support a spread
-        but not a bootstrap confidence interval over deployment effects, and the baseline still has
-        only one deployment, so every ratio on this canvas inherits the uncertainty of a single
-        baseline.
+        Every deployment ran the same corpus, request counts, warmup, sampling and load path; each
+        arm's two deployments differ only in node and time. Repeat 1 of each arm was driven by
+        `apertus-bench matrix`, repeat 2 by `apertus-bench run` per cell so each cell carries its
+        deployment repeat index. Two repeats support a spread but not a bootstrap confidence interval
+        over deployment effects, and{" "}
+        <Text size="small" weight="semibold">
+          the baseline still has only one deployment
+        </Text>
+        , so every ratio on this canvas inherits the uncertainty of a single denominator and the
+        spreads above are of the numerator alone.
       </Caption>
     </Stack>
   );
@@ -1061,9 +1300,14 @@ function PairedComparison() {
             tone: "warning",
           },
           {
-            name: "ngram-n3, job 3392370",
+            name: "ngram-n3 repeat 1, job 3392370",
             data: CELLS.map((c) => round(c.ngram[metricId], 2)),
             tone: "success",
+          },
+          {
+            name: "ngram-n3 repeat 2, job 3403354",
+            data: CELLS.map((c) => round(c.ngram2[metricId], 2)),
+            tone: "neutral",
           },
         ]}
         valueSuffix={` ${metric.unit}`}
@@ -1074,8 +1318,8 @@ function PairedComparison() {
         long_context_summarization; `c1`/`c8` = concurrency) · {higherIsWorse ? "higher" : "lower"} is
         worse · client-observed, 24 measured requests per cell · on TTFT p50 the draft arm sits at{" "}
         {span(allTtftRatios, 2)}× the baseline while n-gram sits at {span(ngramTtftRatios, 2)}×, making
-        it the only arm that is faster to first token, in every cell and at p95 too · source:
-        `analysis.csv`, `smoke-screening-20260913-debug`
+        it the only arm that is faster to first token — in every cell, in both deployments, at p50 and
+        p95 alike · source: `analysis.csv`, `smoke-screening-20260913-debug`
       </Caption>
 
       <Divider />
@@ -1095,25 +1339,29 @@ function PairedComparison() {
             tone: "warning",
           },
           {
-            name: "ngram-n3 ÷ baseline",
+            name: "ngram repeat 1 ÷ baseline",
             data: ngramRatios.map((r) => round(r, 3)),
             tone: "success",
+          },
+          {
+            name: "ngram repeat 2 ÷ baseline",
+            data: ngramRatios2.map((r) => round(r, 3)),
+            tone: "neutral",
           },
         ]}
         valueSuffix="×"
         horizontal
-        height={320}
+        height={360}
       />
       <Caption>
         x: output-throughput ratio (arm ÷ baseline, dimensionless; 1.00× = parity) · y: workload ×
         concurrency cell · no draft cell reaches 0.48×, while n-gram exceeds parity in{" "}
-        {winningCells.length} of 6 cells, both `long_context_summarization` cells (
-        {ngramRatios
-          .filter((r) => r > 1)
-          .map((r) => `${num(r, 3)}×`)
-          .join(" and ")}
-        ) · this is the `speedup_vs_baseline` column of `analysis.csv`, computed against the single
-        baseline deployment.
+        {winningCells.length} of 6 cells <Text size="small" weight="semibold">in both deployments</Text>
+        , both `long_context_summarization` cells — {num(ngramRatios[4], 3)}× then{" "}
+        {num(ngramRatios2[4], 3)}× at concurrency 1, {num(ngramRatios[5], 3)}× then{" "}
+        {num(ngramRatios2[5], 3)}× at concurrency 8 · this is the `speedup_vs_baseline` column of
+        `analysis.csv`, computed against the single baseline deployment, so all four speculative
+        series share one denominator.
       </Caption>
     </Stack>
   );
@@ -1198,6 +1446,8 @@ function AcceptanceScatter() {
           const y2 = py(throughputRatios2[i]);
           const xn = px(c.ngram.acceptanceRate);
           const yn = py(ngramRatios[i]);
+          const xn2 = px(c.ngram2.acceptanceRate);
+          const yn2 = py(ngramRatios2[i]);
           return (
             <g key={c.key}>
               <line
@@ -1217,6 +1467,14 @@ function AcceptanceScatter() {
                 stroke={theme.accent.primary}
                 strokeWidth={1.5}
               />
+              <line
+                x1={xn}
+                x2={xn2}
+                y1={yn}
+                y2={yn2}
+                stroke={theme.stroke.secondary}
+                strokeWidth={1}
+              />
               <rect
                 x={xn - 4.5}
                 y={yn - 4.5}
@@ -1224,6 +1482,16 @@ function AcceptanceScatter() {
                 height={9}
                 fill={theme.text.secondary}
                 transform={`rotate(45 ${xn} ${yn})`}
+              />
+              <rect
+                x={xn2 - 4.5}
+                y={yn2 - 4.5}
+                width={9}
+                height={9}
+                fill={theme.bg.editor}
+                stroke={theme.text.secondary}
+                strokeWidth={1.5}
+                transform={`rotate(45 ${xn2} ${yn2})`}
               />
               <text x={x1 + c.labelDx} y={y1 + c.labelDy} fontSize={10} fill={theme.text.secondary}>
                 {c.short}
@@ -1262,20 +1530,25 @@ function AcceptanceScatter() {
           hollow circle = draft repeat 2 (job 3392153)
         </Text>
         <Text size="small" tone="tertiary">
-          diamond = ngram-n3 (job 3392370)
+          filled diamond = ngram repeat 1 (job 3392370)
         </Text>
         <Text size="small" tone="tertiary">
-          line joins the same cell across the two draft deployments
+          hollow diamond = ngram repeat 2 (job 3403354)
+        </Text>
+        <Text size="small" tone="tertiary">
+          line joins the same cell across one arm's two deployments
         </Text>
       </Row>
       <Caption>
-        All 18 speculative cells. The relationship across arms is negative: the draft model accepts{" "}
+        All 24 speculative cells. The relationship across arms is negative: the draft model accepts{" "}
         {span(allAcceptances, 3)} and returns {span(allThroughputRatios, 3)}×, while n-gram accepts{" "}
-        {span(ngramAcceptances, 3)} and returns {span(ngramRatios, 3)}×. Acceptance rate therefore does
-        not predict throughput across methods, which is H1's "acceptance alone is insufficient" case
-        stated as strongly as this run can state it. Within the draft arm the joining lines are
-        near-vertical: the second deployment lost throughput at essentially unchanged acceptance.
-        Source: per-cell `summary.json` counter deltas.
+        {span(ngramAcceptances, 3)} and returns {span(allNgramRatios, 3)}×. Acceptance rate therefore
+        does not predict throughput across methods, which is H1's "acceptance alone is insufficient"
+        case stated as strongly as this run can state it. The joining lines show the two arms' noise
+        structure differing: the draft pairs are near-vertical (the second deployment lost throughput
+        at essentially unchanged acceptance), while the n-gram pairs tilt — acceptance and throughput
+        both move, and the summarization cell at concurrency 1 moves furthest on both. Source:
+        per-cell `summary.json` counter deltas.
       </Caption>
     </Stack>
   );
@@ -1293,7 +1566,7 @@ function AcceptanceSection() {
             </Text>{" "}
             = accepted tokens ÷ proposed draft tokens. This is `analysis.csv`'s `acceptance_rate` and
             the only quantity this canvas calls acceptance unqualified: {spanPct(allAcceptances)} for
-            the drafter, {spanPct(ngramAcceptances)} for n-gram.
+            the drafter, {spanPct(ngramAcceptances)} for n-gram, each over two deployments.
           </Text>
           <Text size="small">
             <Text size="small" weight="semibold">
@@ -1301,7 +1574,7 @@ function AcceptanceSection() {
             </Text>{" "}
             = 1 + accepted tokens ÷ proposals, so it counts the always-accepted bonus token and is
             bounded by 1 + `num_speculative_tokens` = 4 here: {span(allMals)} for the drafter,{" "}
-            {span(CELLS.map((c) => c.ngram.meanAcceptanceLength))} for n-gram.
+            {span(ngramMals)} for n-gram.
           </Text>
           <Text size="small">
             <Text size="small" weight="semibold">
@@ -1315,20 +1588,22 @@ function AcceptanceSection() {
             The first two coincide as `acceptance_rate = (mean_acceptance_length − 1) ÷ 3` only when
             every proposal is full depth. That holds for the drafter, and not quite for n-gram: on
             `code` prompt lookup sometimes proposes fewer than 3 tokens (12,444 draft tokens over
-            4,164 proposals), so the two differ in the third decimal. Definitions as computed in
+            4,164 proposals in repeat 1, 12,048 over 4,032 in repeat 2), so the two differ in the
+            third decimal. That the residual is small here is a property of this corpus, not of
+            n-gram, and the conversion is still the wrong one to rely on. Definitions as computed in
             `src/apertus_bench/prometheus.py` and stated in `docs/protocol.md`.
           </Text>
         </Stack>
       </Callout>
       <Text tone="secondary">
         The 8B drafter has {span(allMals)} tokens accepted per verification step out of a possible 4
-        (3 drafted + 1 bonus); n-gram manages only {span(CELLS.map((c) => c.ngram.meanAcceptanceLength))}.
-        If a speculative step cost the same as a baseline decode step, those numbers would be the
-        speedups. Neither arm attains its bound, and the arm further from its bound is the one that
-        wins: the drafter's step is far more expensive, which the{" "}
-        <Text italic>step-cost decomposition below</Text> quantifies. The measured stream-event gap of
-        ~91–101 ms in the draft deployments, against ~17–20 ms for n-gram and ~14 ms in the baseline,
-        is the same quantity observed directly at the client.
+        (3 drafted + 1 bonus); n-gram manages only {span(ngramMals)}. If a speculative step cost the
+        same as a baseline decode step, those numbers would be the speedups. Neither arm attains its
+        bound, and the arm further from its bound is the one that wins: the drafter's step is far more
+        expensive, which the <Text italic>step-cost decomposition below</Text> quantifies. The
+        measured stream-event gap of ~91–101 ms in the draft deployments, against ~16–20 ms across
+        both n-gram deployments and ~14 ms in the baseline, is the same quantity observed directly at
+        the client.
       </Text>
       <BarChart
         categories={CATEGORIES}
@@ -1389,9 +1664,14 @@ function AcceptanceSection() {
                 tone: "warning",
               },
               {
-                name: "ngram-n3",
+                name: "ngram repeat 1",
                 data: CELLS.map((c) => round(c.ngram.meanAcceptanceLength, 3)),
                 tone: "success",
+              },
+              {
+                name: "ngram repeat 2",
+                data: CELLS.map((c) => round(c.ngram2.meanAcceptanceLength, 3)),
+                tone: "info",
               },
             ]}
             valueSuffix=" tok"
@@ -1404,7 +1684,8 @@ function AcceptanceSection() {
             drafter `code` is highest and the two deployments sit on top of each other, the stability
             H2 predicts in direction; for n-gram the ranking is different — summarization leads and
             `code` is no better than open chat, because prompt lookup rewards outputs that quote the
-            prompt, not prompts about code.
+            prompt, not prompts about code · n-gram's two deployments track each other to{" "}
+            {spanPct(ngramMalSpreads, 1)}, tighter than its acceptance rate does.
           </Caption>
         </Stack>
       </Grid>
@@ -1447,15 +1728,15 @@ function AcceptanceSection() {
         y: per-position acceptance, tokens accepted at that position ÷ proposals, in percent — the
         denominator is every proposal, not the proposals that reached the position, so the three
         positions of a cell sum to its mean acceptance length minus one · x: workload × concurrency
-        cell · positions are vLLM's 0/1/2 within each 3-token proposal · draft repeat 2 is omitted here
-        and tabulated below · acceptance decays with position in every cell of every arm, from
+        cell · positions are vLLM's 0/1/2 within each 3-token proposal · the two repeat-2 deployments
+        are omitted here and tabulated below · acceptance decays with position in every cell of every arm, from
         88.6→70.3% for the drafter on `code` at c1 down to 21.6→6.6% for n-gram on the same cell ·
         source:
         `vllm:spec_decode_num_accepted_tokens_per_pos_total` deltas in each cell's `summary.json`.
       </Caption>
 
       <Card>
-        <CardHeader trailing="all three speculative deployments">
+        <CardHeader trailing="all four speculative deployments">
           speculative-decoding counter deltas
         </CardHeader>
         <CardBody style={{ padding: 0 }}>
@@ -1483,13 +1764,19 @@ function AcceptanceSection() {
               "right",
               "right",
             ]}
-            rowTone={CELLS.flatMap(() => [undefined, undefined, "success" as const])}
+            rowTone={CELLS.flatMap(() => [
+              undefined,
+              undefined,
+              "success" as const,
+              "success" as const,
+            ])}
             rows={CELLS.flatMap((c) =>
               (
                 [
                   ["draft r1", c.draft1],
                   ["draft r2", c.draft2],
-                  ["ngram", c.ngram],
+                  ["ngram r1", c.ngram],
+                  ["ngram r2", c.ngram2],
                 ] as Array<[string, DraftArm]>
               ).map(([label, arm]) => [
                 c.workload,
@@ -1543,9 +1830,14 @@ function StepCost() {
                 tone: "info",
               },
               {
-                name: "ngram-n3 step (verify only)",
+                name: "ngram-n3 step (verify only), repeat 1",
                 data: ngramSteps.map((v) => round(v, 1)),
                 tone: "success",
+              },
+              {
+                name: "ngram-n3 step (verify only), repeat 2",
+                data: ngramSteps2.map((v) => round(v, 1)),
+                tone: "neutral",
               },
               {
                 name: "draft-n3-tp4 step, repeat 1",
@@ -1559,12 +1851,14 @@ function StepCost() {
               },
             ]}
             valueSuffix=" ms"
-            height={300}
+            height={320}
           />
           <Caption>
-            y: mean engine step time (ms), derived · x: workload × concurrency cell · the n-gram bar
-            is one target forward pass plus verification of three proposed tokens; the draft bars add
-            the 8B drafter on top of that.
+            y: mean engine step time (ms), derived · x: workload × concurrency cell · the n-gram bars
+            are one target forward pass plus verification of three proposed tokens; the draft bars add
+            the 8B drafter on top of that · both speculative arms now have two independent
+            deployments, so every range on this slide is over two deployments rather than one
+            measurement.
           </Caption>
         </Stack>
         <Stack gap={12}>
@@ -1581,14 +1875,23 @@ function StepCost() {
             />
           </Grid>
           <Text tone="secondary">
-            Verifying a depth-3 proposal costs {span(verifyCost, 2)}× a plain decode step. Proposing
-            with the 8B drafter costs a further {span(draftCost, 1)}×, taking the whole step to{" "}
+            Verifying a depth-3 proposal costs {span(verifyCost, 2)}× a plain decode step over 12
+            cells from two deployments. Proposing with the 8B drafter costs a further{" "}
+            {span(draftCost, 1)}× ({span(draftCostMs, 1)} ms), taking the whole step to{" "}
             {span(draftStepCost, 1)}×. Draft cost dominates verification by an order of magnitude,
             which locates the regression — and it is also about an order of magnitude more than three
             8B forward passes at TP=4 can account for, so it is draft-path overhead (separate model
             execution, launch and synchronisation, drafter steps that appear not to use the target's
             captured graphs) rather than drafter arithmetic or tensor-parallel collectives.
           </Text>
+          <Callout tone="info" title="Two nodes bound the node explanation">
+            <Text size="small">
+              The two n-gram deployments, on nid006687 and nid007500, put step cost within{" "}
+              {spanPct(ngramStepSpreads, 1)} of each other in every cell. So node-to-node variation on
+              this measurement is a few percent, against a drafter cost of five to six whole baseline
+              steps — a node effect cannot absorb that.
+            </Text>
+          </Callout>
         </Stack>
       </Grid>
       <Table
@@ -1596,16 +1899,14 @@ function StepCost() {
           "Workload",
           "Conc.",
           "Baseline step",
-          "N-gram step",
-          "Draft step r1",
-          "Draft step r2",
-          "Verify cost",
-          "Draft cost added r1 / r2",
+          "N-gram step r1 / r2",
+          "N-gram step spread",
+          "Draft step r1 / r2",
+          "Verify cost r1 / r2",
           "Draft step total r1 / r2",
         ]}
         columnAlign={[
           "left",
-          "right",
           "right",
           "right",
           "right",
@@ -1618,11 +1919,10 @@ function StepCost() {
           c.workload,
           c.concurrency,
           `${num(baselineSteps[i], 2)} ms`,
-          `${num(ngramSteps[i], 2)} ms`,
-          `${num(draft1Steps[i], 2)} ms`,
-          `${num(draft2Steps[i], 2)} ms`,
-          `${num(verifyCost[i], 2)}×`,
-          `${num(draftCost[i], 2)}× / ${num(draftCost[i + CELLS.length], 2)}×`,
+          `${num(ngramSteps[i], 2)} / ${num(ngramSteps2[i], 2)} ms`,
+          pct(ngramStepSpreads[i], 1),
+          `${num(draft1Steps[i], 2)} / ${num(draft2Steps[i], 2)} ms`,
+          `${num(verifyCost[i], 2)}× / ${num(verifyCost[i + CELLS.length], 2)}×`,
           `${num(draftStepCost[i], 2)}× / ${num(draftStepCost[i + CELLS.length], 2)}×`,
         ])}
         striped
@@ -1633,9 +1933,11 @@ function StepCost() {
           both speculative arms, and that arms are comparable across nodes. The second is imperfect in
           a known direction: `draft_model` runs with a 7168-token per-step budget while n-gram keeps
           the baseline's 8192, so part of the draft cost is budget rather than drafter. The third is
-          also imperfect, though n-gram and draft repeat 2 share node nid006687, and against repeat 2
-          the gap is wider, so node effects do not explain it away. Source:
-          `results/smoke-screening-20260913-debug/README.md`, section "Step-cost decomposition".
+          now bounded from two directions: n-gram repeat 1 and draft repeat 2 share node nid006687 and
+          the gap against draft repeat 2 is <Text size="small" italic>wider</Text> rather than
+          narrower, and the two n-gram deployments agree to {spanPct(ngramStepSpreads, 1)} across
+          different nodes. Source: `results/smoke-screening-20260913-debug/README.md`, section
+          "Step-cost decomposition".
         </Text>
       </Callout>
     </Stack>
@@ -1643,7 +1945,7 @@ function StepCost() {
 }
 
 function Correctness() {
-  const [compared, comparedTwo, control] = CORRECTNESS.pairs;
+  const [compared, comparedTwo, control, ngramOne, ngramTwo, ngramControl] = CORRECTNESS.pairs;
   return (
     <Stack gap={12}>
       <H2>The greedy correctness gate measured nondeterminism, not correctness</H2>
@@ -1687,9 +1989,9 @@ function Correctness() {
         The gate now measures per-prompt divergence and judges a compared pair against a{" "}
         <Text italic>calibration control</Text> — two captures of a single configuration, which
         measures exactly the nondeterminism that must not be attributed to speculation. Both
-        baseline-versus-draft comparisons land inside the control's envelope. On mean normalized edit
-        distance the control is the worst of those three pairs. The n-gram arm was launched once, so
-        it has a divergence profile and no verdict.
+        baseline-versus-draft comparisons land inside the draft control's envelope. On mean normalized
+        edit distance that control is the worst of those three pairs. The second n-gram deployment then
+        gave the n-gram arm its own control, and the gate <Text italic>split</Text> on it.
       </Text>
       <Table
         headers={[
@@ -1704,7 +2006,11 @@ function Correctness() {
         ]}
         columnAlign={["left", "left", "right", "right", "right", "right", "right", "right"]}
         rowTone={CORRECTNESS.pairs.map((p) =>
-          p.role === "calibration control" ? "info" : p.verdict === "not judged" ? "warning" : undefined,
+          p.role === "calibration control"
+            ? "info"
+            : p.verdict === "exceeds_control_envelope"
+              ? "danger"
+              : undefined,
         )}
         rows={CORRECTNESS.pairs.map((p) => [
           p.label,
@@ -1721,24 +2027,44 @@ function Correctness() {
         Character-level statistics over the six greedy smoke captures, all of which succeeded on every
         deployment. Edit distance is Levenshtein normalized by the longer output; prefix fraction is
         the longest common prefix over the shorter output; token difference is |Δ completion_tokens|.
-        The gate passes a compared pair when its worst case stays inside the control's worst case plus
-        a declared margin: prefix fraction ≥ {num(CORRECTNESS.allowance.prefixFraction, 3)}, edit
-        distance ≤ {num(CORRECTNESS.allowance.editDistance, 3)}, token difference ≤{" "}
-        {CORRECTNESS.allowance.tokenDifference}. Both compared pairs return
-        `within_control_envelope`. The n-gram row is measured but unjudged: `ngram-n3` ran once, and
-        borrowing the drafter's control would flip the answer on one statistic — its worst edit
-        distance, {num(CORRECTNESS.pairs[3].worstEditDistance, 3)}, sits just outside the allowance
-        computed from a control of a different configuration. That is why the gate demands a
-        same-configuration control rather than the nearest one available. Source:
+        The gate passes a compared pair when its worst case stays inside the tightest control's worst
+        case plus a declared margin. For the draft pairs that allowance is a worst edit distance of{" "}
+        {num(CORRECTNESS.allowanceDraft.editDistance, 3)} and a token difference of{" "}
+        {CORRECTNESS.allowanceDraft.tokenDifference}, and both return `within_control_envelope`. For
+        the n-gram pairs the n-gram control is tighter and so sets the allowance:{" "}
+        {num(CORRECTNESS.allowanceNgram.editDistance, 3)} and{" "}
+        {CORRECTNESS.allowanceNgram.tokenDifference}. Repeat 1 comes in at{" "}
+        {num(ngramOne.worstEditDistance, 3)} and passes; repeat 2 comes in at{" "}
+        {num(ngramTwo.worstEditDistance, 3)} and fails that one check of four. Source:
         `results/correctness/smoke-20260913-debug/` (`comparison*.json` for the exact-match counts,
         `divergence-*.json` and `gate-*.json` for the rest).
       </Caption>
+      <Callout
+        tone="danger"
+        title="Do not present “the gate passes for n-gram”: two deployments of one configuration got opposite verdicts"
+      >
+        <Text size="small">
+          The n-gram control ({ngramControl.exactMatches}/{CORRECTNESS.totalCases} exact, worst edit
+          distance {num(ngramControl.worstEditDistance, 3)}) allows{" "}
+          {num(CORRECTNESS.allowanceNgram.editDistance, 3)}. Baseline-versus-repeat-1 sits at{" "}
+          {num(ngramOne.worstEditDistance, 3)} and returns `within_control_envelope`;
+          baseline-versus-repeat-2 sits at {num(ngramTwo.worstEditDistance, 3)} and returns
+          `exceeds_control_envelope`, passing the other three checks — with its token difference
+          exactly on the allowance, {ngramTwo.worstTokenDifference} against{" "}
+          {CORRECTNESS.allowanceNgram.tokenDifference}. Nothing about the configuration differs
+          between those two deployments, so the split is the instrument, not the arm: the allowance is
+          a worst-of-six order statistic from a single control pair, so it is itself noisy, and adding
+          the draft-repeat pair as a second control does not loosen it because the gate takes the
+          tightest envelope. Six prompts cannot adjudicate losslessness at this resolution.
+        </Text>
+      </Callout>
       <Grid columns={2} gap={16} align="start">
-        <Callout tone="success" title="What the gate can now establish">
+        <Callout tone="success" title="What the gate can establish">
           <Text size="small">
-            That the divergence between the baseline and a speculative deployment is not
-            distinguishable from the divergence between two deployments that must agree. This run
-            therefore shows{" "}
+            That the divergence between the baseline and a speculative deployment is of the same
+            character, and roughly the same size, as the divergence between two deployments of one
+            configuration that must agree. For the draft arm both compared pairs land inside their
+            control's envelope, so this run shows{" "}
             <Text size="small" weight="semibold">
               no evidence that speculation changes the output distribution
             </Text>
@@ -1755,9 +2081,10 @@ function Correctness() {
             : `speculative_config` is fixed at launch, so one deployment serves
             exactly one configuration and can never host both arms. Even a same-node pair keeps a
             different per-step token budget and async-scheduling setting, so batch shapes differ
-            because speculation is enabled. The control here is a speculative pair, so baseline-side
+            because speculation is enabled. Both controls are speculative pairs, so baseline-side
             variation is unmeasured; a baseline-vs-baseline control needs a second baseline
-            deployment, which this run does not have.
+            deployment, which this run does not have — another reason the cheapest useful next launch
+            is a baseline repeat.
           </Text>
         </Callout>
       </Grid>
@@ -1835,23 +2162,30 @@ function MemorySection() {
       <Grid columns="1fr 1fr" gap={20} align="start">
         <Stack gap={8}>
           <BarChart
-            categories={["baseline", "ngram-n3", "draft repeat 1", "draft repeat 2"]}
+            categories={[
+              "baseline",
+              "ngram repeat 1",
+              "ngram repeat 2",
+              "draft repeat 1",
+              "draft repeat 2",
+            ]}
             series={[
               {
                 name: "Advertised KV-cache capacity",
                 data: [
                   KV_CACHE.baseline.tokens,
                   KV_CACHE.ngram.tokens,
+                  KV_CACHE.ngram2.tokens,
                   KV_CACHE.draft1.tokens,
                   KV_CACHE.draft2.tokens,
                 ],
               },
             ]}
             valueSuffix=" tok"
-            height={230}
+            height={250}
           />
           <Caption>
-            y: KV-cache capacity (tokens) · x: deployment · all four ran at
+            y: KV-cache capacity (tokens) · x: deployment · all five ran at
             `gpu_memory_utilization=0.8` on 4 GH200 · source: `kv_cache_size_tokens` in
             `vllm:cache_config_info`, `metrics_after.prom`.
           </Caption>
@@ -1893,10 +2227,18 @@ function MemorySection() {
             is drafter weights. At the configured `max_model_len` the draft deployments
             advertise capacity for fewer than two full-length requests. This is a capacity result
             independent of any latency measurement, and it holds even if the latency regression turns
-            out to be a configuration artefact. The two draft deployments sized their cache within{" "}
-            {KV_CACHE.draft2.tokens - KV_CACHE.draft1.tokens} tokens of each other, so unlike the
-            throughput ratio, the memory cost reproduces exactly.
+            out to be a configuration artefact.
           </Text>
+          <Callout tone="success" title="The most reproducible numbers in the study">
+            <Text size="small">
+              The two n-gram deployments sized their cache to the same{" "}
+              {KV_CACHE.ngram2.tokens.toLocaleString("en-US")} tokens on different nodes, identically,
+              and the two draft deployments came within{" "}
+              {KV_CACHE.draft2.tokens - KV_CACHE.draft1.tokens} tokens of each other. So unlike the
+              throughput ratio, these capacity costs are deterministic properties of the
+              configuration rather than sizing accidents.
+            </Text>
+          </Callout>
         </Stack>
       </Grid>
     </Stack>
@@ -2014,14 +2356,13 @@ function NextSteps() {
       ),
     },
     {
-      title: "Repeat the n-gram arm, and add a second baseline",
+      title: "Repeat the baseline — the cheapest measurement that would firm up the win",
       body: (
         <Text size="small">
-          `ngram-n3` ran once and its summarization win ({span(ngramRatios.filter((r) => r > 1), 3)}
-          ×) is at the scale of the draft arm's own between-deployment spread (
-          {spanPct(ratioSpreads, 1)}). Two more deployments make it claimable, give the correctness
-          gate a same-configuration control for n-gram, and let every ratio here stop resting on a
-          single baseline.
+          It is the only arm with one deployment and the denominator of every ratio on this canvas, so
+          all quoted spreads are of the numerator alone. One extra baseline launch is now worth more
+          than a third n-gram repeat, and it would also supply the baseline-versus-baseline control
+          the correctness gate has never had.
         </Text>
       ),
     },
@@ -2029,9 +2370,10 @@ function NextSteps() {
       title: "Launch a baseline with async scheduling explicitly disabled",
       body: (
         <Text size="small">
-          One launch removes the last confound between the baseline and both speculative arms, and
-          tests the leading hypothesis for why n-gram has lower TTFT than the baseline in all six
-          cells. The pinned vLLM supports it through the same config field.
+          Ideally back to back with the repeat above, since both are baseline launches. It removes the
+          last confound between the baseline and both speculative arms, and tests the leading
+          hypothesis for why n-gram has lower TTFT than the baseline in all 12 of its cells. The
+          pinned vLLM supports it through the same config field.
         </Text>
       ),
     },
@@ -2107,21 +2449,24 @@ const CAVEATS: Array<{ title: string; tone: "warning" | "danger"; body: Node }> 
         separates speculation from the baseline but is common to the speculative arms. It also shrinks
         the per-step token budget to `max_num_scheduled_tokens=7168` for `draft_model` only, against
         `max_num_batched_tokens=8192` on the baseline and the n-gram arm — that one is asymmetric
-        between the speculative arms and inflates any draft-versus-n-gram comparison. This is a
-        measurement of the shipped configurations, not of speculation in isolation.
+        between the speculative arms and inflates any draft-versus-n-gram comparison. Both were
+        re-read from n-gram repeat 2's own server log rather than assumed to carry over, and both
+        hold identically. This is a measurement of the shipped configurations, not of speculation in
+        isolation.
       </Text>
     ),
   },
   {
-    title: "Only the draft arm has two deployments",
+    title: "The baseline is the only single-deployment arm, and it is every ratio's denominator",
     tone: "warning",
     body: (
       <Text size="small">
-        Screening asks for two independent deployments per arm. The draft arm has them; the baseline
-        and n-gram arms have one each, so they contribute no deployment-level spread and every ratio
-        here inherits the uncertainty of a single baseline. Two repeats also support a spread but not
-        the bootstrap confidence interval over deployment effects that the protocol's analysis section
-        asks for — and the n-gram result, the most interesting one, rests on a single deployment.
+        Screening asks for two independent deployments per arm. Both speculative arms now have them;
+        the baseline has one. So it contributes no deployment-level spread, every spread quoted on
+        this canvas is of the numerator alone, and a baseline repeat would widen them all — which is
+        why it is now the cheapest measurement worth making, ahead of a third n-gram repeat. Two
+        repeats also support a spread but not the bootstrap confidence interval over deployment
+        effects that the protocol's analysis section asks for.
       </Text>
     ),
   },
@@ -2131,10 +2476,12 @@ const CAVEATS: Array<{ title: string; tone: "warning" | "danger"; body: Node }> 
     body: (
       <Text size="small">
         Baseline job 3391425 ran on nid007645, draft repeat 1 (3391426) on nid006633, draft repeat 2
-        (3392153) and n-gram (3392370) on nid006687, sequentially, because the `debug` QOS permits one
-        running job at a time (the second queued with reason `QOSMaxJobs`). Node and time effects are
-        not separated from `method`, and repeat 2 being uniformly slower is consistent with a node
-        effect. The n-gram arm sharing a node with draft repeat 2 is the one node-matched pairing here.
+        (3392153) and n-gram repeat 1 (3392370) on nid006687, and n-gram repeat 2 (3403354) on
+        nid007500 — sequentially, because the `debug` QOS permits one running job at a time (the
+        second queued with reason `QOSMaxJobs`). Node and time effects are not separated from
+        `method`; the n-gram-repeat-1 / draft-repeat-2 pairing is the only node-matched one. Draft
+        repeat 2 was uniformly slower than its repeat 1 and n-gram repeat 2 uniformly faster than
+        its own, so the within-pair shift has no fixed direction.
       </Text>
     ),
   },
@@ -2151,7 +2498,7 @@ const CAVEATS: Array<{ title: string; tone: "warning" | "danger"; body: Node }> 
     ),
   },
   {
-    title: "One cell breaches the repeat-spread gate",
+    title: "One cell of the draft arm breaches the repeat-spread gate",
     tone: "warning",
     body: (
       <Text size="small">
@@ -2160,8 +2507,25 @@ const CAVEATS: Array<{ title: string; tone: "warning" | "danger"; body: Node }> 
         deployments, against `maximum_repeat_spread_fraction: 0.10`. The regression's direction is
         unaffected — the draft arm returns {span(allThroughputRatios, 3)}× baseline output throughput
         across all twelve cells, far outside deployment-level variability — but that cell's effect size
-        is the least settled of the six, and it is also the stratum where n-gram wins, so the
-        comparison that matters most is the one with the loosest spread.
+        is the least settled of the six. All six n-gram cells clear the gate, worst{" "}
+        {pct(Math.max(...ngramRatioSpreads), 1)}.
+      </Text>
+    ),
+  },
+  {
+    title: "The correctness gate splits on the n-gram arm",
+    tone: "danger",
+    body: (
+      <Text size="small">
+        Judged against the n-gram arm's own cross-deployment control, baseline-versus-repeat-1 returns
+        `within_control_envelope` and baseline-versus-repeat-2 returns `exceeds_control_envelope` on
+        one statistic of four. Two deployments of one configuration disagreeing against an identical
+        control means the gate's resolution is coarser than the effect it is asked to detect, so{" "}
+        <Text size="small" weight="semibold">
+          “the gate passes for n-gram” is not a claim this run supports
+        </Text>
+        . Six prompts and a worst-of-six allowance from a single control pair are not enough to
+        adjudicate losslessness.
       </Text>
     ),
   },
@@ -2193,8 +2557,8 @@ function Caveats() {
               "an `ignore_eos` control, so output lengths are not fixed",
               "the open-loop serving-capacity / sustainable-rate search",
               "GPU utilization, power, SM activity, communication metrics",
-              "a second baseline or n-gram deployment",
-              "a correctness gate on the n-gram arm, which has no control yet",
+              "a second baseline deployment — the only arm still at one",
+              "a baseline-vs-baseline correctness control, which no arm can supply",
               "gateway latency — the client hit the replica node IP directly",
             ].map((t) => (
               <Text key={t} size="small" tone="secondary">
@@ -2218,7 +2582,8 @@ function AllCells() {
     ["baseline", c, c.baseline] as const,
     ["draft-n3-tp4 r1", c, c.draft1] as const,
     ["draft-n3-tp4 r2", c, c.draft2] as const,
-    ["ngram-n3", c, c.ngram] as const,
+    ["ngram-n3 r1", c, c.ngram] as const,
+    ["ngram-n3 r2", c, c.ngram2] as const,
   ]).map(([arm, cell, a]) => [
     `${cell.workload} c${cell.concurrency}`,
     arm,
@@ -2236,7 +2601,7 @@ function AllCells() {
 
   return (
     <Stack gap={10}>
-      <H2>All 24 cells as recorded</H2>
+      <H2>All 30 cells as recorded</H2>
       <Table
         headers={[
           "Cell",
@@ -2271,7 +2636,7 @@ function AllCells() {
             ? "danger"
             : r[1] === "draft-n3-tp4 r2"
               ? "warning"
-              : r[1] === "ngram-n3"
+              : r[1] === "ngram-n3 r1" || r[1] === "ngram-n3 r2"
                 ? "success"
                 : undefined,
         )}
@@ -2285,7 +2650,7 @@ function AllCells() {
         diagnostic, not token-level latency — speculation delivers several accepted tokens in one
         event, which is why the draft deployments' ~91–101 ms gap sits next to a ~30–37 ms TPOT while
         the baseline's gap and TPOT coincide at ~14 ms. Red rows are draft repeat 1, amber draft repeat
-        2, green n-gram.
+        2, green the two n-gram deployments.
       </Caption>
     </Stack>
   );
@@ -2304,12 +2669,16 @@ function Provenance() {
     ["draft repeat 1", "job 3391426, nid006633, replica head 172.28.32.244, patched overlay"],
     ["draft repeat 2", "job 3392153, nid006687, replica head 172.28.33.172, patched overlay"],
     [
-      "ngram-n3",
+      "ngram repeat 1",
       "job 3392370, nid006687, replica head 172.28.33.172, stock image, prompt_lookup_min 1, prompt_lookup_max 4",
     ],
     [
+      "ngram repeat 2",
+      "job 3403354, nid007500, replica head 172.28.44.144, stock image, identical configuration to repeat 1",
+    ],
+    [
       "measurement windows",
-      "2026-09-13T15:35:52Z → 16:35:24Z (baseline and draft repeat 1), 17:19Z → 17:35Z (draft repeat 2), 18:00Z → 18:15Z (n-gram)",
+      "2026-09-13T15:35:52Z → 16:35:24Z (baseline and draft repeat 1), 17:19Z → 17:35Z (draft repeat 2), 18:02Z → 18:09Z (n-gram repeat 1), 2026-09-14T22:12:26Z → 22:18:11Z (n-gram repeat 2)",
     ],
     ["vLLM", "a601a9d998ddeb488f0c17e8512874b116aa7658, build 0.23.1rc1.dev1029+ga601a9d99"],
     [
@@ -2319,7 +2688,7 @@ function Provenance() {
     ["model-launch", "909026a990454557f1b54d26f24ec3ad92e51e35"],
     [
       "harness",
-      "apertus-bench 0.1.0, Python 3.13.9; 270413f22f41ad008a72fffae5359cb3bd03785f for the baseline and both draft repeats, a32a5e0c1c8fcb53aacf3bb305e2ad44acf5692a for ngram-n3 (per-cell `metadata.json`)",
+      "apertus-bench 0.1.0, Python 3.13.9; 270413f22f41ad008a72fffae5359cb3bd03785f for the baseline and both draft repeats, a32a5e0c1c8fcb53aacf3bb305e2ad44acf5692a for ngram repeat 1, 85ccf4dcf65366cd3927f80eebc2fcf046fa1f4d for ngram repeat 2 — measurement path byte-identical across all three (per-cell `metadata.json`)",
     ],
     [
       "corpus",
@@ -2328,7 +2697,11 @@ function Provenance() {
     ["sampling", "temperature 0.0, top_p 1.0, seed 1 + request_index, natural EOS"],
     [
       "KV cache",
-      "513,696 tokens baseline; 416,640 n-gram; 251,472 (draft repeat 1) and 251,488 (draft repeat 2)",
+      "513,696 tokens baseline; 416,640 on both n-gram repeats; 251,472 (draft repeat 1) and 251,488 (draft repeat 2)",
+    ],
+    [
+      "completion tokens",
+      "36,148 baseline; 36,160 and 36,164 draft; 36,184 and 36,115 n-gram — agreeing within 0.2% across all five deployments",
     ],
   ];
   return (

@@ -41,10 +41,9 @@ Correctness captures are in `../correctness/smoke-20260913-debug/`.
 `../../canvases/apertus-speculative-decoding-smoke-screening.canvas.tsx` renders this run as a
 Cursor canvas: the paired per-cell comparison, the acceptance breakdown, the KV-cache cost, and the
 caveats. Copy it into the workspace's managed `canvases/` directory to open it beside a chat. It
-covers all four deployments: the between-deployment spread of the two draft repeats, the n-gram arm,
-the derived step-cost decomposition, the corrected correctness gate, and the unservable draft TP=1
-level. It predates n-gram deployment repeat 2 (job 3403354) and so shows the n-gram arm as a single
-deployment.
+covers all five deployments: the between-deployment spread of both repeat pairs, the derived
+step-cost decomposition, the split correctness gate, and the unservable draft TP=1 level.
+`../../docs/hackathon-20260915.md` is the narrative companion to it.
 
 ## Results
 
