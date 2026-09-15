@@ -141,9 +141,12 @@ breached the gate in one cell. Repeat 2 is slightly *faster* than repeat 1 in al
 opposite direction from the draft repeats, so the uniform shift between the two draft deployments was
 not a systematic "later run is slower" artefact of the harness or the partition.
 
-The TTFT advantage also reproduces: n-gram is below baseline in all six cells at both p50 and p95 in
-repeat 2 as well, so it holds in 12 of 12 measured cells. TTFT spread between the two n-gram
-deployments is 0.7–6.4%.
+The TTFT advantage largely reproduces, but not everywhere: scored against both baseline deployments,
+n-gram is below baseline in **22 of 24** comparisons (6 cells × 2 repeats × p50 and p95). The two
+exceptions are `code` at concurrency 1, where n-gram repeat 1 comes out 0.5% above baseline repeat 2
+at p50 and 1.2% above at p95 — inside that cell's own baseline-to-baseline spread of 5.1% and 11.5%.
+TTFT spread between the two n-gram deployments is 0.7–6.4%, and between the two baselines 0.1–5.2%
+at p50 and 0.4–11.5% at p95, which makes TTFT the least reliable metric in this design.
 
 | Workload | Conc. | TTFT p50 (ms) base → r1 → r2 | TTFT p95 (ms) base → r1 → r2 | TPOT p50 (ms) base → r1 → r2 |
 |---|---:|---|---|---|
@@ -551,11 +554,13 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
   deployments of one configuration returning opposite verdicts against an identical control is the
   clearest possible sign that the instrument's resolution is coarser than the effect it is asked to
   detect: the allowance is a worst-of-six order statistic from a single control pair, so it is itself a
-  noisy quantity, and adding the draft-repeat pair as a second control does not loosen it because the
-  gate takes the tightest control's envelope. **Do not present "the gate passes for n-gram" as a
-  result.** What is presentable: the divergence between arms is of the same character and roughly the
-  same size as the divergence between two deployments of one arm, and deciding losslessness at this
-  resolution needs many more prompts and a baseline-versus-baseline control.
+  noisy quantity, and adding another control cannot tighten it because the gate takes the *loosest*
+  control's envelope. **Do not present "the gate passes for n-gram" as a result.** What is
+  presentable: the divergence between arms is of the same character and roughly the same size as the
+  divergence between two deployments of one arm — including the two baseline deployments, whose
+  worst-case divergence of 0.227 marginally exceeds the 0.2265 between baseline and the draft arm.
+  Deciding losslessness at this resolution needs many more prompts and a second capture within one
+  deployment.
 - **The step-cost decomposition is an inference, not a direct measurement.** It rests on the
   assumptions listed with it, and one is known to be violated in a direction that inflates the
   drafter's share: the draft arm's per-step token budget is 7168 against n-gram's 8192. A kernel-level

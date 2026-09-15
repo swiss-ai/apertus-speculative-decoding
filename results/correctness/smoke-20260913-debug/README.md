@@ -1,7 +1,7 @@
 # Greedy correctness, 2026-09-13, `debug` partition
 
-Sequential greedy captures for the baseline and both deployment repeats of each speculative arm
-(`draft-n3-tp4` and `ngram-n3`) of `../../smoke-screening-20260913-debug/`, plus two generations of comparison
+Sequential greedy captures for both deployment repeats of every arm (`baseline`, `draft-n3-tp4` and
+`ngram-n3`) of `../../smoke-screening-20260913-debug/`, plus two generations of comparison
 over them: the original exact-match comparison, and the re-analysis under the calibrated criterion
 that replaced it
 (`docs/protocol.md`, section "Greedy correctness gate"). Nothing here was overwritten; the
@@ -11,14 +11,15 @@ exact-match artifacts are exactly as first recorded.
 
 | Capture | Deployment | Job | Node |
 |---|---|---|---|
-| `baseline.json` | `baseline` | 3391425 | nid007645 |
+| `baseline.json` | `baseline` repeat 1 | 3391425 | nid007645 |
+| `baseline-repeat2.json` | `baseline` repeat 2 | 3405008 | nid006653 |
 | `draft-n3-tp4.json` | `draft-n3-tp4` repeat 1 | 3391426 | nid006633 |
 | `draft-n3-tp4-repeat2.json` | `draft-n3-tp4` repeat 2 | 3392153 | nid006687 |
 | `ngram-n3.json` | `ngram-n3` repeat 1 | 3392370 | nid006687 |
 | `ngram-n3-repeat2.json` | `ngram-n3` repeat 2 | 3403354 | nid007500 |
 
 Six smoke prompts, temperature 0.0, top_p 1.0, per-request seed `1 + request_index`, natural EOS,
-`max_model_len=131072`, one request at a time. Every request succeeded in all five captures, so all
+`max_model_len=131072`, one request at a time. Every request succeeded in all six captures, so all
 six prompts are comparable in every pair. Each capture keeps the full output text, so any comparison
 criterion can be recomputed from these files without re-running the deployments.
 
@@ -34,11 +35,16 @@ criterion can be recomputed from these files without re-running the deployments.
 | baseline vs. n-gram repeat 1 | `comparison-ngram-n3.json` | 2 of 6 |
 | baseline vs. n-gram repeat 2 | `comparison-ngram-repeat2.json` | 1 of 6 |
 | n-gram repeat 1 vs. repeat 2 | `comparison-ngram-repeat1-vs-repeat2.json` | 1 of 6 |
+| **baseline repeat 1 vs. repeat 2** | `comparison-baseline-repeat1-vs-repeat2.json` | **1 of 6** |
 
-The third row is the one that matters. Those two deployments ran the *same* configuration, so they
-must agree if exact agreement is achievable at all; they agree on nothing. Exact greedy equality is
-therefore not a property of this stack across independently launched deployments, and the 0 of 6 in
-the first row is not evidence that speculation is lossy.
+The last row is the one that matters. Two `baseline` deployments — no speculation anywhere, same
+stock image, byte-identical `launch/baseline.sh` — agree on 1 of 6 prompts, with a worst-case
+normalized edit distance of 0.227 and completion tokens differing by up to 4. That is marginally
+*more* divergence than the 0.2265 between the baseline and the draft arm in the first row. The third
+row says the same thing for two identically configured speculative deployments. Exact greedy equality
+is therefore not a property of this stack across independently launched deployments at all, so the
+original criterion was strictly measuring deployment nondeterminism and the 0 of 6 in the first row is
+not evidence that speculation is lossy.
 
 ## Calibrated re-analysis
 
@@ -57,6 +63,17 @@ statistics) and `apertus-bench correctness-gate`:
 | `gate-baseline-vs-draft-repeat2.json` | baseline vs. draft repeat 2 | verdict |
 | `gate-baseline-vs-ngram-repeat1.json` | baseline vs. n-gram repeat 1 | verdict |
 | `gate-baseline-vs-ngram-repeat2.json` | baseline vs. n-gram repeat 2 | verdict |
+| `comparison-baseline-repeat1-vs-repeat2.json` | baseline repeat 1 vs. repeat 2 | calibration control |
+| `gate2-baseline-vs-draft-repeat1.json` | baseline vs. draft repeat 1 | verdict, baseline control added |
+| `gate2-baseline-vs-draft-repeat2.json` | baseline vs. draft repeat 2 | verdict, baseline control added |
+| `gate2-baseline-vs-ngram-repeat1.json` | baseline vs. n-gram repeat 1 | verdict, baseline control added |
+| `gate2-baseline-vs-ngram-repeat2.json` | baseline vs. n-gram repeat 2 | verdict, baseline control added |
+
+The `gate2-*.json` re-runs supply the baseline pair as a second control alongside the arm's own. No
+verdict moves, because the gate takes the **loosest** control envelope of those supplied and the
+baseline pair is the tightest of the three (worst edit distance 0.227, allowing 0.277, against the
+draft pair's 0.306 and the n-gram pair's 0.314). A tight control is inert; only a loose one weakens
+the gate.
 
 Divergence per pair over the six prompts. Prefix is the longest common prefix; edit distance is
 character-level, normalized by the longer output; token difference is `|Δ completion_tokens|`.
@@ -69,6 +86,7 @@ character-level, normalized by the longer output; token difference is `|Δ compl
 | baseline vs. n-gram repeat 1 | 2/6 | 151 | 0.127 | 0.117 / 0.308 | 2 |
 | baseline vs. n-gram repeat 2 | 1/6 | 47 | 0.041 | 0.213 / 0.392 | 40 |
 | **control**: n-gram r1 vs. r2 | 1/6 | 47 | 0.041 | 0.163 / 0.264 | 38 |
+| **control**: baseline r1 vs. r2 | 1/6 | 54 | 0.047 | 0.072 / 0.227 | 4 |
 
 Both draft gates return `within_control_envelope`. Neither comparison of the baseline against a
 draft deployment diverges more than the two identically configured draft deployments diverge from
@@ -78,26 +96,31 @@ continue differently but fluently, with completion-token counts within 3.
 
 **The n-gram gates split, and that is a statement about the gate rather than about n-gram.** The
 second n-gram deployment supplies the same-configuration control that arm previously lacked, and it
-is tighter than the draft control on every statistic, so it sets the allowance: worst normalized edit
-distance 0.264 + 0.05 = 0.314, worst token difference 38 + 2 = 40.
+is the looser of the two controls now available to the n-gram gate on every statistic, so it sets
+the allowance: worst normalized edit distance 0.264 + 0.05 = 0.314, worst token difference
+38 + 2 = 40.
 `gate-baseline-vs-ngram-repeat1.json` returns `within_control_envelope` at 0.308, and
 `gate-baseline-vs-ngram-repeat2.json` returns `exceeds_control_envelope` at 0.392 on that one check
 of four — passing the other three, with its token difference exactly on the allowance. Two
 deployments of one configuration returning opposite verdicts against an identical control means the
 instrument's resolution is coarser than the effect it is asked to detect: the allowance is a
-worst-of-six order statistic from a single control pair, so it is itself noisy, and adding the
-draft-repeat pair as a second control does not loosen it because the gate takes the tightest
-envelope. **Do not read "the gate passes for n-gram" out of these files.**
+worst-of-six order statistic from a single control pair, so it is itself noisy, and adding another
+control cannot tighten it because the gate takes the *loosest* envelope of those supplied. **Do not
+read "the gate passes for n-gram" out of these files.**
 
 So this run shows **no divergence beyond deployment-level numerical nondeterminism** for the drafter
 arm, which is consistent with speculative decoding being lossless here, and for n-gram it shows that
 the divergence between arms is of the same character and roughly the same size as the divergence
 between two deployments of one arm. Neither is a proof: the gate can only say whether the effect is
-separable from the control, both controls are cross-deployment pairs of six prompts drawn from a
-speculative arm, so baseline-side variation is not measured. The project has one baseline deployment,
-so a baseline-vs-baseline control does not exist yet; the next baseline launch should add one, and
-every deployment should capture twice so a within-deployment control exists too. Six prompts cannot
-adjudicate losslessness at this resolution regardless.
+separable from the control, and every control here is a cross-deployment pair of six prompts. The
+baseline-vs-baseline control now exists (`comparison-baseline-repeat1-vs-repeat2.json`) and it is the
+most informative of the three — two plain-serving deployments agree on 1 of 6 prompts with a
+worst-case normalized edit distance of 0.227, marginally *more* than the 0.2265 between baseline and
+the draft arm, which means the original exact-match criterion was strictly measuring deployment
+nondeterminism. It changes no verdict, for the loosest-envelope reason above. What is still missing is
+a second capture *within* one deployment, which would separate deployment nondeterminism from
+launch-to-launch nondeterminism. Six prompts cannot adjudicate losslessness at this resolution
+regardless.
 
 ## Reproducing
 
@@ -113,5 +136,7 @@ apertus-bench correctness-gate \
 ```
 
 Substituting `ngram-n3.json` / `ngram-n3-repeat2.json` for both the treatment candidate and the
-control reproduces the split verdict above. `apertus-bench compare-captures BASELINE CANDIDATE
---output ...` records one pair's divergence without judging it.
+control reproduces the split verdict above. Appending a second `--control` pair of `baseline.json`
+/ `baseline-repeat2.json` reproduces the `gate2-*.json` files and leaves every verdict unchanged.
+`apertus-bench compare-captures BASELINE CANDIDATE --output ...` records one pair's divergence
+without judging it.

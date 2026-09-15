@@ -22,11 +22,11 @@ and both control kinds are specified in `../docs/protocol.md`.
 ## Recorded runs
 
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
-  n-gram measurement, smoke corpus, concurrency 1 and 8, two deployment repeats of each speculative
-  arm and one baseline. Its `README.md` carries the provenance, the headline comparison, and the
-  deviations.
-- `correctness/smoke-20260913-debug/`: the sequential greedy captures for the baseline and all four
-  speculative deployments, the original exact-match comparisons, and the re-analysis under the
-  calibrated gate that replaced them. Its `README.md` reports both generations side by side.
+  n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every
+  arm. Its `README.md` carries the provenance, the headline comparison, and the deviations.
+- `correctness/smoke-20260913-debug/`: the sequential greedy captures for all six deployments, the
+  original exact-match comparisons, and the re-analysis under the calibrated gate that replaced them,
+  including the baseline-vs-baseline control that shows plain vLLM does not reproduce its own greedy
+  output across launches. Its `README.md` reports both generations side by side.
 - `deployment-failures/`: launches that never reached a serving endpoint, with the log excerpt and
   the design consequence. A failure that removes a factor level from the design is a result.
