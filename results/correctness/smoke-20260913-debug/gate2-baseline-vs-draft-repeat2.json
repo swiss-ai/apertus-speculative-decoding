@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "criterion": "calibrated_greedy_divergence",
+  "tolerance": {
+    "normalized_edit_distance_margin": 0.05,
+    "common_prefix_fraction_margin": 0.05,
+    "completion_token_difference_margin": 2
+  },
+  "treatment": {
+    "baseline_model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-baseline-faruk_zahiragic-20260913T152337Z",
+    "candidate_model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-draft-n3-tp4-faruk_zahiragic-20260913T170332Z",
+    "same_deployment": false,
+    "total_cases": 6,
+    "comparable_cases": 6,
+    "exact_matches": 3,
+    "worst_case": {
+      "minimum_common_prefix_characters": 151.0,
+      "minimum_common_prefix_fraction": 0.12541528239202657,
+      "maximum_normalized_edit_distance": 0.26151315789473684,
+      "maximum_completion_token_difference": 0.0
+    },
+    "captures": [
+      "results/correctness/smoke-20260913-debug/baseline.json",
+      "results/correctness/smoke-20260913-debug/draft-n3-tp4-repeat2.json"
+    ]
+  },
+  "controls": [
+    {
+      "baseline_model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-draft-n3-tp4-faruk_zahiragic-20260913T152358Z",
+      "candidate_model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-draft-n3-tp4-faruk_zahiragic-20260913T170332Z",
+      "same_deployment": false,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 0,
+      "worst_case": {
+        "minimum_common_prefix_characters": 151.0,
+        "minimum_common_prefix_fraction": 0.12818336162988114,
+        "maximum_normalized_edit_distance": 0.2558139534883721,
+        "maximum_completion_token_difference": 3.0
+      },
+      "captures": [
+        "results/correctness/smoke-20260913-debug/draft-n3-tp4.json",
+        "results/correctness/smoke-20260913-debug/draft-n3-tp4-repeat2.json"
+      ]
+    },
+    {
+      "baseline_model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-baseline-faruk_zahiragic-20260913T152337Z",
+      "candidate_model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-baseline-faruk_zahiragic-20260915T053357Z",
+      "same_deployment": false,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 1,
+      "worst_case": {
+        "minimum_common_prefix_characters": 54.0,
+        "minimum_common_prefix_fraction": 0.04679376083188908,
+        "maximum_normalized_edit_distance": 0.22735042735042735,
+        "maximum_completion_token_difference": 4.0
+      },
+      "captures": [
+        "results/correctness/smoke-20260913-debug/baseline.json",
+        "results/correctness/smoke-20260913-debug/baseline-repeat2.json"
+      ]
+    }
+  ],
+  "control_envelope": {
+    "pairs": 2,
+    "cross_deployment_pairs": 2,
+    "comparable_cases": 12,
+    "exact_matches": 1,
+    "minimum_common_prefix_fraction": 0.04679376083188908,
+    "maximum_normalized_edit_distance": 0.2558139534883721,
+    "maximum_completion_token_difference": 4.0
+  },
+  "checks": [
+    {
+      "name": "all_cases_comparable",
+      "treatment": 6,
+      "allowance": 6,
+      "passed": true
+    },
+    {
+      "name": "minimum_common_prefix_fraction",
+      "treatment": 0.12541528239202657,
+      "allowance": 0.0,
+      "passed": true
+    },
+    {
+      "name": "maximum_normalized_edit_distance",
+      "treatment": 0.26151315789473684,
+      "allowance": 0.3058139534883721,
+      "passed": true
+    },
+    {
+      "name": "maximum_completion_token_difference",
+      "treatment": 0.0,
+      "allowance": 6.0,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "verdict": "within_control_envelope",
+  "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+}

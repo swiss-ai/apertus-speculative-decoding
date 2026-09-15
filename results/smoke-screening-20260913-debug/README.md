@@ -1,8 +1,8 @@
 # Smoke screening, 2026-09-13, `debug` partition
 
 Screening of Apertus-v1.5-70B at depth 3 on one Clariden GH200 node: plain serving, 8B
-`draft_model` speculation at draft TP=4 (two deployments), and model-free n-gram speculation (two
-deployments). Same corpus, same `max_model_len`, same client, same on-cluster load path.
+`draft_model` speculation at draft TP=4, and model-free n-gram speculation — **two independent
+deployments each**. Same corpus, same `max_model_len`, same client, same on-cluster load path.
 
 **Headline: the 8B drafter accepts well and loses badly; n-gram accepts poorly and is the only arm
 that wins anything, and its win reproduces across two independent deployments.** The drafter's tokens
@@ -10,7 +10,10 @@ are accepted 60–80% of the time (mean acceptance length 2.81–3.39 of a possi
 throughput falls to 0.375–0.472× of baseline. N-gram accepts only 13–29% and reaches 0.85–1.20× of
 baseline, beating the draft arm by 1.8–2.7× everywhere and beating the **baseline** on long-context
 summarization in both of its deployments (1.127× and 1.204× at concurrency 1, 1.071× and 1.093× at
-concurrency 8). All six n-gram cells reproduce within the protocol's 10% spread gate, worst 6.6%.
+concurrency 8). All six n-gram cells reproduce within the protocol's 10% spread gate, worst 6.6%, and
+the win survives being divided by either baseline deployment or their mean, moving by no more than
+0.005. The baseline itself reproduces to **0.41%**, so the denominator is not where the uncertainty
+lives.
 
 Splitting the two arms locates the cost. Verifying a depth-3 proposal costs **1.23–1.36×** a plain
 decode step; proposing with the 8B drafter costs a further **4.9–6.2×** a decode step. Draft cost
@@ -23,6 +26,7 @@ arithmetic. See [the decomposition](#step-cost-decomposition-draft-cost-versus-v
 | Variant | Deployment repeat | Job | Node | Cells |
 |---|---:|---|---|---|
 | `baseline` (`method=none`) | 1 | 3391425 | nid007645 | `baseline-3391425/<workload>/c{1,8}/repeat-01` |
+| `baseline` (`method=none`) | 2 | 3405008 | nid006653 | `baseline-3405008/<workload>/c{1,8}/repeat-02` |
 | `draft-n3-tp4` (`method=draft_model`) | 1 | 3391426 | nid006633 | `draft-n3-tp4-3391426/<workload>/c{1,8}/repeat-01` |
 | `draft-n3-tp4` (`method=draft_model`) | 2 | 3392153 | nid006687 | `draft-n3-tp4-3392153/<workload>/c{1,8}/repeat-02` |
 | `ngram-n3` (`method=ngram`) | 1 | 3392370 | nid006687 | `ngram-n3-3392370/<workload>/c{1,8}/repeat-01` |
@@ -30,9 +34,9 @@ arithmetic. See [the decomposition](#step-cost-decomposition-draft-cost-versus-v
 
 A `draft_tensor_parallel_size=1` cell was attempted between the draft repeats and the n-gram arm, and
 is not servable at the pinned vLLM revision; see `../deployment-failures/draft-n3-tp1-3392110/`. The
-draft and n-gram arms therefore have two deployment repeats each, and **the baseline has one**, which
-is now the design's weakest point: every ratio quoted here still divides by a single baseline
-deployment.
+All three servable configurations now have two independent deployment repeats, so **every ratio in this
+run divides by a repeated denominator**. See
+[the baseline repeat](#baseline-deployment-repeat-2-the-denominator-is-trustworthy).
 
 `analysis.csv` is `apertus-bench analyze` over all five deployments (30 rows). `provenance/` holds
 each deployment's `/v1/models` response and the required pre-measurement chat completion.
@@ -47,9 +51,9 @@ step-cost decomposition, the split correctness gate, and the unservable draft TP
 
 ## Results
 
-All 30 cells had a 1.000 success rate with exact token usage on every request, and total completion
-tokens agree within 0.2% across all five deployments (36,148 baseline; 36,160 and 36,164 draft;
-36,184 and 36,115 n-gram), so the arms really did do the same work. The table below pairs the baseline against draft repeat 1; repeat 2 and the n-gram arm have
+All 36 cells had a 1.000 success rate with exact token usage on every request, and total completion
+tokens agree within 0.2% across all six deployments (36,148 and 36,164 baseline; 36,160 and 36,164
+draft; 36,184 and 36,115 n-gram), so the arms really did do the same work. The table below pairs the baseline against draft repeat 1; repeat 2 and the n-gram arm have
 their own sections. `b` is baseline, `d` is `draft-n3-tp4`.
 
 | Workload | Concurrency | TTFT p50 (ms) b→d | TTFT p95 (ms) b→d | TPOT p50 (ms) b→d | Output tok/s b→d | Throughput ratio |
@@ -180,6 +184,94 @@ understates `acceptance_rate` by 0.4% relative (0.1313 against 0.1319 at concurr
 but it is the wrong conversion, and on the research corpus — longer prompts, more short partial
 matches — there is no reason to expect the gap to stay this small.
 
+### Baseline deployment repeat 2: the denominator is trustworthy
+
+Job 3405008 on nid006653, `method=none`, stock image, no overlay, identical launch to job 3391425
+(`launch/baseline.sh` is byte-identical between the two harness revisions, verified by `git diff`), same
+corpus, same 8 warmup and 24 measured requests, same direct-node-IP load path.
+
+**The baseline is by far the most reproducible arm in the experiment.** Output throughput moves by
+0.01–0.41% between two deployments on different nodes eleven hours apart, against a
+`maximum_repeat_spread_fraction` of 0.10 — a factor of 24 inside the gate at worst.
+
+| Workload | Conc. | Output tok/s r1→r2 | Spread | TPOT p50 (ms) r1→r2 | Spread | TTFT p50 (ms) r1→r2 | TTFT p95 (ms) r1→r2 |
+|---|---:|---|---:|---|---:|---|---|
+| open_chat | 1 | 70.13 → 70.13 | 0.01% | 14.13 → 14.13 | 0.00% | 31.02 → 30.99 | 35.54 → 34.44 |
+| open_chat | 8 | 432.26 → 431.50 | 0.17% | 14.69 → 14.73 | 0.22% | 44.36 → 44.13 | 64.93 → 67.63 |
+| code | 1 | 70.47 → 70.55 | 0.11% | 14.15 → 14.14 | 0.07% | 27.75 → 26.36 | 30.49 → 27.16 |
+| code | 8 | 540.61 → 538.47 | 0.40% | 14.70 → 14.75 | 0.34% | 44.79 → 44.30 | 66.70 → 66.44 |
+| long_context_summarization | 1 | 70.22 → 70.28 | 0.09% | 14.16 → 14.15 | 0.04% | 33.60 → 31.90 | 36.52 → 34.72 |
+| long_context_summarization | 8 | 493.66 → 491.63 | 0.41% | 14.72 → 14.79 | 0.49% | 45.68 → 45.54 | 70.49 → 77.44 |
+
+Throughput and TPOT are effectively deterministic; **TTFT is not**, spreading 0.1–5.2% at p50 and
+0.4–11.5% at p95. TTFT is a single-event measurement per request over 24 requests cycling 2 prompts, so
+it is the noisiest thing this design measures, and that is the right prior for reading any TTFT claim
+here — including n-gram's.
+
+That also settles which arm's variability was real. The draft arm's 1.7–11.1% between-deployment spread
+and the n-gram arm's 1.7–6.6% cannot be attributed to node-to-node variation in the platform, because
+the platform reproduces the baseline to 0.4%. **Speculative arms are genuinely more variable than plain
+decoding**, which is itself worth knowing operationally: enabling speculation costs predictability as
+well as capacity.
+
+#### Ratios under a repeated denominator
+
+Every ratio in this run recomputed against baseline repeat 2 and against the mean of the two baselines:
+
+| Arm | Workload | Conc. | ÷ baseline r1 | ÷ baseline r2 | ÷ mean baseline |
+|---|---|---:|---:|---:|---:|
+| ngram r1 | long_context_summarization | 1 | **1.127** | **1.126** | **1.127** |
+| ngram r2 | long_context_summarization | 1 | **1.204** | **1.203** | **1.204** |
+| ngram r1 | long_context_summarization | 8 | **1.071** | **1.075** | **1.073** |
+| ngram r2 | long_context_summarization | 8 | **1.093** | **1.098** | **1.096** |
+| ngram r1 | code | 1 | 0.943 | 0.942 | 0.943 |
+| ngram r2 | code | 1 | 0.980 | 0.979 | 0.980 |
+| ngram r1 | code | 8 | 0.859 | 0.862 | 0.861 |
+| ngram r2 | code | 8 | 0.888 | 0.892 | 0.890 |
+| ngram r1 | open_chat | 1 | 0.902 | 0.902 | 0.902 |
+| ngram r2 | open_chat | 1 | 0.917 | 0.917 | 0.917 |
+| ngram r1 | open_chat | 8 | 0.848 | 0.849 | 0.849 |
+| ngram r2 | open_chat | 8 | 0.863 | 0.864 | 0.863 |
+| draft r1 | all six cells | 1, 8 | 0.419–0.472 | 0.419–0.474 | 0.419–0.473 |
+| draft r2 | all six cells | 1, 8 | 0.375–0.461 | 0.375–0.460 | 0.375–0.460 |
+
+**The summarization win survives every choice of denominator, at an unchanged magnitude.** No ratio in
+the study moves by more than 0.005 absolute when the denominator is swapped or averaged. The n-gram
+win is 1.126–1.204× at concurrency 1 and 1.071–1.098× at concurrency 8 across all six
+numerator-denominator pairings, and the draft arm's regression is 0.375–0.474× across all of them. The
+denominator was never the weak link in this study; the numerators are.
+
+One claim does change. The TTFT advantage was stated as n-gram below baseline in all twelve cells at
+both p50 and p95. Against the second baseline that becomes **22 of 24 comparisons**: n-gram repeat 1 on
+`code` at concurrency 1 is marginally *above* baseline repeat 2, by 0.4% at p50 (26.48 against 26.36 ms)
+and 1.2% at p95 (27.49 against 27.16 ms). Both differences are far inside the baseline's own 5.1–11.5%
+TTFT spread on that cell, so the honest statement is that **n-gram's TTFT advantage is robust in the
+five other cells (5–29% lower) and not resolvable on `code` at concurrency 1**.
+
+#### Baseline-vs-baseline correctness control
+
+The gate has never had a same-arm control on the baseline side; this deployment supplies it
+(`../correctness/smoke-20260913-debug/comparison-baseline-repeat1-vs-repeat2.json`).
+
+**Two identically configured baseline deployments — no speculation anywhere, same stock image, same
+launch — agree on 1 of 6 greedy prompts, with worst-case normalized edit distance 0.227 and completion
+token counts differing by up to 4.** That is the cleanest possible demonstration that the original exact
+greedy criterion measured nondeterminism: plain vLLM does not reproduce itself across deployments, so
+requiring speculation to reproduce the baseline bitwise was never a correctness test. It also slightly
+*exceeds* the baseline-versus-draft-repeat-1 treatment divergence (worst edit distance 0.2265) — **the
+baseline disagrees with itself marginally more than it disagrees with the speculative arm.**
+
+Re-running the calibrated gate with the baseline pair added as a second control
+(`gate2-baseline-vs-*.json`) changes no verdict: both draft comparisons and n-gram repeat 1 return
+`within_control_envelope`, and n-gram repeat 2 still exceeds it on worst-case edit distance alone
+(0.392 against 0.314). The reason is a property of the gate worth recording, and it is the opposite of
+what was previously assumed here: **the gate takes the loosest control envelope, not the tightest.**
+Allowances are set by the most divergent control supplied, so the baseline pair — the tightest of the
+three at 0.227 — cannot tighten anything. The draft comparisons are judged against 0.306 (the draft
+pair) and the n-gram comparisons against 0.314 (the n-gram pair). Supplying a tighter control is
+therefore inert, and a *loose* control is what weakens the gate; the completion-token allowance shows
+the same effect, 6 from the baseline pair against 40 from the n-gram pair.
+
 ### Step-cost decomposition: draft cost versus verification cost
 
 Speculation changes tokens per engine step, so per-token latency understates per-step cost. Mean
@@ -259,7 +351,7 @@ interval, and the baseline still has only one deployment.
 
 | Arm | KV cache | Max concurrency at 131072 tokens/request | Loss vs baseline |
 |---|---:|---:|---:|
-| baseline | 513,696 tokens | 3.92× | — |
+| baseline (repeat 1 / 2) | 513,696 / 513,696 tokens | 3.92× | — |
 | ngram-n3 (repeat 1 / 2) | 416,640 / 416,640 tokens | 3.18× | −18.9% |
 | draft-n3-tp4 (repeat 1 / 2) | 251,472 / 251,488 tokens | 1.92× | −51.0% |
 
@@ -270,10 +362,11 @@ verifying four positions at once. The drafter's weights then cost a further 165,
 draft arm's halved capacity is roughly 37% speculation machinery and 63% drafter weights, not purely
 the weights.
 
-These are the most reproducible numbers in the study. The two n-gram deployments sized their cache to
-**the same 416,640 tokens on different nodes**, byte-for-byte, and the two draft deployments came
-within 16 tokens of each other, so the −18.9% and −51.0% capacity costs are deterministic properties
-of the configuration rather than run-to-run noise.
+These are the most reproducible numbers in the study. Both baseline deployments and both n-gram
+deployments sized their cache to **exactly the same token count on different nodes** — 513,696 and
+416,640 respectively — and the two draft deployments came within 16 tokens of each other, so the
+−18.9% and −51.0% capacity costs are deterministic properties of the configuration rather than
+run-to-run noise.
 
 ## Interpretation
 
@@ -317,8 +410,18 @@ of 4.6–31%, so it is not a single node's quirk.
 ## Provenance
 
 - Cluster: Clariden (CSCS), partition `debug`, `--time 01:00:00`, 1 node × 4 GH200 per arm.
-- Baseline job 3391425 on nid007645, replica head IP 172.28.51.237, started 17:23:47 CEST,
+- Baseline job 3391425 (repeat 1) on nid007645, replica head IP 172.28.51.237, started 17:23:47 CEST,
   cancelled 18:07 CEST after measurement.
+- Baseline job 3405008 (repeat 2) on **nid006653**, replica head IP 172.28.33.52, submitted
+  2026-09-15 07:34:02 CEST, ready 07:44 CEST, cancelled 07:51:39 CEST after measurement. Stock image,
+  no overlay, `method=none`, `max_model_len=131072`, `gpu_memory_utilization=0.8`, target TP=4 —
+  identical to repeat 1, and launched from a byte-identical `launch/baseline.sh`. KV cache 513,696
+  tokens (3.92×), `max_num_batched_tokens=8192` with no `max_num_scheduled_tokens` shrink, and
+  `Asynchronous scheduling is enabled`, all matching repeat 1.
+  An earlier attempt at this repeat, job 3403572 on nid007399, served successfully but was not
+  measured: the driving session lapsed and the job reached its one-hour `debug` wall clock
+  (`TIMEOUT` at 01:49:51 CEST) with no cells collected. Its log confirms the same KV cache and token
+  budget; no measurement data exists for it and none is recorded here.
 - Draft job 3391426 (repeat 1) on nid006633, replica head IP 172.28.32.244, started 18:07:36 CEST,
   cancelled 18:51 CEST after measurement. It was queued behind the baseline with reason
   `QOSMaxJobs`, so the arms ran sequentially rather than concurrently.
@@ -395,14 +498,11 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
 
 ## Deviations and caveats
 
-- **Only the baseline has a single deployment.** `configs/experiment.yaml` screening asks for two
-  independent deployments per configuration; both speculative arms now have two, and the baseline has
-  one. So the baseline contributes no deployment-level spread and **every ratio quoted in this run
-  divides by one deployment**. The spread figures here are between-deployment spreads of the
-  numerator only, and a baseline repeat would widen them. This is now the single highest-value missing
-  cell: it is the cheapest measurement that would firm up the summarization win, more so than a third
-  n-gram repeat. Two repeats also support a spread but not the bootstrap confidence interval over
-  deployment effects the protocol's analysis section asks for.
+- **Every configuration now has two deployments, and two is still the minimum.**
+  `configs/experiment.yaml` screening asks for two independent deployments per configuration and all
+  three servable configurations have them, so no ratio here divides by an unrepeated denominator. Two
+  repeats support a spread but not the bootstrap confidence interval over deployment effects that the
+  protocol's analysis section asks for, and the confirmation matrix asks for five.
 - **`maximum_repeat_spread_fraction: 0.10` is breached in one cell of the draft arm**,
   `long_context_summarization` at concurrency 1 (11.1% on the throughput ratio). Treat that cell's
   effect size as the least settled of the draft arm's six; its direction matches the others. All six

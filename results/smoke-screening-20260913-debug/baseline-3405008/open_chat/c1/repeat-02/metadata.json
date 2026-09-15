@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "harness_version": "0.1.0",
+  "harness_git_revision": "a26ba85babb61fbd5522fe10eab2721a8f32f23b",
+  "python": "3.13.9",
+  "started_at": "2026-09-15T05:50:40.168821+00:00",
+  "ended_at": "2026-09-15T05:51:26.364991+00:00",
+  "base_url": "http://172.28.33.52:8080",
+  "metrics_url": "http://172.28.33.52:8080/metrics",
+  "model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-baseline-faruk_zahiragic-20260915T053357Z",
+  "variant": {
+    "name": "baseline",
+    "method": "none",
+    "num_speculative_tokens": null,
+    "draft_tensor_parallel_size": null,
+    "prompt_lookup_max": null
+  },
+  "cell": {
+    "workload": "open_chat",
+    "concurrency": 1,
+    "requests": 24,
+    "warmup_requests": 8,
+    "repeat": 2,
+    "generation": {
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "seed": 1,
+      "max_tokens": null,
+      "ignore_eos": false
+    }
+  },
+  "workload_file": "workloads/smoke.jsonl",
+  "workload_file_sha256": "316fb566a18e32305b98929e34fdac515b9a43c6c7329994b319870f879952af",
+  "prompt_ids": [
+    "chat-001",
+    "chat-002"
+  ],
+  "extra": {
+    "slurm_job_id": "3405008",
+    "slurm_node_id": "nid006653",
+    "slurm_partition": "debug",
+    "replica_head_ip": "172.28.33.52",
+    "deployment_repeat": "2",
+    "load_generator": "clariden login node, direct to replica node IP (no public gateway)",
+    "max_model_len": "131072",
+    "gpu_memory_utilization": "0.8",
+    "tensor_parallel_size": "4",
+    "hardware": "1x Clariden GH200 node (4 GPUs)",
+    "model_launch_revision": "909026a990454557f1b54d26f24ec3ad92e51e35",
+    "vllm_revision": "a601a9d998ddeb488f0c17e8512874b116aa7658",
+    "vllm_build": "0.23.1rc1.dev1029+ga601a9d99",
+    "container_image": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh",
+    "vllm_source_overlay": "none (stock pinned image)",
+    "async_scheduling": "enabled (vLLM default; not disabled on this arm)"
+  }
+}
