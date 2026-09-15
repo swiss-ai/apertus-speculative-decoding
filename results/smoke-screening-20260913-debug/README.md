@@ -38,14 +38,14 @@ All three servable configurations now have two independent deployment repeats, s
 run divides by a repeated denominator**. See
 [the baseline repeat](#baseline-deployment-repeat-2-the-denominator-is-trustworthy).
 
-`analysis.csv` is `apertus-bench analyze` over all five deployments (30 rows). `provenance/` holds
+`analysis.csv` is `apertus-bench analyze` over all six deployments (36 rows). `provenance/` holds
 each deployment's `/v1/models` response and the required pre-measurement chat completion.
 Correctness captures are in `../correctness/smoke-20260913-debug/`.
 
 `../../canvases/apertus-speculative-decoding-smoke-screening.canvas.tsx` renders this run as a
 Cursor canvas: the paired per-cell comparison, the acceptance breakdown, the KV-cache cost, and the
 caveats. Copy it into the workspace's managed `canvases/` directory to open it beside a chat. It
-covers all five deployments: the between-deployment spread of both repeat pairs, the derived
+covers all six deployments: the between-deployment spread of all three repeat pairs, the derived
 step-cost decomposition, the split correctness gate, and the unservable draft TP=1 level.
 `../../docs/hackathon-20260915.md` is the narrative companion to it.
 
@@ -510,9 +510,11 @@ Full responses with usage are in `provenance/*-first-chat-completion.json`.
   `long_context_summarization` at concurrency 1 (11.1% on the throughput ratio). Treat that cell's
   effect size as the least settled of the draft arm's six; its direction matches the others. All six
   n-gram cells clear the gate (worst 6.6%).
-- **Node effects are not separated from `method`.** The five deployments used nid007645, nid006633,
-  nid006687, nid006687 and nid007500, at five different times. Draft repeat 2 and n-gram repeat 1
-  share a node, so that one pairing is clean; every comparison involving the baseline crosses nodes.
+- **Node effects are not separated from `method`.** The six deployments used nid007645, nid006653,
+  nid006633, nid006687, nid006687 and nid007500, at six different times. Draft repeat 2 and n-gram
+  repeat 1 share a node, so that one pairing is clean; every comparison involving the baseline
+  crosses nodes — though the two baselines, on different nodes, agree to 0.41%, which bounds how
+  much a node can contribute to an unspeculated deployment.
   The protocol treats node/date as a nuisance block; this run cannot. Draft repeat 2 being uniformly
   slower than repeat 1 is consistent with a node effect and is a reason not to read small differences
   as anything else — though n-gram repeat 2 being uniformly *faster* than n-gram repeat 1, on a
