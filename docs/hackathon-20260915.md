@@ -5,9 +5,9 @@ CSCS / Swiss AI gathering, OAT Lugano, 2026-09-15. Faruk Zahiragić (EPFL), issu
 code in `[swiss-ai/apertus-speculative-decoding](https://github.com/swiss-ai/apertus-speculative-decoding)`.
 
 Every number below is read from artifacts committed in this repository. The run directory is
-`results/smoke-screening-20260913-debug/` (30 cells, `analysis.csv`, per-cell Prometheus snapshots),
-with correctness captures in `results/correctness/smoke-20260913-debug/` and one recorded launch
-failure in `results/deployment-failures/`.
+`results/70b/smoke-screening-20260913-debug/` (30 cells, `analysis.csv`, per-cell Prometheus snapshots),
+with correctness captures in `results/70b/correctness/smoke-20260913-debug/` and one recorded launch
+failure in `results/70b/deployment-failures/`.
 
 ---
 
@@ -70,7 +70,7 @@ latency is included. Total completion tokens agree within 0.2% across the five d
 ## 3. The headline numbers
 
 Baseline (`b`) against draft repeat 1 (`d`) and the two n-gram deployments (`n₁`, `n₂`). Full tables
-for all 30 cells are in `results/smoke-screening-20260913-debug/README.md` and `analysis.csv`.
+for all 30 cells are in `results/70b/smoke-screening-20260913-debug/README.md` and `analysis.csv`.
 
 
 | Workload                   | Conc. | TPOT p50 (ms) b→d→n₁→n₂       | Output tok/s b→d→n₁→n₂        | d÷b   | n₁÷b      | n₂÷b      | n spread |
@@ -174,8 +174,8 @@ and reads `target_model.config.image_token_index` for any architecture not on an
 defines `image_token_id`, not `image_token_index` — so the 70B target loads, the drafter raises
 `AttributeError`, and the engine never comes up.
 
-The one-line fix is `patches/vllm-apertus-image-token.patch`, bind-mounted over the read-only image
-by `launch/patch-vllm.sh`, and is open as `[swiss-ai/vllm#20](https://github.com/swiss-ai/vllm/pull/20)`
+The one-line fix is `serving/patches/vllm-apertus-image-token.patch`, bind-mounted over the read-only image
+by `serving/patch-vllm.sh`, and is open as `[swiss-ai/vllm#20](https://github.com/swiss-ai/vllm/pull/20)`
 against `apertus-1-5`. **No branch and no prebuilt image on Capstor contains it.** Critically, the
 Apertus 1.5 upstreaming PRs — `[swiss-ai/vllm#16](https://github.com/swiss-ai/vllm/pull/16)` and its
 upstream counterpart `[vllm-project/vllm#50496](https://github.com/vllm-project/vllm/pull/50496)` —
@@ -202,10 +202,10 @@ Got 1 and 4. Please pass 'draft_tensor_parallel_size' in the speculative_config.
 from `DraftModelProposer.__init__`. Its own comment gives the reason: with target TP>1 and draft
 TP=1, every rank compiles the draft as rank 0 and corrupts the `torch.compile` cache. We did not
 patch the guard out — the failure mode it prevents is silent, not clean. Evidence and traceback are
-in `results/deployment-failures/draft-n3-tp1-3392110/`.
+in `results/70b/deployment-failures/draft-n3-tp1-3392110/`.
 
 Consequence: hypothesis H4 and the draft-TP half of research question 3 are unanswerable at this
-revision, and `configs/experiment.yaml` now pins `draft_tensor_parallel_size: [4]`. The step-cost
+revision, and `experiments/smoke-70b/experiment.yaml` now pins `draft_tensor_parallel_size: [4]`. The step-cost
 decomposition also says TP=1 would not have rescued the result: eliminating draft-side collectives
 entirely cannot recover five to six baseline steps.
 
@@ -250,7 +250,7 @@ itself so much as a toolchain-pairing hazard.
 - **The `{arch}` placeholder in the environment toml.** `vllm_apertus_1.5_release.toml` ships
 `...vllm_apertus_1.5_release-{arch}.sqsh`. Only some `sml` builds substitute it on the node; one
 that does not passes the literal through and pyxis rejects it, killing the job seconds after start
-(job 3234057, dead in 19 s). `launch/resolve-env.sh` writes a resolved copy under `~/.sml`.
+(job 3234057, dead in 19 s). `serving/resolve-env.sh` writes a resolved copy under `~/.sml`.
 - **A split toolchain: newer CLI flags against the pinned environment toml.** Revision `909026a`
 expects `--system`, `--framework`, `--environment`; other `sml` builds in circulation use
 `--firecrest-system`, `--serving-framework`, `--slurm-environment` and expect the OpenTela share
@@ -266,12 +266,12 @@ for everyone.
 
 Rob's suggested starting point on #1057 is
 `examples/clariden/cli/swiss-ai/apertus-ai-1.5-release/Apertus-v1.5-70B-spec-decode.sh` in
-`swiss-ai/model-launch`. This experiment's `launch/draft-model.sh` is that script with three
+`swiss-ai/model-launch`. This experiment's `methods/draft_model/draft-model.sh` is that script with three
 substantive changes and a few operational ones. **The speculative configuration itself is
 identical**, so the numbers above are numbers for the published configuration.
 
 
-| Setting                            | Published example             | `launch/draft-model.sh`                  | Same?       |
+| Setting                            | Published example             | `methods/draft_model/draft-model.sh`                  | Same?       |
 | ---------------------------------- | ----------------------------- | ---------------------------------------- | ----------- |
 | method                             | `draft_model`                 | `draft_model`                            | yes         |
 | draft model                        | `swiss-ai/Apertus-v1.5-8B`    | same, Capstor cache path                 | yes         |
@@ -435,15 +435,15 @@ export PATH="$HOME/venvs/sml-apertus/bin:$PATH"
 
 ```bash
 # Launch, one arm at a time (debug QOS permits one running job)
-SML_PARTITION=debug SML_TIME=01:00:00 ./launch/baseline.sh --no-tui
+SML_PARTITION=debug SML_TIME=01:00:00 ./serving/baseline.sh --no-tui
 
 IMAGE=/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
-EXTRA_MOUNTS="$(./launch/patch-vllm.sh "$IMAGE" patches/vllm-apertus-image-token.patch)" \
+EXTRA_MOUNTS="$(./serving/patch-vllm.sh "$IMAGE" serving/patches/vllm-apertus-image-token.patch)" \
   SML_PARTITION=debug SML_TIME=01:00:00 NUM_SPECULATIVE_TOKENS=3 DRAFT_TP=4 \
-  ./launch/draft-model.sh --no-tui
+  ./methods/draft_model/draft-model.sh --no-tui
 
 SML_PARTITION=debug SML_TIME=01:00:00 NUM_SPECULATIVE_TOKENS=3 PROMPT_LOOKUP_MAX=4 \
-  ./launch/ngram.sh --no-tui
+  ./methods/ngram/ngram.sh --no-tui
 ```
 
 Each launcher prints its unique served model name. Wait for `/v1/models` **and** one successful
@@ -460,17 +460,17 @@ apertus-bench matrix \
   --output results/<run>/draft-n3-tp4-$SLURM_JOB_ID
 
 # Analyse all deployments of a run into one CSV
-apertus-bench analyze results/smoke-screening-20260913-debug --output /tmp/analysis.csv
+apertus-bench analyze results/70b/smoke-screening-20260913-debug --output /tmp/analysis.csv
 ```
 
 Correctness, against the committed captures — no cluster needed:
 
 ```bash
 apertus-bench correctness-gate \
-  --treatment results/correctness/smoke-20260913-debug/baseline.json \
-              results/correctness/smoke-20260913-debug/draft-n3-tp4.json \
-  --control   results/correctness/smoke-20260913-debug/draft-n3-tp4.json \
-              results/correctness/smoke-20260913-debug/draft-n3-tp4-repeat2.json \
+  --treatment results/70b/correctness/smoke-20260913-debug/baseline.json \
+              results/70b/correctness/smoke-20260913-debug/draft-n3-tp4.json \
+  --control   results/70b/correctness/smoke-20260913-debug/draft-n3-tp4.json \
+              results/70b/correctness/smoke-20260913-debug/draft-n3-tp4-repeat2.json \
   --output /tmp/gate.json
 ```
 
@@ -482,15 +482,15 @@ reproduces the split verdict discussed in §7.
 
 | What                                                                             | Where                                                              |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 30 measured cells, per-cell `summary.json` / `requests.jsonl` / `metrics_*.prom` | `results/smoke-screening-20260913-debug/`                          |
-| Run narrative, all tables, provenance                                            | `results/smoke-screening-20260913-debug/README.md`                 |
-| Flat analysis over all five deployments (30 rows)                                | `results/smoke-screening-20260913-debug/analysis.csv`              |
-| `/v1/models` and pre-measurement chat completions                                | `results/smoke-screening-20260913-debug/provenance/`               |
-| Greedy captures, exact-match comparisons, calibrated gates                       | `results/correctness/smoke-20260913-debug/`                        |
-| Unservable draft TP=1, with traceback                                            | `results/deployment-failures/draft-n3-tp1-3392110/`                |
-| The vLLM one-line fix                                                            | `patches/vllm-apertus-image-token.patch`                           |
-| Launchers and image-overlay helper                                               | `launch/`                                                          |
-| Experimental contract and gate definitions                                       | `docs/protocol.md`, `configs/experiment.yaml`                      |
+| 30 measured cells, per-cell `summary.json` / `requests.jsonl` / `metrics_*.prom` | `results/70b/smoke-screening-20260913-debug/`                          |
+| Run narrative, all tables, provenance                                            | `results/70b/smoke-screening-20260913-debug/README.md`                 |
+| Flat analysis over all five deployments (30 rows)                                | `results/70b/smoke-screening-20260913-debug/analysis.csv`              |
+| `/v1/models` and pre-measurement chat completions                                | `results/70b/smoke-screening-20260913-debug/provenance/`               |
+| Greedy captures, exact-match comparisons, calibrated gates                       | `results/70b/correctness/smoke-20260913-debug/`                        |
+| Unservable draft TP=1, with traceback                                            | `results/70b/deployment-failures/draft-n3-tp1-3392110/`                |
+| The vLLM one-line fix                                                            | `serving/patches/vllm-apertus-image-token.patch`                   |
+| Launchers and image-overlay helper                                               | `serving/`, `methods/draft_model/`, `methods/ngram/`               |
+| Experimental contract and gate definitions                                       | `docs/protocol.md`, `experiments/smoke-70b/experiment.yaml`        |
 | Presentation visual (all five deployments, 30 cells)                             | `canvases/apertus-speculative-decoding-smoke-screening.canvas.tsx` |
 
 
@@ -498,6 +498,6 @@ Corpus `workloads/smoke.jsonl`, SHA-256
 `316fb566a18e32305b98929e34fdac515b9a43c6c7329994b319870f879952af`.
 
 Two launch failures referenced in §5.5 (jobs 3234057 and 3374539) are described in `README.md` and
-`launch/resolve-env.sh` but their logs are not archived under `results/deployment-failures/`; that
+`serving/resolve-env.sh` but their logs are not archived under `results/70b/deployment-failures/`; that
 gap should be closed the next time either is reproduced. Job 3374717's KV-cache error is recorded in
 the commit message of `270413f`.

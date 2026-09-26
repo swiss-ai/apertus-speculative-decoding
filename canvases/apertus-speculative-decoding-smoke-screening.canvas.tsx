@@ -5,17 +5,17 @@
  * deployments — six in total, two per arm.
  *
  * Every number rendered here is read from the committed run artifacts:
- *   - `results/smoke-screening-20260913-debug/analysis.csv` and each cell's
+ *   - `results/70b/smoke-screening-20260913-debug/analysis.csv` and each cell's
  *     `summary.json` (client-observed metrics, speculative counter deltas),
  *   - `metrics_after.prom` (`vllm:cache_config_info`) for KV-cache capacity,
- *   - `results/correctness/smoke-20260913-debug/` (exact-match comparisons and
+ *   - `results/70b/correctness/smoke-20260913-debug/` (exact-match comparisons and
  *     the calibrated divergence gate that replaced them),
- *   - `results/deployment-failures/draft-n3-tp1-3392110/` (unservable draft TP).
+ *   - `results/70b/deployment-failures/draft-n3-tp1-3392110/` (unservable draft TP).
  * Derived quantities are labelled as derived. Nothing is extrapolated.
  *
  * The configuration diff in `ConfigDiff` is read from
  * `examples/clariden/cli/swiss-ai/apertus-ai-1.5-release/Apertus-v1.5-70B-spec-decode.sh`
- * in `swiss-ai/model-launch` against this repository's `launch/draft-model.sh`.
+ * in `swiss-ai/model-launch` against this repository's `methods/draft_model/draft-model.sh`.
  * Pull-request states are as of 2026-09-14. N-gram repeat 2 (job 3403354, commit
  * `246e069`) and baseline repeat 2 (job 3405008, commit `d1d9a33`) are included
  * throughout.
@@ -768,11 +768,11 @@ const KV_CACHE = {
   draft2: { tokens: 251488, maxConcurrency: 1.918701171875, gpuBlocks: 15718 },
 };
 
-/** `configs/experiment.yaml`, `validity_gates.maximum_repeat_spread_fraction`. */
+/** `experiments/smoke-70b/experiment.yaml`, `validity_gates.maximum_repeat_spread_fraction`. */
 const MAX_REPEAT_SPREAD = 0.1;
 
 /**
- * `launch/draft-model.sh` against
+ * `methods/draft_model/draft-model.sh` against
  * `examples/clariden/cli/swiss-ai/apertus-ai-1.5-release/Apertus-v1.5-70B-spec-decode.sh`
  * in `swiss-ai/model-launch`, the starting point suggested on apertus-program#1057.
  */
@@ -832,7 +832,7 @@ const CONFIG_DIFF: Array<{
 ];
 
 /**
- * `results/correctness/smoke-20260913-debug/`. Exact-match counts come from the
+ * `results/70b/correctness/smoke-20260913-debug/`. Exact-match counts come from the
  * original `comparison*.json`; divergence statistics and verdicts from the
  * `divergence-*.json` and `gate-*.json` re-analysis of the same captures.
  */
@@ -1214,7 +1214,7 @@ function BaselineControl() {
       <H2>The denominator is repeated too, and that turns a caveat into a finding</H2>
       <Text tone="secondary">
         Two baseline deployments on different nodes, launched from a byte-identical
-        `launch/baseline.sh`. They agree to{" "}
+        `serving/baseline.sh`. They agree to{" "}
         <Text weight="semibold">{spanPct(baselineTpsSpreads, 2)}</Text> on output throughput and{" "}
         {spanPct(baselineTpotSpreads, 2)} on TPOT p50 — a factor of 24 inside the protocol's{" "}
         {pct(MAX_REPEAT_SPREAD, 0)} gate, making the baseline by far the most reproducible arm here.
@@ -2225,7 +2225,7 @@ function StepCost() {
           and the gap against draft repeat 2 is <Text size="small" italic>wider</Text> rather than
           narrower, the two n-gram deployments agree to {spanPct(ngramStepSpreads, 1)} across
           different nodes, and the two baselines agree to {spanPct(baselineStepSpreads, 2)}. Source:
-          `results/smoke-screening-20260913-debug/README.md`, section "Step-cost decomposition".
+          `results/70b/smoke-screening-20260913-debug/README.md`, section "Step-cost decomposition".
         </Text>
       </Callout>
     </Stack>
@@ -2267,7 +2267,7 @@ function Correctness() {
         title="The baseline diverges from itself by more than it diverges from the draft arm"
       >
         <Text size="small">
-          Two baseline deployments, same stock image, same byte-identical `launch/baseline.sh`, no
+          Two baseline deployments, same stock image, same byte-identical `serving/baseline.sh`, no
           speculation in the picture at all, agree on {baselineControl.exactMatches} of{" "}
           {CORRECTNESS.totalCases} greedy prompts — worst-case normalized edit distance{" "}
           {num(baselineControl.worstEditDistance, 4)}, completion tokens differing by up to{" "}
@@ -2337,7 +2337,7 @@ function Correctness() {
         ignored. Both draft pairs return `within_control_envelope`; n-gram repeat 1 comes in at{" "}
         {num(ngramOne.worstEditDistance, 3)} and passes, repeat 2 at{" "}
         {num(ngramTwo.worstEditDistance, 3)} and fails that one check of four. Source:
-        `results/correctness/smoke-20260913-debug/` (`comparison*.json` for the exact-match counts,
+        `results/70b/correctness/smoke-20260913-debug/` (`comparison*.json` for the exact-match counts,
         `divergence-*.json` for the rest, `gate-*.json` for the original verdicts and `gate2-*.json`
         for the re-runs with the baseline control added).
       </Caption>
@@ -2445,7 +2445,7 @@ function DraftTpOne() {
             <Text size="small">
               H4 predicted TP=1 trades draft communication for memory/compute imbalance. The level does
               not exist at this revision, so research question 3 reduces to a depth sweep at draft TP =
-              target TP. `configs/experiment.yaml` now pins `draft_tensor_parallel_size: [4]`.
+              target TP. `experiments/smoke-70b/experiment.yaml` now pins `draft_tensor_parallel_size: [4]`.
             </Text>
           </Callout>
           <Callout tone="success" title="The n-gram arm answered the question this cell was asked">
@@ -2462,7 +2462,7 @@ function DraftTpOne() {
           <Caption>
             The failure precedes KV-cache profiling, so no context length was changed and the
             KV-capacity question at draft TP=1 is still open. Evidence:
-            `results/deployment-failures/draft-n3-tp1-3392110/` (job 3392110, nid006593, with
+            `results/70b/deployment-failures/draft-n3-tp1-3392110/` (job 3392110, nid006593, with
             `engine-error.log` and `replica_health.json`). A failure that removes a factor level from
             the design is a result.
           </Caption>
@@ -2623,8 +2623,8 @@ function PlatformFindings() {
             `Apertus1p5ForConditionalGeneration` is multimodal but absent from that list, and
             `Apertus1p5Config` defines `image_token_id` instead — so the 70B loads, the drafter
             raises `AttributeError`, and the engine never comes up. The one-line fix is
-            `patches/vllm-apertus-image-token.patch`, bind-mounted over the read-only image by
-            `launch/patch-vllm.sh`, and is open as swiss-ai/vllm#20 against `apertus-1-5`.
+            `serving/patches/vllm-apertus-image-token.patch`, bind-mounted over the read-only image by
+            `serving/patch-vllm.sh`, and is open as swiss-ai/vllm#20 against `apertus-1-5`.
           </Text>
         </Callout>
         <Callout tone="danger" title="No image contains the fix, and the upstreaming PRs do not carry it">
@@ -2646,11 +2646,11 @@ function PlatformFindings() {
             drafter is added.
           </Text>
         </Callout>
-        <Callout tone="warning" title="Two launch-path hazards, both worked around in `launch/`">
+        <Callout tone="warning" title="Two launch-path hazards, both worked around in `serving/`">
           <Text size="small">
             The environment toml ships a literal `{"{arch}"}` in its image path; an `sml` build that
             does not substitute it on the node makes pyxis reject the placeholder and the job dies
-            seconds after start (`launch/resolve-env.sh` writes a resolved copy). And `model-launch`
+            seconds after start (`serving/resolve-env.sh` writes a resolved copy). And `model-launch`
             commit `4413441` renamed both the CLI flags (`--firecrest-system` → `--system`, and
             friends) and the OpenTela share mount (`/ocfbin` → `/opentelabin`) together, so an `sml`
             from the other side of that commit paired with the pinned environment toml submits fine,
@@ -2759,7 +2759,7 @@ const CAVEATS: Array<{ title: string; tone: "warning" | "danger"; body: Node }> 
     tone: "danger",
     body: (
       <Text size="small">
-        Both draft deployments ran with `patches/vllm-apertus-image-token.patch` bind-mounted over
+        Both draft deployments ran with `serving/patches/vllm-apertus-image-token.patch` bind-mounted over
         `/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py` in the pinned image, because that
         image reads `image_token_index` off the target config and Apertus 1.5 only defines
         `image_token_id`, so the drafter cannot load without it. The baseline and n-gram arms used the
@@ -3006,16 +3006,16 @@ function AllCells() {
 function Provenance() {
   const lines: Array<[string, string]> = [
     ["narrative companion", "docs/hackathon-20260915.md"],
-    ["run directory", "results/smoke-screening-20260913-debug"],
+    ["run directory", "results/70b/smoke-screening-20260913-debug"],
     [
       "correctness artifacts",
-      "results/correctness/smoke-20260913-debug (captures, exact-match comparisons, calibrated gate)",
+      "results/70b/correctness/smoke-20260913-debug (captures, exact-match comparisons, calibrated gate)",
     ],
-    ["deployment failure", "results/deployment-failures/draft-n3-tp1-3392110"],
+    ["deployment failure", "results/70b/deployment-failures/draft-n3-tp1-3392110"],
     ["baseline repeat 1", "job 3391425, nid007645, replica head 172.28.51.237, stock image"],
     [
       "baseline repeat 2",
-      "job 3405008, nid006653, replica head 172.28.33.52, stock image, byte-identical launch/baseline.sh; an earlier attempt (job 3403572, nid007399) served correctly but hit the one-hour debug wall clock unmeasured",
+      "job 3405008, nid006653, replica head 172.28.33.52, stock image, byte-identical serving/baseline.sh; an earlier attempt (job 3403572, nid007399) served correctly but hit the one-hour debug wall clock unmeasured",
     ],
     ["draft repeat 1", "job 3391426, nid006633, replica head 172.28.32.244, patched overlay"],
     ["draft repeat 2", "job 3392153, nid006687, replica head 172.28.33.172, patched overlay"],

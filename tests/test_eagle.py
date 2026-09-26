@@ -11,8 +11,8 @@ from apertus_bench.eagle import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-CONTRACT_8B = REPO / "results/eagle/8b/preflight/compatibility.json"
-CONTRACT_70B = REPO / "results/eagle/preflight/compatibility.json"
+CONTRACT_8B = REPO / "targets/8b/contract.json"
+CONTRACT_70B = REPO / "targets/70b/contract.json"
 
 
 def _write_head(tmp_path: Path, config: dict[str, object], *, name: str = "head") -> Path:
@@ -23,7 +23,7 @@ def _write_head(tmp_path: Path, config: dict[str, object], *, name: str = "head"
 
 
 def _load(path: str) -> dict[str, object]:
-    return json.loads((REPO / "configs/eagle" / path).read_text())
+    return json.loads((REPO / "methods/eagle/configs" / path).read_text())
 
 
 def test_8b_e31_template_validates_against_the_8b_contract(tmp_path: Path) -> None:
@@ -41,13 +41,13 @@ def test_8b_e31_template_validates_against_the_8b_contract(tmp_path: Path) -> No
 
 def test_70b_templates_still_validate_against_the_recorded_70b_contract(tmp_path: Path) -> None:
     e31 = validate_eagle_head(
-        _write_head(tmp_path, _load("draft-e31-config.json"), name="e31"),
+        _write_head(tmp_path, _load("70b/draft-e31-config.json"), name="e31"),
         expected_algorithm="eagle31",
         require_weights=False,
         target_contract_path=CONTRACT_70B,
     )
     e3 = validate_eagle_head(
-        _write_head(tmp_path, _load("draft-e3-config.json"), name="e3"),
+        _write_head(tmp_path, _load("70b/draft-e3-config.json"), name="e3"),
         expected_algorithm="eagle3",
         require_weights=False,
         target_contract_path=CONTRACT_70B,
@@ -63,7 +63,7 @@ def test_8b_head_is_rejected_by_the_70b_contract(tmp_path: Path) -> None:
 
 
 def test_70b_head_is_rejected_by_the_8b_contract(tmp_path: Path) -> None:
-    head = _write_head(tmp_path, _load("draft-e31-config.json"))
+    head = _write_head(tmp_path, _load("70b/draft-e31-config.json"))
     with pytest.raises(EagleHeadError):
         validate_eagle_head(head, require_weights=False, target_contract_path=CONTRACT_8B)
 

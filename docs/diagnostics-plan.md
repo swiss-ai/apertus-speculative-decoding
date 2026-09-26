@@ -19,9 +19,9 @@ draft cost and prediction alignment separately before assessing their combined e
 
 Use the six-deployment, 36-cell
 [report](hackathon-20260915-report.md) and
-[raw results](../results/smoke-screening-20260913-debug/) as the historical reference. The older
+[raw results](../results/70b/smoke-screening-20260913-debug/) as the historical reference. The older
 five-deployment narrative is incomplete. Ratios below use the mean of the two baselines where
-computed from [analysis.csv](../results/smoke-screening-20260913-debug/analysis.csv).
+computed from [analysis.csv](../results/70b/smoke-screening-20260913-debug/analysis.csv).
 
 | Recorded observation | Implication for the next experiment |
 | --- | --- |
@@ -181,7 +181,7 @@ verification as an optimization.
 
 The current launcher rejects depth 1; enable it in a diagnostic launcher only after checking
 engine support. Integrated draft TP=1 is explicitly unsupported at the pin, as confirmed by
-[the failure artifact](../results/deployment-failures/draft-n3-tp1-3392110/) and
+[the failure artifact](../results/70b/deployment-failures/draft-n3-tp1-3392110/) and
 [the source guard](https://github.com/swiss-ai/vllm/blob/a601a9d998ddeb488f0c17e8512874b116aa7658/vllm/v1/spec_decode/draft_model.py).
 Deleting that guard is not a valid TP experiment. A newer engine or a proper implementation
 must pass startup, cache isolation and correctness checks first. Standalone TP=1 latency is

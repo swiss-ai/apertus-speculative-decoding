@@ -9,7 +9,7 @@ The next experiments are specified in [the diagnostics and improvement plan](doc
 and [the EAGLE 3.1 execution plan: 8B first, then 70B](docs/eagle-execution-plan.md).
 The EAGLE plan starts with a bounded Apertus 1.5 8B integration pilot, retaining EAGLE-3 as a
 fallback for a demonstrated 3.1-specific issue. Stage A (8B) is implemented: training pipeline in
-`training/apertus_eagle/`, stage-aware launchers, and results in
+`methods/eagle/apertus_eagle/`, stage-aware launchers, and results in
 [docs/eagle-8b-report.md](docs/eagle-8b-report.md). Progress is in [docs/eagle-progress.md](docs/eagle-progress.md).
 A 3× decode speedup is a stretch target. Each target needs its own trained head; the public
 Apertus-8B-Instruct-2509 head is not a substitute for either Apertus 1.5 target.
@@ -27,14 +27,14 @@ conditions under which a configuration wins or loses.
 3. Which combination of speculative depth `{2,3,5,8}` and draft TP is best, and when does draft
    overhead outweigh accepted work? Draft TP is pinned to 4 for now: the pinned vLLM refuses draft
    TP != target TP, so only a depth sweep is answerable
-   (`results/deployment-failures/draft-n3-tp1-3392110/`).
+   (`results/70b/deployment-failures/draft-n3-tp1-3392110/`).
 4. When is n-gram speculation a better operational choice than the 8B draft model?
 5. Does the winning setting increase sustainable request rate without unacceptable tail latency
    or loss of KV-cache capacity?
 
 The full experimental contract is in [docs/protocol.md](docs/protocol.md), the initial reading map
 is in [docs/literature.md](docs/literature.md), and the staged matrix is machine-readable in
-[configs/experiment.yaml](configs/experiment.yaml).
+[experiments/smoke-70b/experiment.yaml](experiments/smoke-70b/experiment.yaml).
 
 **Current findings:** [docs/hackathon-20260915.md](docs/hackathon-20260915.md) is the standing
 summary of what has been measured — the headline result, the step-cost decomposition that explains
@@ -57,6 +57,24 @@ The current `model-launch` k6 path is useful for serving-capacity sweeps, but it
 requests and therefore cannot produce true client-observed TTFT. This repository uses its own
 streaming client for latency experiments and reuses `swiss-ai/bench-agent` for the final open-loop
 capacity experiment.
+
+## Repository layout
+
+Methods share one harness, one serving layer and one analysis step, so a speedup is always taken
+against a plain baseline launched the same way. Each method names its target explicitly.
+
+```text
+src/apertus_bench/   benchmark client, correctness gate, analysis, EAGLE head validation
+serving/             plain-target launcher, environment resolution, vLLM overlay patches
+methods/
+├── draft_model/     8B draft, 70B target
+├── ngram/           prompt lookup
+└── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
+targets/<stage>/     target contracts (architecture, aux layers, hashes) and environment locks
+experiments/         one-off campaigns: smoke-70b, round-cost-70b
+workloads/           corpora; workloads/<stage>/ holds manifests (restricted text stays on the cluster)
+results/<stage>/     raw cells and reports, by target (8b, 70b) and then method
+```
 
 ## Setup
 
@@ -98,19 +116,19 @@ From this repository on the Clariden login node:
 
 ```bash
 # Plain target
-./launch/baseline.sh
+./serving/baseline.sh
 
 # 8B draft, depth 5, draft TP=1
-NUM_SPECULATIVE_TOKENS=5 DRAFT_TP=1 ./launch/draft-model.sh
+NUM_SPECULATIVE_TOKENS=5 DRAFT_TP=1 ./methods/draft_model/draft-model.sh
 
 # N-gram, depth 5
-NUM_SPECULATIVE_TOKENS=5 PROMPT_LOOKUP_MAX=4 ./launch/ngram.sh
+NUM_SPECULATIVE_TOKENS=5 PROMPT_LOOKUP_MAX=4 ./methods/ngram/ngram.sh
 
 # EAGLE-3 / EAGLE 3.1 (engine method is always eagle3; ALGORITHM selects the trained head).
 # STAGE=8b: target TP=1, draft TP=1; STAGE=70b: 4/4. The head must match the stage's target
 # contract; the public Apertus-8B-Instruct-2509 head is rejected.
 STAGE=8b EAGLE_HEAD=/path/to/apertus15-8b-eagle31-head ALGORITHM=eagle31 NUM_SPECULATIVE_TOKENS=2 \
-  ./launch/eagle.sh --no-tui
+  ./methods/eagle/launch/eagle.sh --no-tui
 ```
 
 Each launcher prints its unique served model name. Do not begin measurement merely because the
@@ -131,20 +149,20 @@ export PATH="$HOME/venvs/sml-apertus/bin:$PATH"
 
 The packaged environment toml also carries a literal `{arch}` in its image path, which only some
 `sml` builds substitute on the node; one that does not makes pyxis reject the placeholder and the
-job dies seconds after it starts. `launch/resolve-env.sh` writes a resolved copy (`arm64` for
+job dies seconds after it starts. `serving/resolve-env.sh` writes a resolved copy (`arm64` for
 GH200) under `~/.sml` and the launchers pass that. Override the source toml with `ENV_SOURCE`, the
 architecture with `SML_ARCH`, and the partition with `SML_PARTITION`; any extra arguments are
 forwarded to `sml advanced`, so `--no-tui` works for non-interactive launches.
 
 `draft_model` speculation additionally needs a source fix that the pinned image predates: vLLM
 reads `image_token_index` off the target config, which Apertus 1.5 does not define (it uses
-`image_token_id`), so the drafter fails to load and the engine never starts. `patches/` holds the
-one-line fix and `launch/patch-vllm.sh` binds a corrected copy over the read-only image:
+`image_token_id`), so the drafter fails to load and the engine never starts. `serving/patches/` holds the
+one-line fix and `serving/patch-vllm.sh` binds a corrected copy over the read-only image:
 
 ```bash
 IMAGE=/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
-EXTRA_MOUNTS="$(./launch/patch-vllm.sh "$IMAGE" patches/vllm-apertus-image-token.patch)" \
-  ./launch/draft-model.sh --no-tui
+EXTRA_MOUNTS="$(./serving/patch-vllm.sh "$IMAGE" serving/patches/vllm-apertus-image-token.patch)" \
+  ./methods/draft_model/draft-model.sh --no-tui
 ```
 
 Record the overlay alongside any measurement taken with it, and drop `EXTRA_MOUNTS` once a
@@ -164,18 +182,18 @@ apertus-bench capture \
   --base-url "$API" \
   --model "$BASELINE_SERVED_MODEL" \
   --workloads workloads/smoke.jsonl \
-  --output results/correctness/baseline.json
+  --output results/70b/correctness/baseline.json
 
 apertus-bench capture \
   --base-url "$API" \
   --model "$SPEC_SERVED_MODEL" \
   --workloads workloads/smoke.jsonl \
-  --output results/correctness/draft-n3-tp4.json
+  --output results/70b/correctness/draft-n3-tp4.json
 
 apertus-bench compare-captures \
-  results/correctness/baseline.json \
-  results/correctness/draft-n3-tp4.json \
-  --output results/correctness/comparison.json
+  results/70b/correctness/baseline.json \
+  results/70b/correctness/draft-n3-tp4.json \
+  --output results/70b/correctness/comparison.json
 ```
 
 The comparison alone decides nothing. Independently launched deployments do not reproduce each
@@ -186,9 +204,9 @@ configuration. Then judge the comparison against it:
 
 ```bash
 apertus-bench correctness-gate \
-  --treatment results/correctness/baseline.json results/correctness/draft-n3-tp4.json \
-  --control results/correctness/draft-n3-tp4.json results/correctness/draft-n3-tp4-repeat2.json \
-  --output results/correctness/gate.json
+  --treatment results/70b/correctness/baseline.json results/70b/correctness/draft-n3-tp4.json \
+  --control results/70b/correctness/draft-n3-tp4.json results/70b/correctness/draft-n3-tp4-repeat2.json \
+  --output results/70b/correctness/gate.json
 ```
 
 The gate passes when the two arms diverge no more than two deployments of one configuration do,

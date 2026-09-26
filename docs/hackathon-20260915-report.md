@@ -17,7 +17,7 @@ Six independently launched deployments on 4×GH200 Clariden nodes. Same corpus, 
 | Corpus | smoke, 6 prompts |
 
 Numbers below are from
-[`results/smoke-screening-20260913-debug/`](../results/smoke-screening-20260913-debug/)
+[`results/70b/smoke-screening-20260913-debug/`](../results/70b/smoke-screening-20260913-debug/)
 (`README.md`, `analysis.csv`, 36 rows). Prefer that run over
 [`docs/hackathon-20260915.md`](hackathon-20260915.md) where they disagree: this report uses six
 deployments / 36 cells, the baseline repeat, and TTFT in 22 of 24 comparisons.
@@ -231,11 +231,11 @@ Also worth doing:
 
 | What | Where |
 | --- | --- |
-| 36 measured cells | [`results/smoke-screening-20260913-debug/`](../results/smoke-screening-20260913-debug/) |
-| Run narrative and tables | [`results/smoke-screening-20260913-debug/README.md`](../results/smoke-screening-20260913-debug/README.md) |
-| Flat analysis (36 rows) | [`results/smoke-screening-20260913-debug/analysis.csv`](../results/smoke-screening-20260913-debug/analysis.csv) |
-| Greedy captures and gates | [`results/correctness/smoke-20260913-debug/`](../results/correctness/smoke-20260913-debug/) |
-| Unservable draft TP=1 | [`results/deployment-failures/draft-n3-tp1-3392110/`](../results/deployment-failures/draft-n3-tp1-3392110/) |
-| vLLM one-line fix | [`patches/vllm-apertus-image-token.patch`](../patches/vllm-apertus-image-token.patch) |
+| 36 measured cells | [`results/70b/smoke-screening-20260913-debug/`](../results/70b/smoke-screening-20260913-debug/) |
+| Run narrative and tables | [`results/70b/smoke-screening-20260913-debug/README.md`](../results/70b/smoke-screening-20260913-debug/README.md) |
+| Flat analysis (36 rows) | [`results/70b/smoke-screening-20260913-debug/analysis.csv`](../results/70b/smoke-screening-20260913-debug/analysis.csv) |
+| Greedy captures and gates | [`results/70b/correctness/smoke-20260913-debug/`](../results/70b/correctness/smoke-20260913-debug/) |
+| Unservable draft TP=1 | [`results/70b/deployment-failures/draft-n3-tp1-3392110/`](../results/70b/deployment-failures/draft-n3-tp1-3392110/) |
+| vLLM one-line fix | [`serving/patches/vllm-apertus-image-token.patch`](../serving/patches/vllm-apertus-image-token.patch) |
 | Slides | [HTML](hackathon-20260915-slides.html) · [PDF](hackathon-20260915-slides.pdf) |
 | Longer narrative (5 deployments; stale vs this report) | [`hackathon-20260915.md`](hackathon-20260915.md) |

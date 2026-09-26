@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "prompt_source": {
+    "path": "/capstor/store/cscs/swissai/infra01/datasets/Apertus-1.5-SFT-mix-pretrain-v1",
+    "by_source": "/capstor/store/cscs/swissai/infra01/datasets/Apertus-1.5-SFT-mix-pretrain-v1-by-source",
+    "dataset_repo": "swiss-ai/Apertus-1.5-SFT-mix",
+    "dataset_revision": "d38f5b98b1da36405f6d55b939f096f154883103",
+    "renderer_version": "apertus-sft-pretrain-v1",
+    "accepted_rows": 3647256,
+    "input_summary_sha256": "f66fba1e4d82556a4e6788e0f0b68ffaf4a850a201317e98a7a1ee99afb94949"
+  },
+  "policy": {
+    "use": "prompts only. Regenerate assistant responses with the frozen Apertus 1.5 70B target for the greedy experiment. Do not train on the mix's original assistant tokens as if they were 70B outputs.",
+    "split_unit": "source-group, hashed before generation",
+    "pilot": {"train": 1000, "validation": 128, "overfit": 32},
+    "substantive": {"train": 50000, "validation": 2000},
+    "expansion_cap": 300000,
+    "task_mix_default": {"chat": 0.4, "code": 0.3, "summarization": 0.3},
+    "language_mix_default": {"en": 0.4, "de": 0.2, "fr": 0.2, "it": 0.2},
+    "task_mix_note": "experimental coverage, not measured production frequencies",
+    "exclude_from_train": ["shared documents with the confirmation test", "near-duplicate prompts", "benchmark solutions"],
+    "selection_seed": 1
+  },
+  "status": "manifest recorded; hashed splits implemented. Materialize with methods/eagle/launch/prepare-eagle-splits.sh on Clariden. 70B responses not generated."
+}

@@ -156,13 +156,20 @@ def check_treatment_factors(rows: list[dict[str, Any]]) -> None:
     for row in rows:
         if row["method"] == "none":
             continue
-        key = (row.get("variant"), row.get("target_model"), row.get("workload"), row.get("concurrency"))
+        key = (
+            row.get("variant"),
+            row.get("target_model"),
+            row.get("workload"),
+            row.get("concurrency"),
+        )
         seen[key].add(row.get("draft_tensor_parallel_size"))
     mixed = {key: values for key, values in seen.items() if len(values) > 1}
     if mixed:
         raise ValueError(
             "speculative repeats disagree on draft_tensor_parallel_size: "
-            + "; ".join(f"{key[0]} {key[2]} c{key[3]}: {sorted(map(str, v))}" for key, v in mixed.items())
+            + "; ".join(
+                f"{key[0]} {key[2]} c{key[3]}: {sorted(map(str, v))}" for key, v in mixed.items()
+            )
         )
 
 

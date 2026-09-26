@@ -235,9 +235,9 @@ def check_provenance(
         for field in PROVENANCE_FIELDS
         if identity.get(field) is not None and recorded.get(field) != identity.get(field)
     }
-    if recorded.get("model_id") and identity.get("model_id"):
-        if recorded["model_id"] != identity["model_id"]:
-            mismatches["model_id"] = {"head": recorded["model_id"], "target": identity["model_id"]}
+    both_named = recorded.get("model_id") and identity.get("model_id")
+    if both_named and recorded["model_id"] != identity["model_id"]:
+        mismatches["model_id"] = {"head": recorded["model_id"], "target": identity["model_id"]}
     if mismatches:
         raise EagleHeadError(f"{source} was built for a different target: {mismatches}")
     return {

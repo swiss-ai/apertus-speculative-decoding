@@ -8,7 +8,7 @@ smoke-screening numbers. Do not treat inferred round times as kernel traces.
 The config-phase driver finished on Clariden at 2026-09-19T22:10:51Z
 (`campaign complete`). All **24 screening cells** (six configs × C=1/8 × two
 deployment blocks) plus standalone **P2** exist under
-`results/diagnostics-20260919/`. The campaign pid is dead; the queue is empty.
+`results/70b/diagnostics-20260919/`. The campaign pid is dead; the queue is empty.
 
 P1 profiling was **skipped** by a harness bug: `run_config` treated existing
 unprofiled `c8/repeat-01/summary.json` files as “already measured.” That skip
@@ -26,7 +26,7 @@ round. EAGLE 3.1 is **not** in this block (no 70B head).
 | P2 standalone 8B TP=4 | 3448470 | 1 | measured |
 | P1 profiles B2/N3m/D3 | 3491208 (B2) | 1 | replica healthy 10:09Z; `/start_profile` 200; C=1 window running |
 
-Canonical artifacts: `results/diagnostics-20260919/`. Break-even JSON files
+Canonical artifacts: `results/70b/diagnostics-20260919/`. Break-even JSON files
 pool both blocks’ B0 or B2 `t0`.
 
 ## Screening means (mechanistic_fixed256, ignore_eos, 256 tokens, 32 prompts)

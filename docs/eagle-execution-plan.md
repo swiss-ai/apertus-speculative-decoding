@@ -61,8 +61,8 @@ latency. Do not switch architectures by editing a trained head's flags.
 | Core concurrency | 1, 8 | 1, 8, 32 |
 | Core methods | Plain target; EAGLE 3.1, or E3 fallback | Plain target; selected EAGLE architecture |
 | Extra control | Baseline matched to candidate settings, only if they differ | Same rule |
-| Config root | `configs/eagle/8b/` | `configs/eagle/70b/` |
-| Result root | `results/eagle/8b/` | `results/eagle/70b/` |
+| Config root | `methods/eagle/configs/8b/` | `methods/eagle/configs/70b/` |
+| Result root | `results/8b/eagle/` | `results/70b/eagle/70b/` |
 
 These are planned settings, not claims that existing launchers implement them. Their adaptation
 is A1 below. If a memory or runtime limit requires a change, apply it to both arms within that
@@ -143,12 +143,12 @@ The following were present on 2026-09-24; verify again before editing:
 
 | Location | Required adaptation |
 | --- | --- |
-| `launch/eagle.sh`, `launch/baseline.sh` | Parameterize target TP, target contract, served name and stage output roots. They currently hardcode target TP=4; the EAGLE launcher only accepts draft TP=4. Add matched TP=1/1 for Stage A, retaining TP=4/4 for Stage B. |
-| `launch/train-eagle*.sh`, submit wrappers | Accept an explicit config instead of selecting a 70B config from a stage label; parameterize teacher/trainer GPU counts, target path, layer IDs and output paths. Print resolved settings before submission. |
-| `training/apertus_eagle/contract.py`, `target_adapter.py` | Read the selected contract throughout. Replace fixed layer tuples, default contract path and the assertion of 80 layers with contract-derived values. |
+| `methods/eagle/launch/eagle.sh`, `serving/baseline.sh` | Parameterize target TP, target contract, served name and stage output roots. They currently hardcode target TP=4; the EAGLE launcher only accepts draft TP=4. Add matched TP=1/1 for Stage A, retaining TP=4/4 for Stage B. |
+| `methods/eagle/launch/train-eagle*.sh`, submit wrappers | Accept an explicit config instead of selecting a 70B config from a stage label; parameterize teacher/trainer GPU counts, target path, layer IDs and output paths. Print resolved settings before submission. |
+| `methods/eagle/apertus_eagle/contract.py`, `target_adapter.py` | Read the selected contract throughout. Replace fixed layer tuples, default contract path and the assertion of 80 layers with contract-derived values. |
 | `src/apertus_bench/eagle.py` | Pass the existing `--contract` option from launchers; validate head provenance against the selected target revision and tokenizer, not only shapes or directory names. |
-| `training/apertus_eagle/overfit_direct.py` | If used, parameterize its target/layer/config defaults and prove token alignment. Treat its current one-step loss as an import/overfit debug tool, not a substitute for full rollout training. |
-| `configs/eagle/train-*.yaml`, `draft-*-config.json` | Generate new files under `configs/eagle/8b/`; existing root-level templates are 70B-specific even when named `e3`. Keep their recorded 70B values intact. |
+| `methods/eagle/apertus_eagle/overfit_direct.py` | If used, parameterize its target/layer/config defaults and prove token alignment. Treat its current one-step loss as an import/overfit debug tool, not a substitute for full rollout training. |
+| `methods/eagle/configs/train-*.yaml`, `draft-*-config.json` | Generate new files under `methods/eagle/configs/8b/`; existing root-level templates are 70B-specific even when named `e3`. Keep their recorded 70B values intact. |
 | `src/apertus_bench/analysis.py` | Add target identity/revision, tokenizer, target TP, draft TP and precision to exported provenance. Require target identity/revision, tokenizer, target TP and precision to match the baseline; record draft TP as a treatment factor and match it across speculative repeats. Existing keys do not yet prevent 8B/70B baseline pooling. |
 
 The CLI already accepts `--method eagle3` and requires a logical `--algorithm` plus deployment
@@ -213,7 +213,7 @@ output projection and optimizer. Do not assume a fixed parameter count from anot
 | E3.1 | `fc_norm=true`, `norm_output=true` | Default. |
 | E3 | `fc_norm=false`, `norm_output=false` | Controlled fallback when the rule in section 1 triggers. |
 
-Create `configs/eagle/8b/train-e31-overfit.yaml`, `train-e31.yaml` and a derived
+Create `methods/eagle/configs/8b/train-e31-overfit.yaml`, `train-e31.yaml` and a derived
 `draft-e31-config.json`. Generate E3 equivalents only when needed. Use separate checkpoint
 directories; never relabel or resume a head under the other architecture.
 
@@ -356,7 +356,7 @@ apertus-bench matrix \
   --model "$SERVED_MODEL" --variant apertus15-8b-eagle31-k3 \
   --method eagle3 --algorithm eagle31 \
   --num-speculative-tokens 3 --draft-tensor-parallel-size 1 \
-  --workloads workloads/eagle-8b-validation.jsonl \
+  --workloads workloads/8b/eagle-8b-validation.jsonl \
   --concurrencies 1 8 --requests 64 --warmup-requests 16 --repeats 1 \
   --metadata target_model=swiss-ai/Apertus-v1.5-8B \
   --metadata target_revision="$TARGET_REVISION" \
@@ -364,7 +364,7 @@ apertus-bench matrix \
   --metadata deployment_id="$DEPLOYMENT_ID" \
   --metadata block_id="$BLOCK_ID" \
   --metadata checkpoint_sha256="$EAGLE_HEAD_DIGEST" \
-  --output "results/eagle/8b/screening/$DEPLOYMENT_ID"
+  --output "results/8b/eagle/screening/$DEPLOYMENT_ID"
 ```
 
 Supply remaining provenance fields in the planning manifest, including paired baseline ID,
@@ -454,6 +454,6 @@ on parallel drafting for an ordinary E3/E3.1 head or let this delay the working 
 - [ ] B0–B3: independently validate/train/measure 70B after the pipeline is ready.
 - [ ] Preserve raw artifacts and append exact commands, failures and next actions to the ledger.
 
-The accompanying `configs/eagle/experiment.yaml` describes this revised experiment. It is a
+The accompanying `methods/eagle/experiments/smoke-70b/experiment.yaml` describes this revised experiment. It is a
 planning manifest, not proof that all referenced per-target configs and launcher changes exist.
 No new training or performance result is claimed by this plan revision.

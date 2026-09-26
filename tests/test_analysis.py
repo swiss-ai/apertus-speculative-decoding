@@ -219,12 +219,23 @@ def _cell(method: str, rate: float, **fields: object) -> dict[str, object]:
     return {**base, **fields}
 
 
-EIGHT = {"target_model": "swiss-ai/Apertus-v1.5-8B", "target_revision": "a411d83", "target_tensor_parallel_size": 1}
-SEVENTY = {"target_model": "swiss-ai/Apertus-v1.5-70B", "target_revision": "70b-rev", "target_tensor_parallel_size": 4}
+EIGHT = {
+    "target_model": "swiss-ai/Apertus-v1.5-8B",
+    "target_revision": "a411d83",
+    "target_tensor_parallel_size": 1,
+}
+SEVENTY = {
+    "target_model": "swiss-ai/Apertus-v1.5-70B",
+    "target_revision": "70b-rev",
+    "target_tensor_parallel_size": 4,
+}
 
 
 def test_8b_candidate_never_uses_a_70b_baseline() -> None:
-    rows = [_cell("none", 70.0, **SEVENTY), _cell("eagle3", 200.0, draft_tensor_parallel_size=1, **EIGHT)]
+    rows = [
+        _cell("none", 70.0, **SEVENTY),
+        _cell("eagle3", 200.0, draft_tensor_parallel_size=1, **EIGHT),
+    ]
     with pytest.raises(ValueError, match="no compatible operational baseline"):
         add_speedups(rows)
 

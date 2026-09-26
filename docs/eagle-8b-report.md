@@ -24,7 +24,7 @@ and raw numbers: [eagle-progress.md](eagle-progress.md). Plan:
 
 ## Target contract (A0)
 
-`results/eagle/8b/preflight/compatibility.json`, `configs/eagle/8b/lock.json`.
+`targets/8b/contract.json`, `targets/8b/lock.json`.
 
 | field | value |
 | --- | --- |
@@ -50,11 +50,11 @@ Ray/Mooncake data plane is replaced, because the serving image has neither.
 
 ```bash
 # on a Clariden login node
-EAGLE_TRAIN_CONFIG=configs/eagle/8b/train-e31-mix10k.yaml ./launch/submit-eagle-train.sh
+EAGLE_TRAIN_CONFIG=methods/eagle/configs/8b/train-e31-mix10k.yaml ./methods/eagle/launch/submit-eagle-train.sh
 # steps: generate -> extract -> train -> export -> verify (apertus_eagle.pipeline)
-STAGE=8b EAGLE_HEAD=<head dir> ./launch/eagle.sh --no-tui       # serve TP=1/1
-STAGE=8b ./launch/baseline.sh --no-tui                          # matched plain target
-ARM=eagle DEPTH=2 PHASE=screen BLOCK_ID=b1 EAGLE_HEAD=... ./launch/eagle8b-measure.sh
+STAGE=8b EAGLE_HEAD=<head dir> ./methods/eagle/launch/eagle.sh --no-tui       # serve TP=1/1
+STAGE=8b ./serving/baseline.sh --no-tui                          # matched plain target
+ARM=eagle DEPTH=2 PHASE=screen BLOCK_ID=b1 EAGLE_HEAD=... ./methods/eagle/launch/eagle8b-measure.sh
 ```
 
 | step | module | notes |

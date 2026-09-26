@@ -20,7 +20,7 @@ valid when traffic can be routed by workload; otherwise evaluate the declared tr
   becomes more efficient and draft overhead competes for GPU time.
 - H4: TP=1 reduces draft communication but introduces memory/compute imbalance; TP=4 can win at
   higher concurrency despite collective overhead. Untestable at the pinned vLLM revision, which
-  refuses draft TP != target TP; see `results/deployment-failures/draft-n3-tp1-3392110/`.
+  refuses draft TP != target TP; see `results/70b/deployment-failures/draft-n3-tp1-3392110/`.
 - H5: n-gram speculation is competitive on prompts whose outputs reuse prompt spans, especially
   summarization, with much smaller memory cost.
 
@@ -140,7 +140,7 @@ distributed deployments, and the gate must be written against what is measurable
 - **Measured consequence.** Two identically configured deployments of one speculative variant, on
   different nodes, agreed on 0 of 6 greedy smoke prompts — as often as speculation agreed with the
   baseline. A criterion that fails on a pair with identical math is measuring nondeterminism, not
-  correctness. See `results/correctness/smoke-20260913-debug/`.
+  correctness. See `results/70b/correctness/smoke-20260913-debug/`.
 
 ### The criterion
 
@@ -162,7 +162,7 @@ speculation. Two control kinds are useful and are not interchangeable.
 The gate passes when the compared pair's worst case stays inside the control's worst case plus a
 declared margin, on all of: minimum common-prefix fraction, maximum normalized edit distance, and
 maximum completion-token difference; and when every prompt produced a successful response on both
-arms. Margins are in `configs/experiment.yaml`. Exact-match counts are recorded but not gated: at
+arms. Margins are in `experiments/smoke-70b/experiment.yaml`. Exact-match counts are recorded but not gated: at
 six prompts the count is a noisy statistic that cannot separate the two explanations, and the raw
 captures are kept so the old exact-match comparison stays computable.
 

@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "stage": "8b",
+  "created_at": "2026-09-24T10:30:00Z",
+  "harness": {
+    "git_head": "052662fa405652b4a26917688cbb977100f72b92",
+    "git_branch": "main",
+    "dirty": true,
+    "dirty_note": "Stage A code is uncommitted working-tree changes on top of this head."
+  },
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a",
+    "contract": "targets/8b/contract.json",
+    "contract_sha256": "189f9663a21e5b0dec645e33372ed186ba6b27106fddf2a6b0a3154925e57c1c"
+  },
+  "pins": {
+    "vllm": "a601a9d998ddeb488f0c17e8512874b116aa7658",
+    "vllm_reported_version": "0.23.1rc1.dev1029+ga601a9d99",
+    "model_launch": "909026a990454557f1b54d26f24ec3ad92e51e35",
+    "torchspec": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+    "model_launch_cluster_checkout": "~/model-launch-apertus on Clariden has no .git; its src/ is content-identical (rsync -c dry run, no differences, 2026-09-24) to the clean local checkout at 909026a990454557f1b54d26f24ec3ad92e51e35. Launch with MODEL_LAUNCH_ROOT=$HOME/model-launch-apertus.",
+    "torchspec_cluster_checkout": "6c042a87140a84d13839e341ece2c5c3ada918bc plus patches: renderers/__init__.py, eagle3_target_model.py, target_utils.py, transfer/mooncake/__init__.py, new renderers/apertus.py"
+  },
+  "image": {
+    "path": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh",
+    "bytes": 15634792448,
+    "mtime": "2026-07-22T09:55:33+02:00",
+    "sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5",
+    "arch": "arm64",
+    "sha256_recorded": "2026-09-24 login-node sha256sum (1m43s)",
+    "vllm_copies": "workspace/vllm/vllm and opt/venv/.../site-packages/vllm are byte-identical for interfaces.py, apertus.py, llama_eagle3.py"
+  },
+  "environment_observed": {
+    "job": 3505554,
+    "node": "nid007666",
+    "python": "3.12.3",
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "transformers": "5.14.0.dev0",
+    "vllm": "0.23.1rc1.dev1029+ga601a9d99",
+    "triton": "3.6.0",
+    "safetensors": "0.8.0",
+    "accelerate": "1.15.0 (scratch/pydeps)",
+    "pyyaml": "6.0.3",
+    "gpu": "4x NVIDIA GH200 120GB (97871 MiB visible each)",
+    "driver": "590.48.01",
+    "machine": "aarch64"
+  },
+  "serving": {
+    "target_tensor_parallel_size": 1,
+    "draft_tensor_parallel_size": 1,
+    "max_model_len": 32768,
+    "gpu_memory_utilization": 0.8,
+    "prefix_caching": false,
+    "precision": "bfloat16",
+    "launcher": "STAGE=8b methods/eagle/launch/eagle.sh | serving/baseline.sh",
+    "allocation": "sml nodes-per-replica 1 = exclusive 4-GPU node for a TP=1 replica"
+  },
+  "training": {
+    "environment": "serving image + scratch/pydeps (accelerate, omegaconf, wandb offline stub)",
+    "placement": "one GPU (CUDA_VISIBLE_DEVICES=0) of an exclusive 4-GPU node; sequential generate/extract/train",
+    "allocated_vs_used": "allocated GPU-hours = 4 x wall; used GPU-hours = 1 x wall"
+  },
+  "patches": [
+    {
+      "path": "serving/patches/vllm-apertus-eagle3-aux-layers.patch",
+      "applies_to": "vllm/model_executor/models/interfaces.py",
+      "status": "applied by methods/eagle/launch/eagle.sh; applicability to be confirmed on the first 8B EAGLE launch"
+    },
+    {
+      "path": "serving/patches/vllm-apertus-image-token.patch",
+      "applies_to": "vllm/v1/spec_decode/llm_base_proposer.py",
+      "status": "applied by methods/eagle/launch/eagle.sh; applicability to be confirmed on the first 8B EAGLE launch"
+    },
+    {
+      "path": "methods/eagle/patches/torchspec-apertus-target-lm-head.patch",
+      "status": "applied (methods/eagle/launch/apply-torchspec-patches.sh, job 3505554)"
+    },
+    {
+      "path": "methods/eagle/patches/torchspec-apertus-hf-target-layers.patch",
+      "status": "applied (job 3505554)"
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+# Planning manifest for docs/eagle-execution-plan.md.
+# A0/A1 must create target-specific contracts/configs and adapt the launchers.
+# Existing root-level training configs and lock.json retain their recorded 70B values.
+schema_version: 2
+manifest_kind: plan
+updated: '2026-09-24'
+project: apertus-v1.5-eagle-3.1-8b-first
+active_stage: a_8b
+execution_readiness: requires_A0_A1
+
+algorithm:
+  primary: eagle31
+  fallback: eagle3
+  fallback_rule: >
+    Reproduce a 3.1-specific failure after shared parity checks. Continue with
+    a separately trained E3 head if its controlled comparison passes. Shared
+    infrastructure failures do not establish 3.1 instability.
+  engine_method: eagle3
+  architectures:
+    eagle31: {fc_norm: true, norm_output: true}
+    eagle3: {fc_norm: false, norm_output: false}
+  parallel_drafting: false
+
+comparison:
+  operational_baseline:
+    method: none
+    baseline_role: operational
+    async_scheduling: engine-default
+  matched_baseline:
+    method: none
+    baseline_role: matched
+    condition: candidate_changes_scheduling_or_effective_budget
+    notes: copy actual candidate settings; omit when identical to operational baseline
+  baseline_match_fields:
+    - target_model
+    - target_revision
+    - tokenizer_sha256
+    - target_tensor_parallel_size
+    - precision
+    - container_image
+    - container_sha256
+    - vllm_revision
+    - workload_file_sha256
+    - temperature
+    - top_p
+    - ignore_eos
+    - max_model_len
+    - prefix_caching
+  notes: >
+    Draft TP is a recorded treatment factor, not a baseline equality field:
+    a plain target has no draft. Match scheduler settings separately for the
+    matched control. Compare target sizes in separate result roots.
+
+required_cell_metadata:
+  - target_model
+  - target_revision
+  - tokenizer_sha256
+  - target_tensor_parallel_size
+  - deployment_id
+  - block_id
+  - container_image
+  - container_sha256
+  - vllm_revision
+  - precision
+  - prefix_caching
+  - async_scheduling
+  - effective_scheduled_tokens
+  - max_model_len
+  - paired_baseline_id
+  - baseline_role
+required_eagle_metadata:
+  - algorithm
+  - checkpoint_sha256
+  - training_revision
+  - draft_tensor_parallel_size
+
+independent_deployments:
+  repeats_flag: 1
+  note: >
+    matrix --repeats N repeats requests against one server. Launch each
+    deployment independently and use a unique directory and deployment_id.
+
+stages:
+  a_8b:
+    tasks: [A0, A1, A2, A3, A4, A5, A6]
+    config_root: methods/eagle/configs/8b
+    results_root: results/8b/eagle
+    lock: targets/8b/lock.json
+    contract: targets/8b/contract.json
+    target:
+      model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+      precision: bfloat16
+      tensor_parallel_size: 1
+      max_model_len: 32768
+      gpu_memory_utilization: 0.8
+      prefix_caching: false
+    engine:
+      method: eagle3
+      draft_tensor_parallel_size: 1
+      depths: [2, 3, 5, 8]
+    training:
+      resource_mode: sequential_teacher_extraction_then_head_training
+      teacher_gpus: 1
+      trainer_gpus: 1
+      verify_memory_before_launch: true
+      max_seq_length: 4096
+      overfit_conversations: 32
+      overfit_max_optimizer_steps: 400
+      pilot_train_conversations: 1000
+      pilot_validation_conversations: 128
+      pilot_max_optimizer_steps: 2000
+      optional_expansion_conversations: 10000
+      optional_expansion_max_epochs: 3
+      expansion_stop_after_evals_without_improvement: 3
+      require_target_generated_responses: true
+      require_multistep_rollout_training: true
+    profile:
+      initial_depth: 3
+      concurrency: 1
+      distinct_prompts: 32
+      input_tokens: [512, 1024]
+      output_tokens: 256
+      ignore_eos: true
+      headline_timings: unprofiled
+    screening:
+      workloads: [open_chat, code, summarization_2k_4k]
+      concurrencies: [1, 8]
+      distinct_prompts_per_stratum: 64
+      requests_per_cell: 64
+      deployments_per_config: 2
+      warmup_rule: max(8, 2 * concurrency)
+      ignore_eos: false
+      selection: geometric_mean_tpot_speedup_vs_operational_baseline
+      maximum_selected_candidates: 2
+      cells_with_one_matched_baseline_and_four_depths: 72
+      extra_stress_input_tokens: 16384
+      stress_scope: selected_depth_only
+    confirmation:
+      deployments_per_config: 3
+      concurrencies: [1, 8]
+      unique_test_prompts_per_stratum: 128
+      cells_for_baseline_and_one_candidate: 36
+    completion:
+      report: docs/eagle-8b-report.md
+      require: [parity, trained_head, export_reload, serving_correctness, repeatable_serving, interpretable_cost]
+      require_3x_speedup: false
+      transfer_note: >
+        A small or negative 8B speedup alone does not block 70B. Unresolved
+        correctness or unexplained runtime overhead does block scaling.
+
+  b_70b:
+    tasks: [B0, B1, B2, B3]
+    depends_on: a_8b_pipeline_gates_and_available_allocation
+    config_root: methods/eagle/configs/70b
+    results_root: results/70b/eagle/70b
+    lock: methods/eagle/configs/70b/lock.json
+    contract: results/70b/eagle/70b/preflight/compatibility.json
+    target:
+      model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+      precision: bfloat16
+      tensor_parallel_size: 4
+      max_model_len: 131072
+      gpu_memory_utilization: 0.8
+      prefix_caching: false
+    engine:
+      method: eagle3
+      draft_tensor_parallel_size: 4
+      depths: [2, 3, 5, 8]
+    training:
+      require_new_target_contract: true
+      require_new_target_generated_responses: true
+      require_new_head: true
+      require_TP4_parity: true
+      substantive_train_conversations: 50000
+      validation_conversations: 2000
+      max_epochs: 3
+      conditional_expansion_conversations: 300000
+    screening:
+      concurrencies: [1, 8]
+      maximum_selected_candidates: 2
+    confirmation:
+      workloads: [open_chat, code, summarization_16k, summarization_32k, summarization_64k]
+      deployments_per_config: 5
+      concurrencies: [1, 8, 32]
+      unique_test_prompts_per_stratum: 256
+      cells_for_baseline_and_one_candidate: 150
+      additional_cells_per_candidate: 75
+    capacity:
+      arrival_process: poisson
+      confirmatory_soaks_per_arm: 3
+      soak_minutes: 30
+      declare_SLOs_before_sweep: true
+    completion:
+      report: docs/eagle-70b-report.md
+      stretch_decode_speedup: 3.0
+      useful_low_load_speedup: 1.5
+      useful_low_load_95pct_lower_bound: 1.1
+      minimum_success_rate: 0.99
+      maximum_high_load_throughput_regression: 0.05
+      maximum_high_load_p95_TTFT_TPOT_regression: 0.10
+      thresholds_are_research_defaults: true

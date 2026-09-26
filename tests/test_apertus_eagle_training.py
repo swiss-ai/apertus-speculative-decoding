@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from apertus_eagle.contract import (
     ContractError,
     aux_layer_ids,
@@ -20,8 +19,8 @@ from apertus_eagle.target_adapter import torchspec_model_overrides
 from apertus_bench.eagle import count_draft_parameters
 
 REPO = Path(__file__).resolve().parents[1]
-CONTRACT_8B = REPO / "results/eagle/8b/preflight/compatibility.json"
-CONTRACT_70B = REPO / "results/eagle/preflight/compatibility.json"
+CONTRACT_8B = REPO / "targets/8b/contract.json"
+CONTRACT_70B = REPO / "targets/70b/contract.json"
 
 
 def test_assistant_loss_mask_skips_structural_tokens() -> None:
@@ -70,9 +69,15 @@ def test_torchspec_overrides_come_from_the_selected_contract(
 
 
 def test_draft_templates_satisfy_their_own_contract() -> None:
-    e31_8b = validate_draft_config_path(REPO / "configs/eagle/8b/draft-e31-config.json", CONTRACT_8B)
-    e31 = validate_draft_config_path(REPO / "configs/eagle/draft-e31-config.json", CONTRACT_70B)
-    e3 = validate_draft_config_path(REPO / "configs/eagle/draft-e3-config.json", CONTRACT_70B)
+    e31_8b = validate_draft_config_path(
+        REPO / "methods/eagle/configs/8b/draft-e31-config.json", CONTRACT_8B
+    )
+    e31 = validate_draft_config_path(
+        REPO / "methods/eagle/configs/70b/draft-e31-config.json", CONTRACT_70B
+    )
+    e3 = validate_draft_config_path(
+        REPO / "methods/eagle/configs/70b/draft-e3-config.json", CONTRACT_70B
+    )
     assert e31_8b["algorithm"] == "eagle31"
     assert e31["algorithm"] == "eagle31"
     assert e3["algorithm"] == "eagle3"
@@ -193,7 +198,7 @@ def test_chat_template_token_ids_ignores_batch_encoding() -> None:
 
 
 def test_draft_parameter_count_is_not_a_200m_head() -> None:
-    config = _load_template("draft-e31-config.json")
+    config = _load_template("70b/draft-e31-config.json")
     parts = count_draft_parameters(config)
     # Target-width single-layer Llama EAGLE head, full output vocab.
     assert parts["embed_tokens"] == 131072 * 8192
@@ -211,7 +216,7 @@ def test_8b_draft_parameter_count_is_derived_from_the_8b_contract() -> None:
 
 
 def _load_template(name: str) -> dict:
-    path = Path(__file__).resolve().parents[1] / "configs" / "eagle" / name
+    path = Path(__file__).resolve().parents[1] / "methods" / "eagle" / "configs" / name
     return json.loads(path.read_text())
 
 
@@ -236,6 +241,7 @@ def _restore_stub_modules(saved: dict, prefixes: tuple[str, ...]) -> None:
 
 def test_import_stubs_survive_accelerate_find_spec() -> None:
     """Job 3491232: find_spec('wandb') raised because __spec__ was None."""
+    import contextlib
     import importlib.metadata
     import importlib.util
 
@@ -248,10 +254,8 @@ def test_import_stubs_survive_accelerate_find_spec() -> None:
         for name in prefixes:
             spec = importlib.util.find_spec(name)
             assert spec is not None
-            try:
+            with contextlib.suppress(importlib.metadata.PackageNotFoundError):
                 importlib.metadata.metadata(name)
-            except importlib.metadata.PackageNotFoundError:
-                pass
         assert importlib.util.find_spec("ray.util.scheduling_strategies") is not None
     finally:
         _restore_stub_modules(saved, prefixes)
@@ -285,7 +289,9 @@ def test_wandb_offline_stub_children_have_specs(tmp_path: Path) -> None:
 
     pkg = tmp_path / "wandb"
     pkg.mkdir()
-    source = Path(__file__).resolve().parents[1] / "training/apertus_eagle/wandb_offline_stub.py"
+    source = (
+        Path(__file__).resolve().parents[1] / "methods/eagle/apertus_eagle/wandb_offline_stub.py"
+    )
     (pkg / "__init__.py").write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
     saved = _drop_stub_modules("wandb")
     sys.path.insert(0, str(tmp_path))
@@ -331,9 +337,9 @@ def test_committed_8b_draft_config_is_the_contract_derivation() -> None:
     assert derived == _load_template("8b/draft-e31-config.json")
     e3 = build_draft_config(load_contract(CONTRACT_8B), "eagle3")
     assert (e3["fc_norm"], e3["norm_output"]) == (False, False)
-    assert {k: v for k, v in e3.items() if k not in ("fc_norm", "norm_output", "apertus_target")} == {
-        k: v for k, v in derived.items() if k not in ("fc_norm", "norm_output", "apertus_target")
-    }
+    assert {
+        k: v for k, v in e3.items() if k not in ("fc_norm", "norm_output", "apertus_target")
+    } == {k: v for k, v in derived.items() if k not in ("fc_norm", "norm_output", "apertus_target")}
 
 
 def test_feature_cache_is_refused_after_target_layout_or_corpus_change() -> None:
@@ -353,7 +359,10 @@ def test_feature_cache_is_refused_after_target_layout_or_corpus_change() -> None
         check_cache(manifest, contract, "other")
     with pytest.raises(ValueError, match="target identity"):
         check_cache(manifest, load_contract(CONTRACT_70B), "abc")
-    stale = {**manifest, "feature_contract": {**manifest["feature_contract"], "vllm_aux_ids": [2, 40, 77]}}
+    stale = {
+        **manifest,
+        "feature_contract": {**manifest["feature_contract"], "vllm_aux_ids": [2, 40, 77]},
+    }
     with pytest.raises(ValueError, match="feature contract"):
         check_cache(stale, contract, "abc")
     with pytest.raises(ValueError, match="status"):
@@ -363,7 +372,10 @@ def test_feature_cache_is_refused_after_target_layout_or_corpus_change() -> None
 def test_training_sequence_is_the_served_stream_with_generated_loss() -> None:
     from apertus_eagle.features import training_sequence
 
-    row = {"prompt_ids": [BOS_ID, 65, 10, 66, ASSISTANT_START_ID], "generated_ids": [11, 12, ASSISTANT_END_ID]}
+    row = {
+        "prompt_ids": [BOS_ID, 65, 10, 66, ASSISTANT_START_ID],
+        "generated_ids": [11, 12, ASSISTANT_END_ID],
+    }
     ids, mask = training_sequence(row, max_seq_length=4096)
     assert ids == [BOS_ID, 65, 10, 66, ASSISTANT_START_ID, 11, 12, ASSISTANT_END_ID]
     # TorchSpec preprocessing zeroes the final position: nothing follows it.

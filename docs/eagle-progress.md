@@ -1,5 +1,26 @@
 # EAGLE 3.1 execution ledger
 
+Layout note 2026-09-26: the repository was reorganised by method and target. Entries
+below keep the paths that were current when they were written. Mapping:
+
+| old | new |
+| --- | --- |
+| `training/apertus_eagle/` | `methods/eagle/apertus_eagle/` |
+| `launch/{eagle,eagle8b-*,stagea-campaign,*train*,*torchspec*,prepare-eagle-splits,probe-renderer}.sh` | `methods/eagle/launch/` |
+| `launch/{baseline,resolve-env,stage-defaults,patch-vllm,vllm-extra-flags,wait-replica}.sh` | `serving/` |
+| `launch/{draft-model,standalone-8b}.sh`, `configs/drafter-inventory.json` | `methods/draft_model/` |
+| `launch/ngram.sh` | `methods/ngram/` |
+| `launch/*diagnostics*.sh`, `configs/diagnostics.yaml` | `experiments/round-cost-70b/` |
+| `configs/experiment.yaml` | `experiments/smoke-70b/` |
+| `patches/vllm-*`, `patches/torchspec-*` | `serving/patches/`, `methods/eagle/patches/` |
+| `configs/eagle/8b/*` | `methods/eagle/configs/8b/` (`lock.json` -> `targets/8b/`) |
+| `configs/eagle/{draft,train}-*` | `methods/eagle/configs/70b/` (`lock.json` -> `targets/70b/`) |
+| `results/eagle/8b/preflight/compatibility.json` | `targets/8b/contract.json` |
+| `results/eagle/preflight/compatibility.json`, `target-*.json` | `targets/70b/contract.json`, `targets/70b/checkpoint/` |
+| `results/eagle/8b/workloads/` | `workloads/8b/` |
+| `results/eagle/8b/` | `results/8b/eagle/` |
+| `results/eagle/` (70B) and the other `results/*` | `results/70b/` |
+
 Scope update 2026-09-24: [the revised execution plan](eagle-execution-plan.md) starts with
 an Apertus 1.5 8B pilot (A0–A6), followed by 70B transfer (B0–B3). EAGLE 3.1 remains the
 default; EAGLE-3 is a conditional fallback. The entries below are preserved snapshots of
