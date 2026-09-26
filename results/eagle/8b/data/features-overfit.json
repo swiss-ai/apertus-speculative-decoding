@@ -1,0 +1,60 @@
+{
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+  "status": "complete",
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "feature_contract": {
+    "format": "apertus-eagle-features-v1",
+    "hf_decoder_layer_aux_ids": [
+      1,
+      15,
+      28
+    ],
+    "vllm_aux_ids": [
+      2,
+      16,
+      29
+    ],
+    "hidden_states": "concat of HF decoder-layer outputs (residual included), low to high",
+    "last_hidden_states": "final RMSNorm output (post-norm); trainer applies no norm",
+    "dtype": "bfloat16",
+    "loss_mask": "1 on generated tokens; last position 0",
+    "hidden_size": 4096
+  },
+  "corpus": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/overfit.jsonl",
+  "corpus_sha256": "60017fced902a7c827c70fa8243aecfa8f5bc5f717024e9b99aae99cb9a2d7e8",
+  "code_sha256": "230ce34f54ea64b0f7992e05166fb53c2ce49bbe50e2b22f743f16c315745467",
+  "teacher_loader": "AutoModelForImageTextToText",
+  "max_seq_length": 4096,
+  "estimates": [
+    {
+      "after_samples": 32,
+      "bytes_per_token": 32773.5,
+      "mean_tokens": 897.7,
+      "projected_gb": 0.94,
+      "seconds": 14.7,
+      "teacher_tokens_per_second": 1957.2,
+      "peak_gpu_gb": 22.1
+    }
+  ],
+  "total_bytes": 941417825,
+  "total_tokens": 28725,
+  "bytes_per_token": 32773.46649260226,
+  "teacher_load_seconds": 6.1,
+  "extract_seconds": 14.7,
+  "teacher_tokens_per_second": 1957.2,
+  "peak_gpu_bytes": 22100594176,
+  "peak_host_rss_kb": 18726912,
+  "hf_parity": {
+    "argmax_agree_min": 0.9999999403953552,
+    "recon_max_abs_max": 0.0,
+    "repeat_hidden_max_abs_max": 0.0
+  }
+}

@@ -1,0 +1,12 @@
+{"user":"faruk_zahiragic","job_id":"3509870","slurm_nodes":1,"slurm_job_name":"sml_faruk_zahiragic_swiss-ai_Apertus-v1.5-8B-baseline-tp1-smoke-20260924T163654Z_bRXlrEMv","slurm_partition":"debug","slurm_time":"01:00:00","slurm_account":"infra01","slurm_environment":"/users/faruk_zahiragic/.sml/env_resolved_arm64_0RFCIt.toml","interactive":false,"serving_framework":"vllm","framework_args":"--port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B     --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-baseline-tp1-smoke-20260924T163654Z     --chat-template-content-format string     --tensor-parallel-size 1     --gpu-memory-utilization 0.8     --max-model-len 32768     --enable-auto-tool-choice     --tool-call-parser apertus     --compilation-config.pass_config.fuse_allreduce_rms false     --no-enable-prefix-caching","pre_launch_cmds":"","model_name":"faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-baseline-tp1-smoke-20260924T163654Z","model_path":null,"tp_size":null,"host":null,"port":null,"workers":1,"nodes_per_worker":null,"worker_port":5000,"use_router":false,"router_environment":"/users/faruk_zahiragic/.sml/env_resolved_arm64_0RFCIt.toml","router_port":30000,"router_args":"","ocf_enabled":true,"ocf_bootstrap_addr":"/ip4/148.187.108.178/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9","ocf_service_name":"llm","ocf_service_port":8080,"extra":null,"raw_command":null,"id":"ee16b23a-c93a-4adb-87cb-a0c92d9f8487","created_at":"2026-09-24T16:37:09.854204Z"}Running on ARM64 (aarch64)
+Total nodes allocated: 1
+Node 0: nid006049
+Replica 0 head IP: 172.28.49.141
+All replica URLs: http://172.28.49.141:8080
+Replica health checker started (pid 53682) -> logs/3509870/replica_health.json
+
+To connect to the host node:
+srun --jobid 3509870 -w nid006049 --overlap --pty bash
+
+Make sure to cancel the job at the end:
+scancel 3509870

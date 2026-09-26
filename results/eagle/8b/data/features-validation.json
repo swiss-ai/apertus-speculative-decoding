@@ -1,0 +1,84 @@
+{
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/features/validation",
+  "status": "complete",
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "feature_contract": {
+    "format": "apertus-eagle-features-v1",
+    "hf_decoder_layer_aux_ids": [
+      1,
+      15,
+      28
+    ],
+    "vllm_aux_ids": [
+      2,
+      16,
+      29
+    ],
+    "hidden_states": "concat of HF decoder-layer outputs (residual included), low to high",
+    "last_hidden_states": "final RMSNorm output (post-norm); trainer applies no norm",
+    "dtype": "bfloat16",
+    "loss_mask": "1 on generated tokens; last position 0",
+    "hidden_size": 4096
+  },
+  "corpus": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/validation.jsonl",
+  "corpus_sha256": "7ca5b3d2a5b2dae132a5bfe03a1e8c866bc9f5dd9283415c20fff80436505ad2",
+  "code_sha256": "491731f1d14cf87fbb1cc31466f58fcd2ca0bde652c74017bfbb5869f3d89c1c",
+  "teacher_loader": "AutoModelForImageTextToText",
+  "max_seq_length": 4096,
+  "skipped_non_text_ids": [
+    {
+      "id": "4d039cbbba9ddd592dc70e9a2cc6af23a22d01edcd3aae2f3f3c648f1d789e61",
+      "ids": [
+        131079
+      ]
+    },
+    {
+      "id": "aa3ddb446d06a6d7875a998cd2f3a3040458c87b7468b787e0961cc1ba738d1b",
+      "ids": [
+        131079
+      ]
+    },
+    {
+      "id": "366bc0e99206cf3958bc9769d7378b36c9c1532d398d5b24371603899fa71082",
+      "ids": [
+        131079
+      ]
+    }
+  ],
+  "estimates": [
+    {
+      "after_samples": 100,
+      "bytes_per_token": 32773.5,
+      "mean_tokens": 888.1,
+      "projected_gb": 3.38,
+      "seconds": 44.1,
+      "teacher_tokens_per_second": 2014.1,
+      "peak_gpu_gb": 19.19
+    },
+    {
+      "after_samples": 113,
+      "bytes_per_token": 32773.5,
+      "mean_tokens": 852.9,
+      "projected_gb": 3.24,
+      "seconds": 49.4,
+      "teacher_tokens_per_second": 1950.2,
+      "peak_gpu_gb": 19.19
+    }
+  ],
+  "total_bytes": 3158609813,
+  "total_tokens": 96377,
+  "bytes_per_token": 32773.4813596605,
+  "teacher_load_seconds": 6.3,
+  "extract_seconds": 49.4,
+  "teacher_tokens_per_second": 1950.2,
+  "peak_gpu_bytes": 19194783232,
+  "peak_host_rss_kb": 18616320
+}

@@ -1,0 +1,65 @@
+stage=8b
+served_model=swiss-ai/Apertus-v1.5-8B-eagle31-n2-tp1d1-screen-b4-20260925T054735Z
+target_model=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+target_contract=/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json
+target_tensor_parallel_size=1
+results_root=/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b
+eagle_head=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-mix-3514907-se
+algorithm=eagle31
+engine_method=eagle3
+num_speculative_tokens=2
+draft_tensor_parallel_size=1
+parallel_drafting=0
+max_model_len=32768
+gpu_memory_utilization=0.8
+enable_prefix_caching=0
+async_scheduling=engine-default
+max_num_batched_tokens=engine-default
+environment=/users/faruk_zahiragic/.sml/env_resolved_arm64_N22tJc.toml
+image=/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+apply_vllm_patches=1
+head_report={
+  "algorithm": "eagle31",
+  "provenance": {
+    "checked": true,
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582"
+  },
+  "fc_norm": true,
+  "norm_output": true,
+  "parameter_count": {
+    "embed_tokens": 536870912,
+    "lm_head": 536870912,
+    "fc": 50331648,
+    "fc_norm": 12288,
+    "qkv_proj": 50331648,
+    "o_proj": 16777216,
+    "gate_up_proj": 117440512,
+    "down_proj": 58720256,
+    "norms": 16384,
+    "total": 1367371776,
+    "excluding_embed_and_lm_head": 293629952
+  },
+  "aux_hidden_state_layer_ids": [
+    2,
+    16,
+    29
+  ],
+  "draft_vocab_size": 131072,
+  "vocab_size": 131072,
+  "hidden_size": 4096,
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-mix-3514907-se",
+  "config_sha256": "ebf877985bfc7cb39e94bb3d2fd6d2f858e847bc1bcb1d310f12ad912389bdd6",
+  "weight_files": [
+    "model.safetensors"
+  ],
+  "weights_present": true,
+  "trained_head": true,
+  "checkpoint_manifest_sha256": "0103d54e3f68d44b61cdacc2ce2d63d4679acd7227cdde55d52bd98395ad66b9"
+}
+--system is ignored when using the SLURM launcher
+Job submitted: 3515617
+Served model name: faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-eagle31-n2-tp1d1-screen-b4-20260925T054735Z
+Logs: ~/.sml/logs/3515617
+Tail: tail -f ~/.sml/logs/3515617/log.out

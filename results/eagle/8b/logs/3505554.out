@@ -1,0 +1,370 @@
+START 2026-09-24T10:19:04+00:00 host=nid007666 job=3505554
+2026-09-24T10:19:04Z host=nid007666 job=3505554 config=/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/train-e31-overfit.yaml steps=generate,extract,parity cuda=0
+index, name, memory.total [MiB], driver_version
+0, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+1, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+2, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+3, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+TargetLMHead already patched
+HFTargetModel language_model walk already patched
+HFTargetModel AutoModel fallback already patched
+patched /users/faruk_zahiragic/apertus-bench-repo/scratch/TorchSpec
+{"environment": {"torch": "2.11.0+cu130", "transformers": "5.14.0.dev0", "vllm": "0.23.1rc1.dev1029+ga601a9d99", "safetensors": "0.8.0", "yaml": "6.0.3", "accelerate": "1.15.0", "triton": "3.6.0", "cuda": "13.0", "gpu": "NVIDIA GH200 120GB", "machine": "aarch64", "python": "3.12.3"}}
+{"t": "2026-09-24T10:19:29Z", "msg": "resolved", "config": "/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/train-e31-overfit.yaml", "contract": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json", "target": {"model_id": "swiss-ai/Apertus-v1.5-8B", "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B", "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6", "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686", "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582", "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0", "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"}, "algorithm": "eagle31", "draft_config": "/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/draft-e31-config.json", "steps": ["generate", "extract", "parity"], "generated": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated", "features": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features", "train_cache": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit", "eval_cache": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit", "run_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-overfit-3505554", "head_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-overfit-3505554", "results": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b", "cuda_visible_devices": "0", "slurm_job_id": "3505554", "slurm_node": "nid007666"}
+{"t": "2026-09-24T10:19:29Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.generate_targets --contract /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json --input /users/faruk_zahiragic/apertus-bench-repo/results/eagle/data/overfit.jsonl /users/faruk_zahiragic/apertus-bench-repo/results/eagle/data/validation.jsonl /users/faruk_zahiragic/apertus-bench-repo/results/eagle/data/train.jsonl --output-dir /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated --max-seq-length 4096"}
+INFO 09-24 12:19:45 [api_utils.py:273] non-default args: {'dtype': 'bfloat16', 'max_model_len': 4160, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.85, 'disable_log_stats': True, 'model': '/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B'}
+WARNING 09-24 12:19:45 [envs.py:2069] Unknown vLLM environment variable detected: VLLM_PRECOMPILED_WHEEL_VARIANT
+WARNING 09-24 12:19:45 [envs.py:2069] Unknown vLLM environment variable detected: VLLM_REPO
+INFO 09-24 12:19:54 [model.py:619] Resolved architecture: Apertus1p5ForConditionalGeneration
+INFO 09-24 12:19:54 [model.py:1776] Using max model len 4160
+INFO 09-24 12:19:54 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=16384.
+INFO 09-24 12:19:54 [vllm.py:1089] Asynchronous scheduling is enabled.
+INFO 09-24 12:19:54 [kernel.py:292] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(EngineCore pid=86248) INFO 09-24 12:20:35 [core.py:114] Initializing a V1 LLM engine (v0.23.1rc1.dev1029+ga601a9d99) with config: model='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B', speculative_config=None, tokenizer='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=4160, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [16384], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=86248) INFO 09-24 12:20:37 [parallel_state.py:1607] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.28.46.200:51047 backend=nccl
+(EngineCore pid=86248) INFO 09-24 12:20:37 [parallel_state.py:1942] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(EngineCore pid=86248) INFO 09-24 12:20:37 [gpu_worker.py:364] Using V2 Model Runner
+(EngineCore pid=86248) INFO 09-24 12:20:38 [model_runner.py:281] Loading model from scratch...
+(EngineCore pid=86248) INFO 09-24 12:20:41 [cuda.py:476] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(EngineCore pid=86248) INFO 09-24 12:20:41 [flash_attn.py:718] Using FlashAttention version 3
+(EngineCore pid=86248) WARNING 09-24 12:20:41 [activation.py:682] CUDA-fused xIELU not available (No module named 'xielu') – falling back to a Python version.
+(EngineCore pid=86248) WARNING 09-24 12:20:41 [activation.py:682] For CUDA xIELU (experimental), `pip install git+https://github.com/nickjbrowning/XIELU`
+(EngineCore pid=86248) INFO 09-24 12:20:43 [weight_utils.py:849] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 16.04 GiB. Available RAM: 729.15 GiB.
+(EngineCore pid=86248) INFO 09-24 12:20:43 [weight_utils.py:811] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(EngineCore pid=86248) INFO 09-24 12:20:46 [weight_utils.py:783] Prefetching checkpoint files: 10% (1/4)
+(EngineCore pid=86248) INFO 09-24 12:20:46 [weight_utils.py:783] Prefetching checkpoint files: 20% (2/4)
+(EngineCore pid=86248) INFO 09-24 12:20:47 [weight_utils.py:783] Prefetching checkpoint files: 30% (3/4)
+(EngineCore pid=86248) INFO 09-24 12:20:47 [weight_utils.py:783] Prefetching checkpoint files: 40% (4/4)
+(EngineCore pid=86248) INFO 09-24 12:20:47 [weight_utils.py:806] Prefetching checkpoint files into page cache finished in 4.05s
+(EngineCore pid=86248) INFO 09-24 12:20:48 [weight_utils.py:849] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 0.81 GiB. Available RAM: 717.84 GiB.
+(EngineCore pid=86248) INFO 09-24 12:20:48 [weight_utils.py:811] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(EngineCore pid=86248) INFO 09-24 12:20:49 [weight_utils.py:783] Prefetching checkpoint files: 10% (1/1)
+(EngineCore pid=86248) INFO 09-24 12:20:49 [weight_utils.py:806] Prefetching checkpoint files into page cache finished in 0.96s
+(EngineCore pid=86248) INFO 09-24 12:20:49 [weight_utils.py:849] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 0.28 GiB. Available RAM: 721.10 GiB.
+(EngineCore pid=86248) INFO 09-24 12:20:49 [weight_utils.py:811] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(EngineCore pid=86248) INFO 09-24 12:20:49 [weight_utils.py:783] Prefetching checkpoint files: 10% (1/1)
+(EngineCore pid=86248) INFO 09-24 12:20:49 [weight_utils.py:806] Prefetching checkpoint files into page cache finished in 0.31s
+(EngineCore pid=86248) INFO 09-24 12:20:49 [default_loader.py:430] Loading weights took 6.20 seconds
+(EngineCore pid=86248) INFO 09-24 12:20:50 [model_runner.py:302] Model loading took 17.23 GiB and 11.766524 seconds
+(EngineCore pid=86248) INFO 09-24 12:20:50 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+(EngineCore pid=86248) INFO 09-24 12:20:57 [backends.py:1089] Using cache directory: /users/faruk_zahiragic/.cache/vllm/torch_compile_cache/f143a0585a/rank_0_0/backbone for vLLM's torch.compile
+(EngineCore pid=86248) INFO 09-24 12:20:57 [backends.py:1148] Dynamo bytecode transform time: 6.91 s
+(EngineCore pid=86248) INFO 09-24 12:21:10 [backends.py:378] Cache the graph of compile range (1, 16384) for later use
+(EngineCore pid=86248) INFO 09-24 12:21:20 [backends.py:393] Compiling a graph for compile range (1, 16384) takes 22.19 s
+(EngineCore pid=86248) INFO 09-24 12:21:24 [decorators.py:708] saved AOT compiled function to /users/faruk_zahiragic/.cache/vllm/torch_compile_cache/torch_aot_compile/3512ef39b4af3ab86b40b01d4c7be56a8b2250121e7eb28d1aa7bac93861510a/rank_0_0/model
+(EngineCore pid=86248) INFO 09-24 12:21:24 [monitor.py:53] torch.compile took 33.84 s in total
+(EngineCore pid=86248) INFO 09-24 12:21:25 [monitor.py:81] Initial profiling/warmup run took 1.25 s
+(EngineCore pid=86248) INFO 09-24 12:21:27 [gpu_worker.py:544] Available KV cache memory: 61.59 GiB
+(EngineCore pid=86248) INFO 09-24 12:21:27 [kv_cache_utils.py:2168] GPU KV cache size: 504,544 tokens
+(EngineCore pid=86248) INFO 09-24 12:21:27 [kv_cache_utils.py:2169] Maximum concurrency for 4,160 tokens per request: 121.28x
+(EngineCore pid=86248) INFO 09-24 12:21:27 [deep_gemm.py:175] deep_gemm not found in site-packages, trying vendored vllm.third_party.deep_gemm
+(EngineCore pid=86248) INFO 09-24 12:21:27 [deep_gemm.py:202] DeepGEMM PDL enabled on vllm.third_party.deep_gemm.
+(EngineCore pid=86248) INFO 09-24 12:21:27 [kernel_warmup.py:170] Using FlashInfer autotune cache file: /users/faruk_zahiragic/.cache/vllm/flashinfer_autotune_cache/0.6.13/90a/1f0bb5897dd686b5b8f4a63c5efa2fe165aca4d1fa3c0f693750e99af3f2bb3d/autotune_configs.json
+(EngineCore pid=86248) WARNING 09-24 12:21:27 [kernel_warmup.py:199] No FlashInfer autotune cache entries found.Falling back to default tactics.
+(EngineCore pid=86248) INFO 09-24 12:21:27 [cutedsl_warmup.py:97] Skipping CuTeDSL warmup because no compile units were requested.
+(EngineCore pid=86248) INFO 09-24 12:21:32 [model_runner.py:723] Graph capturing finished in 4 secs, took 0.95 GiB
+(EngineCore pid=86248) INFO 09-24 12:21:32 [gpu_worker.py:860] Free memory on device (94.45/95.0 GiB) on startup. Desired GPU memory utilization is (0.85, 80.75 GiB). Actual usage is 17.23 GiB for weight, 1.69 GiB for peak activation, 0.24 GiB for non-torch memory, and 0.95 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=64956618752` (60.5 GiB) to fit into requested memory, or `--kv-cache-memory=79664601088` (74.19 GiB) to fully utilize gpu memory. Current kv cache memory in use is 61.59 GiB.
+(EngineCore pid=86248) INFO 09-24 12:22:39 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=86248) INFO 09-24 12:22:39 [core.py:337] init engine (profile, create kv cache, warmup model) took 109.44 s (compilation: 33.84 s)
+(EngineCore pid=86248) INFO 09-24 12:22:39 [kernel.py:292] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+{"overfit": {"input": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/data/overfit.jsonl", "input_sha256": "2e1b34c9c1f579d5fd513d3573715ce3fea333fb18ed0e101850048640d8a9f3", "output": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/overfit.jsonl", "output_sha256": "60017fced902a7c827c70fa8243aecfa8f5bc5f717024e9b99aae99cb9a2d7e8", "rows_in": 32, "rows_out": 32, "skipped": {"prompt_too_long": 0, "unrenderable": 0}, "finish_reasons": {"stop": 32}, "generated_tokens": 24701, "generate_seconds": 9.7, "generated_tokens_per_second": 2541.9}}
+{"validation": {"input": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/data/validation.jsonl", "input_sha256": "7f5d5ee5a0a62dd29b1e0fe575d837f7a88f89fe74419d8cea74898b2e429a55", "output": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/validation.jsonl", "output_sha256": "c7efd8c6a0794e13a414b52a80d7ede860d99013a96305fbee86a476e856cb60", "rows_in": 128, "rows_out": 128, "skipped": {"prompt_too_long": 0, "unrenderable": 0}, "finish_reasons": {"length": 7, "stop": 121}, "generated_tokens": 105364, "generate_seconds": 16.2, "generated_tokens_per_second": 6489.1}}
+{"train": {"input": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/data/train.jsonl", "input_sha256": "c678bb3b44a471094345716bb041f0decd4e8c73ea93331b6093913e792fc42b", "output": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/train.jsonl", "output_sha256": "1fc2310b70ac1c2b1f4668810387c155d741d213e262d090074047d8cf1a2c98", "rows_in": 1000, "rows_out": 1000, "skipped": {"prompt_too_long": 0, "unrenderable": 0}, "finish_reasons": {"stop": 967, "length": 33}, "generated_tokens": 797163, "generate_seconds": 59.8, "generated_tokens_per_second": 13326.2}}
+{"checked": 32, "failures": 0, "rule": "LLM.chat prompt_token_ids == chat_template(tokenize=False)+encode(add_special_tokens=False)"}
+(EngineCore pid=86248) INFO 09-24 12:24:11 [core.py:1214] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=86248) INFO 09-24 12:24:11 [core.py:1333] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=86248) INFO 09-24 12:24:11 [core.py:1364] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=86248) INFO 09-24 12:24:11 [core.py:1227] [shutdown] EngineCore: exiting busy loop
+{"t": "2026-09-24T10:24:13Z", "msg": "done", "module": "apertus_eagle.generate_targets", "rc": 0, "seconds": 284.7}
+{"t": "2026-09-24T10:24:13Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.features --contract /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json --input /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/overfit.jsonl --output-dir /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit --max-seq-length 4096 --parity-samples 8"}
+{"progress": 0, "of": 32}
+{"estimate": {"after_samples": 32, "bytes_per_token": 32773.5, "mean_tokens": 897.7, "projected_gb": 0.94, "seconds": 14.7, "teacher_tokens_per_second": 1957.2, "peak_gpu_gb": 22.1}}
+{
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+  "status": "complete",
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "feature_contract": {
+    "format": "apertus-eagle-features-v1",
+    "hf_decoder_layer_aux_ids": [
+      1,
+      15,
+      28
+    ],
+    "vllm_aux_ids": [
+      2,
+      16,
+      29
+    ],
+    "hidden_states": "concat of HF decoder-layer outputs (residual included), low to high",
+    "last_hidden_states": "final RMSNorm output (post-norm); trainer applies no norm",
+    "dtype": "bfloat16",
+    "loss_mask": "1 on generated tokens; last position 0",
+    "hidden_size": 4096
+  },
+  "corpus": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/overfit.jsonl",
+  "corpus_sha256": "60017fced902a7c827c70fa8243aecfa8f5bc5f717024e9b99aae99cb9a2d7e8",
+  "code_sha256": "230ce34f54ea64b0f7992e05166fb53c2ce49bbe50e2b22f743f16c315745467",
+  "teacher_loader": "AutoModelForImageTextToText",
+  "max_seq_length": 4096,
+  "estimates": [
+    {
+      "after_samples": 32,
+      "bytes_per_token": 32773.5,
+      "mean_tokens": 897.7,
+      "projected_gb": 0.94,
+      "seconds": 14.7,
+      "teacher_tokens_per_second": 1957.2,
+      "peak_gpu_gb": 22.1
+    }
+  ],
+  "total_bytes": 941417825,
+  "total_tokens": 28725,
+  "bytes_per_token": 32773.46649260226,
+  "teacher_load_seconds": 6.1,
+  "extract_seconds": 14.7,
+  "teacher_tokens_per_second": 1957.2,
+  "peak_gpu_bytes": 22100594176,
+  "peak_host_rss_kb": 18726912,
+  "hf_parity": {
+    "argmax_agree_min": 0.9999999403953552,
+    "recon_max_abs_max": 0.0,
+    "repeat_hidden_max_abs_max": 0.0
+  }
+}
+{"t": "2026-09-24T10:24:36Z", "msg": "done", "module": "apertus_eagle.features", "rc": 0, "seconds": 22.5}
+{"t": "2026-09-24T10:24:36Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.features --contract /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json --input /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/validation.jsonl --output-dir /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/validation --max-seq-length 4096"}
+{"progress": 0, "of": 128}
+{"progress": 50, "of": 128}
+{"estimate": {"after_samples": 100, "bytes_per_token": 32773.4, "mean_tokens": 943.9, "projected_gb": 3.96, "seconds": 37.8, "teacher_tokens_per_second": 2494.9, "peak_gpu_gb": 19.09}}
+{"progress": 100, "of": 128}
+{"estimate": {"after_samples": 128, "bytes_per_token": 32773.4, "mean_tokens": 951.2, "projected_gb": 3.99, "seconds": 323.3, "teacher_tokens_per_second": 376.6, "peak_gpu_gb": 19.14}}
+{
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/validation",
+  "status": "complete",
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "feature_contract": {
+    "format": "apertus-eagle-features-v1",
+    "hf_decoder_layer_aux_ids": [
+      1,
+      15,
+      28
+    ],
+    "vllm_aux_ids": [
+      2,
+      16,
+      29
+    ],
+    "hidden_states": "concat of HF decoder-layer outputs (residual included), low to high",
+    "last_hidden_states": "final RMSNorm output (post-norm); trainer applies no norm",
+    "dtype": "bfloat16",
+    "loss_mask": "1 on generated tokens; last position 0",
+    "hidden_size": 4096
+  },
+  "corpus": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/validation.jsonl",
+  "corpus_sha256": "c7efd8c6a0794e13a414b52a80d7ede860d99013a96305fbee86a476e856cb60",
+  "code_sha256": "230ce34f54ea64b0f7992e05166fb53c2ce49bbe50e2b22f743f16c315745467",
+  "teacher_loader": "AutoModelForImageTextToText",
+  "max_seq_length": 4096,
+  "estimates": [
+    {
+      "after_samples": 100,
+      "bytes_per_token": 32773.4,
+      "mean_tokens": 943.9,
+      "projected_gb": 3.96,
+      "seconds": 37.8,
+      "teacher_tokens_per_second": 2494.9,
+      "peak_gpu_gb": 19.09
+    },
+    {
+      "after_samples": 128,
+      "bytes_per_token": 32773.4,
+      "mean_tokens": 951.2,
+      "projected_gb": 3.99,
+      "seconds": 323.3,
+      "teacher_tokens_per_second": 376.6,
+      "peak_gpu_gb": 19.14
+    }
+  ],
+  "total_bytes": 3990395745,
+  "total_tokens": 121757,
+  "bytes_per_token": 32773.44008968683,
+  "teacher_load_seconds": 5.9,
+  "extract_seconds": 323.3,
+  "teacher_tokens_per_second": 376.6,
+  "peak_gpu_bytes": 19142737408,
+  "peak_host_rss_kb": 18690048
+}
+{"t": "2026-09-24T10:30:07Z", "msg": "done", "module": "apertus_eagle.features", "rc": 0, "seconds": 330.9}
+{"t": "2026-09-24T10:30:07Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.features --contract /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json --input /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/train.jsonl --output-dir /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/train --max-seq-length 4096"}
+{"progress": 0, "of": 1000}
+{"progress": 50, "of": 1000}
+{"estimate": {"after_samples": 100, "bytes_per_token": 32773.4, "mean_tokens": 995.1, "projected_gb": 32.61, "seconds": 2154.9, "teacher_tokens_per_second": 46.2, "peak_gpu_gb": 19.11}}
+{"progress": 100, "of": 1000}
+{"progress": 150, "of": 1000}
+{"progress": 200, "of": 1000}
+{"progress": 250, "of": 1000}
+{"progress": 300, "of": 1000}
+{"progress": 350, "of": 1000}
+{"progress": 400, "of": 1000}
+{"progress": 450, "of": 1000}
+{"progress": 500, "of": 1000}
+{"progress": 550, "of": 1000}
+{"progress": 600, "of": 1000}
+{"progress": 650, "of": 1000}
+{"progress": 700, "of": 1000}
+{"progress": 750, "of": 1000}
+{"progress": 800, "of": 1000}
+{"progress": 850, "of": 1000}
+{"progress": 900, "of": 1000}
+{"progress": 950, "of": 1000}
+{"estimate": {"after_samples": 1000, "bytes_per_token": 32773.5, "mean_tokens": 927.0, "projected_gb": 30.38, "seconds": 2404.7, "teacher_tokens_per_second": 385.5, "peak_gpu_gb": 19.15}}
+{
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/train",
+  "status": "complete",
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "feature_contract": {
+    "format": "apertus-eagle-features-v1",
+    "hf_decoder_layer_aux_ids": [
+      1,
+      15,
+      28
+    ],
+    "vllm_aux_ids": [
+      2,
+      16,
+      29
+    ],
+    "hidden_states": "concat of HF decoder-layer outputs (residual included), low to high",
+    "last_hidden_states": "final RMSNorm output (post-norm); trainer applies no norm",
+    "dtype": "bfloat16",
+    "loss_mask": "1 on generated tokens; last position 0",
+    "hidden_size": 4096
+  },
+  "corpus": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/train.jsonl",
+  "corpus_sha256": "1fc2310b70ac1c2b1f4668810387c155d741d213e262d090074047d8cf1a2c98",
+  "code_sha256": "230ce34f54ea64b0f7992e05166fb53c2ce49bbe50e2b22f743f16c315745467",
+  "teacher_loader": "AutoModelForImageTextToText",
+  "max_seq_length": 4096,
+  "estimates": [
+    {
+      "after_samples": 100,
+      "bytes_per_token": 32773.4,
+      "mean_tokens": 995.1,
+      "projected_gb": 32.61,
+      "seconds": 2154.9,
+      "teacher_tokens_per_second": 46.2,
+      "peak_gpu_gb": 19.11
+    },
+    {
+      "after_samples": 1000,
+      "bytes_per_token": 32773.5,
+      "mean_tokens": 927.0,
+      "projected_gb": 30.38,
+      "seconds": 2404.7,
+      "teacher_tokens_per_second": 385.5,
+      "peak_gpu_gb": 19.15
+    }
+  ],
+  "total_bytes": 30382071077,
+  "total_tokens": 927033,
+  "bytes_per_token": 32773.45151359229,
+  "teacher_load_seconds": 6.1,
+  "extract_seconds": 2404.7,
+  "teacher_tokens_per_second": 385.5,
+  "peak_gpu_bytes": 19146495488,
+  "peak_host_rss_kb": 19189888
+}
+{"t": "2026-09-24T11:10:19Z", "msg": "done", "module": "apertus_eagle.features", "rc": 0, "seconds": 2412.6}
+{"t": "2026-09-24T11:10:19Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.parity_vllm --contract /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json --prefixes /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit/parity-prefixes.safetensors --output /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/feature-parity.json"}
+INFO 09-24 13:10:28 [api_utils.py:273] non-default args: {'dtype': 'bfloat16', 'max_model_len': 4096, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.8, 'max_num_batched_tokens': 8192, 'disable_log_stats': True, 'enforce_eager': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': None, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'model': '/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B'}
+WARNING 09-24 13:10:28 [envs.py:2069] Unknown vLLM environment variable detected: VLLM_PRECOMPILED_WHEEL_VARIANT
+WARNING 09-24 13:10:28 [envs.py:2069] Unknown vLLM environment variable detected: VLLM_REPO
+WARNING 09-24 13:10:28 [arg_utils.py:1617] The global random seed is set to 0. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 09-24 13:10:28 [model.py:619] Resolved architecture: Apertus1p5ForConditionalGeneration
+INFO 09-24 13:10:28 [model.py:1776] Using max model len 4096
+INFO 09-24 13:10:28 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 09-24 13:10:28 [vllm.py:1089] Asynchronous scheduling is enabled.
+WARNING 09-24 13:10:28 [vllm.py:1143] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 09-24 13:10:28 [vllm.py:1191] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 09-24 13:10:28 [kernel.py:292] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 09-24 13:10:28 [vllm.py:1370] Cudagraph is disabled under eager mode
+INFO 09-24 13:10:28 [compilation.py:312] Enabled custom fusions: norm_quant, act_quant
+INFO 09-24 13:11:09 [core.py:114] Initializing a V1 LLM engine (v0.23.1rc1.dev1029+ga601a9d99) with config: model='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B', speculative_config=None, tokenizer='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, moe_backend='auto', linear_backend='auto')
+INFO 09-24 13:11:10 [parallel_state.py:1607] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.28.46.200:33655 backend=nccl
+INFO 09-24 13:11:10 [parallel_state.py:1942] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 09-24 13:11:10 [gpu_worker.py:364] Using V2 Model Runner
+INFO 09-24 13:11:11 [model_runner.py:281] Loading model from scratch...
+INFO 09-24 13:11:11 [cuda.py:476] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+INFO 09-24 13:11:11 [flash_attn.py:718] Using FlashAttention version 3
+WARNING 09-24 13:11:11 [activation.py:682] CUDA-fused xIELU not available (No module named 'xielu') – falling back to a Python version.
+WARNING 09-24 13:11:11 [activation.py:682] For CUDA xIELU (experimental), `pip install git+https://github.com/nickjbrowning/XIELU`
+INFO 09-24 13:11:12 [weight_utils.py:849] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 16.04 GiB. Available RAM: 702.76 GiB.
+INFO 09-24 13:11:12 [weight_utils.py:811] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+INFO 09-24 13:11:12 [weight_utils.py:783] Prefetching checkpoint files: 10% (1/4)
+INFO 09-24 13:11:12 [weight_utils.py:783] Prefetching checkpoint files: 20% (2/4)
+INFO 09-24 13:11:12 [weight_utils.py:783] Prefetching checkpoint files: 30% (3/4)
+INFO 09-24 13:11:12 [weight_utils.py:783] Prefetching checkpoint files: 40% (4/4)
+INFO 09-24 13:11:12 [weight_utils.py:806] Prefetching checkpoint files into page cache finished in 0.31s
+INFO 09-24 13:11:13 [weight_utils.py:849] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 0.81 GiB. Available RAM: 698.35 GiB.
+INFO 09-24 13:11:13 [weight_utils.py:811] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+INFO 09-24 13:11:13 [weight_utils.py:783] Prefetching checkpoint files: 10% (1/1)
+INFO 09-24 13:11:13 [weight_utils.py:806] Prefetching checkpoint files into page cache finished in 0.07s
+INFO 09-24 13:11:13 [weight_utils.py:849] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 0.28 GiB. Available RAM: 701.91 GiB.
+INFO 09-24 13:11:13 [weight_utils.py:811] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+INFO 09-24 13:11:13 [weight_utils.py:783] Prefetching checkpoint files: 10% (1/1)
+INFO 09-24 13:11:13 [weight_utils.py:806] Prefetching checkpoint files into page cache finished in 0.03s
+INFO 09-24 13:11:13 [default_loader.py:430] Loading weights took 1.92 seconds
+INFO 09-24 13:11:14 [model_runner.py:302] Model loading took 17.23 GiB and 3.342600 seconds
+INFO 09-24 13:11:14 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+INFO 09-24 13:11:16 [gpu_worker.py:544] Available KV cache memory: 56.57 GiB
+INFO 09-24 13:11:16 [kv_cache_utils.py:2168] GPU KV cache size: 463,456 tokens
+INFO 09-24 13:11:16 [kv_cache_utils.py:2169] Maximum concurrency for 4,096 tokens per request: 113.15x
+INFO 09-24 13:11:17 [deep_gemm.py:175] deep_gemm not found in site-packages, trying vendored vllm.third_party.deep_gemm
+INFO 09-24 13:11:17 [deep_gemm.py:202] DeepGEMM PDL enabled on vllm.third_party.deep_gemm.
+INFO 09-24 13:11:17 [kernel_warmup.py:170] Using FlashInfer autotune cache file: /users/faruk_zahiragic/.cache/vllm/flashinfer_autotune_cache/0.6.13/90a/2232c498fd971b9ffd6ef448f277a74ff47ec71e21c681357dab7b3c56432f2f/autotune_configs.json
+WARNING 09-24 13:11:17 [kernel_warmup.py:199] No FlashInfer autotune cache entries found.Falling back to default tactics.
+INFO 09-24 13:11:17 [cutedsl_warmup.py:97] Skipping CuTeDSL warmup because no compile units were requested.
+INFO 09-24 13:11:17 [gpu_worker.py:860] Free memory on device (94.44/95.0 GiB) on startup. Desired GPU memory utilization is (0.8, 76.0 GiB). Actual usage is 17.23 GiB for weight, 1.96 GiB for peak activation, 0.24 GiB for non-torch memory, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=60589065216` (56.43 GiB) to fit into requested memory, or `--kv-cache-memory=80389325824` (74.87 GiB) to fully utilize gpu memory. Current kv cache memory in use is 56.57 GiB.
+INFO 09-24 13:11:25 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+INFO 09-24 13:11:26 [core.py:344] init engine (profile, create kv cache, warmup model) took 11.84 s
+{"slot": 0, "tokens": 972, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.011553035117685795, "claimed_cosine": 0.9999332427978516, "minus1_rel_err": 0.5650287866592407, "minus1_cosine": 0.9483170509338379, "plus1_rel_err": 31.033382415771484, "plus1_cosine": 0.9622807502746582, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.004634340759366751, "claimed_cosine": 0.9996001720428467, "minus1_rel_err": 0.08097317814826965, "minus1_cosine": 0.9098864793777466, "plus1_rel_err": 0.09944921731948853, "plus1_cosine": 0.9060657620429993, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.017762579023838043, "claimed_cosine": 0.9996910095214844, "minus1_rel_err": 0.3114626109600067, "minus1_cosine": 0.9413760900497437, "plus1_rel_err": 0.3594672381877899, "plus1_cosine": 0.92236328125, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.995880535530381, "argmax_compared": 971, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 64, "hf_margin": 0.0}, {"pos": 879, "hf_margin": 0.0}], "max_disagreement_margin": 0.75}
+{"slot": 1, "tokens": 1024, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.012146617285907269, "claimed_cosine": 0.9999265670776367, "minus1_rel_err": 0.5572123527526855, "minus1_cosine": 0.9528405070304871, "plus1_rel_err": 30.529010772705078, "plus1_cosine": 0.9638926982879639, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.005368993617594242, "claimed_cosine": 0.9994942545890808, "minus1_rel_err": 0.08509929478168488, "minus1_cosine": 0.9067559242248535, "plus1_rel_err": 0.10779156535863876, "plus1_cosine": 0.900393009185791, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.021904323250055313, "claimed_cosine": 0.9994905591011047, "minus1_rel_err": 0.30992454290390015, "minus1_cosine": 0.9444061517715454, "plus1_rel_err": 0.3549850881099701, "plus1_cosine": 0.926541805267334, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.9931573802541545, "argmax_compared": 1023, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 65, "hf_margin": 0.125}, {"pos": 103, "hf_margin": 0.0}, {"pos": 106, "hf_margin": 0.0}, {"pos": 124, "hf_margin": 0.125}, {"pos": 518, "hf_margin": 0.0}], "max_disagreement_margin": 0.75}
+{"slot": 2, "tokens": 435, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.011748380959033966, "claimed_cosine": 0.9999287724494934, "minus1_rel_err": 0.5585147738456726, "minus1_cosine": 0.9477279782295227, "plus1_rel_err": 44.275177001953125, "plus1_cosine": 0.9557231068611145, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.0026648857165127993, "claimed_cosine": 0.9997895359992981, "minus1_rel_err": 0.05901043489575386, "minus1_cosine": 0.9291593432426453, "plus1_rel_err": 0.06799030303955078, "plus1_cosine": 0.9232259392738342, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.012988053262233734, "claimed_cosine": 0.9997755289077759, "minus1_rel_err": 0.2751988172531128, "minus1_cosine": 0.9501146078109741, "plus1_rel_err": 0.24377697706222534, "plus1_cosine": 0.9532302618026733, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.9815668202764977, "argmax_compared": 434, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 66, "hf_margin": 0.0}, {"pos": 202, "hf_margin": 0.0}, {"pos": 289, "hf_margin": 0.0}, {"pos": 345, "hf_margin": 0.0}, {"pos": 362, "hf_margin": 0.0}, {"pos": 372, "hf_margin": 0.0}], "max_disagreement_margin": 0.75}
+{"slot": 3, "tokens": 789, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.011686827056109905, "claimed_cosine": 0.9999313354492188, "minus1_rel_err": 0.5604351162910461, "minus1_cosine": 0.9473677277565002, "plus1_rel_err": 34.329036712646484, "plus1_cosine": 0.9599295258522034, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.0044343373738229275, "claimed_cosine": 0.9995824098587036, "minus1_rel_err": 0.07526859641075134, "minus1_cosine": 0.9101437926292419, "plus1_rel_err": 0.09164104610681534, "plus1_cosine": 0.9069020748138428, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.018733425065875053, "claimed_cosine": 0.9996600151062012, "minus1_rel_err": 0.31614869832992554, "minus1_cosine": 0.9358118176460266, "plus1_rel_err": 0.33483806252479553, "plus1_cosine": 0.9277104139328003, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.983502538071066, "argmax_compared": 788, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 115, "hf_margin": 0.125}, {"pos": 292, "hf_margin": 0.0}, {"pos": 357, "hf_margin": 0.0}, {"pos": 387, "hf_margin": 0.0}, {"pos": 397, "hf_margin": 0.0}, {"pos": 546, "hf_margin": 0.0}, {"pos": 567, "hf_margin": 0.0}, {"pos": 640, "hf_margin": 0.0}, {"pos": 678, "hf_margin": 0.125}, {"pos": 679, "hf_margin": 0.125}, {"pos": 691, "hf_margin": 0.0}], "max_disagreement_margin": 0.75}
+{"slot": 4, "tokens": 920, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.011722411029040813, "claimed_cosine": 0.9999315142631531, "minus1_rel_err": 0.5595035552978516, "minus1_cosine": 0.9497095346450806, "plus1_rel_err": 31.916175842285156, "plus1_cosine": 0.9631940722465515, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.005875634029507637, "claimed_cosine": 0.9992387890815735, "minus1_rel_err": 0.08143696933984756, "minus1_cosine": 0.9032854437828064, "plus1_rel_err": 0.10033807158470154, "plus1_cosine": 0.8977106213569641, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.027844324707984924, "claimed_cosine": 0.9991370439529419, "minus1_rel_err": 0.3239396810531616, "minus1_cosine": 0.933643639087677, "plus1_rel_err": 0.33914875984191895, "plus1_cosine": 0.9284650683403015, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.9902067464635473, "argmax_compared": 919, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 102, "hf_margin": 0.0}, {"pos": 282, "hf_margin": 0.0}, {"pos": 370, "hf_margin": 0.0}, {"pos": 444, "hf_margin": 0.0}, {"pos": 648, "hf_margin": 0.125}, {"pos": 683, "hf_margin": 0.125}, {"pos": 781, "hf_margin": 0.0}], "max_disagreement_margin": 0.75}
+{"slot": 5, "tokens": 463, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.011906647123396397, "claimed_cosine": 0.9999278783798218, "minus1_rel_err": 0.5517227649688721, "minus1_cosine": 0.9494155049324036, "plus1_rel_err": 44.51294708251953, "plus1_cosine": 0.9568452835083008, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.004495325498282909, "claimed_cosine": 0.9991896152496338, "minus1_rel_err": 0.061695560812950134, "minus1_cosine": 0.9103192090988159, "plus1_rel_err": 0.06949049234390259, "plus1_cosine": 0.9047718644142151, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.017776820808649063, "claimed_cosine": 0.9995258450508118, "minus1_rel_err": 0.2807081937789917, "minus1_cosine": 0.94454026222229, "plus1_rel_err": 0.2814836800098419, "plus1_cosine": 0.9273748397827148, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.987012987012987, "argmax_compared": 462, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 73, "hf_margin": 0.0}, {"pos": 75, "hf_margin": 0.0}, {"pos": 153, "hf_margin": 0.0}, {"pos": 328, "hf_margin": 0.0}], "max_disagreement_margin": 0.75}
+{"slot": 6, "tokens": 776, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.011442603543400764, "claimed_cosine": 0.999934732913971, "minus1_rel_err": 0.5701698064804077, "minus1_cosine": 0.944360077381134, "plus1_rel_err": 34.140289306640625, "plus1_cosine": 0.9586668610572815, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.005087726749479771, "claimed_cosine": 0.9994341135025024, "minus1_rel_err": 0.07732544094324112, "minus1_cosine": 0.9013634324073792, "plus1_rel_err": 0.09157893061637878, "plus1_cosine": 0.894739031791687, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.02171913906931877, "claimed_cosine": 0.9994908571243286, "minus1_rel_err": 0.311310738325119, "minus1_cosine": 0.936039388179779, "plus1_rel_err": 0.3420562148094177, "plus1_cosine": 0.9210842847824097, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.9948387096774194, "argmax_compared": 775, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 241, "hf_margin": 0.0}, {"pos": 420, "hf_margin": 0.25}], "max_disagreement_margin": 0.75}
+{"slot": 7, "tokens": 1024, "layers": [{"hf_layer": 1, "vllm_index": 2, "claimed_rel_err": 0.01186607126146555, "claimed_cosine": 0.9999302625656128, "minus1_rel_err": 0.5563684105873108, "minus1_cosine": 0.9524914026260376, "plus1_rel_err": 30.68501091003418, "plus1_cosine": 0.963009238243103, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 15, "vllm_index": 16, "claimed_rel_err": 0.005011570639908314, "claimed_cosine": 0.9995192885398865, "minus1_rel_err": 0.08373931795358658, "minus1_cosine": 0.8979424238204956, "plus1_rel_err": 0.1063336580991745, "plus1_cosine": 0.8918773531913757, "vllm_repeat_rel_err": 0.0}, {"hf_layer": 28, "vllm_index": 29, "claimed_rel_err": 0.022338127717375755, "claimed_cosine": 0.999480664730072, "minus1_rel_err": 0.31397193670272827, "minus1_cosine": 0.9416339993476868, "plus1_rel_err": 0.33652812242507935, "plus1_cosine": 0.9310072660446167, "vllm_repeat_rel_err": 0.0}], "argmax_agree": 0.9853372434017595, "argmax_compared": 1023, "disagreement_hf_margins": [{"pos": 23, "hf_margin": 0.75}, {"pos": 43, "hf_margin": 0.125}, {"pos": 61, "hf_margin": 0.0}, {"pos": 83, "hf_margin": 0.125}, {"pos": 111, "hf_margin": 0.0}, {"pos": 120, "hf_margin": 0.125}, {"pos": 200, "hf_margin": 0.0}, {"pos": 385, "hf_margin": 0.125}, {"pos": 463, "hf_margin": 0.0}, {"pos": 522, "hf_margin": 0.0}, {"pos": 744, "hf_margin": 0.125}, {"pos": 781, "hf_margin": 0.0}, {"pos": 885, "hf_margin": 0.0}, {"pos": 898, "hf_margin": 0.0}, {"pos": 1003, "hf_margin": 0.0}], "max_disagreement_margin": 0.75}
+{
+  "claimed_rel_err_max": 0.027844324707984924,
+  "neighbour_rel_err_min": 0.05901043489575386,
+  "offset_confirmed": false,
+  "argmax_agree_min": 0.9815668202764977,
+  "max_disagreement_margin": 0.75
+}
+{"t": "2026-09-24T11:11:29Z", "msg": "done", "module": "apertus_eagle.parity_vllm", "rc": 0, "seconds": 69.2}
+{"t": "2026-09-24T11:11:29Z", "msg": "parity", "claimed_rel_err_max": 0.027844324707984924, "neighbour_rel_err_min": 0.05901043489575386, "offset_confirmed": false, "argmax_agree_min": 0.9815668202764977, "max_disagreement_margin": 0.75}

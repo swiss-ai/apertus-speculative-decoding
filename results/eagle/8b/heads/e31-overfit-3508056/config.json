@@ -1,0 +1,164 @@
+{
+  "architectures": [
+    "LlamaForCausalLMEagle3"
+  ],
+  "model_type": "llama",
+  "hidden_size": 4096,
+  "target_hidden_size": 4096,
+  "intermediate_size": 14336,
+  "num_hidden_layers": 1,
+  "num_attention_heads": 32,
+  "num_key_value_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 131072,
+  "draft_vocab_size": 131072,
+  "rms_norm_eps": 1e-05,
+  "hidden_act": "silu",
+  "max_position_embeddings": 262144,
+  "bos_token_id": 1,
+  "eos_token_id": 2,
+  "pad_token_id": 3,
+  "tie_word_embeddings": false,
+  "attention_bias": false,
+  "mlp_bias": false,
+  "fc_norm": true,
+  "norm_output": true,
+  "torch_dtype": "bfloat16",
+  "num_aux_hidden_states": 3,
+  "eagle_aux_hidden_state_layer_ids": [
+    2,
+    16,
+    29
+  ],
+  "eagle_config": {
+    "eagle_aux_hidden_state_layer_ids": [
+      2,
+      16,
+      29
+    ],
+    "use_aux_hidden_state": true
+  },
+  "rope_parameters": {
+    "factor": 32.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_theta": 4000000,
+    "rope_type": "llama3"
+  },
+  "rope_scaling": {
+    "factor": 32.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_theta": 4000000,
+    "rope_type": "llama3"
+  },
+  "rope_theta": 4000000,
+  "apertus_target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a",
+    "contract_sha256": "189f9663a21e5b0dec645e33372ed186ba6b27106fddf2a6b0a3154925e57c1c",
+    "stage": "8b",
+    "algorithm": "eagle31",
+    "aux_layer_convention": "vLLM EagleModelMixin index (residual after layer k-1)",
+    "hf_decoder_layer_aux_ids": [
+      1,
+      15,
+      28
+    ]
+  },
+  "_torchspec_version": "0.1.0",
+  "apertus_training": {
+    "objective": {
+      "implementation": "torchspec.models.eagle3.Eagle3Model",
+      "ttt_length": 7,
+      "loss_type": "forward_kl",
+      "position_weights": [
+        1.0,
+        0.8,
+        0.6400000000000001,
+        0.5120000000000001,
+        0.4096000000000001,
+        0.3276800000000001,
+        0.2621440000000001
+      ],
+      "target": "compute_lazy_target_padded(target lm_head)"
+    },
+    "effective_batch": {
+      "micro_batch_size": 1,
+      "draft_accumulation_steps": 16,
+      "data_parallel_ranks": 1,
+      "sequences_per_optimizer_step": 16,
+      "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp(1) x accumulation"
+    },
+    "optimizer": {
+      "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
+      "lr": 0.0001,
+      "warmup_ratio": 0.015,
+      "max_grad_norm": 0.5,
+      "weight_decay": 0.0,
+      "decay_style": "cosine",
+      "min_lr": 0.0,
+      "lr_total_steps": 400,
+      "adamw_betas_eps": "torch defaults (0.9, 0.999), 1e-8"
+    },
+    "freeze": {
+      "embedding": true,
+      "lm_head": true
+    },
+    "caches": {
+      "train": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+        "corpus_sha256": "60017fced902a7c827c70fa8243aecfa8f5bc5f717024e9b99aae99cb9a2d7e8",
+        "samples": 32
+      },
+      "eval": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+        "corpus_sha256": "60017fced902a7c827c70fa8243aecfa8f5bc5f717024e9b99aae99cb9a2d7e8",
+        "samples": 32
+      }
+    },
+    "torchspec_revision": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+    "harness_revision": "a26ba85babb61fbd5522fe10eab2721a8f32f23b",
+    "slurm_job_id": "3508056",
+    "run_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-overfit-3508056",
+    "checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-overfit-3508056/checkpoints/best",
+    "checkpoint_step": 400,
+    "eval_at_checkpoint": {
+      "avg_loss": 0.22102179105264813,
+      "avg_acc": 0.9945680814032283,
+      "simulated_acc_len": 6.866680143893308,
+      "acc": [
+        0.9970002822468319,
+        0.9961490130713474,
+        0.9943653941831009,
+        0.9935546630110902,
+        0.9941221766677915,
+        0.9941627140068168,
+        0.9926223266356194
+      ],
+      "ploss": [
+        0.2190250218845904,
+        0.22064292686991394,
+        0.22158222063444555,
+        0.22196209011599422,
+        0.22212164057418704,
+        0.22241799510084093,
+        0.22312653483822942
+      ],
+      "tokens": 24669.0
+    },
+    "train_summary_gates": {
+      "finite_losses": true,
+      "real_updates": true,
+      "loss_decreased": true,
+      "heldout_acceptance_improved": true
+    }
+  }
+}

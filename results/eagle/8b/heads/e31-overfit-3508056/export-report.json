@@ -1,0 +1,78 @@
+{
+  "export": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-overfit-3508056",
+  "keys": [
+    "embed_tokens.weight",
+    "fc.weight",
+    "fc_norm.0.weight",
+    "fc_norm.1.weight",
+    "fc_norm.2.weight",
+    "layers.0.hidden_norm.weight",
+    "layers.0.input_layernorm.weight",
+    "layers.0.mlp.down_proj.weight",
+    "layers.0.mlp.gate_proj.weight",
+    "layers.0.mlp.up_proj.weight",
+    "layers.0.post_attention_layernorm.weight",
+    "layers.0.self_attn.k_proj.weight",
+    "layers.0.self_attn.o_proj.weight",
+    "layers.0.self_attn.q_proj.weight",
+    "layers.0.self_attn.v_proj.weight",
+    "lm_head.weight",
+    "norm.weight"
+  ],
+  "validation": {
+    "algorithm": "eagle31",
+    "provenance": {
+      "checked": true,
+      "model_id": "swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582"
+    },
+    "fc_norm": true,
+    "norm_output": true,
+    "parameter_count": {
+      "embed_tokens": 536870912,
+      "lm_head": 536870912,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "qkv_proj": 50331648,
+      "o_proj": 16777216,
+      "gate_up_proj": 117440512,
+      "down_proj": 58720256,
+      "norms": 16384,
+      "total": 1367371776,
+      "excluding_embed_and_lm_head": 293629952
+    },
+    "aux_hidden_state_layer_ids": [
+      2,
+      16,
+      29
+    ],
+    "draft_vocab_size": 131072,
+    "vocab_size": 131072,
+    "hidden_size": 4096,
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-overfit-3508056",
+    "config_sha256": "c44bba1144411667bbd6eaf2558b01f61c3ccac786ce5536ee4ee723534a2ae3",
+    "weight_files": [
+      "model.safetensors"
+    ],
+    "weights_present": true,
+    "trained_head": true,
+    "checkpoint_manifest_sha256": "fefdf20e40426bca9a81f76927903ad3e89297e1778c23c01e2a0fc3f9640ea2"
+  },
+  "reload": {
+    "samples": 4,
+    "max_first_step_logit_abs_diff": 0.0,
+    "rollout_acc_identical": true,
+    "rollout_loss_max_abs_diff": 0.0,
+    "pass": true,
+    "reloaded_acc_first_sample": [
+      1.0,
+      1.0,
+      0.9953488111495972,
+      1.0,
+      1.0,
+      1.0,
+      0.9965116381645203
+    ]
+  }
+}

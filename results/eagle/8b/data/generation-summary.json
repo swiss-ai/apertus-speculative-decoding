@@ -1,0 +1,96 @@
+{
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "contract": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json",
+  "policy": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "stop": "natural EOS (generation_config eos ids)",
+    "enable_thinking": false,
+    "thinking_policy": "serving default: chat template renders 'Deliberation: disabled'",
+    "tools": null,
+    "developer_messages": "dropped; the template injects its own developer block"
+  },
+  "max_seq_length": 4096,
+  "max_new_tokens": 2048,
+  "max_prompt_tokens": 3072,
+  "eos_token_ids": [
+    2,
+    68,
+    72
+  ],
+  "splits": {
+    "validation": {
+      "input": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/data-mix10k/validation.jsonl",
+      "input_sha256": "ddf880c33b2bbc4fc98ca7afcbc796ffab1ddbbe2e1860205f28da8b4d301173",
+      "output": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/validation.jsonl",
+      "output_sha256": "7ca5b3d2a5b2dae132a5bfe03a1e8c866bc9f5dd9283415c20fff80436505ad2",
+      "rows_in": 116,
+      "rows_out": 116,
+      "skipped": {
+        "prompt_too_long": 0,
+        "unrenderable": 0
+      },
+      "finish_reasons": {
+        "stop": 116
+      },
+      "generated_tokens": 24426,
+      "generate_seconds": 8.2,
+      "generated_tokens_per_second": 2972.5
+    },
+    "train": {
+      "input": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/data-mix10k/train.jsonl",
+      "input_sha256": "d8a2951619f0e60aae95efc711a850a2a8924e36f370692b752341d41f2d1ba4",
+      "output": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/train.jsonl",
+      "output_sha256": "8d673ea523b4dcbda92a1a73b160d240802769facbe1898bd57532882d5e9d41",
+      "rows_in": 9909,
+      "rows_out": 9869,
+      "skipped": {
+        "prompt_too_long": 40,
+        "unrenderable": 0
+      },
+      "finish_reasons": {
+        "stop": 9838,
+        "length": 31
+      },
+      "generated_tokens": 2138596,
+      "generate_seconds": 368.8,
+      "generated_tokens_per_second": 5799.2
+    }
+  },
+  "render_parity": {
+    "checked": 32,
+    "failures": 0,
+    "rule": "LLM.chat prompt_token_ids == chat_template(tokenize=False)+encode(add_special_tokens=False)"
+  }
+}
+/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated/train.jsonl",
+      "output_sha256": "1fc2310b70ac1c2b1f4668810387c155d741d213e262d090074047d8cf1a2c98",
+      "rows_in": 1000,
+      "rows_out": 1000,
+      "skipped": {
+        "prompt_too_long": 0,
+        "unrenderable": 0
+      },
+      "finish_reasons": {
+        "stop": 967,
+        "length": 33
+      },
+      "generated_tokens": 797163,
+      "generate_seconds": 59.8,
+      "generated_tokens_per_second": 13326.2
+    }
+  },
+  "render_parity": {
+    "checked": 32,
+    "failures": 0,
+    "rule": "LLM.chat prompt_token_ids == chat_template(tokenize=False)+encode(add_special_tokens=False)"
+  }
+}

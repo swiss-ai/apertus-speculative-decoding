@@ -1,0 +1,165 @@
+{
+  "architectures": [
+    "LlamaForCausalLMEagle3"
+  ],
+  "model_type": "llama",
+  "hidden_size": 4096,
+  "target_hidden_size": 4096,
+  "intermediate_size": 14336,
+  "num_hidden_layers": 1,
+  "num_attention_heads": 32,
+  "num_key_value_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 131072,
+  "draft_vocab_size": 131072,
+  "rms_norm_eps": 1e-05,
+  "hidden_act": "silu",
+  "max_position_embeddings": 262144,
+  "bos_token_id": 1,
+  "eos_token_id": 2,
+  "pad_token_id": 3,
+  "tie_word_embeddings": false,
+  "attention_bias": false,
+  "mlp_bias": false,
+  "fc_norm": true,
+  "norm_output": true,
+  "torch_dtype": "bfloat16",
+  "num_aux_hidden_states": 3,
+  "eagle_aux_hidden_state_layer_ids": [
+    2,
+    16,
+    29
+  ],
+  "eagle_config": {
+    "eagle_aux_hidden_state_layer_ids": [
+      2,
+      16,
+      29
+    ],
+    "use_aux_hidden_state": true
+  },
+  "rope_parameters": {
+    "factor": 32.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_theta": 4000000,
+    "rope_type": "llama3"
+  },
+  "rope_scaling": {
+    "factor": 32.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_theta": 4000000,
+    "rope_type": "llama3"
+  },
+  "rope_theta": 4000000,
+  "apertus_target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a",
+    "contract_sha256": "189f9663a21e5b0dec645e33372ed186ba6b27106fddf2a6b0a3154925e57c1c",
+    "stage": "8b",
+    "algorithm": "eagle31",
+    "aux_layer_convention": "vLLM EagleModelMixin index (residual after layer k-1)",
+    "hf_decoder_layer_aux_ids": [
+      1,
+      15,
+      28
+    ]
+  },
+  "_torchspec_version": "0.1.0",
+  "apertus_training": {
+    "objective": {
+      "implementation": "torchspec.models.eagle3.Eagle3Model",
+      "ttt_length": 7,
+      "loss_type": "forward_kl",
+      "position_weights": [
+        1.0,
+        0.8,
+        0.6400000000000001,
+        0.5120000000000001,
+        0.4096000000000001,
+        0.3276800000000001,
+        0.2621440000000001
+      ],
+      "target": "compute_lazy_target_padded(target lm_head)"
+    },
+    "effective_batch": {
+      "micro_batch_size": 1,
+      "draft_accumulation_steps": 16,
+      "data_parallel_ranks": 1,
+      "sequences_per_optimizer_step": 16,
+      "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp(1) x accumulation"
+    },
+    "optimizer": {
+      "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
+      "lr": 0.0001,
+      "warmup_ratio": 0.015,
+      "max_grad_norm": 0.5,
+      "weight_decay": 0.0,
+      "decay_style": "cosine",
+      "min_lr": 0.0,
+      "lr_total_steps": 2000,
+      "adamw_betas_eps": "torch defaults (0.9, 0.999), 1e-8"
+    },
+    "freeze": {
+      "embedding": true,
+      "lm_head": true
+    },
+    "caches": {
+      "train": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix/features/train",
+        "corpus_sha256": "f09eac8a058f2f6f4f146784595f68622a88cf8871bfcbfe87fd02590193e759",
+        "samples": 957
+      },
+      "eval": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix/features/validation",
+        "corpus_sha256": "bf1f89c7bff1d592624b3a07a2777d8d4e9c9ccf7b57c53abed0d3ac347d9daf",
+        "samples": 120
+      }
+    },
+    "torchspec_revision": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+    "harness_revision": "a26ba85babb61fbd5522fe10eab2721a8f32f23b",
+    "slurm_job_id": "3514907",
+    "run_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-mix-3514907",
+    "checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-mix-3514907/checkpoints/best",
+    "checkpoint_step": 1600,
+    "eval_at_checkpoint": {
+      "avg_loss": 6.394455103670801,
+      "avg_acc": 0.24617121795346394,
+      "simulated_acc_len": 0.44212128985149574,
+      "acc": [
+        0.3294816242115128,
+        0.26135451788532016,
+        0.23780292087872626,
+        0.22973840518456531,
+        0.22528486563935468,
+        0.2217942560971222,
+        0.21774193577764636
+      ],
+      "ploss": [
+        5.482077379028002,
+        6.249802988767624,
+        6.659338743487994,
+        6.855747553706169,
+        6.96347051858902,
+        7.031530249118805,
+        7.08326222896576
+      ],
+      "tokens": 24924.0
+    },
+    "train_summary_gates": {
+      "finite_losses": true,
+      "real_updates": true,
+      "loss_decreased": true,
+      "heldout_acceptance_improved": true
+    },
+    "embedding": "not exported; vLLM shares the target input embedding (all input ids)"
+  }
+}

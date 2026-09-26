@@ -1,0 +1,134 @@
+{
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "contract": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json",
+  "config": "/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/train-e31-overfit.yaml",
+  "config_sha256": "378ced45befb06d320c2e4876c780ca8e6811a5cbccbe5d0e2ada14bd75f1c89",
+  "resolved_config": {
+    "pipeline": "rollout",
+    "stage": "8b",
+    "model": {
+      "contract": "results/eagle/8b/preflight/compatibility.json",
+      "algorithm": "eagle31",
+      "draft_model_config": "configs/eagle/8b/draft-e31-config.json",
+      "freeze_lm_head": true
+    },
+    "dataset": {
+      "data_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b",
+      "source_splits": "results/eagle/data",
+      "generate_splits": [
+        "overfit",
+        "validation",
+        "train"
+      ],
+      "extract_splits": [
+        "overfit",
+        "validation",
+        "train"
+      ],
+      "parity_split": "overfit",
+      "train_cache": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+      "eval_cache": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+      "max_seq_length": 4096
+    },
+    "training": {
+      "attention_backend": "sdpa",
+      "loss_type": "forward_kl",
+      "ttt_length": 7,
+      "micro_batch_size": 1,
+      "draft_accumulation_steps": 16,
+      "learning_rate": 0.0001,
+      "warmup_ratio": 0.015,
+      "max_grad_norm": 0.5,
+      "weight_decay": 0.0,
+      "lr_decay_style": "cosine",
+      "min_lr": 0.0,
+      "gradient_checkpointing": false,
+      "num_train_steps": 400,
+      "num_epochs": 200,
+      "eval_interval": 20,
+      "save_interval": 0,
+      "stop_after_evals_without_improvement": 0,
+      "seed": 1
+    },
+    "output_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs",
+    "head_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads",
+    "run_name": "e31-overfit"
+  },
+  "draft_config": "/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/draft-e31-config.json",
+  "algorithm": "eagle31",
+  "objective": {
+    "implementation": "torchspec.models.eagle3.Eagle3Model",
+    "ttt_length": 7,
+    "loss_type": "forward_kl",
+    "position_weights": [
+      1.0,
+      0.8,
+      0.6400000000000001,
+      0.5120000000000001,
+      0.4096000000000001,
+      0.3276800000000001,
+      0.2621440000000001
+    ],
+    "target": "compute_lazy_target_padded(target lm_head)"
+  },
+  "effective_batch": {
+    "micro_batch_size": 1,
+    "draft_accumulation_steps": 16,
+    "data_parallel_ranks": 1,
+    "sequences_per_optimizer_step": 16,
+    "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp(1) x accumulation"
+  },
+  "optimizer": {
+    "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
+    "lr": 0.0001,
+    "warmup_ratio": 0.015,
+    "max_grad_norm": 0.5,
+    "weight_decay": 0.0,
+    "decay_style": "cosine",
+    "min_lr": 0.0,
+    "lr_total_steps": 400,
+    "adamw_betas_eps": "torch defaults (0.9, 0.999), 1e-8"
+  },
+  "freeze": {
+    "embedding": true,
+    "lm_head": true
+  },
+  "parameter_counts": {
+    "trainable": 293629952,
+    "frozen": 1073741824,
+    "by_module": {
+      "embed_tokens": 536870912,
+      "midlayer": 243281920,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "norm": 4096,
+      "lm_head": 536870912
+    }
+  },
+  "caches": {
+    "train": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+      "corpus_sha256": "60017fced902a7c827c70fa8243aecfa8f5bc5f717024e9b99aae99cb9a2d7e8",
+      "samples": 32
+    },
+    "eval": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/overfit",
+      "corpus_sha256": "60017fced902a7c827c70fa8243aecfa8f5bc5f717024e9b99aae99cb9a2d7e8",
+      "samples": 32
+    }
+  },
+  "torchspec_root": "/users/faruk_zahiragic/apertus-bench-repo/scratch/TorchSpec",
+  "torchspec_revision": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+  "harness_revision": "a26ba85babb61fbd5522fe10eab2721a8f32f23b",
+  "torch": "2.11.0+cu130",
+  "device": "NVIDIA GH200 120GB",
+  "slurm_job_id": "3506531"
+}

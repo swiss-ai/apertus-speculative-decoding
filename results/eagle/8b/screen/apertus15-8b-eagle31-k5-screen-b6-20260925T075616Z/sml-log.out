@@ -1,0 +1,12 @@
+{"user":"faruk_zahiragic","job_id":"3516226","slurm_nodes":1,"slurm_job_name":"sml_faruk_zahiragic_swiss-ai_Apertus-v1.5-8B-eagle31-n5-tp1d1-screen-b6-20260925T075616Z_bMILseRp","slurm_partition":"debug","slurm_time":"01:30:00","slurm_account":"infra01","slurm_environment":"/users/faruk_zahiragic/.sml/env_resolved_arm64_5QpIvD.toml","interactive":false,"serving_framework":"vllm","framework_args":"--port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B     --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-eagle31-n5-tp1d1-screen-b6-20260925T075616Z     --chat-template-content-format string     --tensor-parallel-size 1     --gpu-memory-utilization 0.8     --max-model-len 32768     --enable-auto-tool-choice     --tool-call-parser apertus     --speculative-config.method eagle3     --speculative-config.model /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-mix10k-3515343-se     --speculative-config.num_speculative_tokens 5     --speculative-config.draft_tensor_parallel_size 1     --compilation-config.pass_config.fuse_allreduce_rms false     --no-enable-prefix-caching","pre_launch_cmds":"","model_name":"faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-eagle31-n5-tp1d1-screen-b6-20260925T075616Z","model_path":null,"tp_size":null,"host":null,"port":null,"workers":1,"nodes_per_worker":null,"worker_port":5000,"use_router":false,"router_environment":"/users/faruk_zahiragic/.sml/env_resolved_arm64_5QpIvD.toml","router_port":30000,"router_args":"","ocf_enabled":true,"ocf_bootstrap_addr":"/ip4/148.187.108.178/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9","ocf_service_name":"llm","ocf_service_port":8080,"extra":null,"raw_command":null,"id":"d2b713fc-1eed-4fd5-a8fd-691a2aca3b08","created_at":"2026-09-25T07:56:35.979869Z"}Running on ARM64 (aarch64)
+Total nodes allocated: 1
+Node 0: nid006123
+Replica 0 head IP: 172.28.26.28
+All replica URLs: http://172.28.26.28:8080
+Replica health checker started (pid 163332) -> logs/3516226/replica_health.json
+
+To connect to the host node:
+srun --jobid 3516226 -w nid006123 --overlap --pty bash
+
+Make sure to cancel the job at the end:
+scancel 3516226

@@ -1,0 +1,82 @@
+[2026-09-24 17:16:40,109] auto.py:101 INFO Set draft model tie_word_embeddings to False
+[2026-09-24 17:16:43,701] llama3_eagle.py:359 INFO Using Llama3 style rotary embedding with scaling_factor=32.0, low_freq_factor=1.0, high_freq_factor=4.0, orig_max_position=8192
+[2026-09-24 17:16:46,735] auto.py:101 INFO Set draft model tie_word_embeddings to False
+[2026-09-24 17:16:50,376] llama3_eagle.py:359 INFO Using Llama3 style rotary embedding with scaling_factor=32.0, low_freq_factor=1.0, high_freq_factor=4.0, orig_max_position=8192
+(EngineCore pid=28773) Process EngineCore:
+(EngineCore pid=28773) Traceback (most recent call last):
+(EngineCore pid=28773)   File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+(EngineCore pid=28773)     self.run()
+(EngineCore pid=28773)   File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+(EngineCore pid=28773)     self._target(*self._args, **self._kwargs)
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/engine/core.py", line 1235, in run_engine_core
+(EngineCore pid=28773)     raise e
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/engine/core.py", line 1200, in run_engine_core
+(EngineCore pid=28773)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=28773)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=28773)     return func(*args, **kwargs)
+(EngineCore pid=28773)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/engine/core.py", line 966, in __init__
+(EngineCore pid=28773)     super().__init__(
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/engine/core.py", line 123, in __init__
+(EngineCore pid=28773)     self.model_executor = executor_class(vllm_config)
+(EngineCore pid=28773)                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=28773)     return func(*args, **kwargs)
+(EngineCore pid=28773)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/executor/abstract.py", line 109, in __init__
+(EngineCore pid=28773)     self._init_executor()
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/executor/uniproc_executor.py", line 63, in _init_executor
+(EngineCore pid=28773)     self.driver_worker.init_device()
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/worker/worker_base.py", line 331, in init_device
+(EngineCore pid=28773)     self.worker.init_device()  # type: ignore
+(EngineCore pid=28773)     ^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=28773)     return func(*args, **kwargs)
+(EngineCore pid=28773)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/worker/gpu_worker.py", line 375, in init_device
+(EngineCore pid=28773)     self.requested_memory = request_memory(init_snapshot, self.cache_config)
+(EngineCore pid=28773)                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773)   File "/workspace/vllm/vllm/v1/worker/utils.py", line 432, in request_memory
+(EngineCore pid=28773)     raise ValueError(
+(EngineCore pid=28773) ValueError: Free memory on device cuda:0 (72.43/95.0 GiB) on startup is less than desired GPU memory utilization (0.8, 76.0 GiB). Decrease GPU memory utilization or reduce GPU memory used by other processes.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/users/faruk_zahiragic/apertus-bench-repo/training/apertus_eagle/verify_offline.py", line 294, in <module>
+    main()
+  File "/users/faruk_zahiragic/apertus-bench-repo/training/apertus_eagle/verify_offline.py", line 286, in main
+    capture(args)
+  File "/users/faruk_zahiragic/apertus-bench-repo/training/apertus_eagle/verify_offline.py", line 88, in capture
+    llm = build_engine(contract, args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/faruk_zahiragic/apertus-bench-repo/training/apertus_eagle/verify_offline.py", line 61, in build_engine
+    return LLM(**kwargs)
+           ^^^^^^^^^^^^^
+  File "/workspace/vllm/vllm/entrypoints/llm.py", line 349, in __init__
+    self.llm_engine = LLMEngine.from_engine_args(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vllm/vllm/v1/engine/llm_engine.py", line 179, in from_engine_args
+    return cls(
+           ^^^^
+  File "/workspace/vllm/vllm/v1/engine/llm_engine.py", line 105, in __init__
+    self.engine_core = EngineCoreClient.make_client(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vllm/vllm/v1/engine/core_client.py", line 103, in make_client
+    return SyncMPClient(vllm_config, executor_class, log_stats)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vllm/vllm/v1/engine/core_client.py", line 786, in __init__
+    super().__init__(
+  File "/workspace/vllm/vllm/v1/engine/core_client.py", line 573, in __init__
+    with launch_core_engines(
+  File "/usr/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/workspace/vllm/vllm/v1/engine/utils.py", line 1213, in launch_core_engines
+    wait_for_engine_startup(
+  File "/workspace/vllm/vllm/v1/engine/utils.py", line 1272, in wait_for_engine_startup
+    raise RuntimeError(
+RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+apertus_eagle.verify_offline failed with rc=1

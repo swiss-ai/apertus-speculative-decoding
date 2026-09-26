@@ -1,0 +1,114 @@
+{
+  "seed": "apertus-eagle-8b-workloads-v1",
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "renderer": "served chat template, enable_thinking=False, add_generation_prompt=True",
+  "strata": {
+    "chat": {
+      "eligible_by_language": null,
+      "band": [
+        128,
+        2048
+      ],
+      "max_tokens": 256,
+      "candidates": 1200,
+      "eligible": 555,
+      "validation": 64,
+      "test": 128,
+      "validation_input_tokens": [
+        130,
+        1657
+      ],
+      "test_input_tokens": [
+        128,
+        1922
+      ]
+    },
+    "code": {
+      "eligible_by_language": null,
+      "band": [
+        128,
+        4096
+      ],
+      "max_tokens": 512,
+      "candidates": 1200,
+      "eligible": 1117,
+      "validation": 64,
+      "test": 128,
+      "validation_input_tokens": [
+        168,
+        1001
+      ],
+      "test_input_tokens": [
+        221,
+        1202
+      ]
+    },
+    "summarization": {
+      "eligible_by_language": {
+        "eng": 391,
+        "deu": 98,
+        "fra": 101,
+        "ita": 94
+      },
+      "band": [
+        2048,
+        4096
+      ],
+      "max_tokens": 512,
+      "candidates": 1200,
+      "eligible": 684,
+      "validation": 64,
+      "test": 128,
+      "validation_input_tokens": [
+        2058,
+        3807
+      ],
+      "test_input_tokens": [
+        2048,
+        4085
+      ],
+      "languages": {
+        "validation": {
+          "eng": 28,
+          "deu": 12,
+          "fra": 12,
+          "ita": 12
+        },
+        "test": {
+          "eng": 53,
+          "deu": 25,
+          "fra": 25,
+          "ita": 25
+        }
+      }
+    }
+  },
+  "sources": {
+    "chat/code": "/capstor/store/cscs/swissai/infra01/datasets/Apertus-1.5-SFT-mix-pretrain-v1/data (swiss-ai/Apertus-1.5-SFT-mix, revision d38f5b98b1da36405f6d55b939f096f154883103), heldout_test hash pool",
+    "summarization": {
+      "eng": "/capstor/store/cscs/swissai/infra01/datasets/finepdfs-edu_eng_spp_annotated/eng_Latn/train",
+      "deu": "/capstor/store/cscs/swissai/infra01/datasets/finepdfs-edu_multilingual_spp_annotated/deu_Latn/train",
+      "fra": "/capstor/store/cscs/swissai/infra01/datasets/finepdfs-edu_multilingual_spp_annotated/fra_Latn/train",
+      "ita": "/capstor/store/cscs/swissai/infra01/datasets/finepdfs-edu_multilingual_spp_annotated/ita_Latn/train"
+    }
+  },
+  "licenses": "per-source licences of the SFT-mix components and finepdfs-edu (ODC-By); text is not committed",
+  "validation_file": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/workloads/eagle-8b-validation.jsonl",
+  "validation_sha256": "1e65dfa8ebac7ce1e80578cb10fe6a1593d225748e2af00ec31b6351825b0d97",
+  "validation_rows": 192,
+  "test_file": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/workloads/eagle-8b-test.jsonl",
+  "test_sha256": "0530478488555a5bf5780cdaf8a9277ec1057fcad930c5b4e382722e53511c29",
+  "test_rows": 384,
+  "profile_file": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/workloads/eagle-8b-profile.jsonl",
+  "profile_sha256": "5df9581f3aa73e131f99829144133934847c5b1882134ff617d4c07a1db504c1",
+  "profile_rows": 32,
+  "profile_note": "chat/code prompts outside validation and test, 512-1024 input tokens; ignore_eos=true mechanics check only"
+}

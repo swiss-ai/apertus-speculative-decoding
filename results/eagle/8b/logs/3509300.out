@@ -1,0 +1,143 @@
+START 2026-09-24T15:15:57+00:00 host=nid007650 job=3509300
+2026-09-24T15:15:57Z host=nid007650 job=3509300 config=/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/train-e31.yaml steps=export,verify cuda=0
+index, name, memory.total [MiB], driver_version
+0, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+1, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+2, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+3, NVIDIA GH200 120GB, 97871 MiB, 590.48.01
+TargetLMHead already patched
+HFTargetModel language_model walk already patched
+HFTargetModel AutoModel fallback already patched
+patched /users/faruk_zahiragic/apertus-bench-repo/scratch/TorchSpec
+{"environment": {"torch": "2.11.0+cu130", "transformers": "5.14.0.dev0", "vllm": "0.23.1rc1.dev1029+ga601a9d99", "safetensors": "0.8.0", "yaml": "6.0.3", "accelerate": "1.15.0", "triton": "3.6.0", "vllm_file": "/workspace/vllm/vllm/__init__.py", "cuda": "13.0", "gpu": "NVIDIA GH200 120GB", "machine": "aarch64", "python": "3.12.3"}}
+{"t": "2026-09-24T15:16:23Z", "msg": "resolved", "config": "/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/train-e31.yaml", "contract": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json", "target": {"model_id": "swiss-ai/Apertus-v1.5-8B", "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B", "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6", "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686", "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582", "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0", "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"}, "algorithm": "eagle31", "draft_config": "/users/faruk_zahiragic/apertus-bench-repo/configs/eagle/8b/draft-e31-config.json", "steps": ["export", "verify"], "generated": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/generated", "features": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features", "train_cache": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/train", "eval_cache": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/validation", "run_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-pilot-3508057", "head_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-pilot-3508057", "results": "/users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b", "cuda_visible_devices": "0", "slurm_job_id": "3509300", "slurm_node": "nid007650"}
+{"t": "2026-09-24T15:16:23Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.export_head --contract /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json --run-dir /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-pilot-3508057 --output /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-pilot-3508057"}
+{
+  "export": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-pilot-3508057",
+  "keys": [
+    "embed_tokens.weight",
+    "fc.weight",
+    "fc_norm.0.weight",
+    "fc_norm.1.weight",
+    "fc_norm.2.weight",
+    "layers.0.hidden_norm.weight",
+    "layers.0.input_layernorm.weight",
+    "layers.0.mlp.down_proj.weight",
+    "layers.0.mlp.gate_proj.weight",
+    "layers.0.mlp.up_proj.weight",
+    "layers.0.post_attention_layernorm.weight",
+    "layers.0.self_attn.k_proj.weight",
+    "layers.0.self_attn.o_proj.weight",
+    "layers.0.self_attn.q_proj.weight",
+    "layers.0.self_attn.v_proj.weight",
+    "lm_head.weight",
+    "norm.weight"
+  ],
+  "validation": {
+    "algorithm": "eagle31",
+    "provenance": {
+      "checked": true,
+      "model_id": "swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582"
+    },
+    "fc_norm": true,
+    "norm_output": true,
+    "parameter_count": {
+      "embed_tokens": 536870912,
+      "lm_head": 536870912,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "qkv_proj": 50331648,
+      "o_proj": 16777216,
+      "gate_up_proj": 117440512,
+      "down_proj": 58720256,
+      "norms": 16384,
+      "total": 1367371776,
+      "excluding_embed_and_lm_head": 293629952
+    },
+    "aux_hidden_state_layer_ids": [
+      2,
+      16,
+      29
+    ],
+    "draft_vocab_size": 131072,
+    "vocab_size": 131072,
+    "hidden_size": 4096,
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-pilot-3508057",
+    "config_sha256": "c86f7d87a346c18a26a3d497a6f07d54045cb69cec3ddab4cbbd98d5160974a2",
+    "weight_files": [
+      "model.safetensors"
+    ],
+    "weights_present": true,
+    "trained_head": true,
+    "checkpoint_manifest_sha256": "040c59bb1fc8c951e6002e1c3afb14f4493cd0bdbafdc5c02e7186c738415b93"
+  },
+  "reload": {
+    "samples": 4,
+    "exported_tensors_bitwise_equal": true,
+    "max_first_step_logit_abs_diff": 0.0,
+    "rollout_acc_identical": true,
+    "rollout_loss_max_abs_diff": 0.0,
+    "same_weights_repeat_loss_max_abs_diff": 0.0,
+    "loss_tolerance": 1e-05,
+    "pass": true,
+    "reloaded_acc_first_sample": [
+      0.6853932738304138,
+      0.5730336904525757,
+      0.5339521169662476,
+      0.49829018115997314,
+      0.49438202381134033,
+      0.4797264337539673,
+      0.47484123706817627
+    ]
+  }
+}
+{"t": "2026-09-24T15:17:41Z", "msg": "done", "module": "apertus_eagle.export_head", "rc": 0, "seconds": 78.1}
+{"t": "2026-09-24T15:17:41Z", "msg": "exported", "head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-pilot-3508057"}
+{"t": "2026-09-24T15:17:41Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.verify_offline capture --mode plain --contract /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/preflight/compatibility.json --prompts /users/faruk_zahiragic/apertus-bench-repo/results/eagle/data/heldout_test.jsonl --limit 128 --max-tokens 512 --num-speculative-tokens 3 --output /users/faruk_zahiragic/apertus-bench-repo/results/eagle/8b/verify/e31-pilot-3508057/plain-r1.json"}
+INFO 09-24 17:18:03 [api_utils.py:273] non-default args: {'dtype': 'bfloat16', 'max_model_len': 8192, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.8, 'max_num_seqs': 1, 'model': '/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B'}
+WARNING 09-24 17:18:03 [envs.py:2069] Unknown vLLM environment variable detected: VLLM_PRECOMPILED_WHEEL_VARIANT
+WARNING 09-24 17:18:03 [envs.py:2069] Unknown vLLM environment variable detected: VLLM_REPO
+INFO 09-24 17:18:03 [model.py:619] Resolved architecture: Apertus1p5ForConditionalGeneration
+INFO 09-24 17:18:03 [model.py:1776] Using max model len 8192
+INFO 09-24 17:18:03 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 09-24 17:18:03 [vllm.py:1089] Asynchronous scheduling is enabled.
+INFO 09-24 17:18:03 [kernel.py:292] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(EngineCore pid=28773) INFO 09-24 17:18:45 [core.py:114] Initializing a V1 LLM engine (v0.23.1rc1.dev1029+ga601a9d99) with config: model='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B', speculative_config=None, tokenizer='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 2, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=28773) INFO 09-24 17:18:47 [parallel_state.py:1607] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.28.46.144:40433 backend=nccl
+(EngineCore pid=28773) INFO 09-24 17:18:47 [parallel_state.py:1942] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(EngineCore pid=28773) INFO 09-24 17:18:47 [gpu_worker.py:364] Using V2 Model Runner
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231] EngineCore failed to start.
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231] Traceback (most recent call last):
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/engine/core.py", line 1200, in run_engine_core
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     return func(*args, **kwargs)
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/engine/core.py", line 966, in __init__
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     super().__init__(
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/engine/core.py", line 123, in __init__
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     self.model_executor = executor_class(vllm_config)
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     return func(*args, **kwargs)
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/executor/abstract.py", line 109, in __init__
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     self._init_executor()
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/executor/uniproc_executor.py", line 63, in _init_executor
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     self.driver_worker.init_device()
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/worker/worker_base.py", line 331, in init_device
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     self.worker.init_device()  # type: ignore
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     ^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     return func(*args, **kwargs)
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/worker/gpu_worker.py", line 375, in init_device
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     self.requested_memory = request_memory(init_snapshot, self.cache_config)
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]   File "/workspace/vllm/vllm/v1/worker/utils.py", line 432, in request_memory
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231]     raise ValueError(
+(EngineCore pid=28773) ERROR 09-24 17:18:48 [core.py:1231] ValueError: Free memory on device cuda:0 (72.43/95.0 GiB) on startup is less than desired GPU memory utilization (0.8, 76.0 GiB). Decrease GPU memory utilization or reduce GPU memory used by other processes.
+{"t": "2026-09-24T15:18:49Z", "msg": "done", "module": "apertus_eagle.verify_offline", "rc": 1, "seconds": 68.2}

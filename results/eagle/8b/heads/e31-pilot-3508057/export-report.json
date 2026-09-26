@@ -1,0 +1,81 @@
+{
+  "export": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-pilot-3508057",
+  "keys": [
+    "embed_tokens.weight",
+    "fc.weight",
+    "fc_norm.0.weight",
+    "fc_norm.1.weight",
+    "fc_norm.2.weight",
+    "layers.0.hidden_norm.weight",
+    "layers.0.input_layernorm.weight",
+    "layers.0.mlp.down_proj.weight",
+    "layers.0.mlp.gate_proj.weight",
+    "layers.0.mlp.up_proj.weight",
+    "layers.0.post_attention_layernorm.weight",
+    "layers.0.self_attn.k_proj.weight",
+    "layers.0.self_attn.o_proj.weight",
+    "layers.0.self_attn.q_proj.weight",
+    "layers.0.self_attn.v_proj.weight",
+    "lm_head.weight",
+    "norm.weight"
+  ],
+  "validation": {
+    "algorithm": "eagle31",
+    "provenance": {
+      "checked": true,
+      "model_id": "swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582"
+    },
+    "fc_norm": true,
+    "norm_output": true,
+    "parameter_count": {
+      "embed_tokens": 536870912,
+      "lm_head": 536870912,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "qkv_proj": 50331648,
+      "o_proj": 16777216,
+      "gate_up_proj": 117440512,
+      "down_proj": 58720256,
+      "norms": 16384,
+      "total": 1367371776,
+      "excluding_embed_and_lm_head": 293629952
+    },
+    "aux_hidden_state_layer_ids": [
+      2,
+      16,
+      29
+    ],
+    "draft_vocab_size": 131072,
+    "vocab_size": 131072,
+    "hidden_size": 4096,
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-pilot-3508057",
+    "config_sha256": "c86f7d87a346c18a26a3d497a6f07d54045cb69cec3ddab4cbbd98d5160974a2",
+    "weight_files": [
+      "model.safetensors"
+    ],
+    "weights_present": true,
+    "trained_head": true,
+    "checkpoint_manifest_sha256": "040c59bb1fc8c951e6002e1c3afb14f4493cd0bdbafdc5c02e7186c738415b93"
+  },
+  "reload": {
+    "samples": 4,
+    "exported_tensors_bitwise_equal": true,
+    "max_first_step_logit_abs_diff": 0.0,
+    "rollout_acc_identical": true,
+    "rollout_loss_max_abs_diff": 0.0,
+    "same_weights_repeat_loss_max_abs_diff": 0.0,
+    "loss_tolerance": 1e-05,
+    "pass": true,
+    "reloaded_acc_first_sample": [
+      0.6853932738304138,
+      0.5730336904525757,
+      0.5339521169662476,
+      0.49829018115997314,
+      0.49438202381134033,
+      0.4797264337539673,
+      0.47484123706817627
+    ]
+  }
+}
