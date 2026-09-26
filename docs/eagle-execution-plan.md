@@ -62,15 +62,16 @@ latency. Do not switch architectures by editing a trained head's flags.
 | Core methods | Plain target; EAGLE 3.1, or E3 fallback | Plain target; selected EAGLE architecture |
 | Extra control | Baseline matched to candidate settings, only if they differ | Same rule |
 | Config root | `methods/eagle/configs/8b/` | `methods/eagle/configs/70b/` |
-| Result root | `results/8b/eagle/` | `results/70b/eagle/70b/` |
+| Result root | `results/8b/eagle/` | `results/70b/eagle/` |
 
 These are planned settings, not claims that existing launchers implement them. Their adaptation
 is A1 below. If a memory or runtime limit requires a change, apply it to both arms within that
 stage and record it before comparing results. Start with text inputs. Quantization, image/audio
 inputs and a different chat/thinking mode each require a separate experiment.
 
-Create a target-specific `lock.json`, `preflight/compatibility.json`, tokenizer/template hashes,
-training configs, data manifests and checkpoint provenance under each stage's roots. Keep
+Create a target-specific `targets/<stage>/lock.json` and `contract.json` (tokenizer/template
+hashes included), and training configs, data manifests and checkpoint provenance under each
+stage's roots. Keep
 immutable runs in unique subdirectories. Do not overwrite existing 70B records or reuse them
 as an 8B contract. Compare each treatment only with the same target's baseline.
 

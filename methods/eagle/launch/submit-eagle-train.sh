@@ -29,7 +29,7 @@ EXCLUDE_NODES="${EAGLE_TRAIN_EXCLUDE:-nid007129}"
 DEPENDENCY="${EAGLE_DEPENDENCY:-}"
 STAGE="$(sed -n 's/^stage: *\([^ #]*\).*/\1/p' "${CONFIG_ABS}" | head -1)"
 RUN_NAME="$(sed -n 's/^run_name: *\([^ #]*\).*/\1/p' "${CONFIG_ABS}" | head -1)"
-LOG_ROOT="${REPO_ROOT}/results/70b/eagle/${STAGE:-unknown}/logs"
+LOG_ROOT="${REPO_ROOT}/results/${STAGE:-unknown}/eagle/logs"
 
 DEBUG_JOBS="$(squeue -u "${USER}" -p debug -h -o '%i:%N:%T' 2>/dev/null || true)"
 if [ "${PARTITION}" = "debug" ] && [ -n "${DEBUG_JOBS}" ]; then
