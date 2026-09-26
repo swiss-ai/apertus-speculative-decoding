@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Project Proposal — Benchmarking Speculative Decoding for Apertus</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm 16mm 15mm 16mm;
+      @bottom-left {
+        content: "COM-508 · Optional Research Project in Data Science";
+        color: #666;
+        font-size: 7.5pt;
+      }
+      @bottom-right {
+        content: "Faruk Zahiragic  ·  " counter(page) " / " counter(pages);
+        color: #666;
+        font-size: 7.5pt;
+      }
+    }
+
+    :root {
+      --red: #e00000;
+      --ink: #171717;
+      --muted: #5d5d5d;
+      --line: #d8d8d8;
+      --soft: #f4f4f4;
+    }
+
+    * { box-sizing: border-box; }
+    html { font-family: "DejaVu Sans", Arial, sans-serif; color: var(--ink); }
+    body { margin: 0; font-size: 8.8pt; line-height: 1.36; }
+    .page { break-after: page; }
+    .page:last-child { break-after: auto; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8mm;
+    }
+    .brand-mark {
+      background: var(--red);
+      color: white;
+      font-weight: 800;
+      font-size: 16pt;
+      letter-spacing: -0.8px;
+      padding: 4px 9px 5px;
+      line-height: 1;
+    }
+    .brand-text {
+      border-left: 1px solid var(--line);
+      padding-left: 10px;
+      color: var(--muted);
+      font-size: 8pt;
+      line-height: 1.25;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 165mm;
+      font-size: 25pt;
+      line-height: 1.05;
+      letter-spacing: -0.7px;
+    }
+    .subtitle {
+      margin: 2.5mm 0 6mm;
+      color: var(--red);
+      font-size: 11.5pt;
+      font-weight: 700;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1.15fr 1.35fr 1fr;
+      border-top: 2px solid var(--ink);
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 6mm;
+    }
+    .meta > div { padding: 2.5mm 3mm 2.7mm 0; }
+    .meta > div + div { padding-left: 3mm; border-left: 1px solid var(--line); }
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 6.7pt;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-bottom: .6mm;
+    }
+    .value { font-size: 8.7pt; font-weight: 600; }
+
+    h2 {
+      margin: 5mm 0 1.8mm;
+      font-size: 12.5pt;
+      line-height: 1.15;
+      letter-spacing: -.15px;
+    }
+    h2::before { content: ""; display: inline-block; width: 3.5mm; height: 2.2mm; background: var(--red); margin-right: 2mm; }
+    h3 {
+      margin: 3.4mm 0 1mm;
+      font-size: 9.5pt;
+      line-height: 1.2;
+    }
+    p { margin: 0 0 2.3mm; }
+    .lead { font-size: 10pt; line-height: 1.43; }
+    .small { font-size: 7.6pt; line-height: 1.33; }
+    .muted { color: var(--muted); }
+    strong { font-weight: 700; }
+    em { font-style: italic; }
+    a { color: inherit; text-decoration: none; }
+
+    ul, ol { margin: 1mm 0 2.3mm 4.8mm; padding-left: 3.8mm; }
+    li { margin: 0 0 1.1mm; padding-left: .6mm; }
+    li::marker { color: var(--red); font-weight: 700; }
+    .rq { margin-top: 1.4mm; }
+
+    .callout {
+      margin: 4mm 0;
+      padding: 3.2mm 4mm;
+      background: var(--soft);
+      border-left: 2.2mm solid var(--red);
+    }
+    .callout-title {
+      font-size: 7pt;
+      font-weight: 800;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      margin-bottom: 1mm;
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+    .two-col.wide-left { grid-template-columns: 1.22fr .78fr; }
+
+    table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 3mm; }
+    th {
+      text-align: left;
+      background: #272727;
+      color: white;
+      font-size: 7pt;
+      letter-spacing: .25px;
+      padding: 1.6mm 2mm;
+    }
+    td { vertical-align: top; padding: 1.45mm 2mm; border-bottom: 1px solid var(--line); }
+    tr:nth-child(even) td { background: #f7f7f7; }
+    .timeline td:first-child { width: 25mm; font-weight: 700; color: #333; }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 2mm;
+      margin-bottom: 4mm;
+    }
+    .page-head .title { font-size: 14pt; font-weight: 700; letter-spacing: -.25px; }
+    .page-head .tag { font-size: 7.5pt; color: var(--muted); }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2mm;
+      margin: 2mm 0 3mm;
+    }
+    .metric {
+      background: var(--soft);
+      border-top: 1.1mm solid var(--red);
+      padding: 2.1mm;
+      min-height: 17mm;
+    }
+    .metric b { display: block; font-size: 8pt; margin-bottom: .8mm; }
+    .metric span { display: block; color: var(--muted); font-size: 6.8pt; line-height: 1.25; }
+
+    .refs { font-size: 6.8pt; line-height: 1.28; }
+    .refs ol { margin-left: 3.8mm; padding-left: 3mm; }
+    .refs li { margin-bottom: 1mm; }
+    .footnote-rule { width: 28mm; border-top: 1px solid var(--ink); margin: 4mm 0 2mm; }
+
+    /* Keep the methodology page compact enough for the three-page proposal. */
+    .page:nth-of-type(2) { font-size: 8.25pt; line-height: 1.28; }
+    .page:nth-of-type(2) .page-head { margin-bottom: 2.8mm; }
+    .page:nth-of-type(2) h2 { margin: 3.4mm 0 1.3mm; }
+    .page:nth-of-type(2) h3 { margin: 2.2mm 0 .7mm; }
+    .page:nth-of-type(2) p { margin-bottom: 1.7mm; }
+    .page:nth-of-type(2) ul { margin-bottom: 1.5mm; }
+    .page:nth-of-type(2) .metrics { margin: 1.5mm 0 2mm; }
+    .page:nth-of-type(2) .metric { min-height: 14mm; padding: 1.6mm; }
+    .page:nth-of-type(2) .callout { margin: 2.5mm 0; padding: 2.3mm 3.2mm; }
+    .page:nth-of-type(2) .timeline { font-size: 7.55pt; line-height: 1.2; margin-bottom: 1.6mm; }
+    .page:nth-of-type(2) .timeline th { padding: 1.2mm 1.7mm; }
+    .page:nth-of-type(2) .timeline td { padding: .9mm 1.7mm; }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <div class="brand">
+      <div class="brand-mark">EPFL</div>
+      <div class="brand-text">School of Computer and Communication Sciences<br>Master of Science in Data Science</div>
+    </div>
+
+    <h1>Benchmarking Speculative Decoding for Apertus LLM Serving</h1>
+    <div class="subtitle">Project proposal · Swiss AI Initiative</div>
+
+    <div class="meta">
+      <div><span class="label">Student</span><span class="value">Faruk Zahiragic</span></div>
+      <div><span class="label">Course</span><span class="value">COM-508 · Optional Research Project in Data Science</span></div>
+      <div><span class="label">Scope</span><span class="value">8 ECTS · 14 weeks · Autumn 2026</span></div>
+    </div>
+
+    <h2>Abstract</h2>
+    <p class="lead">Large language model inference is expensive because standard autoregressive decoding invokes the full model once for every output token. Speculative decoding attempts to reduce this sequential bottleneck: a smaller model proposes several tokens, and the target model verifies them together while preserving the target model’s output distribution. Whether this is beneficial in practice depends on acceptance rate, workload, batching, parallel layout, and the draft model’s compute and memory overhead.</p>
+    <p class="lead">This project will determine whether an 8B draft model should be used to accelerate production serving of <strong>Apertus-v1.5-70B</strong>. It will build a reproducible evaluation on one four-GPU GH200 Clariden node, compare ordinary decoding, 8B-draft speculation, and model-free n-gram speculation, and measure both performance gains and operational costs. The outcome will be an evidence-based recommendation identifying where speculation helps, where it hurts, and which settings should be deployed.</p>
+
+    <h2>Motivation and research gap</h2>
+    <p>Apertus is an openly released multilingual LLM developed within the Swiss AI Initiative. Efficient serving is essential for making the 70B model broadly usable, but speculative-decoding results from other models do not transfer directly: speedup depends on the target–draft agreement, GPU kernels, tensor parallelism, context length, and server load. No controlled characterization currently establishes this trade-off for the Apertus 8B/70B pair on the Swiss AI serving stack.</p>
+    <p>The project extends prior Swiss AI performance-benchmarking practice from architectural serving studies to an inference algorithm whose benefit is explicitly workload-dependent. It treats a negative result as scientifically useful: the aim is not to demonstrate a speedup at any cost, but to locate the production break-even conditions.</p>
+
+    <div class="callout">
+      <div class="callout-title">Core objective</div>
+      Quantify the latency, throughput, capacity, and memory effects of speculative decoding for Apertus-v1.5-70B, explain those effects through acceptance and systems measurements, and recommend a robust production configuration—or recommend keeping ordinary decoding.
+    </div>
+
+    <h2>Research questions</h2>
+    <ol class="rq">
+      <li>How do workload type and request concurrency affect speculative acceptance, time to first token (TTFT), time per output token (TPOT), and throughput?</li>
+      <li>Which speculative depth and draft tensor-parallel layout provides the best performance envelope, and when does draft overhead outweigh accepted work?</li>
+      <li>When is model-free n-gram speculation preferable to maintaining an 8B draft model?</li>
+      <li>Does the best latency configuration improve sustainable request rate without an unacceptable tail-latency or KV-cache-capacity penalty?</li>
+    </ol>
+  </section>
+
+  <section class="page">
+    <div class="page-head">
+      <div class="title">Methodology and work plan</div>
+      <div class="tag">Apertus speculative decoding · Project proposal</div>
+    </div>
+
+    <h2>Experimental methodology</h2>
+    <div class="two-col wide-left">
+      <div>
+        <h3>System and controlled factors</h3>
+        <p>Experiments will run with vLLM on one Clariden GH200 node (four GPUs), using target tensor parallelism of four and cached model weights. The software revisions, launch configuration, node identity, prompt corpus, request order, generation parameters, and output limits will be recorded. Greedy decoding is the core experiment.</p>
+
+        <h3>Serving configurations</h3>
+        <ul>
+          <li><strong>Baseline:</strong> Apertus-v1.5-70B without speculation.</li>
+          <li><strong>Draft model:</strong> Apertus-v1.5-8B with speculative depth <em>k</em> ∈ {2, 3, 5, 8} and draft tensor parallelism ∈ {1, 4}.</li>
+          <li><strong>Model-free baseline:</strong> vLLM n-gram speculation at the same depths.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Workloads and load levels</h3>
+        <p>A deterministic, versioned prompt set will cover:</p>
+        <ul>
+          <li>open-ended chat;</li>
+          <li>code generation;</li>
+          <li>long-context summarisation (16k–64k input tokens).</li>
+        </ul>
+        <p>Closed-loop tests will use concurrency 1, 8, and 32. A final open-loop experiment will estimate sustainable request rate under fixed latency and error-rate gates.</p>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><b>User latency</b><span>TTFT and TPOT, reported at p50 and p95</span></div>
+      <div class="metric"><b>Throughput</b><span>Output tokens/s and sustainable requests/s</span></div>
+      <div class="metric"><b>Mechanism</b><span>Acceptance rate, accepted length, per-position acceptance</span></div>
+      <div class="metric"><b>Resources</b><span>GPU memory, KV-cache capacity, utilisation and preemptions</span></div>
+    </div>
+
+    <h3>Validity and analysis</h3>
+    <p>First, exact greedy outputs will be compared on a smoke corpus as an implementation sanity check. The full study will use identical prompts and sampling settings across variants, warm-ups, immutable raw results, and independently launched deployment repeats. Screening uses two repeats; selected configurations are confirmed with five repeats at all concurrency levels. Variant order will be counterbalanced, and interleaved baselines will detect runtime drift. Results will include absolute metrics, speedup ratios, deployment-level spread, and 95% bootstrap confidence intervals. Runs with server restarts, counter resets, or below 99% request success will be rejected and documented.</p>
+
+    <div class="callout">
+      <div class="callout-title">Decision rule</div>
+      Recommend a setting only if confirmation runs show a repeatable gain on at least one declared workload, no material regression on the others, and no unacceptable tail-latency or memory-capacity penalty. A workload-specific recommendation is permitted only when production traffic can be routed accordingly.
+    </div>
+
+    <h2>Schedule and effort</h2>
+    <table class="timeline">
+      <thead><tr><th>Period</th><th>Milestone</th></tr></thead>
+      <tbody>
+        <tr><td>Preparation · 30 h</td><td>Finalize scope with supervisors; focused literature review; cluster and benchmark-harness preparation.</td></tr>
+        <tr><td>Weeks 1–2</td><td>Reproduce baseline and draft serving; validate metrics; greedy correctness checks; submit detailed schedule.</td></tr>
+        <tr><td>Weeks 3–4</td><td>Curate and tokenize workload strata; calibrate the load generator; freeze the experimental protocol.</td></tr>
+        <tr><td>Weeks 5–7</td><td>Screen draft depth/parallelism and n-gram settings at concurrency 1 and 8.</td></tr>
+        <tr><td>Weeks 8–10</td><td>Confirm selected configurations at concurrency 1, 8, and 32 with independent deployment repeats.</td></tr>
+        <tr><td>Weeks 11–12</td><td>Capacity and KV-cache study; targeted GPU profiling if needed; statistical analysis.</td></tr>
+        <tr><td>Weeks 13–14</td><td>Synthesis, reproducibility audit, recommendation, report draft, and presentation preparation.</td></tr>
+        <tr><td>Finalisation · 30 h</td><td>Complete and submit the technical report; prepare and deliver the laboratory presentation.</td></tr>
+      </tbody>
+    </table>
+    <p class="small muted">Planned total: approximately 228 hours, aligned with the IC workload model (30 h preparation + 14 weeks at about 12 h/week + 30 h final reporting/presentation).</p>
+  </section>
+
+  <section class="page">
+    <div class="page-head">
+      <div class="title">Outcomes, feasibility, and academic fit</div>
+      <div class="tag">Apertus speculative decoding · Project proposal</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h2>Expected contributions</h2>
+        <ul>
+          <li>The first controlled performance characterization of draft-model and n-gram speculative decoding for Apertus-v1.5-70B on GH200 hardware.</li>
+          <li>A mechanistic account connecting workload, acceptance, speculative depth, parallel layout, batching, and memory cost to observed speedup.</li>
+          <li>A reproducible benchmark protocol and reusable tooling for future Apertus releases.</li>
+          <li>A production recommendation with explicit winning and losing regimes, rather than a single decontextualized speedup number.</li>
+        </ul>
+
+        <h2>Deliverables</h2>
+        <ol>
+          <li>Version-controlled launch, workload, measurement, and analysis code in the <em>swiss-ai/apertus-speculative-decoding</em> repository.</li>
+          <li>Raw request-level measurements, metric snapshots, launch provenance, and analysis-ready summaries.</li>
+          <li>A concise scientific report containing the literature review, methods, results, limitations, and deployment recommendation.</li>
+          <li>An oral presentation organized by the hosting laboratory.</li>
+          <li>If results support deployment, a pull request proposing tuned defaults for the Swiss AI model-launch configuration.</li>
+        </ol>
+      </div>
+
+      <div>
+        <h2>Feasibility and risk management</h2>
+        <p>The target and draft models share a tokenizer, an existing vLLM speculative configuration is available, and a benchmark scaffold has already been prepared. The core matrix fits one four-GPU node and is staged so weak configurations can be eliminated before expensive repeats.</p>
+        <table>
+          <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Limited cluster availability</td><td>Short staged jobs, cached weights, counterbalanced runs, and prompt node-hour release.</td></tr>
+            <tr><td>Runtime or metric instability</td><td>Pinned software, raw logs/counters, smoke tests, and explicit rejection criteria.</td></tr>
+            <tr><td>Matrix too large</td><td>Predeclared screening before confirmatory repeats; stretch goals remain optional.</td></tr>
+            <tr><td>Network measurement noise</td><td>On-cluster load generation and separate reporting of gateway effects.</td></tr>
+          </tbody>
+        </table>
+        <p class="small"><strong>Optional extensions:</strong> the Apertus “thinking” variant, temperature 0.8, and deeper kernel profiling will be attempted only after the core conclusion is stable.</p>
+      </div>
+    </div>
+
+    <h2>Supervision, assessment, and compliance</h2>
+    <p>The project is designed as individual and independent research under the oversight of an EPFL academic supervisor and the hosting EPFL laboratory, with a clearly identified day-to-day technical supervisor. Progress will be reviewed in weekly meetings; a detailed schedule will be agreed by the end of week 2. Assessment evidence will cover work and initiative during the semester, reproducible code and results, a scientific report, and an oral presentation. The project will be registered in IS-Academia as COM-508, conducted during the 14-week semester, and not undertaken concurrently with the 12-ECTS mandatory research project. It is an ECTS-credited, non-remunerated academic project.</p>
+
+    <h2>Data, reproducibility, and responsible resource use</h2>
+    <p>Experiments will use public or appropriately licensed text/code sources and will not require personal or sensitive data. Prompt IDs, tokenizer-length distributions, software revisions, configuration files, node/job provenance, and analysis procedures will be preserved. The staged design, fixed validity gates, and release of negative as well as positive findings reduce selection bias and unnecessary GPU use.</p>
+
+    <div class="footnote-rule"></div>
+    <div class="refs">
+      <strong>Selected references</strong>
+      <ol>
+        <li>Leviathan, Y., Kalman, M., and Matias, Y. “Fast Inference from Transformers via Speculative Decoding.” <em>ICML</em>, 2023.</li>
+        <li>Chen, C. et al. “Accelerating Large Language Model Decoding with Speculative Sampling.” 2023.</li>
+        <li>Kwon, W. et al. “Efficient Memory Management for Large Language Model Serving with PagedAttention.” <em>SOSP</em>, 2023.</li>
+        <li>EPFL IC. “Master Research Project” and “IC Quick Guide to Research Projects.” Requirements consulted 31 August 2026.</li>
+        <li>EPFL Coursebook. “COM-508 — Optional Research Project in Data Science.” 2026–2027 edition.</li>
+      </ol>
+    </div>
+  </section>
+</body>
+</html>

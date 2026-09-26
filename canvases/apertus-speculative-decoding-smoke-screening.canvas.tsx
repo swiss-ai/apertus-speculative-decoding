@@ -21,6 +21,7 @@
  * throughout.
  *
  * Narrative companion: `docs/hackathon-20260915.md`.
+ * Presentation fallback (browser): `docs/hackathon-20260915-slides.html`.
  */
 import {
   BarChart,
