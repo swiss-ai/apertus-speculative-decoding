@@ -5,6 +5,15 @@ This repository studies whether speculative decoding should be enabled for
 8B draft-model speculation, and model-free n-gram speculation under controlled, repeated,
 production-facing workloads.
 
+The next experiments are specified in [the diagnostics and improvement plan](docs/diagnostics-plan.md)
+and [the EAGLE 3.1 execution plan: 8B first, then 70B](docs/eagle-execution-plan.md).
+The EAGLE plan starts with a bounded Apertus 1.5 8B integration pilot, retaining EAGLE-3 as a
+fallback for a demonstrated 3.1-specific issue. Stage A (8B) is implemented: training pipeline in
+`training/apertus_eagle/`, stage-aware launchers, and results in
+[docs/eagle-8b-report.md](docs/eagle-8b-report.md). Progress is in [docs/eagle-progress.md](docs/eagle-progress.md).
+A 3× decode speedup is a stretch target. Each target needs its own trained head; the public
+Apertus-8B-Instruct-2509 head is not a substitute for either Apertus 1.5 target.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.
@@ -96,6 +105,12 @@ NUM_SPECULATIVE_TOKENS=5 DRAFT_TP=1 ./launch/draft-model.sh
 
 # N-gram, depth 5
 NUM_SPECULATIVE_TOKENS=5 PROMPT_LOOKUP_MAX=4 ./launch/ngram.sh
+
+# EAGLE-3 / EAGLE 3.1 (engine method is always eagle3; ALGORITHM selects the trained head).
+# STAGE=8b: target TP=1, draft TP=1; STAGE=70b: 4/4. The head must match the stage's target
+# contract; the public Apertus-8B-Instruct-2509 head is rejected.
+STAGE=8b EAGLE_HEAD=/path/to/apertus15-8b-eagle31-head ALGORITHM=eagle31 NUM_SPECULATIVE_TOKENS=2 \
+  ./launch/eagle.sh --no-tui
 ```
 
 Each launcher prints its unique served model name. Do not begin measurement merely because the
