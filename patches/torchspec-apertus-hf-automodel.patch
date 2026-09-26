@@ -1,0 +1,70 @@
+diff --git a/torchspec/models/target/eagle3_target_model.py b/torchspec/models/target/eagle3_target_model.py
+index 03f89b7..b7c9e11 100644
+--- a/torchspec/models/target/eagle3_target_model.py
++++ b/torchspec/models/target/eagle3_target_model.py
+@@ -141,16 +141,31 @@ class HFTargetModel(Eagle3TargetModel):
+         else:
+             device_kwargs = {
+                 "device_map": device or "auto",
+             }
+ 
+-        target_model = AutoModelForCausalLM.from_pretrained(
+-            pretrained_model_name_or_path,
+-            torch_dtype=torch_dtype,
+-            cache_dir=cache_dir,
+-            **device_kwargs,
+-            **kwargs,
+-        )
++        load_kwargs = {
++            "torch_dtype": torch_dtype,
++            "cache_dir": cache_dir,
++            **device_kwargs,
++            **kwargs,
++        }
++        try:
++            target_model = AutoModelForCausalLM.from_pretrained(
++                pretrained_model_name_or_path, **load_kwargs
++            )
++        except (ValueError, OSError, AttributeError, TypeError):
++            # Apertus 1.5 is Apertus1p5ForConditionalGeneration. Do not relabel as Llama.
++            try:
++                from transformers import AutoModelForImageTextToText
++
++                target_model = AutoModelForImageTextToText.from_pretrained(
++                    pretrained_model_name_or_path, **load_kwargs
++                )
++            except Exception:
++                from transformers import AutoModel
++
++                target_model = AutoModel.from_pretrained(
++                    pretrained_model_name_or_path, **load_kwargs
++                )
+         return cls(target_model)
+ 
+     def _walk_language_model(self):
+@@ -268,15 +283,22 @@ class HFTargetModel(Eagle3TargetModel):
+         handles.append(final_norm.register_forward_hook(norm_hook))
+ 
+         try:
+-            self.model(
+-                input_ids=input_ids,
+-                attention_mask=attention_mask,
+-                output_hidden_states=False,
+-                output_attentions=False,
+-                output_router_logits=False,
+-                use_cache=False,
+-            )
++            forward_kwargs = {
++                "input_ids": input_ids,
++                "attention_mask": attention_mask,
++                "output_hidden_states": False,
++                "output_attentions": False,
++                "use_cache": False,
++            }
++            try:
++                self.model(**forward_kwargs, output_router_logits=False)
++            except TypeError:
++                self.model(**forward_kwargs)
+         finally:
+             for handle in handles:
+                 handle.remove()

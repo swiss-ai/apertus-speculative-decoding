@@ -1,0 +1,54 @@
+diff --git a/torchspec/models/target/target_utils.py b/torchspec/models/target/target_utils.py
+index f8d68e1..00b5cca 100644
+--- a/torchspec/models/target/target_utils.py
++++ b/torchspec/models/target/target_utils.py
+@@ -34,6 +34,22 @@ from transformers import AutoConfig
+ logger = logging.getLogger(__name__)
+ 
+ 
++def output_vocab_size(model_config, text_config) -> int:
++    """Allocate the lm_head against the target's output support, not input vocab.
++
++    Apertus 1.5 (and other multimodal wrappers) keep ``text_config.vocab_size``
++    as the *input* vocabulary (embeddings, image/audio token ids) while the
++    physical ``lm_head.weight`` is ``[output_vocab_size, hidden]``. Using
++    ``vocab_size`` here makes ``copy_`` fail or silently pad the wrong rows.
++    Do not relabel the target as Llama to dodge this.
++    """
++    for cfg in (text_config, model_config):
++        value = getattr(cfg, "output_vocab_size", None)
++        if value:
++            return int(value)
++    return int(text_config.vocab_size)
++
++
+ class _TargetRMSNorm(nn.Module):
+     """Weight-only RMSNorm used when remote model construction is unavailable."""
+ 
+@@ -69,7 +85,11 @@ class TargetLMHead(nn.Module):
+         # hidden/vocab sizes this module actually allocates against.
+         self.model_config = config
+         self.config = getattr(config, "text_config", config)
+-        self.lm_head = nn.Linear(self.config.hidden_size, self.config.vocab_size, bias=False)
++        self.lm_head = nn.Linear(
++            self.config.hidden_size,
++            output_vocab_size(self.model_config, self.config),
++            bias=False,
++        )
+         self.norm: nn.Module | None = None
+ 
+     @classmethod
+@@ -144,6 +164,13 @@ class TargetLMHead(nn.Module):
+                 del state_dict
+ 
+         if tensor is not None:
++            if tuple(tensor.shape) != tuple(self.lm_head.weight.shape):
++                raise ValueError(
++                    f"lm_head key {key!r} has shape {tuple(tensor.shape)} but "
++                    f"TargetLMHead allocated {tuple(self.lm_head.weight.shape)}. "
++                    "This is the Apertus input-vs-output vocabulary trap: "
++                    "allocate with output_vocab_size, not text_config.vocab_size."
++                )
+             self.lm_head.weight.data.copy_(tensor)
+         else:
+             raise KeyError(f"Key {key} not found in {file_path}")
