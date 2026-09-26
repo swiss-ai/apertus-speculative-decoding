@@ -51,6 +51,29 @@ if [ -n "${EXTRA_MOUNTS}" ]; then
   mv "${RESOLVED}.new" "${RESOLVED}"
 fi
 
+# Additional container environment, "KEY=VALUE" pairs separated by ';'.
+# Used for a per-deployment VLLM_CACHE_ROOT so compile-cache state is controlled.
+EXTRA_ENV="${EXTRA_ENV:-}"
+if [ -n "${EXTRA_ENV}" ]; then
+  awk -v specs="${EXTRA_ENV}" '
+    { print }
+    /^\[env\]/ && !injected {
+      n = split(specs, a, /;/)
+      for (i = 1; i <= n; i++) {
+        if (a[i] == "") continue
+        eq = index(a[i], "=")
+        printf "%s = \"%s\"\n", substr(a[i], 1, eq - 1), substr(a[i], eq + 1)
+      }
+      injected = 1
+    }
+    END { if (!injected) exit 1 }
+  ' "${RESOLVED}" > "${RESOLVED}.new" || {
+    echo "no [env] table to extend in ${ENV_SOURCE}" >&2
+    exit 1
+  }
+  mv "${RESOLVED}.new" "${RESOLVED}"
+fi
+
 IMAGE="$(sed -n 's|^ *image *= *"\(/[^"]*\)".*|\1|p' "${RESOLVED}" | head -1)"
 # Only enforce existence where the image store is actually mounted, so this
 # still works when launching from a machine without Capstor.

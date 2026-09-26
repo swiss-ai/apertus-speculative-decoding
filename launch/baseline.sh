@@ -1,23 +1,53 @@
 #!/usr/bin/env bash
+# Plain-target baseline. With STAGE=8b|70b the settings come from
+# launch/stage-defaults.sh and match launch/eagle.sh for that stage. Without
+# STAGE this is the historical 70B TP=4 launch used by earlier campaigns.
 set -euo pipefail
 
 LAUNCH_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "${LAUNCH_DIR}/.." && pwd)"
 MODEL_LAUNCH_ROOT="${MODEL_LAUNCH_ROOT:-../model-launch}"
-TARGET_MODEL="${TARGET_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B}"
-MAX_MODEL_LEN="${MAX_MODEL_LEN:-131072}"
+if [ -n "${STAGE:-}" ]; then
+  # shellcheck source=launch/stage-defaults.sh
+  . "${LAUNCH_DIR}/stage-defaults.sh"
+else
+  STAGE="legacy-70b"
+  TARGET_MODEL="${TARGET_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B}"
+  SERVED_BASE="${SERVED_BASE:-swiss-ai/Apertus-v1.5-70B}"
+  TARGET_TP="${TARGET_TP:-4}"
+  MAX_MODEL_LEN="${MAX_MODEL_LEN:-131072}"
+  GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.8}"
+  TARGET_CONTRACT="${TARGET_CONTRACT:-}"
+  RESULTS_ROOT="${RESULTS_ROOT:-${REPO_ROOT}/results}"
+fi
 SML_PARTITION="${SML_PARTITION:-normal}"
 SML_TIME="${SML_TIME:-04:00:00}"
 ENV_SOURCE="${ENV_SOURCE:-${MODEL_LAUNCH_ROOT}/src/swiss_ai_model_launch/assets/envs/vllm_apertus_1.5_release.toml}"
 RUN_SUFFIX="${RUN_SUFFIX:-$(id -un)-$(date -u +%Y%m%dT%H%M%SZ)}"
-SERVED_MODEL="${SERVED_MODEL:-swiss-ai/Apertus-v1.5-70B-baseline-${RUN_SUFFIX}}"
+SERVED_MODEL="${SERVED_MODEL:-${SERVED_BASE}-baseline-tp${TARGET_TP}-${RUN_SUFFIX}}"
+EXTRA_VLLM="$("${LAUNCH_DIR}/vllm-extra-flags.sh")"
 
 SML_ENVIRONMENT="$("${LAUNCH_DIR}/resolve-env.sh" "${ENV_SOURCE}")"
 
-cd "${MODEL_LAUNCH_ROOT}"
+echo "stage=${STAGE}"
 echo "served_model=${SERVED_MODEL}"
 echo "target_model=${TARGET_MODEL}"
+echo "target_contract=${TARGET_CONTRACT}"
+echo "target_tensor_parallel_size=${TARGET_TP}"
+echo "max_model_len=${MAX_MODEL_LEN}"
+echo "gpu_memory_utilization=${GPU_MEMORY_UTILIZATION}"
+echo "results_root=${RESULTS_ROOT}"
 echo "environment=${SML_ENVIRONMENT}"
+echo "async_scheduling=${ASYNC_SCHEDULING:-engine-default}"
+echo "enable_prefix_caching=${ENABLE_PREFIX_CACHING:-engine-default}"
+echo "max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS:-engine-default}"
+if [ "${VALIDATE_ONLY:-0}" = "1" ]; then
+  echo "validate_only=1; not submitting"
+  exit 0
+fi
 
+cd "${MODEL_LAUNCH_ROOT}"
+# shellcheck disable=SC2086
 sml advanced \
   --system clariden \
   --partition "${SML_PARTITION}" \
@@ -28,10 +58,11 @@ sml advanced \
   --framework-args "--model ${TARGET_MODEL} \
     --served-model-name ${SERVED_MODEL} \
     --chat-template-content-format string \
-    --tensor-parallel-size 4 \
-    --gpu-memory-utilization 0.8 \
+    --tensor-parallel-size ${TARGET_TP} \
+    --gpu-memory-utilization ${GPU_MEMORY_UTILIZATION} \
     --max-model-len ${MAX_MODEL_LEN} \
     --enable-auto-tool-choice \
     --tool-call-parser apertus \
-    --compilation-config.pass_config.fuse_allreduce_rms false" \
+    --compilation-config.pass_config.fuse_allreduce_rms false \
+    ${EXTRA_VLLM}" \
   "$@"
