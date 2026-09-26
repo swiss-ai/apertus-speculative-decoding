@@ -15,8 +15,9 @@ and raw numbers: [eagle-progress.md](eagle-progress.md). Plan:
   near-ties (every measured divergence has a forced-prefix log-probability
   margin <= 0.25). Two independent serving load/restart cycles are clean.
 - Current head: `e31-mix10k-3515343-se` (9,909 target-regenerated conversations,
-  chat 40 / code 30 / summarization 30, 3 epochs). **Pending:** screening and
-  confirmation speedups.
+  chat 40 / code 30 / summarization 30, 3 epochs). Screening: 1.37x geometric-mean
+  TPOT speedup at depth 2 (code ~1.8–1.9x, chat/summary ~1.15–1.26x).
+  **Pending:** A6 confirmation on the untouched test strata.
 - A 1k-conversation head already gives 1.20x geometric-mean TPOT speedup at
   depth 2 on the validation strata (code ~1.6x, chat and summarization
   ~1.04–1.08x).
@@ -99,8 +100,25 @@ target at serve time. Draft adds 1.55 GiB served memory; KV capacity 466,144 ->
 
 ## Measurements (A5/A6)
 
-**Pending**: screen of the 10k head (blocks b5/b6, depths 2/3/5), depth
-selection, and three-deployment confirmation on the untouched test strata.
+### Screening (A5, validation strata, head `e31-mix10k-3515343-se`)
+
+Geometric-mean TPOT speedup against the same-block plain baseline, two
+independent deployments per depth (blocks b5, b6):
+
+| depth | all | C=1 | C=8 | worst cell | committed tokens/round |
+| --- | --- | --- | --- | --- | --- |
+| 2 | 1.373 | 1.410 | 1.336 | 1.140 | 1.72 |
+| 3 | 1.366 | 1.393 | 1.340 | 1.088 | 1.84 |
+| 5 | 1.260 | 1.289 | 1.233 | 0.951 | 1.96 |
+
+Depth 8 was omitted (0.91x in the 1k-head screen). By stratum at depth 2:
+code 1.76–1.90x (acceptance 61%, median E2E 0.54–0.60x), summarization
+1.16–1.26x, chat 1.14–1.19x. Selected for confirmation: depths 2 and 3.
+
+### Confirmation (A6)
+
+**Pending**: 3 independent deployments each of plain, depth 2 and depth 3 on the
+untouched test strata (started 2026-09-26 12:57 UTC).
 
 Profile (depth 3, C=1, 256 fixed tokens, ignore_eos): plain t0 = 5.76 ms;
 EAGLE round cost ≈ 7.5 ms ≈ 1.31 t0, so break-even needs g >= 1.31.

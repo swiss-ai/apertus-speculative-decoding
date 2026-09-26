@@ -442,6 +442,21 @@ Depth 2 by stratum (C=1 / C=8): code 1.90 / 1.82 (acceptance 61%, E2E p50
 0.54 / 0.60x), summarization 1.26 / 1.16, chat 1.19 / 1.15. Depth 3: code 2.04 /
 1.95 (50%), summarization 1.19 / 1.15, chat 1.11 / 1.09.
 
+Full screen (b6 baseline re-run 2026-09-26 12:46–12:55, sml 3526582, ok):
+`results/eagle/8b/screen-summary-mix10k.json`.
+
+| depth | all (b5 / b6) | C=1 | C=8 | worst | g |
+| --- | --- | --- | --- | --- | --- |
+| 2 | 1.373 (1.383 / 1.363) | 1.410 | 1.336 | 1.140 | 1.72 |
+| 3 | 1.366 (1.369 / 1.363) | 1.393 | 1.340 | 1.088 | 1.84 |
+| 5 | 1.260 (1.274 / 1.246) | 1.289 | 1.233 | 0.951 | 1.96 |
+
+Blocks agree within 0.03 per depth despite the day-later b6 baseline. Selected
+for A6 (plan rule: best, plus any within 5%): depths 2 and 3. Confirmation plan
+`configs/eagle/8b/a6-plan-confirm.txt` (3 blocks c1–c3, baseline + k2 + k3 each,
+rotated order, untouched test strata, 128 requests per cell, C=1/8), campaign
+started 2026-09-26 12:57 UTC from ln001 (`STAGEA_LOCK` override).
+
 Colleague data: `/capstor/scratch/cscs/zyu` is `drwxr-x--- 30628:sm94`; reading
 `spec/` from this account gives `Permission denied`.
 
