@@ -1,0 +1,34 @@
+schema_version: 1
+project: apertus-v1.5-speculative-decoding-diagnostics
+source_plan: docs/diagnostics-plan.md
+
+controls:
+  target_model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+  draft_model: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+  tensor_parallel_size: 4
+  max_model_len: 131072
+  gpu_memory_utilization: 0.8
+  enable_prefix_caching: false
+  ignore_eos: true
+  max_tokens: 256
+  prompts_per_cell: 32
+  concurrencies: [1, 8]
+  independent_deployment_blocks: 2
+  corpus: workloads/diagnostics-fixed-256.jsonl
+
+screening_block:
+  - B0
+  - B1
+  - B2
+  - N3
+  - N3m
+  - D3
+
+block_orders:
+  1: [B0, D3, B1, N3m, B2, N3]
+  2: [B0, N3, B2, D3, N3m, B1]
+
+notes:
+  - D3 passes max_num_batched_tokens=8192 so the engine can reserve lookahead down to 7168.
+  - B2 and N3m pass 7168 because those arms do not apply the draft_model reservation.
+  - Headline cells are unprofiled. The profile phase launches separate jobs.

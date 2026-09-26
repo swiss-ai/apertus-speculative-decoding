@@ -37,6 +37,8 @@ class Variant:
     num_speculative_tokens: int | None = None
     draft_tensor_parallel_size: int | None = None
     prompt_lookup_max: int | None = None
+    algorithm: str | None = None
+    parallel_drafting: bool = False
 
 
 @dataclass(frozen=True)

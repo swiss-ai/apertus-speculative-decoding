@@ -1,0 +1,40 @@
+{
+  "checked_at": "2026-09-19",
+  "store": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai",
+  "target": {
+    "path": "Apertus-v1.5-70B",
+    "architecture": "Apertus1p5ForConditionalGeneration",
+    "tokenizer_sha256_16": "1f2f6198ea5789e5",
+    "text_vocab_size": 266752
+  },
+  "existing_8b_drafter": {
+    "path": "Apertus-v1.5-8B",
+    "tokenizer_sha256_16": "1f2f6198ea5789e5",
+    "compatible_with_target": true,
+    "role": "candidate A"
+  },
+  "smaller_checkpoints_in_store": [
+    {
+      "path": "Apertus-v1.1-0.5B",
+      "architecture": "ApertusForCausalLM",
+      "vocab_size": 131072,
+      "tokenizer_sha256_16": "be12f4375d655cc7",
+      "compatible_with_v1_5_target": false
+    },
+    {
+      "path": "Apertus-v1.1-1.5B",
+      "architecture": "ApertusForCausalLM",
+      "vocab_size": 131072,
+      "tokenizer_sha256_16": "be12f4375d655cc7",
+      "compatible_with_v1_5_target": false
+    },
+    {
+      "path": "Apertus-v1.1-4B",
+      "architecture": "ApertusForCausalLM",
+      "vocab_size": 131072,
+      "tokenizer_sha256_16": "be12f4375d655cc7",
+      "compatible_with_v1_5_target": false
+    }
+  ],
+  "conclusion": "No sub-8B Apertus 1.5 checkpoint shares the 70B tokenizer. Candidate C cannot start from an off-the-shelf v1.5 weight; v1.1 0.5B/1.5B/4B would be a heterogeneous-vocab package, not a drop-in drafter. Training pilots remain gated on P1-P3."
+}

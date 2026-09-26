@@ -4,6 +4,10 @@ from dataclasses import asdict, dataclass, field
 
 from prometheus_client.parser import text_string_to_metric_families
 
+# Names verified against the pinned image
+# (`0.23.1rc1.dev1029+ga601a9d99`) in smoke-screening-20260913-debug
+# `metrics_after.prom`. If a later image renames them, parse_speculative_snapshot
+# returns enabled=False and callers must treat acceptance as unavailable, not zero.
 SPEC_COUNTERS = {
     "drafts": "vllm:spec_decode_num_drafts_total",
     "draft_tokens": "vllm:spec_decode_num_draft_tokens_total",

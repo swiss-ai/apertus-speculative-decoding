@@ -7,33 +7,40 @@
 # the fix: pass no EXTRA_MOUNTS and the launch is back to the stock image.
 set -euo pipefail
 
-if [ "$#" -ne 2 ]; then
-  echo "usage: $0 IMAGE_SQSH PATCH_FILE" >&2
+if [ "$#" -lt 2 ]; then
+  echo "usage: $0 IMAGE_SQSH PATCH_FILE [PATCH_FILE...]" >&2
   exit 2
 fi
 
 IMAGE="$1"
-PATCH="$2"
+shift
+PATCHES=("$@")
 # Must be on a shared filesystem: pyxis resolves the mount on the compute node.
 OUT_DIR="${VLLM_PATCH_DIR:-${HOME}/.sml/vllm-patch}"
 
-for f in "${IMAGE}" "${PATCH}"; do
-  if [ ! -f "${f}" ]; then
-    echo "not found: ${f}" >&2
+if [ ! -f "${IMAGE}" ]; then
+  echo "not found: ${IMAGE}" >&2
+  exit 1
+fi
+for patch in "${PATCHES[@]}"; do
+  if [ ! -f "${patch}" ]; then
+    echo "not found: ${patch}" >&2
     exit 1
   fi
 done
 
-mapfile -t TARGETS < <(sed -n 's|^+++ b/||p' "${PATCH}")
+mapfile -t TARGETS < <(sed -n 's|^+++ b/||p' "${PATCHES[@]}" | awk 'NF && !seen[$0]++')
 if [ "${#TARGETS[@]}" -eq 0 ]; then
-  echo "no target files found in ${PATCH}" >&2
+  echo "no target files found in patches" >&2
   exit 1
 fi
 
 rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 unsquashfs -q -d "${OUT_DIR}" "${IMAGE}" "${TARGETS[@]}" > /dev/null
-patch -s -p1 -d "${OUT_DIR}" < "${PATCH}"
+for patch in "${PATCHES[@]}"; do
+  patch -s -p1 -d "${OUT_DIR}" < "${patch}"
+done
 
 for t in "${TARGETS[@]}"; do
   printf '%s/%s:/%s\n' "${OUT_DIR}" "${t}" "${t}"

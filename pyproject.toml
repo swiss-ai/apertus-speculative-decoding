@@ -34,10 +34,12 @@ packages = ["src/apertus_bench"]
 addopts = "-q"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+pythonpath = ["training"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+extend-exclude = ["scratch"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
