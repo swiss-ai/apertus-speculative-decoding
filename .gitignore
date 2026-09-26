@@ -13,3 +13,13 @@ htmlcov/
 # Local credentials and scratch output. Canonical experiment results belong in results/.
 .env
 scratch/
+
+# Restricted source text; commit only manifest.json.
+results/eagle/8b/workloads/*.jsonl
+# Restricted source text (SFT-mix prompts/answers, served captures of them).
+results/eagle/data/*.jsonl
+results/eagle/data/torchspec/
+results/eagle/preflight/mix-text-by-id.json
+results/eagle/8b/serving-smoke/*/capture-prompts.jsonl
+results/eagle/8b/serving-smoke/*/capture.json
+results/eagle/8b/data-mix*/
