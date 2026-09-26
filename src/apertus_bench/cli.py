@@ -6,7 +6,9 @@ import json
 import os
 from pathlib import Path
 
-from apertus_bench.analysis import add_speedups, collect_rows, write_csv
+import httpx
+
+from apertus_bench.analysis import add_inferred_round_costs, add_speedups, collect_rows, write_csv
 from apertus_bench.client import StreamingChatClient
 from apertus_bench.correctness import (
     DEFAULT_TOLERANCE,
@@ -16,6 +18,8 @@ from apertus_bench.correctness import (
     compare_greedy_outputs,
     run_correctness_gate,
 )
+from apertus_bench.diagnostics import break_even_report, format_env_exports, write_corpus
+from apertus_bench.eagle import EagleHeadError, validate_eagle_head
 from apertus_bench.runner import CellSettings, GenerationSettings, Variant, run_cell
 from apertus_bench.workloads import available_workloads, load_prompts
 
@@ -39,10 +43,30 @@ def _add_generation(parser: argparse.ArgumentParser) -> None:
 
 def _add_variant(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--variant", required=True, help="stable label for the server variant")
-    parser.add_argument("--method", choices=("none", "draft_model", "ngram"), required=True)
+    parser.add_argument(
+        "--method",
+        choices=("none", "draft_model", "ngram", "eagle3"),
+        required=True,
+        help=(
+            "engine speculative method; E3/E3.1/P-EAGLE all use eagle3 "
+            "and are distinguished by --algorithm"
+        ),
+    )
+    parser.add_argument(
+        "--algorithm",
+        help=(
+            "logical algorithm label (eagle3, eagle31, peagle). "
+            "Required metadata when --method eagle3"
+        ),
+    )
     parser.add_argument("--num-speculative-tokens", type=int)
     parser.add_argument("--draft-tensor-parallel-size", type=int)
     parser.add_argument("--prompt-lookup-max", type=int)
+    parser.add_argument(
+        "--parallel-drafting",
+        action="store_true",
+        help="record that the live server was launched with parallel_drafting; does not enable it",
+    )
 
 
 def _add_benchmark_common(parser: argparse.ArgumentParser) -> None:
@@ -170,7 +194,60 @@ def build_parser() -> argparse.ArgumentParser:
     analyze = subparsers.add_parser("analyze", help="flatten result cells and add speedups")
     analyze.add_argument("results", type=Path)
     analyze.add_argument("--output", type=Path, default=Path("analysis/results.csv"))
+    analyze.add_argument(
+        "--allow-missing-baseline",
+        action="store_true",
+        help="do not fail when a speculative cell has no compatible operational baseline",
+    )
+
+    even = subparsers.add_parser(
+        "break-even", help="compare inferred round cost against g * t0 for one speculative variant"
+    )
+    even.add_argument("results", type=Path)
+    even.add_argument("--t0-variant", required=True)
+    even.add_argument("--spec-variant", required=True)
+    even.add_argument("--workload")
+    even.add_argument("--concurrency", type=int)
+    even.add_argument("--output", type=Path)
+
+    envp = subparsers.add_parser(
+        "diagnostics-env", help="print bash exports for a diagnostic configuration id"
+    )
+    envp.add_argument("config_id")
+
+    corpus = subparsers.add_parser(
+        "write-diagnostics-corpus", help="write the 32-prompt fixed-output diagnostic JSONL"
+    )
+    corpus.add_argument(
+        "--output", type=Path, default=Path("workloads/diagnostics-fixed-256.jsonl")
+    )
+
+    for action in ("start-profile", "stop-profile"):
+        profile = subparsers.add_parser(
+            action, help=f"POST /{action.replace('-', '_')} on a vLLM server"
+        )
+        profile.add_argument("--base-url", required=True)
+        profile.add_argument("--timeout-seconds", type=float, default=600.0)
+        _add_auth(profile)
+
+    eagle = subparsers.add_parser(
+        "validate-eagle-head",
+        help="validate an EAGLE-3/3.1 checkpoint against a selected Apertus 1.5 target contract",
+    )
+    eagle.add_argument("head", type=Path)
+    eagle.add_argument("--algorithm", choices=("eagle3", "eagle31"))
+    eagle.add_argument("--allow-config-only", action="store_true")
+    eagle.add_argument("--contract", type=Path)
     return parser
+
+
+EAGLE_REQUIRED_METADATA = (
+    "deployment_id",
+    "checkpoint_sha256",
+    "target_model",
+    "target_revision",
+    "target_tensor_parallel_size",
+)
 
 
 def _metadata(values: list[str]) -> dict[str, str]:
@@ -185,13 +262,49 @@ def _metadata(values: list[str]) -> dict[str, str]:
     return parsed
 
 
+def _require_eagle_provenance(method: str, extra: dict[str, str]) -> None:
+    if method != "eagle3":
+        return
+    missing = [key for key in EAGLE_REQUIRED_METADATA if not extra.get(key)]
+    if missing:
+        raise ValueError(
+            "method eagle3 requires --metadata "
+            + ", ".join(f"{key}=..." for key in missing)
+        )
+
+
 def _variant(args: argparse.Namespace) -> Variant:
+    method = args.method
+    algorithm = args.algorithm
+    tokens = args.num_speculative_tokens
+    if method == "eagle3":
+        if tokens is None or tokens < 1:
+            raise ValueError(
+                "--num-speculative-tokens is required and must be >= 1 for method eagle3"
+            )
+        if not algorithm:
+            raise ValueError(
+                "--algorithm is required for method eagle3 "
+                "(engine method is eagle3 for E3, E3.1, and P-EAGLE)"
+            )
+        if algorithm not in {"eagle3", "eagle31", "peagle"}:
+            raise ValueError(f"unsupported algorithm {algorithm!r} for method eagle3")
+        if algorithm == "peagle" and not args.parallel_drafting:
+            raise ValueError(
+                "algorithm=peagle requires --parallel-drafting in the recorded variant"
+            )
+        if algorithm != "peagle" and args.parallel_drafting:
+            raise ValueError("--parallel-drafting is only valid with --algorithm peagle")
+    elif args.parallel_drafting:
+        raise ValueError("--parallel-drafting is only valid with --method eagle3")
     return Variant(
         name=args.variant,
-        method=args.method,
-        num_speculative_tokens=args.num_speculative_tokens,
+        method=method,
+        num_speculative_tokens=tokens,
         draft_tensor_parallel_size=args.draft_tensor_parallel_size,
         prompt_lookup_max=args.prompt_lookup_max,
+        algorithm=algorithm,
+        parallel_drafting=bool(args.parallel_drafting),
     )
 
 
@@ -216,6 +329,9 @@ def _api_key(args: argparse.Namespace) -> str | None:
 
 
 async def _run_one(args: argparse.Namespace) -> None:
+    extra = _metadata(args.metadata)
+    variant = _variant(args)
+    _require_eagle_provenance(variant.method, extra)
     prompts = load_prompts(args.workloads, args.workload)
     settings = CellSettings(
         workload=args.workload,
@@ -234,15 +350,18 @@ async def _run_one(args: argparse.Namespace) -> None:
             args.workloads,
             args.output,
             settings,
-            _variant(args),
+            variant,
             _metrics_url(args),
             args.model,
-            _metadata(args.metadata),
+            extra,
         )
     print(json.dumps(summary, indent=2))
 
 
 async def _run_matrix(args: argparse.Namespace) -> None:
+    extra = _metadata(args.metadata)
+    variant = _variant(args)
+    _require_eagle_provenance(variant.method, extra)
     all_prompts = load_prompts(args.workloads)
     workload_names = args.workload_names or available_workloads(all_prompts)
     async with StreamingChatClient(
@@ -269,10 +388,10 @@ async def _run_matrix(args: argparse.Namespace) -> None:
                             repeat=repeat,
                             generation=_generation(args),
                         ),
-                        _variant(args),
+                        variant,
                         _metrics_url(args),
                         args.model,
-                        _metadata(args.metadata),
+                        extra,
                     )
 
 
@@ -363,8 +482,49 @@ def main() -> None:
                 raise SystemExit(1)
         elif args.command == "analyze":
             rows = collect_rows(args.results)
-            add_speedups(rows)
+            add_speedups(rows, require_baseline=not args.allow_missing_baseline)
+            add_inferred_round_costs(rows)
             write_csv(rows, args.output)
             print(f"wrote {len(rows)} rows to {args.output}")
-    except (OSError, RuntimeError, ValueError) as error:
+        elif args.command == "break-even":
+            rows = collect_rows(args.results)
+            add_speedups(rows, require_baseline=False)
+            add_inferred_round_costs(rows)
+            report = break_even_report(
+                rows,
+                t0_variant=args.t0_variant,
+                spec_variant=args.spec_variant,
+                workload=args.workload,
+                concurrency=args.concurrency,
+            )
+            text = json.dumps(report, indent=2)
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(text + "\n")
+            print(text)
+        elif args.command == "diagnostics-env":
+            print(format_env_exports(args.config_id), end="")
+        elif args.command == "write-diagnostics-corpus":
+            print(json.dumps(write_corpus(args.output), indent=2))
+        elif args.command in {"start-profile", "stop-profile"}:
+            action = args.command.replace("-", "_")
+            headers = {}
+            api_key = _api_key(args)
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
+            url = f"{args.base_url.rstrip('/')}/{action}"
+            timeout = args.timeout_seconds
+            with httpx.Client(headers=headers, timeout=timeout) as client:
+                response = client.post(url)
+                response.raise_for_status()
+                print(response.text or json.dumps({"ok": True, "url": url}))
+        elif args.command == "validate-eagle-head":
+            report = validate_eagle_head(
+                args.head,
+                expected_algorithm=args.algorithm,
+                require_weights=not args.allow_config_only,
+                target_contract_path=args.contract,
+            )
+            print(json.dumps(report, indent=2))
+    except (OSError, RuntimeError, ValueError, EagleHeadError, httpx.HTTPError) as error:
         raise SystemExit(f"error: {error}") from error
