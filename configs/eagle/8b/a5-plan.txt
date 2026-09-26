@@ -1,0 +1,16 @@
+# A5 profile (depth 3, C=1, 32 prompts x 256 fixed tokens, ignore_eos)
+baseline profile p1
+eagle profile p1 3
+eagle profile p1 3 1
+# A5 screening block b1 (validation strata, natural EOS, C=1/8, 64 requests)
+baseline screen b1
+eagle screen b1 2
+eagle screen b1 3
+eagle screen b1 5
+eagle screen b1 8
+# block b2, reversed order
+eagle screen b2 8
+eagle screen b2 5
+eagle screen b2 3
+eagle screen b2 2
+baseline screen b2

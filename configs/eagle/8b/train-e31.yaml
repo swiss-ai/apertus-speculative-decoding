@@ -1,0 +1,50 @@
+# A3 pilot: EAGLE 3.1 head for Apertus-v1.5-8B on 1,000 target-regenerated
+# conversations, held-out acceptance on the disjoint 128-row validation split
+# every 100 optimizer steps, capped at 2,000 steps.
+# Driver: training/apertus_eagle/train_rollout.py (TorchSpec Eagle3Model).
+pipeline: rollout
+stage: 8b
+
+model:
+  contract: results/eagle/8b/preflight/compatibility.json
+  algorithm: eagle31
+  draft_model_config: configs/eagle/8b/draft-e31-config.json
+  # Seed from the target lm_head and freeze (TorchSpec freeze_lm_head path).
+  freeze_lm_head: true
+  # Export without embed_tokens: vLLM then shares the target's full input
+  # embedding, so prompts with literal multimodal tokens stay in range.
+  share_target_embedding: true
+
+dataset:
+  data_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b
+  source_splits: results/eagle/data
+  generate_splits: [overfit, validation, train]
+  extract_splits: [overfit, validation, train]
+  parity_split: overfit
+  train_cache: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/train
+  eval_cache: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/features/validation
+  max_seq_length: 4096
+
+training:
+  attention_backend: sdpa
+  loss_type: forward_kl
+  ttt_length: 7
+  micro_batch_size: 1
+  draft_accumulation_steps: 16
+  learning_rate: 1.0e-4
+  warmup_ratio: 0.015
+  max_grad_norm: 0.5
+  weight_decay: 0.0
+  lr_decay_style: cosine
+  min_lr: 0.0
+  gradient_checkpointing: false
+  num_train_steps: 2000
+  num_epochs: 40
+  eval_interval: 100
+  save_interval: 500
+  stop_after_evals_without_improvement: 3
+  seed: 1
+
+output_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs
+head_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads
+run_name: e31-pilot

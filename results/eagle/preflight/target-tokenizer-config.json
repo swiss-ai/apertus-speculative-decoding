@@ -1,0 +1,86 @@
+{
+  "add_prefix_space": false,
+  "added_tokens_count": 135368,
+  "audio_begin_token": [
+    131080
+  ],
+  "audio_end_token": [
+    131081
+  ],
+  "audio_token": "<|audio|>",
+  "audio_tokenizer": {
+    "codebook_size": 4096,
+    "type": "wavtokenizer"
+  },
+  "base_vocab_size": 131072,
+  "boa_token": "<|audio_start|>",
+  "boi_token": "<|img_start|>",
+  "bos_token": "<s>",
+  "clean_up_tokenization_spaces": false,
+  "eoa_token": "<|audio_end|>",
+  "eoi_token": "<|img_end|>",
+  "eol_token": "<|img_end_of_row|>",
+  "eos_token": "</s>",
+  "extra_special_tokens": {
+    "audio_token": "<|audio|>",
+    "boa_token": "<|audio_start|>",
+    "boi_token": "<|img_start|>",
+    "eoa_token": "<|audio_end|>",
+    "eoi_token": "<|img_end|>",
+    "eol_token": "<|img_end_of_row|>",
+    "image_token": "<|image|>",
+    "image_wrapper_token": "<|img_token_start|>"
+  },
+  "image_token": "<|image|>",
+  "image_wrapper_token": "<|img_token_start|>",
+  "model_input_names": [
+    "input_ids",
+    "attention_mask"
+  ],
+  "model_max_length": 1000000000000000019884624838656,
+  "omnimodal_config": {
+    "modalities": [
+      {
+        "end_token": 131074,
+        "name": "vision",
+        "offset": 131272,
+        "start_token": 131073,
+        "vocab_size": 131072
+      },
+      {
+        "end_token": 131081,
+        "name": "audio",
+        "offset": 262344,
+        "start_token": 131080,
+        "vocab_size": 4096
+      }
+    ],
+    "omni_special_token_offset": 131072
+  },
+  "pad_token": "<pad>",
+  "padding_side": "left",
+  "processor_class": "Apertus1p5Processor",
+  "sft_assistant_begin_sequence": [
+    67
+  ],
+  "sft_eot_token": [
+    68
+  ],
+  "sft_user_begin_sequence": [
+    65
+  ],
+  "tokenizer_class": "PreTrainedTokenizerFast",
+  "unk_token": "<unk>",
+  "vision_begin_token": [
+    131073
+  ],
+  "vision_end_token": [
+    131074
+  ],
+  "vision_tokenizer": {
+    "codebook_size": 131072,
+    "path": "/capstor/store/cscs/swissai/infra01/MLLM/tokenizer/Emu3.5-VisionTokenizer",
+    "type": "Emu3.5"
+  },
+  "vocab_size": 131072
+}

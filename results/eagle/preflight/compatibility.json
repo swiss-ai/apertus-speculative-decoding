@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-19T08:45:00Z",
+  "status": "contract_recorded_gpu_probe_blocked",
+  "source": {
+    "authorized_checkpoint": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B",
+    "hf_id": "swiss-ai/Apertus-v1.5-70B",
+    "ungated_mirror_used_only_as_cross_check": "cpral/Apertus-V1.5-70B-ungated",
+    "config_sha256": "fdc3e1d6c2bd2829d31910c002be742c4baada8f86a90c758b8d844b69b9aa96",
+    "tokenizer_json_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "tokenizer_json_bytes": 44028400,
+    "tokenizer_config_sha256": "43cdc9d1f25c45ae88cd4ee6509ec63a8088a19af1dc7300d13b874a626de871",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "generation_config_sha256": "9131f56adebe0d591ba8ddc2d18d18edaf762a1ebce6750b24319c86b1d7d6d5",
+    "weight_index_sha256": "0a37fd2455d4f0a77aebd96039074612247a391eab82c1253abbfc995e1054e3",
+    "special_tokens_map_sha256": "358c249e2fb29060c6b73157d428853b0c48710deffc8ee670ab1013880946c9",
+    "weight_total_size_bytes": 144600566796,
+    "weight_tensor_count": 1596
+  },
+  "target": {
+    "architecture": "Apertus1p5ForConditionalGeneration",
+    "model_type": "apertus1p5",
+    "precision": "bfloat16",
+    "precision_source": "text_config.dtype in Capstor config.json plus lm_head/embed/norm safetensors headers (BF16). Not inferred from a path name.",
+    "quantization": null,
+    "text": {
+      "model_type": "apertus1p5_text",
+      "hidden_size": 8192,
+      "intermediate_size": 43008,
+      "num_hidden_layers": 80,
+      "num_attention_heads": 64,
+      "num_key_value_heads": 8,
+      "head_dim": 128,
+      "head_dim_source": "derived as hidden_size / num_attention_heads; not a config field",
+      "vocab_size": 266752,
+      "output_vocab_size": 131072,
+      "rms_norm_eps": 1e-05,
+      "hidden_act": "xielu",
+      "qk_norm": true,
+      "post_norm": false,
+      "mlp_bias": false,
+      "attention_bias": false,
+      "tie_word_embeddings": false,
+      "max_position_embeddings": 262144,
+      "rope_parameters": {
+        "rope_type": "llama3",
+        "rope_theta": 4000000,
+        "factor": 32.0,
+        "original_max_position_embeddings": 8192,
+        "low_freq_factor": 1.0,
+        "high_freq_factor": 4.0
+      }
+    },
+    "tensors": {
+      "embed_tokens": {
+        "key": "model.language_model.embed_tokens.weight",
+        "shape": [266752, 8192],
+        "dtype": "BF16",
+        "file": "model-apertus-model-00003-of-00003.safetensors"
+      },
+      "final_norm": {
+        "key": "model.language_model.norm.weight",
+        "shape": [8192],
+        "dtype": "BF16",
+        "file": "model-apertus-model-00002-of-00003.safetensors"
+      },
+      "lm_head": {
+        "key": "lm_head.weight",
+        "shape": [131072, 8192],
+        "dtype": "BF16",
+        "file": "model-apertus-model-00002-of-00003.safetensors",
+        "note": "Physically limited to text output rows. Serving pads logits to input vocab_size=266752 with -inf."
+      },
+      "decoder_weight_prefixes": {
+        "q_proj": "model.language_model.layers.{i}.self_attn.q_proj.weight",
+        "k_proj": "model.language_model.layers.{i}.self_attn.k_proj.weight",
+        "v_proj": "model.language_model.layers.{i}.self_attn.v_proj.weight",
+        "o_proj": "model.language_model.layers.{i}.self_attn.o_proj.weight",
+        "q_norm": "model.language_model.layers.{i}.self_attn.q_norm.weight",
+        "k_norm": "model.language_model.layers.{i}.self_attn.k_norm.weight",
+        "up_proj": "model.language_model.layers.{i}.mlp.up_proj.weight",
+        "down_proj": "model.language_model.layers.{i}.mlp.down_proj.weight",
+        "act_fn": "model.language_model.layers.{i}.mlp.act_fn.{alpha_n,alpha_p,beta,eps}",
+        "attention_layernorm": "model.language_model.layers.{i}.attention_layernorm.weight",
+        "feedforward_layernorm": "model.language_model.layers.{i}.feedforward_layernorm.weight",
+        "note": "Apertus MLP is xIELU (up/down only). There is no gate_proj. The EAGLE head is still Llama-style SwiGLU."
+      },
+      "allow_patterns_overrides": ["model-apertus-model-*.safetensors"]
+    },
+    "tokens": {
+      "bos_token": "<s>",
+      "bos_token_id": 1,
+      "eos_token": "</s>",
+      "eos_token_id": [2, 68, 72],
+      "eos_token_id_meanings": {
+        "2": "</s>",
+        "68": "<|assistant_end|>",
+        "72": "<|tools_suffix|>"
+      },
+      "pad_token": "<pad>",
+      "pad_token_id": 3,
+      "unk_token": "<unk>",
+      "user_start_id": 65,
+      "user_end_id": 66,
+      "assistant_start_id": 67,
+      "assistant_end_id": 68,
+      "think_start_id": 69,
+      "think_end_id": 70,
+      "sft_user_begin_sequence": [65],
+      "sft_assistant_begin_sequence": [67],
+      "sft_eot_token": [68],
+      "image_token_id": 131079,
+      "audio_token_id": 131085,
+      "image_token_offset": 131272,
+      "audio_token_offset": 262344,
+      "base_vocab_size": 131072,
+      "chat_template_owns_bos": true,
+      "serving_add_special_tokens": false
+    },
+    "eagle": {
+      "supports_eagle": true,
+      "supports_eagle3": true,
+      "engine_method": "eagle3",
+      "default_aux_hidden_state_layer_ids": [2, 40, 77],
+      "indexing_convention": "EagleModelMixin on ApertusModel: index 0 is the post-embedding residual stream; index k is after decoder layer k-1 (0-based). Aux values are hidden_states+residual (residual included). Final RMSNorm is applied after the layer loop and is not part of the aux tuple.",
+      "captured_features_include_residual": true,
+      "captured_features_include_final_norm": false,
+      "torchspec_hf_default_aux_layers_80": [1, 39, 76],
+      "torchspec_vllm_putative_correspondence": "TorchSpec decoder-layer indices [1,39,76] would match vLLM mixin indices (2,40,77) if TorchSpec is 0-based decoder-layer numbering. Unproven until T3.",
+      "runtime_aux_layer_access_bug": "pinned SupportsEagle3 requires parent_ref.model; Apertus1p5 get_language_model() returns the mixin itself. Patch: patches/vllm-apertus-eagle3-aux-layers.patch",
+      "image_token_index_bug": "llm_base_proposer.py reads image_token_index; Apertus1p5Config has image_token_id. Historical draft_model failure. EAGLE uses the same proposer; apply patches/vllm-apertus-image-token.patch on first EAGLE launch.",
+      "draft_head_architecture": "single-layer LlamaForCausalLMEagle3, target-aligned hidden/attention dims, full text output vocabulary",
+      "draft_hidden_size": 8192,
+      "draft_intermediate_size_initial": 28672,
+      "draft_intermediate_size_note": "Llama-3-70B SwiGLU width. Not Apertus xIELU 43008. Count actual parameters after export; do not advertise a fixed 200M head.",
+      "draft_parameter_count_from_template_e31": {
+        "total": 3288391680,
+        "excluding_embed_and_lm_head": 1140908032,
+        "embed_and_lm_head": 2147483648,
+        "note": "Architecture template only; not a trained checkpoint. Unique draft compute is ~1.14B parameters if embed/lm_head are shared."
+      },
+      "torchspec_aux_hidden_states_layers": [1, 39, 76],
+      "torchspec_vllm_engine_shift": "vllm_engine adds +1, sending mixin ids (2, 40, 77) that match the serving default.",
+      "fc_norm_eagle31": true,
+      "norm_output_eagle31": true
+    }
+  },
+  "internal_70b_head": {
+    "found": false,
+    "searched": [
+      "/capstor/store/cscs/swissai/infra01 (find -maxdepth 4 -iname *eagle*)"
+    ],
+    "non_matches": [
+      "Mistral-Medium-3.5-128B-EAGLE",
+      "OpenVid eagle videos",
+      "NVEagle LocateAnything vision data"
+    ],
+    "forbidden_substitute": "thomaskiefer/EAGLE3-Apertus-8B-Instruct-2509"
+  },
+  "gpu_probe": {
+    "status": "blocked",
+    "missing": "allocated Clariden compute job using the pinned image plus both overlays; tiny EAGLE feature-shape probe across TP=4",
+    "independent_work_that_can_continue": ["T1", "T3 scaffolding and tokenizer/renderer unit tests"]
+  }
+}
