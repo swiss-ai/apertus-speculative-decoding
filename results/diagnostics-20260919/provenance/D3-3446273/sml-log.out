@@ -1,0 +1,12 @@
+{"user":"faruk_zahiragic","job_id":"3446273","slurm_nodes":1,"slurm_job_name":"sml_faruk_zahiragic_swiss-ai_Apertus-v1.5-70B-diag-D3-faruk_zahiragic-20260919T191804Z_xijOToAg","slurm_partition":"debug","slurm_time":"01:20:00","slurm_account":"infra01","slurm_environment":"/users/faruk_zahiragic/.sml/env_resolved_arm64_tBdGbc.toml","interactive":false,"serving_framework":"vllm","framework_args":"--port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B     --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-diag-D3-faruk_zahiragic-20260919T191804Z     --chat-template-content-format string     --tensor-parallel-size 4     --gpu-memory-utilization 0.8     --max-model-len 131072     --enable-auto-tool-choice     --tool-call-parser apertus     --speculative-config.method draft_model     --speculative-config.model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B     --speculative-config.num_speculative_tokens 3     --speculative-config.draft_tensor_parallel_size 4     --compilation-config.pass_config.fuse_allreduce_rms false     --no-enable-prefix-caching --no-async-scheduling --max-num-batched-tokens 8192","pre_launch_cmds":"","model_name":"faruk_zahiragic/swiss-ai/Apertus-v1.5-70B-diag-D3-faruk_zahiragic-20260919T191804Z","model_path":null,"tp_size":null,"host":null,"port":null,"workers":1,"nodes_per_worker":null,"worker_port":5000,"use_router":false,"router_environment":"/users/faruk_zahiragic/.sml/env_resolved_arm64_tBdGbc.toml","router_port":30000,"router_args":"","ocf_enabled":true,"ocf_bootstrap_addr":"/ip4/148.187.108.178/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9","ocf_service_name":"llm","ocf_service_port":8080,"extra":null,"raw_command":null,"id":"ba017679-c108-479c-abd2-b7cc3960d0d9","created_at":"2026-09-19T19:18:21.123930Z"}Running on ARM64 (aarch64)
+Total nodes allocated: 1
+Node 0: nid007129
+Replica 0 head IP: 172.28.39.148
+All replica URLs: http://172.28.39.148:8080
+Replica health checker started (pid 164312) -> logs/3446273/replica_health.json
+
+To connect to the host node:
+srun --jobid 3446273 -w nid007129 --overlap --pty bash
+
+Make sure to cancel the job at the end:
+scancel 3446273
