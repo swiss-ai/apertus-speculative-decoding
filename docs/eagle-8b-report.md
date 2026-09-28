@@ -1,7 +1,6 @@
 # EAGLE 3.1 for Apertus 1.5 8B: Stage A report
 
-Status: draft, 2026-09-25. Sections marked **pending** are filled once the A5
-screen of the 10k head and the A6 confirmation finish. Full chronology, job ids
+Status: Stage A complete, 2026-09-29 (A6 confirmation ran 2026-09-26). Full chronology, job ids
 and raw numbers: [eagle-progress.md](eagle-progress.md). Plan:
 [eagle-execution-plan.md](eagle-execution-plan.md).
 
@@ -15,9 +14,10 @@ and raw numbers: [eagle-progress.md](eagle-progress.md). Plan:
   near-ties (every measured divergence has a forced-prefix log-probability
   margin <= 0.25). Two independent serving load/restart cycles are clean.
 - Current head: `e31-mix10k-3515343-se` (9,909 target-regenerated conversations,
-  chat 40 / code 30 / summarization 30, 3 epochs). Screening: 1.37x geometric-mean
-  TPOT speedup at depth 2 (code ~1.8–1.9x, chat/summary ~1.15–1.26x).
-  **Pending:** A6 confirmation on the untouched test strata.
+  chat 40 / code 30 / summarization 30, 3 epochs). **Confirmed on the untouched
+  test strata: 1.40x geometric-mean TPOT speedup at depth 2** (three independent
+  deployments: 1.402 / 1.399 / 1.397), 1.39x at depth 3. Code 1.83–1.95x,
+  chat 1.20x, summarization 1.16–1.26x. Every cell is faster than plain.
 - A 1k-conversation head already gives 1.20x geometric-mean TPOT speedup at
   depth 2 on the validation strata (code ~1.6x, chat and summarization
   ~1.04–1.08x).
@@ -115,10 +115,54 @@ Depth 8 was omitted (0.91x in the 1k-head screen). By stratum at depth 2:
 code 1.76–1.90x (acceptance 61%, median E2E 0.54–0.60x), summarization
 1.16–1.26x, chat 1.14–1.19x. Selected for confirmation: depths 2 and 3.
 
-### Confirmation (A6)
+### Confirmation (A6, test strata, head `e31-mix10k-3515343-se`)
 
-**Pending**: 3 independent deployments each of plain, depth 2 and depth 3 on the
-untouched test strata (started 2026-09-26 12:57 UTC).
+Three independent deployments each of plain, depth 2 and depth 3, blocks c1–c3,
+rotated order, 128 untouched test prompts per stratum, C = 1 and 8, greedy.
+36 EAGLE cells, success 100% everywhere. Raw cells: `results/8b/eagle/confirm/`;
+report: `results/8b/eagle/confirm-report.json` (`apertus_eagle.a6_report`).
+
+Geometric-mean TPOT speedup against the same-block plain deployment:
+
+| depth | all | c1 / c2 / c3 | C=1 | C=8 | worst cell | tokens/round g |
+| --- | --- | --- | --- | --- | --- | --- |
+| **2** | **1.400** | 1.402 / 1.399 / 1.397 | 1.437 | 1.364 | 1.147 | 1.75 |
+| 3 | 1.389 | 1.392 / 1.388 / 1.386 | 1.421 | 1.356 | 1.098 | 1.90 |
+
+Per stratum (range over the three blocks):
+
+| depth | stratum | C=1 | C=8 | acceptance by position | E2E p50 ratio |
+| --- | --- | --- | --- | --- | --- |
+| 2 | code | 1.95–1.95 | 1.81–1.84 | 0.75, 0.54 | 0.57–0.59 |
+| 2 | chat | 1.20–1.22 | 1.19–1.20 | 0.34, 0.10 | 0.79–0.81 |
+| 2 | summarization | 1.26–1.26 | 1.15–1.17 | 0.39, 0.14 | 0.82–0.84 |
+| 3 | code | 2.09–2.11 | 1.96–1.99 | 0.74, 0.53, 0.39 | 0.54–0.56 |
+| 3 | chat | 1.14–1.15 | 1.13–1.15 | 0.34, 0.10, 0.03 | 0.83–0.84 |
+| 3 | summarization | 1.19–1.20 | 1.10–1.13 | 0.39, 0.14, 0.04 | 0.85–0.87 |
+
+- Depth 2 is the recommended setting: best overall and best worst cell. Depth 3
+  wins only on code.
+- Repeat effects are tight (spread <= 0.01 overall), so the three deployments
+  agree; this is an engineering check, not a population-level interval.
+- TTFT p50 rises 0–31% at C=1 (the draft adds prefill work); TPOT p95 ratio
+  0.61–1.09.
+- Memory: model load 17.78 GiB vs 17.23 GiB plain; KV capacity 438,784 vs
+  466,144 tokens (-5.9%).
+- Output lengths and finish reasons match plain per stratum (e.g. chat mean 190
+  tokens in every arm). 56% of chat responses hit the output cap in every arm.
+- Greedy agreement at C=1, per prompt: EAGLE vs its same-block plain deployment
+  79% chat / 91% code / 75% summarization (depth 2), against a control of plain
+  vs plain across deployments of 65% / 86% / 52%. EAGLE output differs from
+  plain no more than one plain relaunch differs from another, so the divergences
+  are deployment numerics (fresh compile per deployment), not the draft. This
+  also explains the one A5 depth-2 deployment (b6) that diverged more than its
+  siblings.
+
+**Transfer decision:** Stage A gates pass (target-aligned head trains, exports
+bit-exactly, serves reproducibly, acceptance and cost are interpretable, and a
+consistent win). Proceed to Stage B (70B) when allocation allows, reusing this
+pipeline. Before that, the DSpark comparison retrains the 8B head on the shared
+corpus (see Limits).
 
 Profile (depth 3, C=1, 256 fixed tokens, ignore_eos): plain t0 = 5.76 ms;
 EAGLE round cost ≈ 7.5 ms ≈ 1.31 t0, so break-even needs g >= 1.31.
@@ -146,3 +190,8 @@ EAGLE round cost ≈ 7.5 ms ≈ 1.31 t0, so break-even needs g >= 1.31.
   acceptance was still rising at the end of 3 epochs.
 - Greedy equality is not bitwise between compilations (bf16 near-ties).
 - Every job holds an exclusive 4-GPU node while using one GPU.
+- The benchmark client and campaign driver ran on a login node against the
+  replica; later campaigns should run the client inside a compute allocation.
+- Not yet comparable to DSpark: that head is trained on
+  `mlabonne/open-perfectblend`; an apples-to-apples run retrains EAGLE on the
+  same corpus and token budget.

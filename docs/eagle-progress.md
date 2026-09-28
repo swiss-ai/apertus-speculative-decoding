@@ -40,7 +40,7 @@ Updated 2026-09-24 10:25 UTC. Cluster access: `ssh clx` (multiplexed alias for
 | A1 retarget scaffolding | Done; 84 local tests pass. | See A1 below. |
 | A2 data and parity | **Pass.** Job 3505554 (debug, 52:40, FAILED 1:0 only at the pooled parity gate, corrected below). | `results/eagle/8b/data/`, `results/eagle/8b/preflight/{hf-parity,feature-parity}.json`, `results/eagle/8b/data/split-overlap.json`. |
 | A3 train/export | Overfit **pass** (3508056). Pilot trained (3508057, gates pass); export check rerun with verify in **3509300**. | `results/eagle/8b/runs/`, `results/eagle/8b/heads/`. Job 3505427 was cancelled while held: its sbatch predates the vLLM overlays that `verify` needs. |
-| A4–A6 | Not started. | Need a reloadable 8B head. |
+| A4–A6 | **Done** (A6 2026-09-26). | Stage A report: `docs/eagle-8b-report.md`; A6 entry below. |
 
 Last 70B record: tiny-overfit **3492049** FAILED 1:0 after 00:37:53 on nid006905
 (2026-09-23 11:41–12:19 UTC). It is `overfit_direct` exiting 1 because the one-step
@@ -480,6 +480,20 @@ started 2026-09-26 12:57 UTC from ln001 (`STAGEA_LOCK` override).
 
 Colleague data: `/capstor/scratch/cscs/zyu` is `drwxr-x--- 30628:sm94`; reading
 `spec/` from this account gives `Permission denied`.
+
+### A6 confirmation (blocks c1–c3, 2026-09-26 12:57–14:58 UTC)
+
+Plan `methods/eagle/configs/8b/a6-plan-confirm.txt`, head `e31-mix10k-3515343-se`,
+9 debug deployments, all `status=ok`, success 100%. Driver ran from the old-layout
+checkout `~/apertus-bench-repo`; cells copied to `results/8b/eagle/confirm/`.
+
+- Depth 2: 1.400x geometric-mean TPOT speedup (c1 1.402, c2 1.399, c3 1.397),
+  C=1 1.437, C=8 1.364, worst cell 1.147 (summarization C=8), g 1.75.
+- Depth 3: 1.389x (1.392 / 1.388 / 1.386), worst cell 1.098, g 1.90.
+- Greedy agreement at C=1 (EAGLE vs same-block plain, depth 2): 304/384 chat,
+  349/384 code, 288/384 summarization; plain vs plain across blocks 248, 332,
+  198 of 384. Divergence is deployment numerics, not the draft.
+- Selected depth 2. Report: `results/8b/eagle/confirm-report.json`.
 
 ### A5 inputs
 
