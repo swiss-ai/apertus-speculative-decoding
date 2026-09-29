@@ -284,13 +284,17 @@ class RolloutTrainer:
         longest = int(cfg["dataset"].get("max_seq_length", 4096))
         self.micro_batch_square = longest * longest
         # gradient_checkpointing: true | false | "adaptive". Adaptive recomputes a
-        # micro-batch's rollout activations only when its attention cost
-        # (rows x width^2) exceeds one checkpoint_free_width row, which fits
-        # without recomputation (8,192-token rows do not: job 3543880).
+        # micro-batch's rollout activations unless it lies inside the envelope
+        # measured to fit without recomputation (job 3543130): at most
+        # checkpoint_free_tokens padded tokens and at most one
+        # checkpoint_free_width row's attention cost (rows x width^2). Attention
+        # alone is not enough: 16k-token groups of short rows ran out of memory
+        # (3544207), and 8,192-token rows do too (3543880).
         mode = train.get("gradient_checkpointing", False)
         self.adaptive_checkpointing = mode == "adaptive"
         free = int(train.get("checkpoint_free_width") or 4096)
         self.checkpoint_free_square = free * free
+        self.checkpoint_free_tokens = int(train.get("checkpoint_free_tokens") or 8192)
         self.max_steps = int(train["num_train_steps"])
         self.weights = [0.8**i for i in range(self.ttt_length)]
         self.weight_sum = sum(self.weights)
@@ -637,8 +641,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 batch = build_padded_batch(micro, trainer.device)
                 if trainer.adaptive_checkpointing:
                     rows, width = batch["input_ids"].shape
-                    cost = rows * width * width
-                    trainer.model.gradient_checkpointing = cost > trainer.checkpoint_free_square
+                    trainer.model.gradient_checkpointing = (
+                        rows * width > trainer.checkpoint_free_tokens
+                        or rows * width * width > trainer.checkpoint_free_square
+                    )
                     checkpointed_batches += int(trainer.model.gradient_checkpointing)
                 step_tokens += sum(int(r["input_ids"].numel()) for r in micro)
                 plosses, vlosses, acces, acc_counts, _alphas = trainer.forward(batch)
