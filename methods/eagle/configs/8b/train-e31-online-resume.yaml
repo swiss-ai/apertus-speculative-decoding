@@ -1,0 +1,61 @@
+# Resume test: same as train-e31-online-dp4-mb (job 3543030), stopped at step 100 by
+# EAGLE_STOP_AFTER_STEPS and continued by a second job with the same run id. Replays the e31-mix10k run (same generated rows,
+# recipe and seed) but computes target features on the training GPU instead of
+# reading the disk cache. Its first 200 steps should track the cached run's
+# history (results/8b/eagle/runs/e31-mix10k-3515343/history.json) and it
+# measures online throughput. Driver: train_rollout with dataset.features=online.
+pipeline: rollout
+stage: 8b
+
+model:
+  contract: targets/8b/contract.json
+  algorithm: eagle31
+  draft_model_config: methods/eagle/configs/8b/draft-e31-config.json
+  freeze_lm_head: true
+  share_target_embedding: true
+
+dataset:
+  features: online
+  data_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-online-resume
+  train_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/train.jsonl]
+  eval_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/validation.jsonl]
+  max_seq_length: 4096
+  # One padded target forward per group of up to 32k tokens (sorted by length).
+  teacher_batch_tokens: 32768
+  # Online records must equal the cache the 10k head was trained on.
+  online_check:
+    cache: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/features/validation
+    rows: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/validation.jsonl
+    samples: 32
+
+training:
+  attention_backend: sdpa
+  loss_type: forward_kl
+  ttt_length: 7
+  micro_batch_size: 1
+  # Per rank; 4 ranks x 4 = the recipe's 16 sequences per optimizer step.
+  draft_accumulation_steps: 4
+  data_parallel: 4
+  # Sequences of a step sorted by length into right-padded rows of up to 8k tokens.
+  micro_batch_tokens: 8192
+  learning_rate: 1.0e-4
+  warmup_ratio: 0.015
+  max_grad_norm: 0.5
+  weight_decay: 0.0
+  lr_decay_style: cosine
+  min_lr: 0.0
+  gradient_checkpointing: false
+  num_train_steps: 200
+  # Same schedule length as e31-mix10k, so step-for-step learning rates match.
+  lr_total_steps: 1875
+  num_epochs: 3
+  eval_interval: 100
+  save_interval: 0
+  # Resumable checkpoint (weights, fp32 masters, optimizer, data position) every 50 steps.
+  resume_interval: 50
+  stop_after_evals_without_improvement: 0
+  seed: 1
+
+output_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs
+head_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads
+run_name: e31-online-resume

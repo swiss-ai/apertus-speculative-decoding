@@ -214,7 +214,12 @@ def main(argv: list[str] | None = None) -> None:
             str(results / "preflight" / f"online-check-{run_name}.json"),
         )
 
-    if "train" in steps:
+    trained = (run_dir / "train-summary.json").is_file()
+    if "train" in steps and trained:
+        log("skip train: run finished in an earlier job", run_dir=str(run_dir))
+        gates = json.loads((run_dir / "train-summary.json").read_text())["gates"]
+        gates_failed = gates_failed or not all(gates.values())
+    elif "train" in steps:
         # training.data_parallel > 1: one torchrun rank per GPU in CUDA_VISIBLE_DEVICES.
         ranks = int(cfg["training"].get("data_parallel") or 1)
         launcher = [sys.executable, "-m"]
@@ -241,6 +246,12 @@ def main(argv: list[str] | None = None) -> None:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(source.read_text())
         log("train finished", rc=rc, run_dir=str(run_dir))
+        if rc == 4:
+            # Stopped before the job's time limit with checkpoints/resume saved.
+            # Later steps need the finished head; a follow-up job with the same
+            # --run-id resumes training and then runs them.
+            log("training incomplete; resubmit with the same run id", run_id=args.run_id)
+            return
         if rc not in (0, 3):
             raise SystemExit(f"train_rollout failed rc={rc}")
         if rc == 3:

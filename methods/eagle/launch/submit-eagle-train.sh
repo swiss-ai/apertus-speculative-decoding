@@ -25,6 +25,11 @@ CUDA_DEVICES="${EAGLE_CUDA_DEVICES:-0}"
 STEPS="${EAGLE_STEPS:-}"
 RUN_ID="${EAGLE_RUN_ID:-}"
 EXCLUDE_NODES="${EAGLE_TRAIN_EXCLUDE:-nid007129}"
+# EAGLE_CHAIN=N queues N jobs, each starting after the previous one ends, all with
+# the same run id: a job near its time limit saves checkpoints/resume and the next
+# one continues (train_rollout exit status 4). Needs EAGLE_RUN_ID or sets one.
+CHAIN="${EAGLE_CHAIN:-1}"
+if [ "${CHAIN}" -gt 1 ] && [ -z "${RUN_ID}" ]; then RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"; fi
 # e.g. EAGLE_DEPENDENCY=afterok:3505554 so a stage starts only after its gate job passed.
 DEPENDENCY="${EAGLE_DEPENDENCY:-}"
 STAGE="$(sed -n 's/^stage: *\([^ #]*\).*/\1/p' "${CONFIG_ABS}" | head -1)"
@@ -98,6 +103,9 @@ export EAGLE_TRAIN_CONFIG=${CONFIG_ABS}
 export EAGLE_CUDA_DEVICES=${CUDA_DEVICES}
 export EAGLE_STEPS=${STEPS}
 export EAGLE_RUN_ID=${RUN_ID}
+# Wall-clock deadline for train_rollout (it stops, saves and exits 4 before this).
+limit_s=\$(echo "${TIME_LIMIT}" | awk -F: '{ if (NF == 3) print \$1 * 3600 + \$2 * 60 + \$3; else print \$1 * 60 + \$2 }')
+export EAGLE_STOP_AT=\$(( \$(date +%s) + limit_s ))
 export TORCHSPEC_ROOT=${REPO_ROOT}/scratch/TorchSpec
 export EAGLE_PYDEPS=${REPO_ROOT}/scratch/pydeps
 export HF_HOME=/iopsstor/scratch/cscs/\${USER}/hf_home
@@ -118,4 +126,10 @@ if [ "${EAGLE_SUBMIT_DRY_RUN:-0}" = "1" ]; then
   echo "dry run; not submitting"
   exit 0
 fi
-sbatch "${SBATCH_FILE}"
+previous=""
+for link in $(seq 1 "${CHAIN}"); do
+  after="${DEPENDENCY}"
+  if [ -n "${previous}" ]; then after="afterany:${previous}"; fi
+  previous="$(sbatch --parsable ${after:+--dependency=${after}} "${SBATCH_FILE}")"
+  echo "Submitted batch job ${previous} (chain ${link}/${CHAIN}, run id ${RUN_ID:-per-job})"
+done

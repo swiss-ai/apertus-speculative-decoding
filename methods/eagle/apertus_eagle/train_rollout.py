@@ -88,6 +88,10 @@ class Ranks:
         dist.all_reduce(tensor)
         return float(tensor.item())
 
+    def any(self, flag: bool) -> bool:
+        """True on every rank if it is true on any rank (agreed stop decisions)."""
+        return self.total(1.0 if flag else 0.0) > 0
+
     def gather(self, items: list[Any]) -> list[Any]:
         if self.world == 1:
             return items
@@ -446,25 +450,64 @@ class RolloutTrainer:
         self.model.train()
         return self.metrics(self.ranks.gather(stats))
 
-    def save_checkpoint(self, tag: str, extra: dict[str, Any]) -> Path:
+    def save_checkpoint(self, tag: str, extra: dict[str, Any], *, resumable: bool = False) -> Path:
+        """Write ``checkpoints/<tag>`` atomically (a crash never leaves a partial one).
+
+        ``resumable`` also stores the fp32 master weights: the draft's own
+        weights are bf16, and restarting from them would perturb training.
+        """
+        import shutil
+
         import torch
         from safetensors.torch import save_file
 
         directory = self.output / "checkpoints" / tag
         if not self.ranks.main:
             return directory
-        directory.mkdir(parents=True, exist_ok=True)
+        staging = directory.with_name(tag + ".tmp")
+        shutil.rmtree(staging, ignore_errors=True)
+        staging.mkdir(parents=True)
         state = {k: v.detach().cpu().contiguous() for k, v in self.draft.state_dict().items()}
-        save_file(state, str(directory / "draft.safetensors"))
+        save_file(state, str(staging / "draft.safetensors"))
         torch.save(
             {
                 "optimizer": self.optimizer.state_dict(),
                 "scheduler": self.optimizer.lr_scheduler.state_dict(),
             },
-            directory / "optimizer.pt",
+            staging / "optimizer.pt",
         )
-        (directory / "state.json").write_text(json.dumps(extra, indent=2) + "\n")
+        if resumable:
+            master = [p.detach().cpu() for p in self.optimizer.fp32_params]
+            torch.save(master, staging / "master.pt")
+        (staging / "state.json").write_text(json.dumps(extra, indent=2) + "\n")
+        previous = directory.with_name(tag + ".old")
+        shutil.rmtree(previous, ignore_errors=True)
+        if directory.exists():
+            directory.rename(previous)
+        staging.rename(directory)
+        shutil.rmtree(previous, ignore_errors=True)
         return directory
+
+    def load_resumable(self, directory: Path) -> dict[str, Any]:
+        """Restore weights, fp32 masters, optimizer and schedule from a resumable checkpoint."""
+        import torch
+        from safetensors.torch import load_file
+
+        self.draft.load_state_dict(load_file(str(directory / "draft.safetensors"), device="cpu"))
+        master = torch.load(directory / "master.pt", map_location="cpu")
+        state = torch.load(directory / "optimizer.pt", map_location="cpu", weights_only=False)
+        with torch.no_grad():
+            if len(master) != len(self.optimizer.fp32_params):
+                raise SystemExit(f"{directory}: master weights do not match the draft")
+            for target, source in zip(self.optimizer.fp32_params, master, strict=True):
+                target.copy_(source.to(target.device))
+            for param, source in zip(
+                self.optimizer.model_params, self.optimizer.fp32_params, strict=True
+            ):
+                param.copy_(source)
+        self.optimizer.load_state_dict(state["optimizer"])
+        self.optimizer.lr_scheduler.load_state_dict(state["scheduler"])
+        return json.loads((directory / "state.json").read_text())
 
 
 def iter_records(cache: Any, order: list[int], group: int):
@@ -601,24 +644,83 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
     history: list[dict[str, Any]] = []
     evals: list[dict[str, Any]] = []
-    initial = trainer.evaluate(eval_cache)
-    evals.append({"step": 0, **initial})
-    print(json.dumps({"eval": evals[-1]}), flush=True)
-    best = initial["simulated_acc_len"]
-    best_step = 0
-    evals_without_improvement = 0
-    non_finite = 0
     rng = random.Random(int(train["seed"]))
-    step = 0
-    epoch = 0
     started = time.time()
-    tokens_seen = 0
     step_tokens = 0
-    checkpointed_batches = 0
     stop_reason = "max_steps"
+    # Resumable state: everything the loop needs to continue at the same step.
+    resume_interval = int(train.get("resume_interval") or 0)
+    resume_dir = output / "checkpoints" / "resume"
+    history_path = output / "history.jsonl"
+    stop_at = float(os.environ.get("EAGLE_STOP_AT") or 0)  # epoch seconds, set by the job
+    stop_after = int(os.environ.get("EAGLE_STOP_AFTER_STEPS") or 0)  # test hook
+    # Seconds reserved before stop_at for one more step and the checkpoint write.
+    stop_margin = float(train.get("stop_margin_s") or 300)
+    if (resume_dir / "state.json").is_file():
+        loop = trainer.load_resumable(resume_dir)
+        evals = loop["evals"]
+        if history_path.is_file():
+            history = [
+                json.loads(line)
+                for line in history_path.read_text().splitlines()
+                if line.strip() and json.loads(line)["step"] <= loop["step"]
+            ]
+        print(json.dumps({"resumed": {k: v for k, v in loop.items() if k != "evals"}}), flush=True)
+    else:
+        initial = trainer.evaluate(eval_cache)
+        evals.append({"step": 0, **initial})
+        print(json.dumps({"eval": evals[-1]}), flush=True)
+        loop = {
+            "step": 0,
+            "epoch": 0,
+            "steps_in_epoch": 0,
+            "best": initial["simulated_acc_len"],
+            "best_step": 0,
+            "evals_without_improvement": 0,
+            "non_finite": 0,
+            "tokens_seen": 0,
+            "checkpointed_batches": 0,
+            "elapsed_before_s": 0.0,
+            "jobs": [],
+        }
+    loop["jobs"].append({"slurm_job_id": os.environ.get("SLURM_JOB_ID"), "from_step": loop["step"]})
+    if ranks.main:
+        # Rewrite without steps past the checkpoint (a crashed job may have logged some).
+        history_path.write_text("".join(json.dumps(h) + "\n" for h in history))
+    step = loop["step"]
+    epoch = loop["epoch"]
+    best = loop["best"]
+    best_step = loop["best_step"]
+    evals_without_improvement = loop["evals_without_improvement"]
+    non_finite = loop["non_finite"]
+    tokens_seen = loop["tokens_seen"]
+    checkpointed_batches = loop["checkpointed_batches"]
+    skip_steps = loop["steps_in_epoch"]
+    steps_in_epoch = skip_steps
+    elapsed_before = float(loop["elapsed_before_s"])  # wall time of earlier jobs
+    tokens_before = tokens_seen  # throughput below is this job's own
+
+    def save_resume() -> None:
+        loop.update(
+            step=step,
+            epoch=epoch,
+            steps_in_epoch=steps_in_epoch,
+            best=best,
+            best_step=best_step,
+            evals_without_improvement=evals_without_improvement,
+            non_finite=non_finite,
+            tokens_seen=tokens_seen,
+            checkpointed_batches=checkpointed_batches,
+            elapsed_before_s=elapsed_before + (time.time() - started),
+            evals=evals,
+        )
+        trainer.save_checkpoint("resume", loop, resumable=True)
+
     probe = _probe_param(trainer.draft)
     window: list[tuple[list, list, list]] = []
     trainer.model.train()
+    for _ in range(epoch):  # replay earlier epochs' shuffles so the order matches
+        rng.shuffle(list(range(len(train_cache))))
     while step < trainer.max_steps:
         if epoch >= max_epochs:
             stop_reason = "max_epochs"
@@ -630,6 +732,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         group = trainer.accum * ranks.world
         order = order[: len(order) - len(order) % group] or order
         order = order[ranks.rank :: ranks.world]
+        # Resuming mid-epoch: skip the sequences of the steps already taken.
+        order = order[skip_steps * trainer.accum :]
+        skip_steps = 0
         pending: list[dict[str, Any]] = []
         for position, (index, record) in enumerate(iter_records(train_cache, order, trainer.accum)):
             pending.append(record)
@@ -670,6 +775,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             lr_used = trainer.optimizer.get_learning_rate()
             grad_norm = float(trainer.optimizer.step())
             step += 1
+            steps_in_epoch += 1
             if not math.isfinite(grad_norm):
                 non_finite += 1
                 if non_finite > max_non_finite:
@@ -687,7 +793,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "grad_norm": grad_norm,
                 "fc_update_norm": update_norm,
                 "elapsed_s": round(time.time() - started, 1),
-                "train_tokens_per_s": round(tokens_seen / max(time.time() - started, 1e-6), 1),
+                "train_tokens_per_s": round(
+                    (tokens_seen - tokens_before) / max(time.time() - started, 1e-6), 1
+                ),
                 "peak_gpu_gb": peak_gpu_gb(),
                 "checkpointed_batches": checkpointed_batches,
                 **{f"train_{k}": v for k, v in trainer.metrics(window).items()},
@@ -695,6 +803,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             window = []
             history.append(record)
             print(json.dumps(record), flush=True)
+            if ranks.main:
+                with history_path.open("a") as handle:
+                    handle.write(json.dumps(record) + "\n")
             if lr_used > 0 and update_norm == 0.0 and math.isfinite(grad_norm):
                 raise SystemExit(f"optimizer step {step} at lr {lr_used} did not change fc.weight")
             if step % eval_interval == 0 or step == trainer.max_steps:
@@ -717,10 +828,24 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 trainer.save_checkpoint(f"step-{step:06d}", {"step": step})
             if step >= trainer.max_steps:
                 break
+            # Every rank must stop at the same step, so the decision is agreed.
+            out_of_time = bool(stop_at) and time.time() > stop_at - stop_margin
+            if ranks.any(out_of_time or (stop_after > 0 and step >= stop_after)):
+                save_resume()
+                stop_reason = "incomplete"
+                break
+            if resume_interval and step % resume_interval == 0:
+                save_resume()
         else:
             epoch += 1
+            steps_in_epoch = 0
             continue
         break
+
+    if stop_reason == "incomplete":
+        print(json.dumps({"incomplete": {"step": step, "resume": str(resume_dir)}}), flush=True)
+        ranks.close()
+        return {"incomplete": True, "step": step}
 
     final_dir = trainer.save_checkpoint("final", {"step": step})
     if ranks.main:
@@ -734,7 +859,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "stop_reason": stop_reason,
         "sequences_seen": step * trainer.accum * ranks.world,
         "tokens_seen": tokens_seen,
-        "wall_seconds": round(time.time() - started, 1),
+        "wall_seconds": round(elapsed_before + time.time() - started, 1),
+        "jobs": loop["jobs"],
         "peak_gpu_gb": peak_gpu_gb(),
         "checkpointed_batches": checkpointed_batches,
         "non_finite_grad_steps": non_finite,
@@ -762,6 +888,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     return summary
 
 
+# Exit status of a run that stopped early and saved checkpoints/resume.
+INCOMPLETE = 4
+
+
 def yaml_scalar(text: str) -> Any:
     import yaml
 
@@ -777,6 +907,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--resume-ok", action="store_true")
     args = parser.parse_args(argv)
     summary = run(args)
+    if summary.get("incomplete"):
+        raise SystemExit(INCOMPLETE)
     raise SystemExit(0 if all(summary["gates"].values()) else 3)
 
 
