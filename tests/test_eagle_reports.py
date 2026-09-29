@@ -187,3 +187,6 @@ def test_micro_batches_group_by_length_under_the_token_budget() -> None:
     assert [[r["id"] for r in g] for g in groups] == [[100, 120, 300], [900], [2000]]
     assert all(max(r["id"] for r in g) * len(g) <= 1000 or len(g) == 1 for g in groups)
     assert [len(g) for g in micro_batches(records, 0)] == [1, 1, 1, 1, 1]
+    # Attention bound: 3 rows of 300 cost 3 * 300^2 > 400^2, so they split.
+    squared = micro_batches(records, 1000, max_square=400 * 400)
+    assert [[r["id"] for r in g] for g in squared] == [[100, 120], [300], [900], [2000]]

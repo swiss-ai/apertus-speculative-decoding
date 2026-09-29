@@ -102,6 +102,7 @@ export TORCHSPEC_ROOT=${REPO_ROOT}/scratch/TorchSpec
 export EAGLE_PYDEPS=${REPO_ROOT}/scratch/pydeps
 export HF_HOME=/iopsstor/scratch/cscs/\${USER}/hf_home
 export TMPDIR=/tmp
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export WANDB_MODE=offline
 export WANDB_DISABLED=true
 export PYTHONNOUSERSITE=1

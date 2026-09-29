@@ -228,10 +228,16 @@ def build_padded_batch(records: list[dict[str, Any]], device) -> dict[str, Any]:
     }
 
 
-def micro_batches(records: list[dict[str, Any]], max_tokens: int) -> list[list[dict[str, Any]]]:
+def micro_batches(
+    records: list[dict[str, Any]], max_tokens: int, max_square: int = 0
+) -> list[list[dict[str, Any]]]:
     """Group records by length so each padded batch stays under ``max_tokens``.
 
-    ``max_tokens`` 0 keeps one sequence per batch (the original recipe).
+    ``max_square`` also bounds rows x width^2: the rollout's attention keeps
+    per-step score matrices that grow with the square of the row width, so two
+    4k rows cost four times one 2k row (job 3543090 ran out of memory). Set it
+    to the square of the longest sequence, whose memory a lone row is known to
+    fit. ``max_tokens`` 0 keeps one sequence per batch (the original recipe).
     """
     if not max_tokens:
         return [[record] for record in records]
@@ -240,7 +246,9 @@ def micro_batches(records: list[dict[str, Any]], max_tokens: int) -> list[list[d
     for record in ordered:
         n = int(record["input_ids"].numel())
         # Ascending order: the newest record is the widest row of its group.
-        if groups and n * (len(groups[-1]) + 1) <= max_tokens:
+        rows = len(groups[-1]) + 1 if groups else 1
+        fits = n * rows <= max_tokens and (not max_square or rows * n * n <= max_square)
+        if groups and fits:
             groups[-1].append(record)
         else:
             groups.append([record])
@@ -273,6 +281,8 @@ class RolloutTrainer:
         self.accum = int(train["draft_accumulation_steps"])
         # Padded rows per draft forward within an optimizer step; 0 = one sequence.
         self.micro_batch_tokens = int(train.get("micro_batch_tokens") or 0)
+        longest = int(cfg["dataset"].get("max_seq_length", 4096))
+        self.micro_batch_square = longest * longest
         self.max_steps = int(train["num_train_steps"])
         self.weights = [0.8**i for i in range(self.ttt_length)]
         self.weight_sum = sum(self.weights)
@@ -612,7 +622,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             pending.append(record)
             if (position + 1) % trainer.accum:
                 continue
-            for micro in micro_batches(pending, trainer.micro_batch_tokens):
+            for micro in micro_batches(
+                pending, trainer.micro_batch_tokens, trainer.micro_batch_square
+            ):
                 batch = build_padded_batch(micro, trainer.device)
                 step_tokens += sum(int(r["input_ids"].numel()) for r in micro)
                 plosses, vlosses, acces, acc_counts, _alphas = trainer.forward(batch)
