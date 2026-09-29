@@ -1,0 +1,52 @@
+# Throughput at 8,192 tokens on ordinary open-perfectblend rows (greedy shard 000), 128 sequences per step, recomputation on.
+# Not a training recipe; loss values are not comparable to other runs.
+pipeline: rollout
+stage: 8b
+
+model:
+  contract: targets/8b/contract.json
+  algorithm: eagle31
+  draft_model_config: methods/eagle/configs/8b/draft-e31-config.json
+  freeze_lm_head: true
+  share_target_embedding: true
+
+dataset:
+  features: online
+  data_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-8k-tput-ckpt
+  train_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend/generated-8b-think-off/shard-000/shard-000.jsonl]
+  eval_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend/generated-8b-think-off/shard-015/shard-015.jsonl]
+  eval_limit: 128
+  # Yu's DSpark limit: prompt + answer up to 8,192 tokens.
+  max_seq_length: 8192
+  teacher_batch_tokens: 32768
+
+training:
+  attention_backend: sdpa
+  loss_type: forward_kl
+  ttt_length: 7
+  micro_batch_size: 1
+  draft_accumulation_steps: 32
+  data_parallel: 4
+  # Groups also stay under one 8,192-token row's attention cost, so a max-length
+  # conversation always trains alone.
+  micro_batch_tokens: 16384
+  learning_rate: 1.0e-4
+  warmup_ratio: 0.015
+  max_grad_norm: 0.5
+  weight_decay: 0.0
+  lr_decay_style: cosine
+  min_lr: 0.0
+  # Recompute each rollout step's draft activations in the backward pass
+  # instead of storing them: less memory, more compute.
+  gradient_checkpointing: true
+  num_train_steps: 40
+  lr_total_steps: 2000
+  num_epochs: 1
+  eval_interval: 40
+  save_interval: 0
+  stop_after_evals_without_improvement: 0
+  seed: 1
+
+output_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs
+head_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads
+run_name: e31-8k-tput-ckpt
