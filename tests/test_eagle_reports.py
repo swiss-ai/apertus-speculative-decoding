@@ -200,3 +200,58 @@ def test_benchmark_prompt_text_handles_the_common_layouts() -> None:
     assert prompt_text({"turns": [{"content": "hi"}, {"content": "more"}]}) == "hi\nmore"
     assert prompt_text({"prompt": ["first", "second"]}) == "first\nsecond"
     assert prompt_text({"answer": "only"}) is None
+
+
+def _speculators_row(conv: str, k: int, prompt: list[int], completion: list[int]) -> dict:
+    # Shape written by speculators regenerate-responses (_sample_from_response).
+    return {
+        "id": f"{conv}_gen{k}",
+        "primary_id": conv,
+        "input_ids": prompt + completion,
+        "loss_mask": [0] * len(prompt) + [1] * len(completion),
+        "text": "review only",
+        "metadata": {"idx": 0, "finish_reason": "stop", "usage": {}},
+    }
+
+
+def test_speculators_rows_check_split_and_train_as_is(tmp_path: Path) -> None:
+    from apertus_eagle.online_features import row_sequence
+    from apertus_eagle.speculators_corpus import check, main, row_problems
+
+    rows = [
+        _speculators_row("opb-1", 0, [1, 2, 3], [4, 5]),
+        _speculators_row("opb-1", 1, [1, 2, 3, 4, 5, 6], [7]),
+        _speculators_row("opb-2", 0, [1, 9], [8, 8, 8]),
+    ]
+    broken = _speculators_row("opb-3", 0, [1], [2])
+    broken["loss_mask"] = [1, 0]
+    path = tmp_path / "corpus.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in [*rows, broken]))
+
+    assert row_problems(rows[0]) == []
+    assert row_problems(broken) == ["loss mask not a single trailing span"]
+    report = check([path], max_seq_length=6)
+    assert report["rows"] == 4 and report["rows_with_problems"] == 1
+    assert report["conversations"] == 2
+    assert report["tokens"] == 5 + 7 + 5 and report["loss_tokens"] == 2 + 1 + 3
+    assert report["rows_over_max_seq_length"] == 1
+
+    # online_features trains on the rows unchanged (last position has no target).
+    assert row_sequence(rows[0], 16) == ([1, 2, 3, 4, 5], [0, 0, 0, 1, 0])
+
+    ids = tmp_path / "heldout.txt"
+    ids.write_text("opb-1\n")
+    main(
+        [
+            "split",
+            "--input",
+            str(path),
+            "--heldout-ids",
+            str(ids),
+            "--output-dir",
+            str(tmp_path / "s"),
+        ]
+    )
+    held = (tmp_path / "s" / "heldout.jsonl").read_text().splitlines()
+    assert [json.loads(line)["id"] for line in held] == ["opb-1_gen0", "opb-1_gen1"]
+    assert len((tmp_path / "s" / "train.jsonl").read_text().splitlines()) == 2
