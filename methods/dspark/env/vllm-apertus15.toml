@@ -1,0 +1,13 @@
+image = "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5-arm64.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users"]
+workdir = "/capstor/scratch/cscs/zyu/spec"
+entrypoint = false
+
+[env]
+HF_HOME = "/capstor/scratch/cscs/zyu/spec/hf"
+HF_HUB_OFFLINE = "1"
+SPEC = "/capstor/scratch/cscs/zyu/spec"
+
+[annotations]
+com.hooks.aws_ofi_nccl.enabled = "true"
+com.hooks.aws_ofi_nccl.variant = "cuda13"

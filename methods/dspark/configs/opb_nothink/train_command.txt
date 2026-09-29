@@ -1,0 +1,9 @@
+# Timestamp: 2026-09-29T03:45:02.902005+00:00
+# Git SHA: 7046ac63fac4eeb218dc2e92a385c7d1ec8c4e00
+# World size: 4
+# speculators: 0.9.0.dev36
+# vllm: 0.23.1rc1.dev1029+ga601a9d99.precompiled
+# transformers: 5.14.0.dev0
+# torch: 2.11.0+cu130
+# compressed-tensors: 0.17.0
+/capstor/scratch/cscs/zyu/spec/repos/speculators/src/speculators/train/__main__.py --verifier-name-or-path /capstor/scratch/cscs/zyu/spec/hf/hub/models--swiss-ai--Apertus-v1.5-8B/snapshots/a411d838600baf0e3635a3daf66fb7c55fc97bb6 --data-path /capstor/scratch/cscs/zyu/spec/runs/apertus_opb/data --hidden-states-backend file --hidden-states-path /tmp/hidden_states --on-missing generate --on-generate delete --target-layer-ids 1 8 15 22 29 --speculator-type dspark --num-layers 5 --block-size 8 --markov-rank 256 --enable-confidence-head --confidence-head-with-markov --loss-fn '{"ce":0.1,"tv":0.9}' --loss-implementation eager --optimizer muon --lr 3e-4 --epochs 10 --total-seq-len 16384 --max-anchors 1024 --num-workers 4 --prefetch-factor 2 --checkpoint-freq 0.25 --save-path /capstor/scratch/cscs/zyu/spec/runs/apertus_opb/ckpt_dspark_nothink --vllm-endpoint http://localhost:8001/v1

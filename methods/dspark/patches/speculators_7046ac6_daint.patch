@@ -1,0 +1,92 @@
+diff --git a/src/speculators/model.py b/src/speculators/model.py
+index e7d50ed..78b21d3 100644
+--- a/src/speculators/model.py
++++ b/src/speculators/model.py
+@@ -44,12 +44,16 @@ class DraftVocabMixin(nn.Module):
+         tl_config = config.transformer_layer_config
+         self.draft_vocab_size = config.draft_vocab_size
+         self.verifier_vocab_size = tl_config.vocab_size
++        # pruned output head support: heads and t2d follow the output vocab, embeddings keep the input vocab
++        self.verifier_output_vocab_size = (
++            getattr(tl_config, "output_vocab_size", None) or tl_config.vocab_size
++        )
+         self.hidden_size = tl_config.hidden_size
+-        self.use_draft_vocab = self.draft_vocab_size != self.verifier_vocab_size
++        self.use_draft_vocab = self.draft_vocab_size != self.verifier_output_vocab_size
+         t2d: torch.Tensor | None = None
+         d2t: torch.Tensor | None = None
+         if self.use_draft_vocab:
+-            t2d = torch.zeros((self.verifier_vocab_size,), dtype=torch.bool)
++            t2d = torch.zeros((self.verifier_output_vocab_size,), dtype=torch.bool)
+             d2t = torch.zeros((self.draft_vocab_size,), dtype=torch.long)
+         self.register_buffer("t2d", t2d)
+         self.register_buffer("d2t", d2t)
+@@ -101,10 +105,10 @@ class DraftVocabMixin(nn.Module):
+             # checkpoint that does not prune the vocabulary.
+             return
+ 
+-        if t2d.shape[0] != self.verifier_vocab_size:
++        if t2d.shape[0] != self.verifier_output_vocab_size:
+             raise ValueError(
+                 f"t2d.shape[0] ({t2d.shape[0]}) must match"
+-                f" verifier_vocab_size ({self.verifier_vocab_size})."
++                f" verifier_output_vocab_size ({self.verifier_output_vocab_size})."
+             )
+         if int(t2d.sum(dtype=torch.long).item()) != self.draft_vocab_size:
+             raise ValueError(
+diff --git a/src/speculators/train/cli.py b/src/speculators/train/cli.py
+index 7d2472b..1dd7dfc 100644
+--- a/src/speculators/train/cli.py
++++ b/src/speculators/train/cli.py
+@@ -192,12 +192,16 @@ def create_transformer_layer_config(  # noqa: C901
+         max_position_embeddings=verifier_config.max_position_embeddings,
+         initializer_range=verifier_config.initializer_range,
+         rms_norm_eps=verifier_config.rms_norm_eps,
+-        head_dim=head_dim,
++        head_dim=resolved_head_dim,  # verifier configs without an explicit head_dim (Apertus)
+         tie_word_embeddings=False,
+         sliding_window=sliding_window,
+         use_sliding_window="sliding_attention" in layer_types,
+         layer_types=layer_types,
+     )
++    # pruned output head support: draft embedding keeps the input vocab, heads follow the output head
++    _ov = getattr(verifier_config, "output_vocab_size", None)
++    if _ov:
++        config.output_vocab_size = int(_ov)
+ 
+     # New rope parameters definition introduced in transformers 5.0
+     if version.parse(transformers.__version__) >= version.parse("5.0.0"):
+@@ -403,7 +407,7 @@ def parse_vocab_mappings(args: argparse.Namespace):
+                 )
+                 if hasattr(verifier_config, "text_config"):
+                     verifier_config = verifier_config.text_config
+-                result = None, None, verifier_config.vocab_size
++                result = None, None, (getattr(verifier_config, "output_vocab_size", None) or verifier_config.vocab_size)
+ 
+     if is_distributed():
+         payload = [result]
+diff --git a/src/speculators/train/distributed.py b/src/speculators/train/distributed.py
+index 7291bef..6796282 100644
+--- a/src/speculators/train/distributed.py
++++ b/src/speculators/train/distributed.py
+@@ -153,7 +153,7 @@ def maybe_setup_distributed(sp_size: int = 1) -> None:
+     if acc is None:
+         raise ValueError("No accelerator found")
+     backend = torch.distributed.get_default_backend_for_device(acc)
+-    dist.init_process_group(backend, device_id=local_rank)
++    dist.init_process_group(backend, device_id=local_rank, timeout=__import__("datetime").timedelta(minutes=float(__import__("os").environ.get("SPEC_PG_TIMEOUT_MIN", "60"))))  # patched: survive extraction-server stalls
+ 
+     _rank = dist.get_rank()
+     _world_size = dist.get_world_size()
+diff --git a/src/speculators/train/vocab_mapping.py b/src/speculators/train/vocab_mapping.py
+index cf79271..c181e8d 100644
+--- a/src/speculators/train/vocab_mapping.py
++++ b/src/speculators/train/vocab_mapping.py
+@@ -122,4 +122,5 @@ def get_target_vocab_size(
+     if hasattr(config, "text_config"):
+         config = config.text_config
+ 
+-    return config.vocab_size
++    # pruned output head (Apertus 1.5: 266,752 input ids, 131,072 output rows)
++    return getattr(config, "output_vocab_size", None) or config.vocab_size
+\ No newline at end of file

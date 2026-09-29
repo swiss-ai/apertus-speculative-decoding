@@ -1,0 +1,9 @@
+# Timestamp: 2026-09-24T20:42:39.687159+00:00
+# Git SHA: 7046ac63fac4eeb218dc2e92a385c7d1ec8c4e00
+# World size: 3
+# speculators: 0.9.0.dev36
+# vllm: 0.23.1rc1.dev1029+ga601a9d99.precompiled
+# transformers: 5.14.0.dev0
+# torch: 2.11.0+cu130
+# compressed-tensors: 0.17.0
+/capstor/scratch/cscs/zyu/spec/repos/speculators/src/speculators/train/__main__.py --verifier-name-or-path /capstor/scratch/cscs/zyu/spec/hf/hub/models--swiss-ai--Apertus-v1.5-8B/snapshots/a411d838600baf0e3635a3daf66fb7c55fc97bb6 --data-path /capstor/scratch/cscs/zyu/spec/runs/apertus_dspark_scale/data --hidden-states-backend file --hidden-states-path /capstor/scratch/cscs/zyu/spec/runs/apertus_dspark_scale/hs_cache --loss-implementation eager --vllm-endpoint http://localhost:8000/v1 --target-layer-ids 1 8 15 22 29 --speculator-type dspark --lr 3e-4 --block-size 8 --max-anchors 1024 --num-layers 5 --markov-rank 256 --enable-confidence-head --confidence-head-with-markov --loss-fn '{"ce":0.1,"tv":0.9}' --epochs 10 --save-path /capstor/scratch/cscs/zyu/spec/runs/apertus_dspark_scale/ckpt_run1 --total-seq-len 16384 --optimizer muon --on-missing generate --on-generate cache --checkpoint-freq 0.5

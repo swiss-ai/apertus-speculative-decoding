@@ -69,7 +69,8 @@ serving/             plain-target launcher, environment resolution, vLLM overlay
 methods/
 ├── draft_model/     8B draft, 70B target
 ├── ngram/           prompt lookup
-└── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
+├── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
+└── dspark/          DSpark drafter for Apertus 1.5 8B: regeneration, training and serving job scripts (speculators trainer), patches, run records
 targets/<stage>/     target contracts (architecture, aux layers, hashes) and environment locks
 experiments/         one-off campaigns: smoke-70b, round-cost-70b
 workloads/           corpora; workloads/<stage>/ holds manifests (restricted text stays on the cluster)

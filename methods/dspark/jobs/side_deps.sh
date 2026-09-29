@@ -1,0 +1,8 @@
+# usage: source side_deps.sh  (needs $EX and PYTHONPATH already set). Installs, without dependencies, whatever `import speculators` reports missing, up to 25 rounds.
+declare -A PKG=([dateutil]=python-dateutil [yaml]=pyyaml [PIL]=pillow [sklearn]=scikit-learn [attr]=attrs [google]=protobuf [tzdata]=tzdata [pytz]=pytz [six]=six [aiohttp]=aiohttp [multidict]=multidict [yarl]=yarl [frozenlist]=frozenlist [aiosignal]=aiosignal [propcache]=propcache [aiohappyeyeballs]=aiohappyeyeballs [typer]=typer [click]=click [rich]=rich [loguru]=loguru [pydantic_settings]=pydantic-settings [datasets]="datasets>=4.0.0,<=5.0.1" [pandas]=pandas [pyarrow]=pyarrow [fsspec]=fsspec [dill]=dill [multiprocess]=multiprocess [xxhash]=xxhash [numpy]=numpy [tqdm]=tqdm [requests]=requests [packaging]=packaging [filelock]=filelock [psutil]=psutil [httpx]=httpx [openai]=openai [dotenv]=python-dotenv [markdown_it]=markdown-it-py [pygments]=pygments [shellingham]=shellingham [typing_extensions]=typing-extensions [annotated_types]=annotated-types [pydantic_core]=pydantic-core [pydantic]=pydantic)
+for round in $(seq 1 25); do
+  err=$(python -c "import speculators, hs_connectors, speculators.train.data" 2>&1 | grep -oE "No module named '[A-Za-z0-9_\.]+'" | head -1 | sed "s/No module named '//; s/'//" | cut -d. -f1)
+  [ -z "$err" ] && { echo "   side deps complete after $((round-1)) installs"; break; }
+  pkg=${PKG[$err]:-$err}; echo "   missing $err -> installing $pkg"; pip install -q --no-deps --target $EX "$pkg" 2>&1 | tail -1
+done
+python -c "import transformers, huggingface_hub, torch; print('   image stack intact: transformers', transformers.__version__, 'hf_hub', huggingface_hub.__version__)" || echo "SIDE_DEPS_BROKE_IMAGE" >> $OUT/status.txt
