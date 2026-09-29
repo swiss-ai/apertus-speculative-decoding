@@ -17,11 +17,18 @@ cd "${REPO_ROOT}"
 TORCHSPEC_ROOT="${TORCHSPEC_ROOT:-${REPO_ROOT}/scratch/TorchSpec}"
 export TORCHSPEC_ROOT
 PYTHON="${PYTHON:-python3}"
-# TorchSpec imports wandb at package load. Use the offline stub, not pip wandb.
 EAGLE_PYDEPS="${EAGLE_PYDEPS:-${REPO_ROOT}/scratch/pydeps}"
-rm -rf "${EAGLE_PYDEPS}/wandb"
-mkdir -p "${EAGLE_PYDEPS}/wandb"
-cp "${REPO_ROOT}/methods/eagle/apertus_eagle/wandb_offline_stub.py" "${EAGLE_PYDEPS}/wandb/__init__.py"
+# Multi-node jobs run this script once per node (srun). The setup below edits
+# the shared filesystem, so only node 0 does it and the others wait for it.
+NODE_RANK="${SLURM_NODEID:-0}"
+SETUP_DONE="${REPO_ROOT}/scratch/.node-setup-${SLURM_JOB_ID:-local}"
+setup_shared() {
+  # TorchSpec imports wandb at package load. Use the offline stub, not pip wandb.
+  rm -rf "${EAGLE_PYDEPS}/wandb"
+  mkdir -p "${EAGLE_PYDEPS}/wandb"
+  cp "${REPO_ROOT}/methods/eagle/apertus_eagle/wandb_offline_stub.py" "${EAGLE_PYDEPS}/wandb/__init__.py"
+  bash "${LAUNCH_DIR}/apply-torchspec-patches.sh"
+}
 export PYTHONPATH="${EAGLE_PYDEPS}:${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src:${TORCHSPEC_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 # Sequential teacher-then-trainer on one GPU (plan A3 simplest resource path).
 export CUDA_VISIBLE_DEVICES="${EAGLE_CUDA_DEVICES:-0}"
@@ -29,7 +36,13 @@ export CUDA_VISIBLE_DEVICES="${EAGLE_CUDA_DEVICES:-0}"
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 log "host=$(hostname) job=${SLURM_JOB_ID:-none} config=${EAGLE_TRAIN_CONFIG} steps=${EAGLE_STEPS:-all} cuda=${CUDA_VISIBLE_DEVICES}"
 nvidia-smi --query-gpu=index,name,memory.total,driver_version --format=csv || true
-bash "${LAUNCH_DIR}/apply-torchspec-patches.sh"
+if [ "${NODE_RANK}" = "0" ]; then
+  setup_shared
+  touch "${SETUP_DONE}"
+else
+  for _ in $(seq 1 120); do [ -f "${SETUP_DONE}" ] && break; sleep 5; done
+  [ -f "${SETUP_DONE}" ] || { log "node ${NODE_RANK}: node 0 setup did not finish"; exit 1; }
+fi
 "${PYTHON}" - <<'PY'
 import importlib, json, platform, sys
 mods = {}

@@ -29,6 +29,9 @@ EXCLUDE_NODES="${EAGLE_TRAIN_EXCLUDE:-nid007129}"
 # the same run id: a job near its time limit saves checkpoints/resume and the next
 # one continues (train_rollout exit status 4). Needs EAGLE_RUN_ID or sets one.
 CHAIN="${EAGLE_CHAIN:-1}"
+# EAGLE_NODES=N trains on N nodes (training.data_parallel ranks per node): the
+# batch script runs outside the container and srun starts one container per node.
+NODES="${EAGLE_NODES:-1}"
 if [ "${CHAIN}" -gt 1 ] && [ -z "${RUN_ID}" ]; then RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"; fi
 # e.g. EAGLE_DEPENDENCY=afterok:3505554 so a stage starts only after its gate job passed.
 DEPENDENCY="${EAGLE_DEPENDENCY:-}"
@@ -82,7 +85,7 @@ cat > "${SBATCH_FILE}" <<SBATCH
 #SBATCH --job-name=eagle-${STAGE}-${RUN_NAME}
 #SBATCH --account=${ACCOUNT}
 #SBATCH --partition=${PARTITION}
-#SBATCH --nodes=1
+#SBATCH --nodes=${NODES}
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=${GPUS_PER_NODE}
 #SBATCH --cpus-per-task=288
@@ -90,7 +93,7 @@ cat > "${SBATCH_FILE}" <<SBATCH
 #SBATCH --time=${TIME_LIMIT}
 #SBATCH --exclusive
 #SBATCH --exclude=${EXCLUDE_NODES}
-#SBATCH --environment=${SML_ENVIRONMENT}
+$([ "${NODES}" = 1 ] && echo "#SBATCH --environment=${SML_ENVIRONMENT}")
 #SBATCH --output=${LOG_ROOT}/%j.out
 #SBATCH --error=${LOG_ROOT}/%j.err
 #SBATCH --chdir=${REPO_ROOT}
@@ -116,8 +119,17 @@ export WANDB_DISABLED=true
 export PYTHONNOUSERSITE=1
 export PYTHONUNBUFFERED=1
 # No percent-strftime in this body: pyxis --environment sbatch mangled one (job 3491998).
-echo "START \$(date -u -Iseconds) host=\$(hostname) job=\${SLURM_JOB_ID}"
-bash ${REPO_ROOT}/methods/eagle/launch/train-eagle-on-node.sh
+echo "START \$(date -u -Iseconds) host=\$(hostname) job=\${SLURM_JOB_ID} nodes=${NODES}"
+$(if [ "${NODES}" = 1 ]; then
+  echo "bash ${REPO_ROOT}/methods/eagle/launch/train-eagle-on-node.sh"
+else
+  cat <<MULTI
+export EAGLE_NNODES=${NODES}
+export EAGLE_MASTER_ADDR=\$(scontrol show hostnames "\${SLURM_JOB_NODELIST}" | head -1)
+srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} \\
+  bash ${REPO_ROOT}/methods/eagle/launch/train-eagle-on-node.sh
+MULTI
+fi)
 echo "END \$(date -u -Iseconds)"
 SBATCH
 

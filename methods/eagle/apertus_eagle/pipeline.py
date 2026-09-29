@@ -76,6 +76,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
     steps = [step for step in args.steps.split(",") if step]
+    # Multi-node jobs run the pipeline on every node; only node 0 runs the
+    # non-training steps and copies results, the others only join training.
+    nnodes = int(os.environ.get("EAGLE_NNODES") or 1)
+    node_rank = int(os.environ.get("SLURM_NODEID") or 0) if nnodes > 1 else 0
+    if node_rank > 0:
+        steps = [step for step in steps if step == "train"]
     unknown = sorted(set(steps) - set(STEPS))
     if unknown:
         raise SystemExit(f"unknown steps {unknown}")
@@ -223,7 +229,19 @@ def main(argv: list[str] | None = None) -> None:
         # training.data_parallel > 1: one torchrun rank per GPU in CUDA_VISIBLE_DEVICES.
         ranks = int(cfg["training"].get("data_parallel") or 1)
         launcher = [sys.executable, "-m"]
-        if ranks > 1:
+        if nnodes > 1:
+            # One torchrun per node, joined through a c10d rendezvous on node 0.
+            launcher += [
+                "torch.distributed.run",
+                f"--nnodes={nnodes}",
+                f"--node-rank={node_rank}",
+                f"--nproc-per-node={ranks}",
+                "--rdzv-backend=c10d",
+                f"--rdzv-endpoint={os.environ['EAGLE_MASTER_ADDR']}:29500",
+                f"--rdzv-id={os.environ.get('SLURM_JOB_ID', args.run_id)}",
+                "-m",
+            ]
+        elif ranks > 1:
             launcher += ["torch.distributed.run", "--standalone", f"--nproc-per-node={ranks}", "-m"]
         rc = subprocess.run(
             [
@@ -238,6 +256,9 @@ def main(argv: list[str] | None = None) -> None:
             ],
             env=os.environ.copy(),
         ).returncode
+        if node_rank > 0:
+            # Global rank 0 (node 0) writes the outcome files; nothing else to do here.
+            raise SystemExit(0 if rc == 0 else f"train_rollout failed rc={rc}")
         (results / "runs").mkdir(parents=True, exist_ok=True)
         for name in ("provenance.json", "train-summary.json", "evals.json", "history.json"):
             source = run_dir / name
