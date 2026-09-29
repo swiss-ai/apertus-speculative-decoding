@@ -41,7 +41,11 @@ cat > "${SBATCH_FILE}" <<SBATCH
 set -euo pipefail
 export HF_HOME=/iopsstor/scratch/cscs/\${USER}/hf_home
 export HF_HUB_ENABLE_HF_TRANSFER=0
-export PYTHONPATH=${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src
+# The serving image has no pyarrow; install a pinned wheel on the node, outside the image.
+DATA_DEPS=${REPO_ROOT}/scratch/pydeps-data
+python3 -c "import sys; sys.path.insert(0, '\${DATA_DEPS}'); import pyarrow" 2>/dev/null \\
+  || python3 -m pip install --quiet --no-deps --target \${DATA_DEPS} pyarrow==${PYARROW_VERSION:-21.0.0}
+export PYTHONPATH=\${DATA_DEPS}:${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src
 export PYTHONNOUSERSITE=1
 export PYTHONUNBUFFERED=1
 echo "START \$(date -u -Iseconds) host=\$(hostname) job=\${SLURM_JOB_ID}"
