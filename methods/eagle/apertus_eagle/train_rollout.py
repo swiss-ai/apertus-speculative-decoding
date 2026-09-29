@@ -652,6 +652,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     resume_interval = int(train.get("resume_interval") or 0)
     resume_dir = output / "checkpoints" / "resume"
     history_path = output / "history.jsonl"
+    incomplete_path = output / INCOMPLETE_MARKER
+    if ranks.main:
+        incomplete_path.unlink(missing_ok=True)
     stop_at = float(os.environ.get("EAGLE_STOP_AT") or 0)  # epoch seconds, set by the job
     stop_after = int(os.environ.get("EAGLE_STOP_AFTER_STEPS") or 0)  # test hook
     # Seconds reserved before stop_at for one more step and the checkpoint write.
@@ -843,7 +846,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         break
 
     if stop_reason == "incomplete":
-        print(json.dumps({"incomplete": {"step": step, "resume": str(resume_dir)}}), flush=True)
+        note = {
+            "step": step,
+            "resume": str(resume_dir),
+            "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
+        }
+        if ranks.main:
+            incomplete_path.write_text(json.dumps(note, indent=2) + "\n")
+        print(json.dumps({"incomplete": note}), flush=True)
         ranks.close()
         return {"incomplete": True, "step": step}
 
@@ -888,8 +898,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     return summary
 
 
-# Exit status of a run that stopped early and saved checkpoints/resume.
+# Exit status of a run that stopped early and saved checkpoints/resume, and the
+# file that says so (exit statuses do not survive torchrun).
 INCOMPLETE = 4
+INCOMPLETE_MARKER = "training-incomplete.json"
 
 
 def yaml_scalar(text: str) -> Any:
@@ -907,9 +919,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--resume-ok", action="store_true")
     args = parser.parse_args(argv)
     summary = run(args)
-    if summary.get("incomplete"):
-        raise SystemExit(INCOMPLETE)
-    raise SystemExit(0 if all(summary["gates"].values()) else 3)
+    code = INCOMPLETE
+    if not summary.get("incomplete"):
+        code = 0 if all(summary["gates"].values()) else 3
+    # torchrun reports any nonzero worker status as a failure (job 3545407), so
+    # under it the outcome is read from INCOMPLETE_MARKER / train-summary.json.
+    raise SystemExit(0 if int(os.environ.get("WORLD_SIZE", "1")) > 1 else code)
 
 
 if __name__ == "__main__":

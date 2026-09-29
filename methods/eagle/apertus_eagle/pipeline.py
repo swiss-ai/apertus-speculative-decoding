@@ -246,15 +246,17 @@ def main(argv: list[str] | None = None) -> None:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(source.read_text())
         log("train finished", rc=rc, run_dir=str(run_dir))
-        if rc == 4:
+        # The outcome comes from files: torchrun turns any worker status into 1.
+        if (run_dir / "training-incomplete.json").is_file():
             # Stopped before the job's time limit with checkpoints/resume saved.
             # Later steps need the finished head; a follow-up job with the same
             # --run-id resumes training and then runs them.
             log("training incomplete; resubmit with the same run id", run_id=args.run_id)
             return
-        if rc not in (0, 3):
+        summary_path = run_dir / "train-summary.json"
+        if rc not in (0, 3) or not summary_path.is_file():
             raise SystemExit(f"train_rollout failed rc={rc}")
-        if rc == 3:
+        if not all(json.loads(summary_path.read_text())["gates"].values()):
             gates_failed = True
             log("train gates not all met; exporting for inspection only")
 
