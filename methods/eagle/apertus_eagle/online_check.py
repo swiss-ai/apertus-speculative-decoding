@@ -82,20 +82,38 @@ def main(argv: list[str] | None = None) -> None:
         records = online.load_many([position[s["id"]] for s in chosen])
         torch.cuda.synchronize()
         batch_seconds = time.time() - started
-        worst_rel, worst_abs, equal_ids = 0.0, 0.0, True
+        model = teacher.model
+        lm_head = model.lm_head if hasattr(model, "lm_head") else model.get_output_embeddings()
+        stats = {"hidden_states": [], "last_hidden_states": []}
+        worst_abs, equal_ids, agree, total, first_token_rel = 0.0, True, 0, 0, []
         for sample, record in zip(chosen, records, strict=True):
             cached = load_file(str(args.cache / sample["file"]))
             equal_ids &= bool(torch.equal(record["input_ids"].cpu(), cached["input_ids"].long()))
-            for key in ("hidden_states", "last_hidden_states"):
+            for key in stats:
                 ours = record[key].cpu().float()
                 theirs = cached[key].float()
                 worst_abs = max(worst_abs, float((ours - theirs).abs().max()))
-                worst_rel = max(worst_rel, float((ours - theirs).norm() / theirs.norm()))
+                # Position 0 carries Apertus' outlier activations; report it separately.
+                stats[key].append(
+                    float((ours[1:] - theirs[1:]).norm() / theirs[1:].norm().clamp_min(1e-9))
+                )
+                if key == "hidden_states":
+                    first_token_rel.append(
+                        float((ours[0] - theirs[0]).norm() / theirs[0].norm().clamp_min(1e-9))
+                    )
+            # What training uses: the target's next-token distribution from last_hidden_states.
+            with torch.inference_mode():
+                ours_top = lm_head(record["last_hidden_states"]).argmax(-1)
+                theirs_top = lm_head(cached["last_hidden_states"].to(ours_top.device)).argmax(-1)
+            agree += int((ours_top == theirs_top).sum())
+            total += int(ours_top.numel())
         batched = {
             "batch_tokens": args.batch_tokens,
             "ids_equal": equal_ids,
             "max_abs": worst_abs,
-            "max_relative_l2": worst_rel,
+            "relative_l2_excluding_first_token": {k: max(v) for k, v in stats.items()},
+            "relative_l2_first_token_max": max(first_token_rel),
+            "target_argmax_agreement": agree / max(total, 1),
             "teacher_tokens_per_second": round(tokens / max(batch_seconds, 1e-9), 1),
         }
     report = {
