@@ -1,0 +1,143 @@
+{
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "contract": "/users/faruk_zahiragic/apertus-spec-decoding/targets/8b/contract.json",
+  "config": "/users/faruk_zahiragic/apertus-spec-decoding/methods/eagle/configs/8b/train-e31-8k-stress-adaptive.yaml",
+  "config_sha256": "eed786f4c8b15cd1a591b9190bded7bc59a849f874b6a35b8caf170f8ed6f827",
+  "resolved_config": {
+    "pipeline": "rollout",
+    "stage": "8b",
+    "model": {
+      "contract": "targets/8b/contract.json",
+      "algorithm": "eagle31",
+      "draft_model_config": "methods/eagle/configs/8b/draft-e31-config.json",
+      "freeze_lm_head": true,
+      "share_target_embedding": true
+    },
+    "dataset": {
+      "features": "online",
+      "data_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-8k-stress-adaptive",
+      "train_data": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend/long-rows-256.jsonl"
+      ],
+      "eval_data": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend/generated-8b-think-off/shard-015/shard-015.jsonl"
+      ],
+      "eval_limit": 128,
+      "max_seq_length": 8192,
+      "teacher_batch_tokens": 32768
+    },
+    "training": {
+      "attention_backend": "sdpa",
+      "loss_type": "forward_kl",
+      "ttt_length": 7,
+      "micro_batch_size": 1,
+      "draft_accumulation_steps": 8,
+      "data_parallel": 4,
+      "micro_batch_tokens": 8192,
+      "learning_rate": 0.0001,
+      "warmup_ratio": 0.015,
+      "max_grad_norm": 0.5,
+      "weight_decay": 0.0,
+      "lr_decay_style": "cosine",
+      "min_lr": 0.0,
+      "gradient_checkpointing": "adaptive",
+      "checkpoint_free_width": 4096,
+      "checkpoint_free_tokens": 8192,
+      "num_train_steps": 8,
+      "lr_total_steps": 2000,
+      "num_epochs": 1,
+      "eval_interval": 8,
+      "save_interval": 0,
+      "stop_after_evals_without_improvement": 0,
+      "seed": 1
+    },
+    "output_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs",
+    "head_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads",
+    "run_name": "e31-8k-stress-adaptive"
+  },
+  "draft_config": "/users/faruk_zahiragic/apertus-spec-decoding/methods/eagle/configs/8b/draft-e31-config.json",
+  "algorithm": "eagle31",
+  "objective": {
+    "implementation": "torchspec.models.eagle3.Eagle3Model",
+    "ttt_length": 7,
+    "loss_type": "forward_kl",
+    "position_weights": [
+      1.0,
+      0.8,
+      0.6400000000000001,
+      0.5120000000000001,
+      0.4096000000000001,
+      0.3276800000000001,
+      0.2621440000000001
+    ],
+    "target": "compute_lazy_target_padded(target lm_head)"
+  },
+  "effective_batch": {
+    "micro_batch_size": 1,
+    "draft_accumulation_steps": 8,
+    "data_parallel_ranks": 4,
+    "sequences_per_optimizer_step": 32,
+    "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp x accumulation"
+  },
+  "optimizer": {
+    "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
+    "lr": 0.0001,
+    "warmup_ratio": 0.015,
+    "max_grad_norm": 0.5,
+    "weight_decay": 0.0,
+    "decay_style": "cosine",
+    "min_lr": 0.0,
+    "lr_total_steps": 2000,
+    "adamw_betas_eps": "torch defaults (0.9, 0.999), 1e-8"
+  },
+  "freeze": {
+    "embedding": true,
+    "lm_head": true
+  },
+  "parameter_counts": {
+    "trainable": 293629952,
+    "frozen": 1073741824,
+    "by_module": {
+      "embed_tokens": 536870912,
+      "midlayer": 243281920,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "norm": 4096,
+      "lm_head": 536870912
+    }
+  },
+  "caches": {
+    "train": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend",
+      "mode": "online",
+      "corpus_sha256": "4e4a007f77ad8a72d674b5b4769f7604d7a8904f621f22ebdd4ba9499ea40f8e",
+      "files": {
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend/long-rows-256.jsonl": "41c69f77b6c28283f3b9db59765de1360e50b8cd36ad15de769c19619c4d7bfb"
+      },
+      "samples": 256
+    },
+    "eval": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend/generated-8b-think-off/shard-015",
+      "mode": "online",
+      "corpus_sha256": "22a3733155d52bc9704858e61c0ffc2a11fdbfc138512edd4b471b79de489219",
+      "files": {
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/open-perfectblend/generated-8b-think-off/shard-015/shard-015.jsonl": "1b51d14892c56182b7e8c4d4b03aea00546cfa465b95554272bc6f5544e5ff0b"
+      },
+      "samples": 128
+    }
+  },
+  "torchspec_root": "/users/faruk_zahiragic/apertus-spec-decoding/scratch/TorchSpec",
+  "torchspec_revision": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+  "harness_revision": "0a610a3767275bd064b2f1c2a6251818a664bfbb",
+  "torch": "2.11.0+cu130",
+  "device": "NVIDIA GH200 120GB",
+  "slurm_job_id": "3544505"
+}
