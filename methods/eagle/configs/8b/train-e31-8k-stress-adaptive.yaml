@@ -29,7 +29,7 @@ training:
   data_parallel: 4
   # Groups also stay under one 8,192-token row's attention cost, so a max-length
   # conversation always trains alone.
-  micro_batch_tokens: 16384
+  micro_batch_tokens: 8192
   learning_rate: 1.0e-4
   warmup_ratio: 0.015
   max_grad_norm: 0.5
