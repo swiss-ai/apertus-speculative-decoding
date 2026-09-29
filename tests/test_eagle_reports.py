@@ -127,3 +127,27 @@ def test_perfectblend_rows_convert_and_flag_problems() -> None:
     bad = {"conversations": [{"from": "gpt", "value": ""}, {"from": "gpt", "value": "x"}]}
     _, problems = to_messages(bad)
     assert {"empty_turn", "roles_not_alternating", "starts_with_assistant"} <= set(problems)
+
+
+def test_perfectblend_shards_dedupe_prompts_and_keep_open_user_turns(tmp_path: Path) -> None:
+    from apertus_eagle.perfectblend_shards import main
+
+    def row(i: int, messages: list[dict[str, str]]) -> str:
+        return json.dumps({"id": f"r{i}", "source": "s", "messages": messages}) + "\n"
+
+    user = {"role": "user", "content": "q"}
+    (tmp_path / "conversations.jsonl").write_text(
+        row(0, [user, {"role": "assistant", "content": "a"}])
+        + row(1, [user, {"role": "assistant", "content": "other"}])  # same prompt
+        + row(2, [{"role": "user", "content": "open"}])  # ends with user: keep
+        + row(3, [{"role": "user", "content": "leak"}, {"role": "assistant", "content": "x"}])
+    )
+    (tmp_path / "drop-ids.json").write_text(
+        json.dumps({"r2": ["no_final_assistant"], "r3": ["benchmark_overlap"]})
+    )
+    main(["--data-dir", str(tmp_path), "--shards", "2", "--report", str(tmp_path / "r.json")])
+    report = json.loads((tmp_path / "r.json").read_text())
+    assert report["counts"] == {"generate": 2, "duplicate_prompt": 1, "dropped": 1}
+    assert (tmp_path / "duplicates.jsonl").read_text().strip() == json.dumps(
+        {"id": "r1", "answer_from": "r0"}
+    )
