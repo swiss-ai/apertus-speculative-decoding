@@ -71,7 +71,9 @@ def check_cache(
 def load_teacher(model_path: str):
     import torch
 
-    kwargs = {"dtype": torch.bfloat16, "device_map": {"": 0}, "low_cpu_mem_usage": True}
+    # The current device, so each data-parallel rank loads its own copy on its own GPU.
+    device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu"
+    kwargs = {"dtype": torch.bfloat16, "device_map": {"": device}, "low_cpu_mem_usage": True}
     errors = []
     for name in ("AutoModelForImageTextToText", "AutoModelForCausalLM"):
         try:

@@ -16,7 +16,12 @@ bounded feature caches written by ``apertus_eagle.features`` and are shaped
 exactly as ``Eagle3Trainer._forward`` expects (input ids and target hidden
 states shifted left by one, loss mask and aux features unshifted).
 
-Effective batch = micro_batch (1) x accumulation x data-parallel ranks (1).
+Effective batch = micro_batch (1) x accumulation x data-parallel ranks.
+
+Data parallelism (``torchrun``, one process per GPU): every rank holds the
+draft, and in online mode its own target; ranks take disjoint slices of the
+same shuffled order and average gradients before each optimizer step, so all
+ranks apply the identical update. Rank 0 logs and writes files.
 """
 
 from __future__ import annotations
@@ -35,6 +40,76 @@ from typing import Any
 
 from apertus_eagle.contract import REPO_ROOT, load_contract, target_identity, target_keys
 from apertus_eagle.features import check_cache
+
+
+class Ranks:
+    """Data-parallel context from the ``torchrun`` environment; one rank without it."""
+
+    def __init__(self) -> None:
+        self.world = int(os.environ.get("WORLD_SIZE", "1"))
+        self.rank = int(os.environ.get("RANK", "0"))
+        self.local = int(os.environ.get("LOCAL_RANK", "0"))
+        self.main = self.rank == 0
+
+    def setup(self) -> None:
+        if self.world == 1:
+            return
+        import torch
+        import torch.distributed as dist
+
+        torch.cuda.set_device(self.local)
+        dist.init_process_group("nccl")
+        if not self.main:
+            sys.stdout = open(os.devnull, "w")  # noqa: SIM115 - rank 0 logs; errors stay on stderr
+
+    def average_grads(self, params: list[Any]) -> None:
+        """Mean of each gradient over ranks, reduced in fp32."""
+        if self.world == 1:
+            return
+        import torch
+        import torch.distributed as dist
+
+        grads = [p.grad for p in params if p.grad is not None]
+        flat = torch.cat([g.reshape(-1).float() for g in grads])
+        dist.all_reduce(flat)
+        flat /= self.world
+        offset = 0
+        for g in grads:
+            g.copy_(flat[offset : offset + g.numel()].view_as(g))
+            offset += g.numel()
+
+    def total(self, value: float) -> float:
+        if self.world == 1:
+            return value
+        import torch
+        import torch.distributed as dist
+
+        tensor = torch.tensor([value], dtype=torch.float64, device="cuda")
+        dist.all_reduce(tensor)
+        return float(tensor.item())
+
+    def gather(self, items: list[Any]) -> list[Any]:
+        if self.world == 1:
+            return items
+        import torch.distributed as dist
+
+        parts: list[list[Any]] = [[] for _ in range(self.world)]
+        dist.all_gather_object(parts, items)
+        return [item for part in parts for item in part]
+
+    def broadcast_module(self, module: Any) -> None:
+        if self.world == 1:
+            return
+        import torch.distributed as dist
+
+        for tensor in list(module.parameters()) + list(module.buffers()):
+            dist.broadcast(tensor.data, src=0)
+
+    def close(self) -> None:
+        if self.world > 1:
+            import torch.distributed as dist
+
+            dist.destroy_process_group()
 
 
 def device_name() -> str:
@@ -116,7 +191,13 @@ def build_batch(record: dict[str, Any], device) -> dict[str, Any]:
 
 
 class RolloutTrainer:
-    def __init__(self, cfg: dict[str, Any], contract: dict[str, Any], output: Path):
+    def __init__(
+        self,
+        cfg: dict[str, Any],
+        contract: dict[str, Any],
+        output: Path,
+        ranks: Ranks | None = None,
+    ):
         import torch
         from torchspec.models.draft import AutoDraftModelConfig, AutoEagle3DraftModel
         from torchspec.models.draft.base import load_tensor_from_pretrained
@@ -126,6 +207,7 @@ class RolloutTrainer:
         from apertus_bench.eagle import validate_eagle_config
 
         self.cfg = cfg
+        self.ranks = ranks or Ranks()
         self.contract = contract
         self.output = output
         train = cfg["training"]
@@ -184,6 +266,8 @@ class RolloutTrainer:
         if self.freeze_lm_head:
             draft.freeze_lm_head()
         self.draft = draft.to(self.device)
+        # Same seed on every rank already; make the start bitwise identical anyway.
+        self.ranks.broadcast_module(self.draft)
         self.target_lm_head_weight = target_lm_head.to(self.device, torch.bfloat16)
         self.target_lm_head_weight.requires_grad_(False)
 
@@ -264,8 +348,10 @@ class RolloutTrainer:
 
         self.model.eval()
         stats = []
+        # Each rank evaluates its own slice; the metrics use every rank's stats.
+        mine = list(range(self.ranks.rank, len(cache), self.ranks.world))
         with torch.no_grad():
-            for _index, record in iter_records(cache, list(range(len(cache))), self.accum):
+            for _index, record in iter_records(cache, mine, self.accum):
                 _p, vlosses, acces, acc_counts, _alphas = self.forward(
                     build_batch(record, self.device)
                 )
@@ -277,13 +363,15 @@ class RolloutTrainer:
                     )
                 )
         self.model.train()
-        return self.metrics(stats)
+        return self.metrics(self.ranks.gather(stats))
 
     def save_checkpoint(self, tag: str, extra: dict[str, Any]) -> Path:
         import torch
         from safetensors.torch import save_file
 
         directory = self.output / "checkpoints" / tag
+        if not self.ranks.main:
+            return directory
         directory.mkdir(parents=True, exist_ok=True)
         state = {k: v.detach().cpu().contiguous() for k, v in self.draft.state_dict().items()}
         save_file(state, str(directory / "draft.safetensors"))
@@ -316,6 +404,9 @@ def _probe_param(draft) -> Any:
 def run(args: argparse.Namespace) -> dict[str, Any]:
     torchspec_root = _prepare_imports()
     import torch
+
+    ranks = Ranks()
+    ranks.setup()
 
     cfg = _load_yaml(args.config)
     for override in args.set or []:
@@ -363,7 +454,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     else:
         train_cache = FeatureCache(cache_path("train_cache"), contract)
         eval_cache = FeatureCache(cache_path("eval_cache"), contract)
-    trainer = RolloutTrainer(cfg, contract, output)
+    trainer = RolloutTrainer(cfg, contract, output, ranks)
     train = cfg["training"]
     eval_interval = int(train["eval_interval"])
     save_interval = int(train.get("save_interval") or 0)
@@ -389,9 +480,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "effective_batch": {
             "micro_batch_size": 1,
             "draft_accumulation_steps": trainer.accum,
-            "data_parallel_ranks": 1,
-            "sequences_per_optimizer_step": trainer.accum,
-            "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp(1) x accumulation",
+            "data_parallel_ranks": ranks.world,
+            "sequences_per_optimizer_step": trainer.accum * ranks.world,
+            "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp x accumulation",
         },
         "optimizer": {
             "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
@@ -423,7 +514,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else device_name(),
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
     }
-    (output / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
+    if ranks.main:
+        (output / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
     print(json.dumps({"parameter_counts": trainer.param_counts}), flush=True)
 
     history: list[dict[str, Any]] = []
@@ -440,6 +532,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     epoch = 0
     started = time.time()
     tokens_seen = 0
+    step_tokens = 0
     stop_reason = "max_steps"
     probe = _probe_param(trainer.draft)
     window: list[tuple[list, list, list]] = []
@@ -450,11 +543,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             break
         order = list(range(len(train_cache)))
         rng.shuffle(order)
-        # Drop the ragged tail so every optimizer step sees exactly `accum` sequences.
-        order = order[: len(order) - len(order) % trainer.accum] or order
+        # Drop the ragged tail so every optimizer step sees exactly `accum` sequences
+        # on every rank; ranks then take interleaved slices of the same order.
+        group = trainer.accum * ranks.world
+        order = order[: len(order) - len(order) % group] or order
+        order = order[ranks.rank :: ranks.world]
         for position, (index, record) in enumerate(iter_records(train_cache, order, trainer.accum)):
             batch = build_batch(record, trainer.device)
-            tokens_seen += int(batch["input_ids"].shape[1])
+            step_tokens += int(batch["input_ids"].shape[1])
             plosses, vlosses, acces, acc_counts, _alphas = trainer.forward(batch)
             loss = sum(w * p for w, p in zip(trainer.weights, plosses, strict=True)) / trainer.accum
             if not torch.isfinite(loss):
@@ -470,6 +566,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if (position + 1) % trainer.accum:
                 continue
             # TorchSpec warmup starts at init_lr=0: the first step's update is zero by design.
+            ranks.average_grads(trainer.optimizer.model_params)
+            tokens_seen += int(ranks.total(step_tokens))
+            step_tokens = 0
             lr_used = trainer.optimizer.get_learning_rate()
             grad_norm = float(trainer.optimizer.step())
             step += 1
@@ -510,7 +609,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     trainer.save_checkpoint("best", {"step": step, "eval": result})
                 else:
                     evals_without_improvement += 1
-                (output / "evals.json").write_text(json.dumps(evals, indent=2) + "\n")
+                if ranks.main:
+                    (output / "evals.json").write_text(json.dumps(evals, indent=2) + "\n")
                 if patience and evals_without_improvement >= patience:
                     stop_reason = f"{patience} evals without improvement"
                     break
@@ -524,15 +624,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         break
 
     final_dir = trainer.save_checkpoint("final", {"step": step})
-    (output / "history.json").write_text(json.dumps(history, indent=2) + "\n")
-    (output / "evals.json").write_text(json.dumps(evals, indent=2) + "\n")
+    if ranks.main:
+        (output / "history.json").write_text(json.dumps(history, indent=2) + "\n")
+        (output / "evals.json").write_text(json.dumps(evals, indent=2) + "\n")
     first_losses = [h["train_avg_loss"] for h in history[: max(1, len(history) // 10)]]
     last_losses = [h["train_avg_loss"] for h in history[-max(1, len(history) // 10) :]]
     summary = {
         "steps": step,
         "epochs_completed": epoch,
         "stop_reason": stop_reason,
-        "sequences_seen": step * trainer.accum,
+        "sequences_seen": step * trainer.accum * ranks.world,
         "tokens_seen": tokens_seen,
         "wall_seconds": round(time.time() - started, 1),
         "peak_gpu_gb": peak_gpu_gb(),
@@ -554,7 +655,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "final_checkpoint": str(final_dir),
         "best_checkpoint": str(output / "checkpoints/best") if best_step else None,
     }
-    (output / "train-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    if ranks.main:
+        (output / "train-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    ranks.close()
     print(json.dumps({"summary": summary}, indent=2), flush=True)
     return summary
 

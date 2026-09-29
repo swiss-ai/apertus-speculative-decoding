@@ -215,10 +215,14 @@ def main(argv: list[str] | None = None) -> None:
         )
 
     if "train" in steps:
+        # training.data_parallel > 1: one torchrun rank per GPU in CUDA_VISIBLE_DEVICES.
+        ranks = int(cfg["training"].get("data_parallel") or 1)
+        launcher = [sys.executable, "-m"]
+        if ranks > 1:
+            launcher += ["torch.distributed.run", "--standalone", f"--nproc-per-node={ranks}", "-m"]
         rc = subprocess.run(
             [
-                sys.executable,
-                "-m",
+                *launcher,
                 "apertus_eagle.train_rollout",
                 "--config",
                 str(config_path),
