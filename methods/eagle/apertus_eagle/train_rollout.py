@@ -886,7 +886,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             and any(h["lr_used"] > 0 for h in history),
             "loss_decreased": bool(history)
             and (sum(last_losses) / len(last_losses)) < (sum(first_losses) / len(first_losses)),
-            "heldout_acceptance_improved": best > initial["simulated_acc_len"],
+            "heldout_acceptance_improved": best > evals[0]["simulated_acc_len"],
         },
         "final_checkpoint": str(final_dir),
         "best_checkpoint": str(output / "checkpoints/best") if best_step else None,
