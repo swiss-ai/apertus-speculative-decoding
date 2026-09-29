@@ -283,6 +283,14 @@ class RolloutTrainer:
         self.micro_batch_tokens = int(train.get("micro_batch_tokens") or 0)
         longest = int(cfg["dataset"].get("max_seq_length", 4096))
         self.micro_batch_square = longest * longest
+        # gradient_checkpointing: true | false | "adaptive". Adaptive recomputes a
+        # micro-batch's rollout activations only when its attention cost
+        # (rows x width^2) exceeds one checkpoint_free_width row, which fits
+        # without recomputation (8,192-token rows do not: job 3543880).
+        mode = train.get("gradient_checkpointing", False)
+        self.adaptive_checkpointing = mode == "adaptive"
+        free = int(train.get("checkpoint_free_width") or 4096)
+        self.checkpoint_free_square = free * free
         self.max_steps = int(train["num_train_steps"])
         self.weights = [0.8**i for i in range(self.ttt_length)]
         self.weight_sum = sum(self.weights)
@@ -344,7 +352,7 @@ class RolloutTrainer:
             draft_model=self.draft,
             length=self.ttt_length,
             attention_backend=train["attention_backend"],
-            gradient_checkpointing=bool(train.get("gradient_checkpointing", False)),
+            gradient_checkpointing=mode is True or mode == "true",
             loss_type=train.get("loss_type", "forward_kl"),
         ).to(self.device)
         if self.model.vocab_pruning:
@@ -602,6 +610,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     started = time.time()
     tokens_seen = 0
     step_tokens = 0
+    checkpointed_batches = 0
     stop_reason = "max_steps"
     probe = _probe_param(trainer.draft)
     window: list[tuple[list, list, list]] = []
@@ -626,6 +635,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 pending, trainer.micro_batch_tokens, trainer.micro_batch_square
             ):
                 batch = build_padded_batch(micro, trainer.device)
+                if trainer.adaptive_checkpointing:
+                    rows, width = batch["input_ids"].shape
+                    cost = rows * width * width
+                    trainer.model.gradient_checkpointing = cost > trainer.checkpoint_free_square
+                    checkpointed_batches += int(trainer.model.gradient_checkpointing)
                 step_tokens += sum(int(r["input_ids"].numel()) for r in micro)
                 plosses, vlosses, acces, acc_counts, _alphas = trainer.forward(batch)
                 # A micro-batch's loss is its token mean; weight it by its share of the
@@ -669,6 +683,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "elapsed_s": round(time.time() - started, 1),
                 "train_tokens_per_s": round(tokens_seen / max(time.time() - started, 1e-6), 1),
                 "peak_gpu_gb": peak_gpu_gb(),
+                "checkpointed_batches": checkpointed_batches,
                 **{f"train_{k}": v for k, v in trainer.metrics(window).items()},
             }
             window = []
@@ -715,6 +730,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "tokens_seen": tokens_seen,
         "wall_seconds": round(time.time() - started, 1),
         "peak_gpu_gb": peak_gpu_gb(),
+        "checkpointed_batches": checkpointed_batches,
         "non_finite_grad_steps": non_finite,
         "train_loss_first_decile": sum(first_losses) / len(first_losses) if first_losses else None,
         "train_loss_last_decile": sum(last_losses) / len(last_losses) if last_losses else None,
