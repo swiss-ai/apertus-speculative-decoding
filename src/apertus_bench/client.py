@@ -60,7 +60,11 @@ class StreamingChatClient:
         self.model = model
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         timeout = httpx.Timeout(timeout_seconds, connect=min(timeout_seconds, 30.0))
-        self.http = httpx.AsyncClient(headers=headers, timeout=timeout)
+        # No pool cap: concurrency is set by the caller's workers. httpx's default of
+        # 100 connections silently queued requests client-side above concurrency 100
+        # (load test 2026-09-29: at C=256 the server never saw more than 99).
+        limits = httpx.Limits(max_connections=None, max_keepalive_connections=None)
+        self.http = httpx.AsyncClient(headers=headers, timeout=timeout, limits=limits)
 
     async def __aenter__(self) -> StreamingChatClient:
         return self

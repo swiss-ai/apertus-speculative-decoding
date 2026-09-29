@@ -137,3 +137,11 @@ async def test_run_cell_samples_load_during_the_cell(tmp_path: Path) -> None:
     assert summary["load"]["kv_cache_size_tokens"] == 1000
     lines = (tmp_path / "cell" / "metrics_timeseries.jsonl").read_text().splitlines()
     assert len(lines) == summary["load"]["samples"]
+
+
+def test_client_does_not_cap_concurrent_connections() -> None:
+    from apertus_bench.client import StreamingChatClient
+
+    client = StreamingChatClient("http://server", "m", None, timeout_seconds=5)
+    # httpx keeps the limit on the transport's pool (private, but it is the setting).
+    assert client.http._transport._pool._max_connections >= 10**6  # "unlimited" is sys.maxsize
