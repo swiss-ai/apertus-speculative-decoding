@@ -80,6 +80,10 @@ for gpu in \$(seq 0 $(( GPUS - 1 ))); do
   out=${GEN_DIR}/shard-\${shard}
   if [ -f "\${out}/generation-summary.json" ]; then echo "shard \${shard} done, skipping"; continue; fi
   mkdir -p "\${out}"
+  # Node-local compile caches per process: four engines sharing one on the network
+  # filesystem raced into "Stale file handle" (job 3541228_1).
+  export VLLM_CACHE_ROOT=/tmp/vllm-cache-\${gpu} TORCHINDUCTOR_CACHE_DIR=/tmp/inductor-\${gpu}
+  export TRITON_CACHE_DIR=/tmp/triton-\${gpu}
   CUDA_VISIBLE_DEVICES=\${gpu} python3 -m apertus_eagle.generate_targets --contract ${CONTRACT} \\
     --input ${DATA_DIR}/shards/shard-\${shard}.jsonl --output-dir "\${out}" \\
     --max-seq-length ${MAX_SEQ} --max-prompt-tokens ${MAX_PROMPT} --max-new-tokens ${MAX_NEW} \\
