@@ -190,6 +190,63 @@ def build_batch(record: dict[str, Any], device) -> dict[str, Any]:
     }
 
 
+def build_padded_batch(records: list[dict[str, Any]], device) -> dict[str, Any]:
+    """Several sequences as right-padded rows, as TorchSpec's collator lays them out.
+
+    Each conversation keeps its own row, so no attention, position or rollout
+    target crosses from one conversation into another. Padding has
+    attention_mask 0 and loss_mask 0; the rollout's per-step left shift of
+    ``loss_mask`` then only ever moves padding zeros into a row's tail.
+    """
+    if len(records) == 1:
+        return build_batch(records[0], device)
+    import torch
+    from torchspec.utils.tensor import padding
+
+    width = max(int(r["input_ids"].numel()) for r in records)
+    rows = len(records)
+    aux = records[0]["hidden_states"].shape[-1]
+    last_width = records[0]["last_hidden_states"].shape[-1]
+    input_ids = torch.zeros((rows, width), dtype=torch.long, device=device)
+    loss_mask = torch.zeros_like(input_ids)
+    attention = torch.zeros_like(input_ids)
+    hidden = torch.zeros((rows, width, aux), dtype=torch.bfloat16, device=device)
+    last = torch.zeros((rows, width, last_width), dtype=torch.bfloat16, device=device)
+    for row, record in enumerate(records):
+        n = int(record["input_ids"].numel())
+        input_ids[row, :n] = record["input_ids"].to(device)
+        loss_mask[row, :n] = record["loss_mask"].to(device)
+        attention[row, :n] = 1
+        hidden[row, :n] = record["hidden_states"].to(device=device, dtype=torch.bfloat16)
+        last[row, :n] = record["last_hidden_states"].to(device=device, dtype=torch.bfloat16)
+    return {
+        "input_ids": padding(input_ids, left=False),
+        "target_hidden_states": padding(last, left=False),
+        "loss_mask": loss_mask,
+        "attention_mask": attention,
+        "hidden_states": hidden,
+    }
+
+
+def micro_batches(records: list[dict[str, Any]], max_tokens: int) -> list[list[dict[str, Any]]]:
+    """Group records by length so each padded batch stays under ``max_tokens``.
+
+    ``max_tokens`` 0 keeps one sequence per batch (the original recipe).
+    """
+    if not max_tokens:
+        return [[record] for record in records]
+    ordered = sorted(records, key=lambda r: int(r["input_ids"].numel()))
+    groups: list[list[dict[str, Any]]] = []
+    for record in ordered:
+        n = int(record["input_ids"].numel())
+        # Ascending order: the newest record is the widest row of its group.
+        if groups and n * (len(groups[-1]) + 1) <= max_tokens:
+            groups[-1].append(record)
+        else:
+            groups.append([record])
+    return groups
+
+
 class RolloutTrainer:
     def __init__(
         self,
@@ -214,6 +271,8 @@ class RolloutTrainer:
         self.device = torch.device(device_name())
         self.ttt_length = int(train["ttt_length"])
         self.accum = int(train["draft_accumulation_steps"])
+        # Padded rows per draft forward within an optimizer step; 0 = one sequence.
+        self.micro_batch_tokens = int(train.get("micro_batch_tokens") or 0)
         self.max_steps = int(train["num_train_steps"])
         self.weights = [0.8**i for i in range(self.ttt_length)]
         self.weight_sum = sum(self.weights)
@@ -548,23 +607,30 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         group = trainer.accum * ranks.world
         order = order[: len(order) - len(order) % group] or order
         order = order[ranks.rank :: ranks.world]
+        pending: list[dict[str, Any]] = []
         for position, (index, record) in enumerate(iter_records(train_cache, order, trainer.accum)):
-            batch = build_batch(record, trainer.device)
-            step_tokens += int(batch["input_ids"].shape[1])
-            plosses, vlosses, acces, acc_counts, _alphas = trainer.forward(batch)
-            loss = sum(w * p for w, p in zip(trainer.weights, plosses, strict=True)) / trainer.accum
-            if not torch.isfinite(loss):
-                raise SystemExit(f"non-finite loss at step {step} sample {index}")
-            loss.backward()
-            window.append(
-                (
-                    [v.item() for v in vlosses],
-                    [a.item() for a in acces],
-                    [c.item() for c in acc_counts],
-                )
-            )
+            pending.append(record)
             if (position + 1) % trainer.accum:
                 continue
+            for micro in micro_batches(pending, trainer.micro_batch_tokens):
+                batch = build_padded_batch(micro, trainer.device)
+                step_tokens += sum(int(r["input_ids"].numel()) for r in micro)
+                plosses, vlosses, acces, acc_counts, _alphas = trainer.forward(batch)
+                # A micro-batch's loss is its token mean; weight it by its share of the
+                # step's sequences so a step still averages over `accum` sequences.
+                weighted = sum(w * p for w, p in zip(trainer.weights, plosses, strict=True))
+                loss = weighted * len(micro) / trainer.accum
+                if not torch.isfinite(loss):
+                    raise SystemExit(f"non-finite loss at step {step} sample {index}")
+                loss.backward()
+                window.append(
+                    (
+                        [v.item() for v in vlosses],
+                        [a.item() for a in acces],
+                        [c.item() for c in acc_counts],
+                    )
+                )
+            pending = []
             # TorchSpec warmup starts at init_lr=0: the first step's update is zero by design.
             ranks.average_grads(trainer.optimizer.model_params)
             tokens_seen += int(ranks.total(step_tokens))

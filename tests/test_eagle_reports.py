@@ -170,3 +170,20 @@ def test_online_rows_accept_both_formats_and_read_lazily(tmp_path: Path) -> None
     index = LineIndex([first, second])
     assert [index.read(i)["id"] for i in range(len(index))] == [0, 1, 2]
     assert len(LineIndex([first, second], limit=2)) == 2
+
+
+def test_micro_batches_group_by_length_under_the_token_budget() -> None:
+    from apertus_eagle.train_rollout import micro_batches
+
+    class Ids:
+        def __init__(self, n: int) -> None:
+            self.n = n
+
+        def numel(self) -> int:
+            return self.n
+
+    records = [{"input_ids": Ids(n), "id": n} for n in (900, 100, 300, 120, 2000)]
+    groups = micro_batches(records, 1000)
+    assert [[r["id"] for r in g] for g in groups] == [[100, 120, 300], [900], [2000]]
+    assert all(max(r["id"] for r in g) * len(g) <= 1000 or len(g) == 1 for g in groups)
+    assert [len(g) for g in micro_batches(records, 0)] == [1, 1, 1, 1, 1]
