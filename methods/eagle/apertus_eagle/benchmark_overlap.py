@@ -27,17 +27,19 @@ from apertus_eagle.overlap_check import NEAR_DUP, normalize, shingles
 # name -> candidate (repo, allow_patterns); the first that yields prompts is used.
 BENCHMARKS: dict[str, list[tuple[str, list[str]]]] = {
     "gsm8k": [("openai/gsm8k", ["main/test-*.parquet"])],
-    "math500": [("HuggingFaceH4/MATH-500", ["*.jsonl", "*.parquet"])],
+    "math500": [("HuggingFaceH4/MATH-500", ["test.jsonl"])],
     "aime25": [
-        ("opencompass/AIME2025", ["*.jsonl", "*.parquet", "*.json"]),
-        ("yentinglin/aime_2025", ["*.jsonl", "*.parquet", "*.json"]),
+        ("opencompass/AIME2025", ["aime2025-*.jsonl"]),
+        ("yentinglin/aime_2025", ["data/*.parquet"]),
     ],
     "mbpp": [("google-research-datasets/mbpp", ["full/test-*.parquet"])],
-    "humaneval": [("openai/openai_humaneval", ["*.parquet"])],
+    "humaneval": [("openai/openai_humaneval", ["openai_humaneval/test-*.parquet"])],
+    # release_v6: test.jsonl .. test6.jsonl
     "livecodebench": [("livecodebench/code_generation_lite", ["test*.jsonl"])],
-    "mt-bench": [("HuggingFaceH4/mt_bench_prompts", ["*.jsonl", "*.parquet"])],
+    "mt-bench": [("HuggingFaceH4/mt_bench_prompts", ["raw/question.jsonl"])],
     "alpaca": [("tatsu-lab/alpaca_eval", ["alpaca_eval.json"])],
-    "arena-hard": [("lmarena-ai/arena-hard-auto", ["*question*.jsonl"])],
+    # v0.1: the 500-prompt set; v2.0 is a different benchmark.
+    "arena-hard": [("lmarena-ai/arena-hard-auto", ["data/arena-hard-v0.1/question.jsonl"])],
 }
 # Fields that hold the prompt, in order of preference.
 TEXT_KEYS = ("question", "problem", "prompt", "instruction", "question_content", "text", "turns")
@@ -88,10 +90,14 @@ def fetch_benchmarks(cache: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]
                         local_dir=cache / repo.replace("/", "__"),
                     )
                 )
+                # Skip the downloader's own metadata (.cache/huggingface/trees/*.json).
                 files = sorted(
-                    p for p in local.rglob("*") if p.suffix in {".parquet", ".jsonl", ".json"}
+                    p
+                    for p in local.rglob("*")
+                    if p.suffix in {".parquet", ".jsonl", ".json"} and ".cache" not in p.parts
                 )
-                texts = [t for f in files for t in map(prompt_text, read_rows(f)) if t]
+                found = [t for f in files for t in map(prompt_text, read_rows(f)) if t]
+                texts = list(dict.fromkeys(found))  # one entry per distinct prompt
             except Exception as error:  # noqa: BLE001 - try the next copy, report all
                 errors.append(f"{repo}: {type(error).__name__}: {error}")
                 continue
