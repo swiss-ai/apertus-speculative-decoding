@@ -112,3 +112,18 @@ def test_a5_summary_refuses_a_cell_without_its_block_baseline(tmp_path: Path) ->
     _cell(tmp_path, "k2-c9", block="c9", depth=2, workload="code", tpot=4.0, outputs={"p": "a"})
     with pytest.raises(SystemExit, match="no same-block baseline"):
         summarize(load_cells(tmp_path))
+
+
+def test_perfectblend_rows_convert_and_flag_problems() -> None:
+    from apertus_eagle.perfectblend_check import to_messages
+
+    good = {"conversations": [{"from": "human", "value": "hi"}, {"from": "gpt", "value": "yo"}]}
+    messages, problems = to_messages(good)
+    assert messages == [
+        {"role": "user", "content": "hi"},
+        {"role": "assistant", "content": "yo"},
+    ]
+    assert problems == []
+    bad = {"conversations": [{"from": "gpt", "value": ""}, {"from": "gpt", "value": "x"}]}
+    _, problems = to_messages(bad)
+    assert {"empty_turn", "roles_not_alternating", "starts_with_assistant"} <= set(problems)
