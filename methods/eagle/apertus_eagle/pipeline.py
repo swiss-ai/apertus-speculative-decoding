@@ -30,7 +30,20 @@ import yaml
 
 from apertus_eagle.contract import REPO_ROOT, load_contract
 
-STEPS = ("generate", "extract", "parity", "train", "export", "verify", "sample", "repro", "diag")
+STEPS = (
+    "generate",
+    "extract",
+    "parity",
+    "online-check",
+    "train",
+    "export",
+    "verify",
+    "sample",
+    "repro",
+    "diag",
+)
+# online-check only runs when asked for (it needs dataset.online_check).
+DEFAULT_STEPS = tuple(step for step in STEPS if step != "online-check")
 
 
 def log(message: str, **fields: Any) -> None:
@@ -56,7 +69,7 @@ def run_module(module: str, *args: str) -> None:
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="apertus-eagle-pipeline")
     parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--steps", default=",".join(STEPS))
+    parser.add_argument("--steps", default=",".join(DEFAULT_STEPS))
     parser.add_argument(
         "--run-id", default=os.environ.get("SLURM_JOB_ID") or time.strftime("%Y%m%dT%H%M%SZ")
     )
@@ -90,8 +103,9 @@ def main(argv: list[str] | None = None) -> None:
         "steps": steps,
         "generated": str(generated),
         "features": str(features),
-        "train_cache": dataset["train_cache"],
-        "eval_cache": dataset["eval_cache"],
+        "features_mode": dataset.get("features", "cache"),
+        "train_cache": dataset.get("train_cache", dataset.get("train_data")),
+        "eval_cache": dataset.get("eval_cache", dataset.get("eval_data")),
         "run_dir": str(run_dir),
         "head_dir": str(head_dir),
         "results": str(results),
@@ -180,6 +194,23 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(
                 "A2 gate: HF/vLLM auxiliary-layer offset not confirmed; blocking training"
             )
+
+    if "online-check" in steps:
+        check = dataset["online_check"]
+        run_module(
+            "apertus_eagle.online_check",
+            *common,
+            "--cache",
+            str(resolve(check["cache"])),
+            "--rows",
+            str(resolve(check["rows"])),
+            "--max-seq-length",
+            max_len,
+            "--samples",
+            str(check.get("samples", 32)),
+            "--output",
+            str(results / "preflight" / f"online-check-{run_name}.json"),
+        )
 
     if "train" in steps:
         rc = subprocess.run(

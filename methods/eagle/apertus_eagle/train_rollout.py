@@ -322,12 +322,31 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise SystemExit(f"{output} already holds a finished run; use a new output_dir")
     output.mkdir(parents=True, exist_ok=True)
 
-    def cache_path(key: str) -> Path:
-        path = Path(cfg["dataset"][key])
+    def cache_path_of(value: str) -> Path:
+        path = Path(value)
         return path if path.is_absolute() else REPO_ROOT / path
 
-    train_cache = FeatureCache(cache_path("train_cache"), contract)
-    eval_cache = FeatureCache(cache_path("eval_cache"), contract)
+    def cache_path(key: str) -> Path:
+        return cache_path_of(cfg["dataset"][key])
+
+    dataset = cfg["dataset"]
+    if dataset.get("features", "cache") == "online":
+        from apertus_eagle.online_features import OnlineFeatures, Teacher
+
+        teacher = Teacher(contract, device_name())
+        max_seq = int(dataset["max_seq_length"])
+        train_cache = OnlineFeatures(
+            [cache_path_of(p) for p in dataset["train_data"]], teacher, max_seq_length=max_seq
+        )
+        eval_cache = OnlineFeatures(
+            [cache_path_of(p) for p in dataset["eval_data"]],
+            teacher,
+            max_seq_length=max_seq,
+            limit=int(dataset.get("eval_limit") or 0) or None,
+        )
+    else:
+        train_cache = FeatureCache(cache_path("train_cache"), contract)
+        eval_cache = FeatureCache(cache_path("eval_cache"), contract)
     trainer = RolloutTrainer(cfg, contract, output)
     train = cfg["training"]
     eval_interval = int(train["eval_interval"])
@@ -372,16 +391,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "freeze": {"embedding": True, "lm_head": trainer.freeze_lm_head},
         "parameter_counts": trainer.param_counts,
         "caches": {
-            "train": {
-                "path": str(train_cache.root),
-                "corpus_sha256": train_cache.manifest["corpus_sha256"],
-                "samples": len(train_cache),
-            },
-            "eval": {
-                "path": str(eval_cache.root),
-                "corpus_sha256": eval_cache.manifest["corpus_sha256"],
-                "samples": len(eval_cache),
-            },
+            name: {
+                "path": str(source.root),
+                "mode": source.manifest.get("mode", "cache"),
+                "corpus_sha256": source.manifest["corpus_sha256"],
+                "files": source.manifest.get("files"),
+                "samples": len(source),
+            }
+            for name, source in (("train", train_cache), ("eval", eval_cache))
         },
         "torchspec_root": str(torchspec_root),
         "torchspec_revision": _git_revision(torchspec_root),

@@ -151,3 +151,22 @@ def test_perfectblend_shards_dedupe_prompts_and_keep_open_user_turns(tmp_path: P
     assert (tmp_path / "duplicates.jsonl").read_text().strip() == json.dumps(
         {"id": "r1", "answer_from": "r0"}
     )
+
+
+def test_online_rows_accept_both_formats_and_read_lazily(tmp_path: Path) -> None:
+    from apertus_eagle.online_features import LineIndex, row_sequence
+
+    generated = {"prompt_ids": [1, 2, 3], "generated_ids": [4, 5]}
+    assert row_sequence(generated, 16) == ([1, 2, 3, 4, 5], [0, 0, 0, 1, 0])
+    tokenized = {"input_ids": [1, 2, 3, 4], "loss_mask": [0, 1, 1, 1]}
+    assert row_sequence(tokenized, 3) == ([1, 2, 3], [0, 1, 0])
+    with pytest.raises(ValueError, match="lengths differ"):
+        row_sequence({"input_ids": [1, 2], "loss_mask": [1]}, 8)
+
+    first = tmp_path / "a.jsonl"
+    first.write_text('{"id": 0}\n\n{"id": 1}\n')
+    second = tmp_path / "b.jsonl"
+    second.write_text('{"id": 2}\n')
+    index = LineIndex([first, second])
+    assert [index.read(i)["id"] for i in range(len(index))] == [0, 1, 2]
+    assert len(LineIndex([first, second], limit=2)) == 2
