@@ -222,14 +222,8 @@ def add_speedups(rows: list[dict[str, Any]], *, require_baseline: bool = True) -
         row["speedup_vs_matched_baseline"] = (
             float(rate) / matched_rate if rate is not None and matched_rate else None
         )
-        if (
-            require_baseline
-            and row["method"] != "none"
-            and operational_rate is None
-        ):
-            missing.append(
-                f"{row.get('variant')} {row.get('workload')} c{row.get('concurrency')}"
-            )
+        if require_baseline and row["method"] != "none" and operational_rate is None:
+            missing.append(f"{row.get('variant')} {row.get('workload')} c{row.get('concurrency')}")
 
     if missing:
         raise ValueError(

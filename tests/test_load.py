@@ -145,3 +145,5 @@ def test_client_does_not_cap_concurrent_connections() -> None:
     client = StreamingChatClient("http://server", "m", None, timeout_seconds=5)
     # httpx keeps the limit on the transport's pool (private, but it is the setting).
     assert client.http._transport._pool._max_connections >= 10**6  # "unlimited" is sys.maxsize
+    # Shorter than the server's 5 s keep-alive, so no half-closed connection is reused.
+    assert client.http._transport._pool._keepalive_expiry < 5

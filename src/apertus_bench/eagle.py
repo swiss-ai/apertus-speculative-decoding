@@ -120,9 +120,7 @@ def count_draft_parameters(config: dict[str, Any]) -> dict[str, int]:
         "norms": hidden * 4,
     }
     parts["total"] = sum(parts.values())
-    parts["excluding_embed_and_lm_head"] = (
-        parts["total"] - parts["embed_tokens"] - parts["lm_head"]
-    )
+    parts["excluding_embed_and_lm_head"] = parts["total"] - parts["embed_tokens"] - parts["lm_head"]
     return parts
 
 
@@ -160,9 +158,7 @@ def validate_eagle_config(
         )
     for field in ("head_dim", "num_attention_heads", "num_key_value_heads"):
         if int(config[field]) != int(text[field]):
-            raise EagleHeadError(
-                f"{field} {config[field]} must match the target ({text[field]})"
-            )
+            raise EagleHeadError(f"{field} {config[field]} must match the target ({text[field]})")
 
     output_vocab = int(text["output_vocab_size"])
     vocab = int(config["vocab_size"])
@@ -179,9 +175,7 @@ def validate_eagle_config(
 
     algorithm = infer_algorithm(config)
     if expected_algorithm and algorithm != expected_algorithm:
-        raise EagleHeadError(
-            f"checkpoint algorithm is {algorithm}, expected {expected_algorithm}"
-        )
+        raise EagleHeadError(f"checkpoint algorithm is {algorithm}, expected {expected_algorithm}")
 
     layer_ids = config.get("eagle_aux_hidden_state_layer_ids")
     if not layer_ids:
@@ -193,9 +187,7 @@ def validate_eagle_config(
             f"runtime default if omitted would be {expected_layers}"
         )
     if list(layer_ids) != list(expected_layers):
-        raise EagleHeadError(
-            f"aux layers {list(layer_ids)} != recorded default {expected_layers}"
-        )
+        raise EagleHeadError(f"aux layers {list(layer_ids)} != recorded default {expected_layers}")
 
     provenance = check_provenance(config, target=target, source=source)
 
@@ -303,9 +295,7 @@ def validate_eagle_head(
     summary["weights_present"] = bool(weight_files)
     summary["trained_head"] = bool(weight_files)
     if weight_files:
-        summary["checkpoint_manifest_sha256"] = checkpoint_manifest_sha256(
-            head_dir, weight_files
-        )
+        summary["checkpoint_manifest_sha256"] = checkpoint_manifest_sha256(head_dir, weight_files)
     return summary
 
 

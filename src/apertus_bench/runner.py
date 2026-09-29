@@ -163,13 +163,19 @@ async def run_cell(
     model: str,
     extra_metadata: dict[str, str] | None = None,
     metrics_interval: float | None = None,
+    tolerate_warmup_failures: bool = False,
 ) -> dict[str, object]:
-    """Run one cell. ``metrics_interval`` also samples load gauges during it."""
+    """Run one cell. ``metrics_interval`` also samples load gauges during it.
+
+    Warm-up failures abort a benchmark cell; a load test records them instead
+    (``tolerate_warmup_failures``), since failures under load are a result.
+    """
     if settings.concurrency <= 0 or settings.requests <= 0:
         raise ValueError("concurrency and requests must be positive")
     if output_dir.exists():
         raise FileExistsError(f"refusing to overwrite result cell: {output_dir}")
 
+    warmup_failed = 0
     if settings.warmup_requests:
         warmup = await _execute_requests(
             client,
@@ -180,7 +186,8 @@ async def run_cell(
             store_output=False,
         )
         warmup_failures = [measurement for measurement in warmup if not measurement.success]
-        if warmup_failures:
+        warmup_failed = len(warmup_failures)
+        if warmup_failures and not tolerate_warmup_failures:
             first_error = warmup_failures[0].error or "unknown warmup failure"
             raise RuntimeError(
                 f"{len(warmup_failures)}/{len(warmup)} warmup requests failed: {first_error}"
@@ -216,6 +223,7 @@ async def run_cell(
     )
     spec_metrics = speculative_delta(before, after)
     summary = summarize(measurements, wall_seconds, spec_metrics)
+    summary["warmup"] = {"requests": settings.warmup_requests, "failed": warmup_failed}
     if sampler is not None:
         summary["load"] = summarize_load(sampler.samples, sampler.errors)
 

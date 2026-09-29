@@ -450,6 +450,7 @@ async def _run_loadtest(args: argparse.Namespace) -> None:
                 args.model,
                 extra,
                 metrics_interval=interval,
+                tolerate_warmup_failures=True,
             )
             levels.append(loadtest_level(concurrency, summary))
     report = {"workload": args.workload, "variant": variant.name, "levels": levels}
@@ -469,6 +470,7 @@ def loadtest_level(concurrency: int, summary: dict[str, Any]) -> dict[str, Any]:
         "concurrency": concurrency,
         "requests": summary["requests"]["attempted"],
         "success_rate": summary["requests"]["success_rate"],
+        "warmup_failed": (summary.get("warmup") or {}).get("failed"),
         "output_tokens_per_second": summary["tokens"]["output_tokens_per_second"],
         "ttft_p50_ms": pick(latency.get("ttft"), "p50"),
         "ttft_p95_ms": pick(latency.get("ttft"), "p95"),

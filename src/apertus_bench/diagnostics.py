@@ -244,9 +244,7 @@ def env_exports(config_id: str) -> dict[str, str]:
 
 
 def format_env_exports(config_id: str) -> str:
-    lines = [
-        f"export {key}={shlex.quote(value)}" for key, value in env_exports(config_id).items()
-    ]
+    lines = [f"export {key}={shlex.quote(value)}" for key, value in env_exports(config_id).items()]
     return "\n".join(lines) + "\n"
 
 

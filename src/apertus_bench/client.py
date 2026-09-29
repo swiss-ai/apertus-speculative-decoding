@@ -63,7 +63,12 @@ class StreamingChatClient:
         # No pool cap: concurrency is set by the caller's workers. httpx's default of
         # 100 connections silently queued requests client-side above concurrency 100
         # (load test 2026-09-29: at C=256 the server never saw more than 99).
-        limits = httpx.Limits(max_connections=None, max_keepalive_connections=None)
+        # Drop idle connections before the server does: vLLM's server closes idle
+        # keep-alive connections after 5 s, httpx's default expiry is also 5 s, and a
+        # connection reused at that moment fails with ReadError (load test, C=256).
+        limits = httpx.Limits(
+            max_connections=None, max_keepalive_connections=None, keepalive_expiry=1.0
+        )
         self.http = httpx.AsyncClient(headers=headers, timeout=timeout, limits=limits)
 
     async def __aenter__(self) -> StreamingChatClient:
