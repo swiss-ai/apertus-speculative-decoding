@@ -5,6 +5,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import httpx
 
@@ -85,6 +86,11 @@ def _add_benchmark_common(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--no-metrics", action="store_true")
     parser.add_argument(
+        "--metrics-interval",
+        type=float,
+        help="also sample KV-cache usage, queue and preemptions every N seconds during a cell",
+    )
+    parser.add_argument(
         "--metadata",
         action="append",
         default=[],
@@ -116,6 +122,21 @@ def build_parser() -> argparse.ArgumentParser:
     matrix.add_argument("--concurrencies", type=int, nargs="+", required=True)
     matrix.add_argument("--repeats", type=int, default=3)
     matrix.add_argument("--output", type=Path, required=True)
+
+    loadtest = subparsers.add_parser(
+        "loadtest",
+        help="step through rising concurrency on one workload, sampling server load",
+    )
+    _add_benchmark_common(loadtest)
+    loadtest.add_argument("--workload", required=True)
+    loadtest.add_argument("--concurrencies", type=int, nargs="+", required=True)
+    loadtest.add_argument(
+        "--requests-per-slot",
+        type=int,
+        default=4,
+        help="measured requests per level = max(--requests, this x concurrency)",
+    )
+    loadtest.add_argument("--output", type=Path, required=True)
 
     correctness = subparsers.add_parser(
         "correctness", help="compare baseline and speculative greedy outputs"
@@ -268,8 +289,7 @@ def _require_eagle_provenance(method: str, extra: dict[str, str]) -> None:
     missing = [key for key in EAGLE_REQUIRED_METADATA if not extra.get(key)]
     if missing:
         raise ValueError(
-            "method eagle3 requires --metadata "
-            + ", ".join(f"{key}=..." for key in missing)
+            "method eagle3 requires --metadata " + ", ".join(f"{key}=..." for key in missing)
         )
 
 
@@ -354,6 +374,7 @@ async def _run_one(args: argparse.Namespace) -> None:
             _metrics_url(args),
             args.model,
             extra,
+            metrics_interval=args.metrics_interval,
         )
     print(json.dumps(summary, indent=2))
 
@@ -392,7 +413,76 @@ async def _run_matrix(args: argparse.Namespace) -> None:
                         _metrics_url(args),
                         args.model,
                         extra,
+                        metrics_interval=args.metrics_interval,
                     )
+
+
+async def _run_loadtest(args: argparse.Namespace) -> None:
+    """One cell per concurrency level, lowest first, then a per-level summary."""
+    extra = _metadata(args.metadata)
+    variant = _variant(args)
+    _require_eagle_provenance(variant.method, extra)
+    prompts = load_prompts(args.workloads, args.workload)
+    interval = args.metrics_interval or 1.0
+    levels = []
+    async with StreamingChatClient(
+        args.base_url, args.model, _api_key(args), timeout_seconds=args.timeout_seconds
+    ) as client:
+        for concurrency in sorted(args.concurrencies):
+            requests = max(args.requests, args.requests_per_slot * concurrency)
+            output = args.output / args.workload / f"c{concurrency}"
+            print(f"loadtest {args.workload} concurrency={concurrency} requests={requests}")
+            summary = await run_cell(
+                client,
+                prompts,
+                args.workloads,
+                output,
+                CellSettings(
+                    workload=args.workload,
+                    concurrency=concurrency,
+                    requests=requests,
+                    warmup_requests=args.warmup_requests or concurrency,
+                    repeat=1,
+                    generation=_generation(args),
+                ),
+                variant,
+                _metrics_url(args),
+                args.model,
+                extra,
+                metrics_interval=interval,
+            )
+            levels.append(loadtest_level(concurrency, summary))
+    report = {"workload": args.workload, "variant": variant.name, "levels": levels}
+    (args.output / "loadtest-summary.json").write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps(report, indent=2))
+
+
+def loadtest_level(concurrency: int, summary: dict[str, Any]) -> dict[str, Any]:
+    """The per-level row of a load test: throughput, latency tails, KV pressure."""
+    latency = summary["latency_ms"]
+    load = summary.get("load") or {}
+
+    def pick(block: dict[str, Any] | None, key: str) -> Any:
+        return (block or {}).get(key)
+
+    return {
+        "concurrency": concurrency,
+        "requests": summary["requests"]["attempted"],
+        "success_rate": summary["requests"]["success_rate"],
+        "output_tokens_per_second": summary["tokens"]["output_tokens_per_second"],
+        "ttft_p50_ms": pick(latency.get("ttft"), "p50"),
+        "ttft_p95_ms": pick(latency.get("ttft"), "p95"),
+        "tpot_p50_ms": pick(latency.get("tpot"), "p50"),
+        "tpot_p95_ms": pick(latency.get("tpot"), "p95"),
+        "e2e_p95_ms": pick(latency.get("e2e"), "p95"),
+        "kv_cache_usage_mean": pick(load.get("kv_cache_usage"), "mean"),
+        "kv_cache_usage_max": pick(load.get("kv_cache_usage"), "max"),
+        "kv_cache_tokens_peak": load.get("kv_cache_tokens_peak"),
+        "kv_cache_size_tokens": load.get("kv_cache_size_tokens"),
+        "running_max": pick(load.get("running"), "max"),
+        "waiting_max": pick(load.get("waiting"), "max"),
+        "preemptions": load.get("preemptions"),
+    }
 
 
 async def _run_correctness(args: argparse.Namespace) -> None:
@@ -455,6 +545,8 @@ def main() -> None:
             asyncio.run(_run_one(args))
         elif args.command == "matrix":
             asyncio.run(_run_matrix(args))
+        elif args.command == "loadtest":
+            asyncio.run(_run_loadtest(args))
         elif args.command == "correctness":
             asyncio.run(_run_correctness(args))
         elif args.command == "capture":

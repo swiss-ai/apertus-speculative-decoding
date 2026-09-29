@@ -12,6 +12,7 @@ from typing import Any
 
 from apertus_bench import __version__
 from apertus_bench.client import RequestMeasurement, StreamingChatClient
+from apertus_bench.load import MetricsSampler, summarize_load
 from apertus_bench.prometheus import (
     SpeculativeSnapshot,
     parse_speculative_snapshot,
@@ -161,7 +162,9 @@ async def run_cell(
     metrics_url: str | None,
     model: str,
     extra_metadata: dict[str, str] | None = None,
+    metrics_interval: float | None = None,
 ) -> dict[str, object]:
+    """Run one cell. ``metrics_interval`` also samples load gauges during it."""
     if settings.concurrency <= 0 or settings.requests <= 0:
         raise ValueError("concurrency and requests must be positive")
     if output_dir.exists():
@@ -187,6 +190,12 @@ async def run_cell(
     before = (
         parse_speculative_snapshot(raw_before, model=model) if raw_before else SpeculativeSnapshot()
     )
+    sampler = None
+    if metrics_interval and metrics_url:
+        sampler = MetricsSampler(
+            lambda: _fetch_metrics(client, metrics_url), metrics_interval, model=model
+        )
+        sampler.start()
     started_at = datetime.now(UTC)
     wall_started = time.perf_counter()
     measurements = await _execute_requests(
@@ -199,12 +208,16 @@ async def run_cell(
     )
     wall_seconds = time.perf_counter() - wall_started
     ended_at = datetime.now(UTC)
+    if sampler is not None:
+        await sampler.stop()
     raw_after = await _fetch_metrics(client, metrics_url)
     after = (
         parse_speculative_snapshot(raw_after, model=model) if raw_after else SpeculativeSnapshot()
     )
     spec_metrics = speculative_delta(before, after)
     summary = summarize(measurements, wall_seconds, spec_metrics)
+    if sampler is not None:
+        summary["load"] = summarize_load(sampler.samples, sampler.errors)
 
     metadata: dict[str, Any] = {
         "schema_version": 1,
@@ -230,6 +243,10 @@ async def run_cell(
     with (output_dir / "requests.jsonl").open("w", encoding="utf-8") as handle:
         for measurement in measurements:
             handle.write(json.dumps(measurement.to_dict(), sort_keys=True) + "\n")
+    if sampler is not None:
+        with (output_dir / "metrics_timeseries.jsonl").open("w", encoding="utf-8") as handle:
+            for sample in sampler.samples:
+                handle.write(json.dumps(sample, sort_keys=True) + "\n")
     if raw_before:
         (output_dir / "metrics_before.prom").write_text(raw_before)
         (output_dir / "metrics_after.prom").write_text(raw_after)
