@@ -26,6 +26,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--max-seq-length", type=int, required=True)
     parser.add_argument("--samples", type=int, default=32)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--batch-tokens", type=int, default=0, help="also check batched target forwards"
+    )
     args = parser.parse_args(argv)
 
     import torch
@@ -70,6 +73,31 @@ def main(argv: list[str] | None = None) -> None:
                 ),
             }
         )
+    batched = None
+    if args.batch_tokens:
+        online.max_batch_tokens = args.batch_tokens
+        chosen = manifest["samples"][: args.samples]
+        torch.cuda.synchronize()
+        started = time.time()
+        records = online.load_many([position[s["id"]] for s in chosen])
+        torch.cuda.synchronize()
+        batch_seconds = time.time() - started
+        worst_rel, worst_abs, equal_ids = 0.0, 0.0, True
+        for sample, record in zip(chosen, records, strict=True):
+            cached = load_file(str(args.cache / sample["file"]))
+            equal_ids &= bool(torch.equal(record["input_ids"].cpu(), cached["input_ids"].long()))
+            for key in ("hidden_states", "last_hidden_states"):
+                ours = record[key].cpu().float()
+                theirs = cached[key].float()
+                worst_abs = max(worst_abs, float((ours - theirs).abs().max()))
+                worst_rel = max(worst_rel, float((ours - theirs).norm() / theirs.norm()))
+        batched = {
+            "batch_tokens": args.batch_tokens,
+            "ids_equal": equal_ids,
+            "max_abs": worst_abs,
+            "max_relative_l2": worst_rel,
+            "teacher_tokens_per_second": round(tokens / max(batch_seconds, 1e-9), 1),
+        }
     report = {
         "cache": str(args.cache),
         "rows": str(args.rows),
@@ -82,6 +110,7 @@ def main(argv: list[str] | None = None) -> None:
             "repeat_hidden_max_abs_max"
         ),
         "teacher_tokens_per_second": round(tokens / max(seconds, 1e-9), 1),
+        "batched": batched,
         "per_sample": results,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -265,9 +265,9 @@ class RolloutTrainer:
         self.model.eval()
         stats = []
         with torch.no_grad():
-            for index in range(len(cache)):
+            for _index, record in iter_records(cache, list(range(len(cache))), self.accum):
                 _p, vlosses, acces, acc_counts, _alphas = self.forward(
-                    build_batch(cache.load(index), self.device)
+                    build_batch(record, self.device)
                 )
                 stats.append(
                     (
@@ -296,6 +296,17 @@ class RolloutTrainer:
         )
         (directory / "state.json").write_text(json.dumps(extra, indent=2) + "\n")
         return directory
+
+
+def iter_records(cache: Any, order: list[int], group: int):
+    """(index, record) pairs; online sources compute ``group`` records per target call."""
+    if hasattr(cache, "load_many"):
+        for start in range(0, len(order), group):
+            chunk = order[start : start + group]
+            yield from zip(chunk, cache.load_many(chunk), strict=True)
+    else:
+        for index in order:
+            yield index, cache.load(index)
 
 
 def _probe_param(draft) -> Any:
@@ -335,14 +346,19 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
         teacher = Teacher(contract, device_name())
         max_seq = int(dataset["max_seq_length"])
+        batch_tokens = int(dataset.get("teacher_batch_tokens") or 0)
         train_cache = OnlineFeatures(
-            [cache_path_of(p) for p in dataset["train_data"]], teacher, max_seq_length=max_seq
+            [cache_path_of(p) for p in dataset["train_data"]],
+            teacher,
+            max_seq_length=max_seq,
+            max_batch_tokens=batch_tokens,
         )
         eval_cache = OnlineFeatures(
             [cache_path_of(p) for p in dataset["eval_data"]],
             teacher,
             max_seq_length=max_seq,
             limit=int(dataset.get("eval_limit") or 0) or None,
+            max_batch_tokens=batch_tokens,
         )
     else:
         train_cache = FeatureCache(cache_path("train_cache"), contract)
@@ -436,8 +452,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         rng.shuffle(order)
         # Drop the ragged tail so every optimizer step sees exactly `accum` sequences.
         order = order[: len(order) - len(order) % trainer.accum] or order
-        for position, index in enumerate(order):
-            batch = build_batch(train_cache.load(index), trainer.device)
+        for position, (index, record) in enumerate(iter_records(train_cache, order, trainer.accum)):
+            batch = build_batch(record, trainer.device)
             tokens_seen += int(batch["input_ids"].shape[1])
             plosses, vlosses, acces, acc_counts, _alphas = trainer.forward(batch)
             loss = sum(w * p for w, p in zip(trainer.weights, plosses, strict=True)) / trainer.accum

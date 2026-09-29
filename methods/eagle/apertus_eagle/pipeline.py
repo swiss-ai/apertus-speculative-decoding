@@ -208,6 +208,8 @@ def main(argv: list[str] | None = None) -> None:
             max_len,
             "--samples",
             str(check.get("samples", 32)),
+            "--batch-tokens",
+            str(dataset.get("teacher_batch_tokens") or 0),
             "--output",
             str(results / "preflight" / f"online-check-{run_name}.json"),
         )

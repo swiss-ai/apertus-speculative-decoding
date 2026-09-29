@@ -95,6 +95,38 @@ class Teacher:
         # Leave inference mode: the trainer builds autograd graphs on top of these.
         return hidden.clone().to(torch.bfloat16), last.clone().to(torch.bfloat16)
 
+    def features_batch(self, sequences: list[list[int]]):
+        """One right-padded target forward for several sequences.
+
+        Padded positions are masked out and each sequence is sliced back to its
+        own length. Batched kernels are not bitwise equal to batch size 1; the
+        online-check step measures the difference against the cache.
+        """
+        import torch
+
+        width = max(len(ids) for ids in sequences)
+        input_ids = torch.zeros((len(sequences), width), dtype=torch.long, device=self.device)
+        attention = torch.zeros_like(input_ids)
+        for row, ids in enumerate(sequences):
+            input_ids[row, : len(ids)] = torch.tensor(ids, device=self.device)
+            attention[row, : len(ids)] = 1
+        capture = self.capture
+        capture.captured.clear()
+        capture.final.clear()
+        with torch.inference_mode():
+            self.model(
+                input_ids=input_ids, attention_mask=attention, use_cache=False, logits_to_keep=1
+            )
+            hidden = torch.cat([capture.captured[idx] for idx in capture.aux_layers], dim=-1)
+            last = capture.final["value"]
+        return [
+            (
+                hidden[row, : len(ids)].clone().to(torch.bfloat16),
+                last[row, : len(ids)].clone().to(torch.bfloat16),
+            )
+            for row, ids in enumerate(sequences)
+        ]
+
 
 class OnlineFeatures:
     """Drop-in replacement for ``train_rollout.FeatureCache``."""
@@ -106,17 +138,58 @@ class OnlineFeatures:
         *,
         max_seq_length: int,
         limit: int | None = None,
+        max_batch_tokens: int = 0,
     ):
         self.root = paths[0].parent
         self.index = LineIndex(paths, limit)
         self.teacher = teacher
         self.max_seq_length = max_seq_length
+        self.max_batch_tokens = max_batch_tokens
         self.skipped: dict[str, int] = {"no_loss_tokens": 0}
         digest = hashlib.sha256(json.dumps(self.index.digests, sort_keys=True).encode()).hexdigest()
         self.manifest = {"corpus_sha256": digest, "files": self.index.digests, "mode": "online"}
 
     def __len__(self) -> int:
         return len(self.index)
+
+    def load_many(self, indices: list[int]) -> list[dict[str, Any]]:
+        """Records for several rows with batched target forwards (same order as ``indices``).
+
+        Rows are sorted by length and grouped so that a padded batch stays under
+        ``max_batch_tokens``; 0 means one sequence per forward (``load``).
+        """
+        if not self.max_batch_tokens:
+            return [self.load(index) for index in indices]
+        import torch
+
+        rows = [row_sequence(self.index.read(i), self.max_seq_length) for i in indices]
+        order = sorted(range(len(rows)), key=lambda k: len(rows[k][0]))
+        records: list[dict[str, Any] | None] = [None] * len(rows)
+        device = self.teacher.device
+        group: list[int] = []
+
+        def flush() -> None:
+            features = self.teacher.features_batch([rows[k][0] for k in group])
+            for k, (hidden, last) in zip(group, features, strict=True):
+                ids, mask = rows[k]
+                if not any(mask):
+                    self.skipped["no_loss_tokens"] += 1
+                records[k] = {
+                    "input_ids": torch.tensor(ids, dtype=torch.long, device=device),
+                    "loss_mask": torch.tensor(mask, dtype=torch.long, device=device),
+                    "hidden_states": hidden,
+                    "last_hidden_states": last,
+                }
+            group.clear()
+
+        for k in order:
+            # Sorted ascending, so the newest row is the widest in its group.
+            if group and len(rows[k][0]) * (len(group) + 1) > self.max_batch_tokens:
+                flush()
+            group.append(k)
+        if group:
+            flush()
+        return records  # type: ignore[return-value]
 
     def load(self, index: int) -> dict[str, Any]:
         import torch
