@@ -1,0 +1,142 @@
+{
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "contract": "/users/faruk_zahiragic/apertus-spec-decoding/targets/8b/contract.json",
+  "config": "/users/faruk_zahiragic/apertus-spec-decoding/methods/eagle/configs/8b/train-e31-online-smoke.yaml",
+  "config_sha256": "c77f3d022bb175111eebf659dbfb105484401a83b9765c924b47b5b04c9df6aa",
+  "resolved_config": {
+    "pipeline": "rollout",
+    "stage": "8b",
+    "model": {
+      "contract": "targets/8b/contract.json",
+      "algorithm": "eagle31",
+      "draft_model_config": "methods/eagle/configs/8b/draft-e31-config.json",
+      "freeze_lm_head": true,
+      "share_target_embedding": true
+    },
+    "dataset": {
+      "features": "online",
+      "data_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-online-smoke",
+      "train_data": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/train.jsonl"
+      ],
+      "eval_data": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/validation.jsonl"
+      ],
+      "max_seq_length": 4096,
+      "online_check": {
+        "cache": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/features/validation",
+        "rows": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/validation.jsonl",
+        "samples": 32
+      }
+    },
+    "training": {
+      "attention_backend": "sdpa",
+      "loss_type": "forward_kl",
+      "ttt_length": 7,
+      "micro_batch_size": 1,
+      "draft_accumulation_steps": 16,
+      "learning_rate": 0.0001,
+      "warmup_ratio": 0.015,
+      "max_grad_norm": 0.5,
+      "weight_decay": 0.0,
+      "lr_decay_style": "cosine",
+      "min_lr": 0.0,
+      "gradient_checkpointing": false,
+      "num_train_steps": 200,
+      "lr_total_steps": 1875,
+      "num_epochs": 3,
+      "eval_interval": 100,
+      "save_interval": 0,
+      "stop_after_evals_without_improvement": 0,
+      "seed": 1
+    },
+    "output_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs",
+    "head_root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads",
+    "run_name": "e31-online-smoke"
+  },
+  "draft_config": "/users/faruk_zahiragic/apertus-spec-decoding/methods/eagle/configs/8b/draft-e31-config.json",
+  "algorithm": "eagle31",
+  "objective": {
+    "implementation": "torchspec.models.eagle3.Eagle3Model",
+    "ttt_length": 7,
+    "loss_type": "forward_kl",
+    "position_weights": [
+      1.0,
+      0.8,
+      0.6400000000000001,
+      0.5120000000000001,
+      0.4096000000000001,
+      0.3276800000000001,
+      0.2621440000000001
+    ],
+    "target": "compute_lazy_target_padded(target lm_head)"
+  },
+  "effective_batch": {
+    "micro_batch_size": 1,
+    "draft_accumulation_steps": 16,
+    "data_parallel_ranks": 1,
+    "sequences_per_optimizer_step": 16,
+    "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp(1) x accumulation"
+  },
+  "optimizer": {
+    "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
+    "lr": 0.0001,
+    "warmup_ratio": 0.015,
+    "max_grad_norm": 0.5,
+    "weight_decay": 0.0,
+    "decay_style": "cosine",
+    "min_lr": 0.0,
+    "lr_total_steps": 1875,
+    "adamw_betas_eps": "torch defaults (0.9, 0.999), 1e-8"
+  },
+  "freeze": {
+    "embedding": true,
+    "lm_head": true
+  },
+  "parameter_counts": {
+    "trainable": 293629952,
+    "frozen": 1073741824,
+    "by_module": {
+      "embed_tokens": 536870912,
+      "midlayer": 243281920,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "norm": 4096,
+      "lm_head": 536870912
+    }
+  },
+  "caches": {
+    "train": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated",
+      "mode": "online",
+      "corpus_sha256": "82f5d5a87009ea779a0488d8d2ee3af369b2b17ea3a43e45f78dffd3763c4fd7",
+      "files": {
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/train.jsonl": "8d673ea523b4dcbda92a1a73b160d240802769facbe1898bd57532882d5e9d41"
+      },
+      "samples": 9869
+    },
+    "eval": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated",
+      "mode": "online",
+      "corpus_sha256": "4278016ae7e8d7dc8f6ae695ff3a580dd3deb735044438614b6ba3680c2ed078",
+      "files": {
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b-mix10k/generated/validation.jsonl": "7ca5b3d2a5b2dae132a5bfe03a1e8c866bc9f5dd9283415c20fff80436505ad2"
+      },
+      "samples": 116
+    }
+  },
+  "torchspec_root": "/users/faruk_zahiragic/apertus-spec-decoding/scratch/TorchSpec",
+  "torchspec_revision": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+  "harness_revision": "032dcf5e4566d74ca721b267dabb97d0645b58ec",
+  "torch": "2.11.0+cu130",
+  "device": "NVIDIA GH200 120GB",
+  "slurm_job_id": "3542020"
+}
