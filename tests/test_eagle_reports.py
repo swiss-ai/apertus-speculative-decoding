@@ -190,3 +190,13 @@ def test_micro_batches_group_by_length_under_the_token_budget() -> None:
     # Attention bound: 3 rows of 300 cost 3 * 300^2 > 400^2, so they split.
     squared = micro_batches(records, 1000, max_square=400 * 400)
     assert [[r["id"] for r in g] for g in squared] == [[100, 120], [300], [900], [2000]]
+
+
+def test_benchmark_prompt_text_handles_the_common_layouts() -> None:
+    from apertus_eagle.benchmark_overlap import prompt_text
+
+    assert prompt_text({"question": "What is 2+2?", "answer": "4"}) == "What is 2+2?"
+    assert prompt_text({"problem": "Solve x"}) == "Solve x"
+    assert prompt_text({"turns": [{"content": "hi"}, {"content": "more"}]}) == "hi\nmore"
+    assert prompt_text({"prompt": ["first", "second"]}) == "first\nsecond"
+    assert prompt_text({"answer": "only"}) is None
