@@ -11,8 +11,9 @@ regenerated history. ``online_features`` trains on these rows as they are
 file has that shape and splits it by conversation.
 
     check: counts, token and length statistics, finish reasons, problems
-    split: rows whose conversation id is in --heldout-ids -> heldout.jsonl, the
-           rest -> train.jsonl (a whole conversation stays on one side)
+    split: rows listed in --heldout-ids -> heldout.jsonl, the rest -> train.jsonl.
+           Ids are matched against the row id (``opb-<conv>_gen<k>``, as the DSpark
+           run's val_ids.txt) or, with --by conversation, the conversation id.
 """
 
 from __future__ import annotations
@@ -96,7 +97,9 @@ def check(paths: list[Path], max_seq_length: int) -> dict[str, Any]:
     }
 
 
-def split(paths: list[Path], heldout_ids: set[str], out_dir: Path) -> dict[str, int]:
+def split(
+    paths: list[Path], heldout_ids: set[str], out_dir: Path, by: str = "row"
+) -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
     counts = Counter()
     with (
@@ -109,7 +112,8 @@ def split(paths: list[Path], heldout_ids: set[str], out_dir: Path) -> dict[str, 
                     if not line.strip():
                         continue
                     row = json.loads(line)
-                    side = "heldout" if conversation_id(row) in heldout_ids else "train"
+                    key = str(row.get("id")) if by == "row" else conversation_id(row)
+                    side = "heldout" if key in heldout_ids else "train"
                     (held if side == "heldout" else train).write(
                         line if line.endswith("\n") else line + "\n"
                     )
@@ -126,7 +130,8 @@ def main(argv: list[str] | None = None) -> None:
     c.add_argument("--report", type=Path, required=True)
     s = sub.add_parser("split")
     s.add_argument("--input", type=Path, nargs="+", required=True)
-    s.add_argument("--heldout-ids", type=Path, required=True, help="one conversation id per line")
+    s.add_argument("--heldout-ids", type=Path, required=True, help="one id per line")
+    s.add_argument("--by", choices=("row", "conversation"), default="row")
     s.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "check":
@@ -136,7 +141,12 @@ def main(argv: list[str] | None = None) -> None:
         print(json.dumps({k: v for k, v in report.items() if k != "files"}))
     else:
         ids = {line.strip() for line in args.heldout_ids.read_text().splitlines() if line.strip()}
-        print(json.dumps(split(args.input, ids, args.output_dir)))
+        counts = split(args.input, ids, args.output_dir, args.by)
+        # Every listed id must be found, or the held-out set is not the one intended.
+        counts["heldout_ids_listed"] = len(ids)
+        print(json.dumps(counts))
+        if args.by == "row" and counts.get("heldout", 0) != len(ids):
+            raise SystemExit(f"matched {counts.get('heldout', 0)} of {len(ids)} held-out ids")
 
 
 if __name__ == "__main__":

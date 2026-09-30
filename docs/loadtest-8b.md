@@ -1,5 +1,7 @@
 # Plain Apertus 1.5 8B load test: memory and capacity
 
+Shareable page: [loadtest-8b.html](loadtest-8b.html).
+
 2026-09-29, one GH200 (95 GiB), pinned image `vllm_apertus_1.5_release-arm64`
 (vLLM `0.23.1rc1.dev1029+ga601a9d99`), TP=1, bf16, `gpu_memory_utilization`
 0.8, `max_model_len` 32768, prefix caching off. Run

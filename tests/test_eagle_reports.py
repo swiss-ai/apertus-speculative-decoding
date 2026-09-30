@@ -248,6 +248,8 @@ def test_speculators_rows_check_split_and_train_as_is(tmp_path: Path) -> None:
             str(path),
             "--heldout-ids",
             str(ids),
+            "--by",
+            "conversation",
             "--output-dir",
             str(tmp_path / "s"),
         ]
@@ -255,3 +257,25 @@ def test_speculators_rows_check_split_and_train_as_is(tmp_path: Path) -> None:
     held = (tmp_path / "s" / "heldout.jsonl").read_text().splitlines()
     assert [json.loads(line)["id"] for line in held] == ["opb-1_gen0", "opb-1_gen1"]
     assert len((tmp_path / "s" / "train.jsonl").read_text().splitlines()) == 2
+
+
+def test_speculators_split_by_row_ids_like_the_dspark_validation(tmp_path: Path) -> None:
+    from apertus_eagle.speculators_corpus import main
+
+    rows = [
+        _speculators_row("opb-1", 0, [1], [2]),
+        _speculators_row("opb-1", 1, [1, 2], [3]),
+        _speculators_row("opb-2", 0, [1], [4]),
+    ]
+    path = tmp_path / "corpus.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    ids = tmp_path / "val_ids.txt"
+    ids.write_text("opb-1_gen1\n")
+    args = ["split", "--input", str(path), "--heldout-ids", str(ids), "--output-dir"]
+    main([*args, str(tmp_path / "s")])
+    held = (tmp_path / "s" / "heldout.jsonl").read_text().splitlines()
+    assert [json.loads(line)["id"] for line in held] == ["opb-1_gen1"]
+    # An id that is not in the corpus means the held-out set is not the intended one.
+    ids.write_text("opb-1_gen1\nopb-9_gen0\n")
+    with pytest.raises(SystemExit, match="matched 1 of 2"):
+        main([*args, str(tmp_path / "t")])
