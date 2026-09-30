@@ -62,3 +62,18 @@ Workload: the 128 untouched summarization test prompts (~3.8k prompt tokens,
 - The first sweep (job 3546229) was capped at 100 concurrent requests by the
   client's HTTP connection pool, and the second (3546292) aborted on a
   keep-alive race; both are fixed in the harness.
+
+## DSpark drafter (same test)
+
+`METHOD=dspark` runs the identical sweep against the target served with the
+colleague's DSpark drafter (`methods/dspark/launch/dspark.sh`, same stage
+settings; vLLM overlays `serving/patches/vllm-apertus-dspark-*.patch`, the
+fixes of his `fork_patch.sh`). Each level then also reports mean acceptance
+length and acceptance rate. The drafter's KV cache and weights come out of
+the same 0.8 budget, so compare the KV pool size in `engine-excerpt.txt`
+too. To match the plain run above:
+
+```
+STAGE=8b METHOD=dspark DSPARK_CHECKPOINT=<checkpoint dir> NUM_SPECULATIVE_TOKENS=7 \
+  LOADTEST_CONCURRENCIES="1 8 32 64 128 256 512" serving/loadtest.sh
+```
