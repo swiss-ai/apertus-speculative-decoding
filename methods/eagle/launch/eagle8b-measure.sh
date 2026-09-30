@@ -4,6 +4,8 @@
 #   ARM=eagle DEPTH=3 PHASE=screen BLOCK_ID=b1 EAGLE_HEAD=... ./methods/eagle/launch/eagle8b-measure.sh
 # PHASE: profile (32 fixed-256 prompts, ignore_eos, C=1; PROFILE_TRACE=1 adds a
 #        torch-profiler window after the unprofiled headline cells)
+#        probe   (the DSpark quick check: 32 math_reasoning + 32 HumanEval prompts of
+#        RedHatAI/speculator_benchmarks, C=8, greedy, 384 tokens, one cell)
 #        screen  (validation strata, natural EOS, C=1 and C=8, 64 requests)
 #        confirm (untouched test strata, natural EOS, C=1 and C=8, 128 requests)
 # Every deployment gets a fresh VLLM_CACHE_ROOT, so compile-cache state is the
@@ -78,6 +80,19 @@ cp "${LOGS}/log.out" "${OUT}/sml-log.out" 2>/dev/null || true
 grep -aE 'non-default args|Initializing a V1|KV cache|Maximum concurrency|Model loading took|Eagle3 auxiliary|async|cudagraph|CUDA graph|max_num_batched_tokens|max_num_scheduled_tokens' \
   "${LOGS}/replica_0.out" > "${OUT}/engine-excerpt.txt" 2>/dev/null || true
 IMAGE_PATH="/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh"
+# BENCH_ON_NODE=1 (default): the client runs in the serving container on the
+# replica's node inside its allocation (srun --overlap), not on the login node.
+# BENCH_ON_NODE=0 reproduces the A5/A6 setup (client on the login node).
+if [ "${BENCH_ON_NODE:-1}" = "1" ]; then
+  BENCH_ENV="$("${SERVING_DIR}/resolve-env.sh" "${REPO_ROOT}/methods/eagle/configs/train-env.toml")"
+  BENCH_CMD=(srun --jobid="${JOB}" --overlap --nodes=1 --ntasks=1 --nodelist="${NODE}"
+    --environment="${BENCH_ENV}" env PYTHONPATH="${REPO_ROOT}/src" PYTHONNOUSERSITE=1
+    python3 -m apertus_bench)
+  LOAD_GENERATOR="replica node (srun --overlap), direct to replica IP"
+else
+  BENCH_CMD=("${BENCH}")
+  LOAD_GENERATOR="clariden login node, direct to replica IP"
+fi
 
 METADATA=(
   --metadata "target_model=swiss-ai/Apertus-v1.5-8B"
@@ -100,7 +115,7 @@ METADATA=(
   --metadata "slurm_job_id=${JOB}"
   --metadata "slurm_node_id=${NODE}"
   --metadata "hardware=1x Clariden GH200 node (4 GPUs allocated, 1 used)"
-  --metadata "load_generator=clariden login node, direct to replica IP"
+  --metadata "load_generator=${LOAD_GENERATOR}"
   --metadata "phase=${PHASE}"
 )
 VARIANT_FLAGS=(--variant "${VARIANT}")
@@ -116,7 +131,7 @@ fi
 cell() {  # workload_file workload concurrency requests extra-args...
   local file="$1" workload="$2" conc="$3" requests="$4"; shift 4
   local warmup=$(( conc * 2 > 8 ? conc * 2 : 8 ))
-  "${BENCH}" run --base-url "${BASE}" --metrics-url "${BASE}/metrics" --model "${MODEL}" \
+  "${BENCH_CMD[@]}" run --base-url "${BASE}" --metrics-url "${BASE}/metrics" --model "${MODEL}" \
     "${VARIANT_FLAGS[@]}" --workloads "${file}" --workload "${workload}" \
     --concurrency "${conc}" --repeat 1 --requests "${requests}" --warmup-requests "${warmup}" \
     --timeout-seconds 1800 "${METADATA[@]}" "$@" \
@@ -128,12 +143,12 @@ case "${PHASE}" in
   profile)
     cell "${WORKLOAD_DIR}/eagle-8b-profile.jsonl" profile_fixed256 1 32 --ignore-eos --max-tokens 256
     if [ "${PROFILE_TRACE:-0}" = "1" ]; then
-      "${BENCH}" start-profile --base-url "${BASE}" || true
-      "${BENCH}" run --base-url "${BASE}" --no-metrics --model "${MODEL}" "${VARIANT_FLAGS[@]}" \
+      "${BENCH_CMD[@]}" start-profile --base-url "${BASE}" || true
+      "${BENCH_CMD[@]}" run --base-url "${BASE}" --no-metrics --model "${MODEL}" "${VARIANT_FLAGS[@]}" \
         --workloads "${WORKLOAD_DIR}/eagle-8b-profile.jsonl" --workload profile_fixed256 \
         --concurrency 1 --repeat 1 --requests 4 --warmup-requests 8 --ignore-eos --max-tokens 256 \
         "${METADATA[@]}" --metadata "profiled=true" --output "${OUT}/cells/profile-trace" >> "${OUT}/cells.log" 2>&1 || true
-      "${BENCH}" stop-profile --base-url "${BASE}" || true
+      "${BENCH_CMD[@]}" stop-profile --base-url "${BASE}" || true
     fi ;;
   screen|confirm)
     file="${WORKLOAD_DIR}/eagle-8b-$([ "${PHASE}" = screen ] && echo validation || echo test).jsonl"
@@ -141,6 +156,8 @@ case "${PHASE}" in
     for workload in chat code summarization; do
       for conc in 1 8; do cell "${file}" "${workload}" "${conc}" "${requests}"; done
     done ;;
+  probe)
+    cell "${WORKLOAD_DIR}/probe-speculator-benchmarks.jsonl" probe 8 64 --max-tokens 384 ;;
   *) echo "unknown PHASE ${PHASE}" >&2; exit 2 ;;
 esac
 
