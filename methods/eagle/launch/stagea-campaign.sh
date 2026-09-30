@@ -14,7 +14,7 @@ while read -r arm phase block depth trace; do
   echo "$(date -u -Iseconds) start ${arm} ${phase} ${block} ${depth:-} ${trace:-}" >> "${LOG}"
   env ARM="${arm}" PHASE="${phase}" BLOCK_ID="${block}" \
     ${depth:+DEPTH="${depth}"} ${trace:+PROFILE_TRACE="${trace}"} \
-    "${LAUNCH_DIR}/eagle8b-measure.sh" >> "${LOG}" 2>&1
+    "${LAUNCH_DIR}/eagle8b-measure.sh" >> "${LOG}" 2>&1 < /dev/null  # srun would eat the plan
   echo "$(date -u -Iseconds) end ${arm} ${phase} ${block} rc=$?" >> "${LOG}"
 done < "${PLAN}"
 echo "$(date -u -Iseconds) campaign done" >> "${LOG}"
