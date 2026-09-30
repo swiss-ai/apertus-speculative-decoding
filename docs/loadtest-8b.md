@@ -112,6 +112,32 @@ Summarization sweep (plain → DSpark):
   makes vLLM cap scheduled tokens at 2048 per step (at most 99 running); it is
   kept for the record (`...20260930T122216Z/NOTE.md`).
 
+### Open-PerfectBlend drafter, epoch 2 (preliminary)
+
+Same test on the colleague's Open-PerfectBlend thinking-off checkpoint after 2 of
+10 epochs (`dspark_apertus15-8b_open-perfectblend_thinking-off_2026-09-30_epoch2_best`,
+trainer validation 5.18 accepted tokens per round), run
+`apertus15-8b-dspark-k7-loadtest-20260930T180508Z` (job 3555196). Final numbers
+need the final checkpoint; memory and KV pool are identical to the Magpie
+drafter (same architecture).
+
+Probe: 6.10 accepted tokens per round, 4,798 output tokens/s (3.9x plain),
+TPOT p50 1.4 ms.
+
+| C | output tok/s plain → Magpie → OPB e2 | TPOT p50 plain → OPB e2 (ms) | accepted length Magpie → OPB e2 |
+| --- | --- | --- | --- |
+| 1 | 155 → 221 → 262 | 5.9 → 3.3 | 1.99 → 2.41 |
+| 8 | 691 → 824 → 952 | 9.6 → 6.5 | 1.99 → 2.45 |
+| 32 | 1,408 → 1,291 → 1,445 | 18.9 → 19.0 | 1.52 → 1.82 |
+| 64 | 1,665 → 1,386 → 1,526 | 33.7 → 36.2 | 1.51 → 1.82 |
+| 128 | 1,861 → 1,440 → 1,581 | 63.7 → 69.4 | 1.51 → 1.82 |
+| 256 | 1,883 → 1,450 → 1,582 | 84.9 → 74.8 | 1.51 → 1.82 |
+| 512 | 1,885 → 1,451 → 1,589 | 86.3 → 76.8 | 1.51 → 1.82 |
+
+1.69x the plain target at C=1, 1.38x at C=8, even at C=32, 16% below from
+C=128 on. The same acceptance drop from C=32 on appears with this drafter
+(2.45 → 1.82).
+
 Rerun, e.g. with another checkpoint:
 
 ```
