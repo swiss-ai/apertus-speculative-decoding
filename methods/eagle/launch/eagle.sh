@@ -29,15 +29,17 @@ case "${ALGORITHM}" in
   eagle3|eagle31|peagle) ;;
   *) echo "ALGORITHM must be one of: eagle3, eagle31, peagle" >&2; exit 2 ;;
 esac
+# The plan's depth grid (2/3/5/8) plus 7, the DSpark comparison's deepest depth
+# and the training rollout length (ttt_length 7).
 if [ "${ALLOW_DEPTH_1:-0}" = "1" ]; then
   case "${NUM_SPECULATIVE_TOKENS}" in
-    1|2|3|5|8) ;;
-    *) echo "NUM_SPECULATIVE_TOKENS must be one of: 1, 2, 3, 5, 8" >&2; exit 2 ;;
+    1|2|3|5|7|8) ;;
+    *) echo "NUM_SPECULATIVE_TOKENS must be one of: 1, 2, 3, 5, 7, 8" >&2; exit 2 ;;
   esac
 else
   case "${NUM_SPECULATIVE_TOKENS}" in
-    2|3|5|8) ;;
-    *) echo "NUM_SPECULATIVE_TOKENS must be one of: 2, 3, 5, 8" >&2; exit 2 ;;
+    2|3|5|7|8) ;;
+    *) echo "NUM_SPECULATIVE_TOKENS must be one of: 2, 3, 5, 7, 8" >&2; exit 2 ;;
   esac
 fi
 if [ "${DRAFT_TP}" != "${TARGET_TP}" ]; then
