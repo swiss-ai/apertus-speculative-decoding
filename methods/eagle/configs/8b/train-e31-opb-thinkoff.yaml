@@ -1,0 +1,66 @@
+# EAGLE 3.1 on the DSpark corpus, for the apples-to-apples comparison: the
+# colleague's thinking-off open-perfectblend regeneration (1,809,684 rows,
+# infra01/speculative-decoding/dspark-opb-thinking-off), his 90/10 row split
+# (val_ids.txt), 8,192-token rows, ~64k tokens per optimizer step (DSpark:
+# 65,536). Learning-rate schedule over his 10 epochs; this first stage stops
+# after 2 epochs and continues from checkpoints/resume by raising
+# num_train_steps / num_epochs. Online target features on 1 node (4 GPUs).
+pipeline: rollout
+stage: 8b
+
+model:
+  contract: targets/8b/contract.json
+  algorithm: eagle31
+  draft_model_config: methods/eagle/configs/8b/draft-e31-config.json
+  freeze_lm_head: true
+  share_target_embedding: true
+
+dataset:
+  features: online
+  data_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off
+  train_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/train.jsonl]
+  # First 2,000 rows of his validation slice (already in his shuffled order).
+  eval_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/heldout.jsonl]
+  eval_limit: 2000
+  max_seq_length: 8192
+  teacher_batch_tokens: 32768
+
+training:
+  attention_backend: sdpa
+  loss_type: forward_kl
+  ttt_length: 7
+  micro_batch_size: 1
+  # 16 rows per rank x 4 ranks = 64 rows (~63k tokens) per step, 25,448 steps
+  # per epoch. Keep 64 rows per step if the rank count changes: then every
+  # step consumes the same rows and resuming stays exact.
+  draft_accumulation_steps: 16
+  data_parallel: 4
+  micro_batch_tokens: 8192
+  gradient_checkpointing: adaptive
+  checkpoint_free_width: 4096
+  checkpoint_free_tokens: 8192
+  learning_rate: 1.0e-4
+  warmup_ratio: 0.015
+  max_grad_norm: 0.5
+  weight_decay: 0.0
+  lr_decay_style: cosine
+  min_lr: 0.0
+  lr_total_steps: 254480  # 10 epochs
+  num_train_steps: 50896  # stage 1: 2 epochs
+  num_epochs: 2
+  eval_interval: 2545  # 10 evaluations per epoch
+  save_interval: 6362  # a kept checkpoint every quarter epoch
+  resume_interval: 500
+  stop_after_evals_without_improvement: 0
+  stop_margin_s: 900
+  seed: 1
+
+output_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs
+head_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads
+run_name: e31-opb-thinkoff
+
+verify:
+  prompts: workloads/8b/eagle-8b-validation.jsonl
+  limit: 128
+  max_tokens: 512
+  num_speculative_tokens: 3
