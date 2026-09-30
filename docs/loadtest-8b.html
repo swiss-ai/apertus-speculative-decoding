@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apertus 1.5 8B load test — memory and capacity</title>
+<style>
+  :root {
+    --ink: #1c1917;
+    --muted: #57534e;
+    --line: #e7e5e4;
+    --paper: #fafaf9;
+    --card: #ffffff;
+    --accent: #1e3a5f;
+    --accent-soft: #e8eef5;
+    --warn: #9a3412;
+    --warn-soft: #fff7ed;
+    --ok: #14532d;
+    --bar: #1e3a5f;
+    --bar-soft: #c5d4e8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 28px 72px;
+  }
+  header p.kicker {
+    margin: 0 0 8px;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-size: 32px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 650;
+  }
+  .lede {
+    margin: 0;
+    max-width: 68ch;
+    color: var(--muted);
+    font-size: 17px;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .meta strong { color: var(--ink); font-weight: 650; }
+  h2 {
+    margin: 40px 0 10px;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+  }
+  p { margin: 0 0 12px; max-width: 72ch; }
+  figure.tldr {
+    margin: 28px 0 0;
+    padding: 18px 18px 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+  }
+  figure.tldr svg { display: block; width: 100%; height: auto; }
+  .beats {
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 1.1fr;
+    gap: 16px;
+    margin: 4px 0 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .beats p { margin: 0; font-size: 14px; max-width: none; }
+  .beats strong { display: block; margin-bottom: 2px; font-size: 15px; }
+  .beats .n { color: var(--accent); font-size: 12px; font-weight: 650; letter-spacing: 0.04em; }
+  .callout {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+  }
+  .callout strong { font-weight: 650; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: right;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  th:first-child, td:first-child,
+  th.left, td.left { text-align: left; }
+  th {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  tr.knee td { background: var(--warn-soft); }
+  .bar {
+    display: inline-block;
+    height: 8px;
+    background: var(--bar);
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .bar.soft { background: var(--bar-soft); }
+  .mem {
+    display: grid;
+    grid-template-columns: 180px 1fr 72px;
+    gap: 8px 12px;
+    align-items: center;
+    margin: 16px 0 8px;
+    font-size: 14px;
+  }
+  .mem .track {
+    height: 14px;
+    background: var(--line);
+  }
+  .mem .fill { height: 100%; background: var(--bar); }
+  .mem .fill.pool { background: #3b6ea5; }
+  .mem .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .notes { margin: 14px 0 0; padding-left: 18px; }
+  .notes li { margin: 0 0 8px; max-width: 72ch; }
+  .caveat {
+    margin-top: 8px;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--line);
+  }
+  .caveat + .caveat { margin-top: 8px; }
+  .caveat h3 { margin: 0 0 4px; font-size: 15px; }
+  .caveat p { margin: 0; color: var(--muted); font-size: 14px; }
+  footer {
+    margin-top: 36px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 0.92em; }
+  @media (max-width: 720px) {
+    .beats { grid-template-columns: 1fr; }
+    main { padding: 28px 16px 48px; }
+    table { display: block; overflow-x: auto; }
+  }
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    figure.tldr, table, .caveat { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="kicker">Serving capacity · 29 September 2026</p>
+    <h1>Plain Apertus 1.5 8B holds about 1,840 output tokens/s, then the KV cache fills</h1>
+    <p class="lede">Closed-loop load sweep of one plain target on a single GH200. Throughput stops climbing once prefill dominates. Past 256 concurrent summarization requests the cache is full, extra requests only wait, and the engine starts evicting work.</p>
+    <ul class="meta">
+      <li><strong>Hardware</strong> 1× GH200, 95 GiB</li>
+      <li><strong>Model</strong> Apertus-v1.5-8B, bf16, TP=1</li>
+      <li><strong>Image</strong> vllm_apertus_1.5_release-arm64 · vLLM 0.23.1rc1.dev1029</li>
+      <li><strong>Launch</strong> model-launch <code>sml</code>, job 3546378</li>
+      <li><strong>Driver</strong> <code>serving/loadtest.sh</code></li>
+    </ul>
+  </header>
+
+  <figure class="tldr">
+    <svg viewBox="0 0 860 250" role="img" aria-labelledby="tldr-title tldr-desc">
+      <title id="tldr-title">Output throughput versus concurrency</title>
+      <desc id="tldr-desc">Throughput rises from 156 tokens per second at one request to about 1,840 at 128 concurrent requests, then stays flat through 512 while the KV cache is full.</desc>
+      <text x="0" y="16" fill="#1c1917" font-size="13" font-family="Segoe UI, system-ui, sans-serif" font-weight="650">Output tokens per second</text>
+      <rect x="620" y="6" width="12" height="12" fill="#9a3412"/>
+      <text x="638" y="16" fill="#9a3412" font-size="13" font-family="Segoe UI, system-ui, sans-serif">KV cache full</text>
+      <line x1="566" y1="28" x2="566" y2="214" stroke="#9a3412" stroke-dasharray="3 3"/>
+      <g fill="#1e3a5f" font-family="Segoe UI, system-ui, sans-serif" font-size="12">
+        <rect x="36" y="198" width="72" height="12"/>
+        <text x="72" y="192" text-anchor="middle">156</text>
+        <rect x="148" y="157" width="72" height="53"/>
+        <text x="184" y="151" text-anchor="middle">690</text>
+        <rect x="260" y="99" width="72" height="111"/>
+        <text x="296" y="93" text-anchor="middle">1,431</text>
+        <rect x="372" y="82" width="72" height="128"/>
+        <text x="408" y="76" text-anchor="middle">1,653</text>
+        <rect x="484" y="68" width="72" height="142"/>
+        <text x="520" y="62" text-anchor="middle">1,839</text>
+      </g>
+      <g fill="#9a3412" font-family="Segoe UI, system-ui, sans-serif" font-size="12">
+        <rect x="596" y="67" width="72" height="143"/>
+        <text x="632" y="61" text-anchor="middle" fill="#9a3412">1,844</text>
+        <rect x="708" y="65" width="72" height="145"/>
+        <text x="744" y="59" text-anchor="middle" fill="#9a3412">1,872</text>
+      </g>
+      <line x1="24" y1="210" x2="796" y2="210" stroke="#e7e5e4"/>
+      <g fill="#57534e" font-size="12" font-family="Segoe UI, system-ui, sans-serif" text-anchor="middle">
+        <text x="72" y="228">1</text>
+        <text x="184" y="228">8</text>
+        <text x="296" y="228">32</text>
+        <text x="408" y="228">64</text>
+        <text x="520" y="228">128</text>
+        <text x="632" y="228">256</text>
+        <text x="744" y="228">512</text>
+        <text x="410" y="246">concurrent requests</text>
+      </g>
+    </svg>
+    <div class="beats">
+      <p><span class="n">1</span><strong>Speed stops at ~1,840 tok/s.</strong> From 128 concurrent requests upward, more load does not raise output throughput. These prompts are long, so the GPU is busy on prefill.</p>
+      <p><span class="n">2</span><strong>The cache fills at 256.</strong> At most 167 requests fit (~2.8k tokens each). The rest wait, and the engine starts evicting work. Time to first token jumps from 0.4 s to 11 s, then 40 s.</p>
+      <p><span class="n">3</span><strong>GPU memory never moves.</strong> 81.3 GiB is reserved at startup and stays there. Load fills the KV-cache pool, not the device.</p>
+    </div>
+  </figure>
+
+  <h2>Memory reserved at startup</h2>
+  <p>Budget is <code>gpu_memory_utilization</code> 0.8 × 95 GiB. <code>max_model_len</code> 32,768. Prefix caching off. Pool is 466,144 tokens in 16-token blocks.</p>
+  <div class="mem" role="img" aria-label="GPU memory breakdown. Weights 17.23 GiB, activations 1.63, CUDA graphs 0.95, KV pool 56.9, measured total 81.3.">
+    <div>Weights</div><div class="track"><div class="fill" style="width:21.2%"></div></div><div class="num">17.23</div>
+    <div>Activations</div><div class="track"><div class="fill" style="width:2.0%"></div></div><div class="num">1.63</div>
+    <div>CUDA graphs</div><div class="track"><div class="fill" style="width:1.2%"></div></div><div class="num">0.95</div>
+    <div>KV-cache pool</div><div class="track"><div class="fill pool" style="width:70.0%"></div></div><div class="num">56.9</div>
+    <div>Budget (0.8 × 95)</div><div class="track"><div class="fill soft" style="width:93.5%"></div></div><div class="num">76.0</div>
+    <div>nvidia-smi</div><div class="track"><div class="fill" style="width:100%"></div></div><div class="num">81.3</div>
+  </div>
+  <p style="color:var(--muted);font-size:13px">GiB. Bars are relative to the 81.3 GiB <code>nvidia-smi</code> reading, which includes the 76 GiB budget plus CUDA context and non-torch memory.</p>
+
+  <h2>Load sweep</h2>
+  <p>128 untouched summarization prompts, about 3.8k prompt tokens and 200-token answers, natural end-of-sequence. Closed loop: exactly C requests open, 4×C requests per level (at least 32). The client ran on the replica node, not a login node. Every request succeeded. GPU utilization was 100% under load, peak power 531 W.</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="left">C</th>
+        <th class="left">Output tok/s</th>
+        <th>TTFT p50 / p95</th>
+        <th>TPOT p50 / p95</th>
+        <th class="left">KV use max</th>
+        <th>Running</th>
+        <th>Waiting</th>
+        <th>Preempted</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="left">1</td>
+        <td class="left"><span class="bar" style="width:12px"></span>156</td>
+        <td>0.09 / 0.13 s</td>
+        <td>5.9 / 5.9 ms</td>
+        <td class="left"><span class="bar soft" style="width:2px"></span>0.9%</td>
+        <td>1</td><td>0</td><td>0</td>
+      </tr>
+      <tr>
+        <td class="left">8</td>
+        <td class="left"><span class="bar" style="width:52px"></span>690</td>
+        <td>0.13 / 0.57 s</td>
+        <td>9.8 / 11.1 ms</td>
+        <td class="left"><span class="bar soft" style="width:8px"></span>6%</td>
+        <td>8</td><td>0</td><td>0</td>
+      </tr>
+      <tr>
+        <td class="left">32</td>
+        <td class="left"><span class="bar" style="width:107px"></span>1,431</td>
+        <td>0.17 / 2.2 s</td>
+        <td>19.1 / 28.2 ms</td>
+        <td class="left"><span class="bar soft" style="width:26px"></span>22%</td>
+        <td>32</td><td>19</td><td>0</td>
+      </tr>
+      <tr>
+        <td class="left">64</td>
+        <td class="left"><span class="bar" style="width:124px"></span>1,653</td>
+        <td>0.23 / 4.5 s</td>
+        <td>34.1 / 46.8 ms</td>
+        <td class="left"><span class="bar soft" style="width:50px"></span>42%</td>
+        <td>64</td><td>52</td><td>0</td>
+      </tr>
+      <tr>
+        <td class="left">128</td>
+        <td class="left"><span class="bar" style="width:138px"></span>1,839</td>
+        <td>0.37 / 8.6 s</td>
+        <td>65.2 / 78.1 ms</td>
+        <td class="left"><span class="bar soft" style="width:96px"></span>80%</td>
+        <td>128</td><td>101</td><td>0</td>
+      </tr>
+      <tr class="knee">
+        <td class="left">256</td>
+        <td class="left"><span class="bar" style="width:138px"></span>1,844</td>
+        <td>10.9 / 21.3 s</td>
+        <td>86.1 / 99.1 ms</td>
+        <td class="left"><span class="bar soft" style="width:120px"></span>100%</td>
+        <td>167</td><td>232</td><td>40</td>
+      </tr>
+      <tr class="knee">
+        <td class="left">512</td>
+        <td class="left"><span class="bar" style="width:140px"></span>1,872</td>
+        <td>40.1 / 44.0 s</td>
+        <td>86.3 / 93.3 ms</td>
+        <td class="left"><span class="bar soft" style="width:120px"></span>100%</td>
+        <td>167</td><td>476</td><td>66</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="color:var(--muted);font-size:13px;margin-top:8px">Highlighted rows are past the knee. TTFT is time to first token. TPOT is time per output token. KV use is the max fraction of the pool observed during the level. Preempted requests were evicted and recomputed later.</p>
+
+  <h2>Reading</h2>
+  <ul class="notes">
+    <li>Throughput saturates near 1.84k output tokens/s from C=128. Prompts are ~3.8k tokens, so the GPU spends most of its time on prefill. Raising concurrency from 128 to 512 adds about 30 tokens/s and multiplies time-to-first-token.</li>
+    <li>The KV cache fills at C=256. At most 167 requests fit. The rest queue. Preemptions start here (40, then 66 at C=512).</li>
+    <li>A queue appears earlier than a full cache. Waiting requests show up at C=32, while the pool is still only 22% full, because prefill of these long prompts cannot keep every open request on the GPU at once.</li>
+  </ul>
+
+  <h2>Caveats</h2>
+  <div class="caveat">
+    <h3>One workload shape</h3>
+    <p>Long prompts, short answers. Chat and code prompts are shorter, so more of them fit before the pool fills. Rerun with <code>LOADTEST_WORKLOAD=chat</code> or <code>code</code>.</p>
+  </div>
+  <div class="caveat">
+    <h3>Closed loop, not an arrival rate</h3>
+    <p>The client holds exactly C requests open. Real traffic arrives at a rate. An open-loop test, requests per second, is the next step for a capacity number you can quote against a service target.</p>
+  </div>
+  <div class="caveat">
+    <h3>Two earlier sweeps on the same day were invalid</h3>
+    <p>Job 3546229 was capped at 100 connections by the client pool, so the server never saw C=128 or C=256. Job 3546292 aborted on a keep-alive race. Both are fixed in the harness. This page is job 3546378.</p>
+  </div>
+
+  <footer>
+    Source note: <code>docs/loadtest-8b.md</code>. Raw cells: <code>results/8b/loadtest/apertus15-8b-baseline-loadtest-20260929T192432Z/</code>. Plain target only; no draft model.
+  </footer>
+</main>
+</body>
+</html>
