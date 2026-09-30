@@ -63,17 +63,59 @@ Workload: the 128 untouched summarization test prompts (~3.8k prompt tokens,
   client's HTTP connection pool, and the second (3546292) aborted on a
   keep-alive race; both are fixed in the harness.
 
-## DSpark drafter (same test)
+## DSpark drafter vs plain target (2026-09-30)
 
-`METHOD=dspark` runs the identical sweep against the target served with the
-colleague's DSpark drafter (`methods/dspark/launch/dspark.sh`, same stage
-settings; vLLM overlays `serving/patches/vllm-apertus-dspark-*.patch`, the
-fixes of his `fork_patch.sh`). Each level then also reports mean acceptance
-length and acceptance rate. The drafter's KV cache and weights come out of
-the same 0.8 budget, so compare the KV pool size in `engine-excerpt.txt`
-too. To match the plain run above:
+Both deployments with the same engine limits: `max_num_batched_tokens` 16384,
+`max_num_seqs` 256, otherwise as above (0.8, 32k, prefix caching off). Plain:
+`apertus15-8b-baseline-loadtest-20260930T161730Z` (job 3554644); DSpark: `apertus15-8b-dspark-k7-loadtest-20260930T155908Z` (job
+3554517). Drafter: the colleague's Magpie 100k checkpoint (thinking off, epoch 7
+best, 2026-09-25), depth 7, served with `methods/dspark/launch/dspark.sh`. This
+is not the Open-PerfectBlend drafter of the EAGLE comparison.
+
+**Serving check first.** On the 64 math/HumanEval probe prompts (C=8, 384
+tokens) DSpark accepts 5.01 tokens per round (the colleague measured 4.98),
+4,041 vs 1,217 output tokens/s for the plain target (3.3x), TPOT p50 1.7 vs
+6.1 ms. The serving path is correct.
+
+**Memory.** Weights 20.5 GiB (target 17.2 + drafter 3.3); KV pool 342,655
+tokens vs 469,792 (-27%) inside the same 0.8 budget; `nvidia-smi` 80.8 GiB
+DSpark vs 78.2 GiB plain. With the engine default `max_num_seqs` the DSpark
+deployment used 95 of 95 GiB and one start ran out of memory
+(`...20260930T124347Z/NOTE.md`), so `max_num_seqs` 256 is needed.
+
+Summarization sweep (plain → DSpark):
+
+| C | output tok/s | TTFT p50 (s) | TPOT p50 (ms) | TPOT p95 (ms) | KV max | running max | preempted | DSpark accepted length |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 155 → 221 | 0.09 → 0.09 | 5.9 → 4.0 | 5.9 → 4.5 | 1% → 1% | 1 → 1 | 0 → 0 | 1.99 |
+| 8 | 691 → 824 | 0.12 → 0.15 | 9.6 → 7.6 | 11.2 → 10.1 | 6% → 7% | 8 → 8 | 0 → 0 | 1.99 |
+| 32 | 1,408 → 1,291 | 0.16 → 0.22 | 18.9 → 21.6 | 28.4 → 27.7 | 22% → 28% | 32 → 32 | 0 → 0 | 1.52 |
+| 64 | 1,665 → 1,386 | 0.24 → 0.32 | 33.7 → 40.1 | 46.8 → 54.1 | 41% → 55% | 64 → 64 | 0 → 0 | 1.51 |
+| 128 | 1,861 → 1,440 | 0.40 → 0.99 | 63.7 → 76.5 | 77.6 → 107.3 | 79% → 100% | 128 → 128 | 0 → 10 | 1.51 |
+| 256 | 1,883 → 1,450 | 10.4 → 19.6 | 84.9 → 82.2 | 99.9 → 107.8 | 100% → 100% | 170 → 129 | 29 → 20 | 1.51 |
+| 512 | 1,885 → 1,451 | 39.5 → 57.6 | 86.3 → 85.1 | 93.9 → 108.4 | 100% → 100% | 171 → 129 | 75 → 61 | 1.51 |
+
+- On summarization this drafter accepts only ~2 tokens per round (vs 5.0 on
+  math/code): it was trained on 100k short Magpie chats, and these are
+  ~3.8k-token documents.
+- DSpark helps at low load (1.42x output tokens/s at C=1, 1.19x at C=8) and
+  hurts from C=32 on (-8% at C=32, -23% at C=512). Once the GPU is
+  compute-bound, verifying 7 draft tokens per request per step costs more
+  than ~1.5 accepted tokens return.
+- The smaller KV pool fills at C=128 instead of C=256; at most 129 requests
+  run at once vs 171.
+- **Open:** acceptance falls from 1.99 (C<=8) to 1.51 (C>=32) on the same
+  prompts. Greedy acceptance should not depend on batch size; the probe
+  prompts at C=32+ would tell whether this is a serving bug or specific to
+  this workload.
+- The first DSpark sweep (job 3552386) ran at the engine defaults, where k=7
+  makes vLLM cap scheduled tokens at 2048 per step (at most 99 running); it is
+  kept for the record (`...20260930T122216Z/NOTE.md`).
+
+Rerun, e.g. with another checkpoint:
 
 ```
-STAGE=8b METHOD=dspark DSPARK_CHECKPOINT=<checkpoint dir> NUM_SPECULATIVE_TOKENS=7 \
+STAGE=8b METHOD=dspark DSPARK_CHECKPOINT=<dir> NUM_SPECULATIVE_TOKENS=7 LOADTEST_PROBE=1 \
+  MAX_NUM_BATCHED_TOKENS=16384 MAX_NUM_SEQS=256 \
   LOADTEST_CONCURRENCIES="1 8 32 64 128 256 512" serving/loadtest.sh
 ```

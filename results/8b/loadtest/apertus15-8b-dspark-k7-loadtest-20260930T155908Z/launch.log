@@ -1,0 +1,24 @@
+stage=8b
+served_model=swiss-ai/Apertus-v1.5-8B-dspark-n7-tp1-loadtest-20260930T155908Z
+target_model=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+target_contract=/users/faruk_zahiragic/apertus-spec-decoding/targets/8b/contract.json
+target_tensor_parallel_size=1
+results_root=/users/faruk_zahiragic/apertus-spec-decoding/results/8b
+dspark_checkpoint=/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_magpie100k_thinking-off_2026-09-25_epoch7_best
+engine_method=dspark
+num_speculative_tokens=7
+max_model_len=32768
+gpu_memory_utilization=0.8
+enable_prefix_caching=0
+async_scheduling=engine-default
+max_num_batched_tokens=16384
+max_num_seqs=256
+environment=/users/faruk_zahiragic/.sml/env_resolved_arm64_dOnOA8.toml
+image=/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+apply_vllm_patches=1
+checkpoint_report={"aux_hidden_state_layer_ids": [1, 8, 15, 22, 29], "block_size": 8, "config_sha256": "7da65275c084673689a3afd1c36f4f131c9aa64f6959caf53ff95c1d733b3498", "draft_vocab_size": 131072, "enable_confidence_head": true, "markov_rank": 256, "sample_from_anchor": true, "weights": {"model.safetensors": 3433416186}}
+--system is ignored when using the SLURM launcher
+Job submitted: 3554517
+Served model name: faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-dspark-n7-tp1-loadtest-20260930T155908Z
+Logs: ~/.sml/logs/3554517
+Tail: tail -f ~/.sml/logs/3554517/log.out
