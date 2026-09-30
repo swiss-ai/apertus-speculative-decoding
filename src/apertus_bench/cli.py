@@ -46,11 +46,12 @@ def _add_variant(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--variant", required=True, help="stable label for the server variant")
     parser.add_argument(
         "--method",
-        choices=("none", "draft_model", "ngram", "eagle3"),
+        choices=("none", "draft_model", "ngram", "eagle3", "dspark"),
         required=True,
         help=(
             "engine speculative method; E3/E3.1/P-EAGLE all use eagle3 "
-            "and are distinguished by --algorithm"
+            "and are distinguished by --algorithm; dspark is the colleague's "
+            "DSpark drafter"
         ),
     )
     parser.add_argument(
@@ -317,6 +318,8 @@ def _variant(args: argparse.Namespace) -> Variant:
             raise ValueError("--parallel-drafting is only valid with --algorithm peagle")
     elif args.parallel_drafting:
         raise ValueError("--parallel-drafting is only valid with --method eagle3")
+    if method == "dspark" and (tokens is None or tokens < 1):
+        raise ValueError("--num-speculative-tokens is required and must be >= 1 for method dspark")
     return Variant(
         name=args.variant,
         method=method,
@@ -459,9 +462,11 @@ async def _run_loadtest(args: argparse.Namespace) -> None:
 
 
 def loadtest_level(concurrency: int, summary: dict[str, Any]) -> dict[str, Any]:
-    """The per-level row of a load test: throughput, latency tails, KV pressure."""
+    """The per-level row of a load test: throughput, latency tails, KV pressure,
+    and acceptance when the server speculates."""
     latency = summary["latency_ms"]
     load = summary.get("load") or {}
+    spec = summary.get("speculative_decoding") or {}
 
     def pick(block: dict[str, Any] | None, key: str) -> Any:
         return (block or {}).get(key)
@@ -484,6 +489,8 @@ def loadtest_level(concurrency: int, summary: dict[str, Any]) -> dict[str, Any]:
         "running_max": pick(load.get("running"), "max"),
         "waiting_max": pick(load.get("waiting"), "max"),
         "preemptions": load.get("preemptions"),
+        "mean_acceptance_length": spec.get("mean_acceptance_length"),
+        "acceptance_rate": spec.get("acceptance_rate"),
     }
 
 

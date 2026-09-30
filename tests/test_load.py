@@ -87,6 +87,23 @@ def test_loadtest_level_row() -> None:
     assert row["waiting_max"] == 2
     assert row["e2e_p95_ms"] is None
     assert row["preemptions"] is None
+    assert row["mean_acceptance_length"] is None
+
+
+def test_loadtest_level_row_reports_acceptance() -> None:
+    summary = {
+        "requests": {"attempted": 32, "success_rate": 1.0},
+        "tokens": {"output_tokens_per_second": 900.0},
+        "latency_ms": {"ttft": {}, "tpot": {}, "e2e": {}},
+        "speculative_decoding": {
+            "enabled": True,
+            "mean_acceptance_length": 4.2,
+            "acceptance_rate": 0.46,
+        },
+    }
+    row = loadtest_level(8, summary)
+    assert row["mean_acceptance_length"] == 4.2
+    assert row["acceptance_rate"] == 0.46
 
 
 async def test_run_cell_samples_load_during_the_cell(tmp_path: Path) -> None:

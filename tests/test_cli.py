@@ -36,6 +36,33 @@ def test_eagle3_requires_algorithm() -> None:
         _variant(args)
 
 
+def test_dspark_requires_depth() -> None:
+    base = [
+        "run",
+        "--base-url",
+        "http://x",
+        "--model",
+        "m",
+        "--workloads",
+        "w.jsonl",
+        "--workload",
+        "chat",
+        "--concurrency",
+        "1",
+        "--output",
+        "out",
+        "--variant",
+        "dspark",
+        "--method",
+        "dspark",
+    ]
+    with pytest.raises(ValueError, match="method dspark"):
+        _variant(build_parser().parse_args(base))
+    variant = _variant(build_parser().parse_args([*base, "--num-speculative-tokens", "7"]))
+    assert variant.method == "dspark"
+    assert variant.num_speculative_tokens == 7
+
+
 def test_eagle31_algorithm_is_recorded_separately_from_engine_method() -> None:
     args = build_parser().parse_args(
         [
