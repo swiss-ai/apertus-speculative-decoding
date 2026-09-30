@@ -6,7 +6,11 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = {"eagle.sh": "methods/eagle/launch/eagle.sh", "baseline.sh": "serving/baseline.sh"}
+SCRIPTS = {
+    "eagle.sh": "methods/eagle/launch/eagle.sh",
+    "baseline.sh": "serving/baseline.sh",
+    "dspark.sh": "methods/dspark/launch/dspark.sh",
+}
 EIGHT = "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B"
 
 
@@ -108,6 +112,46 @@ def test_baseline_matches_the_eagle_arm_for_8b(tmp_path: Path) -> None:
         assert base[key] == eagle[key]
     assert base["enable_prefix_caching"] == eagle["enable_prefix_caching"] == "0"
     assert base["served_model"] == "swiss-ai/Apertus-v1.5-8B-baseline-tp1-test"
+
+
+def _dspark_checkpoint(tmp_path: Path, kind: str = "dspark") -> Path:
+    checkpoint = tmp_path / "checkpoint_best"
+    checkpoint.mkdir()
+    config = {
+        "speculators_model_type": kind,
+        "aux_hidden_state_layer_ids": [1, 8, 15, 22, 29],
+        "block_size": 8,
+    }
+    (checkpoint / "config.json").write_text(json.dumps(config))
+    (checkpoint / "model.safetensors").write_bytes(b"x")
+    return checkpoint
+
+
+def test_dspark_launcher_serves_like_the_baseline_for_8b(tmp_path: Path) -> None:
+    checkpoint = _dspark_checkpoint(tmp_path)
+    result = _run("dspark.sh", tmp_path, STAGE="8b", DSPARK_CHECKPOINT=str(checkpoint))
+    assert result.returncode == 0, result.stderr
+    got = _settings(result.stdout)
+    baseline = _settings(_run("baseline.sh", tmp_path, STAGE="8b").stdout)
+    for key in ("target_model", "max_model_len", "gpu_memory_utilization"):
+        assert got[key] == baseline[key]
+    assert got["engine_method"] == "dspark"
+    assert got["num_speculative_tokens"] == "7"
+    assert got["served_model"] == "swiss-ai/Apertus-v1.5-8B-dspark-n7-tp1-test"
+    report = json.loads(got["checkpoint_report"])
+    assert report["aux_hidden_state_layer_ids"] == [1, 8, 15, 22, 29]
+    assert report["weights"] == {"model.safetensors": 1}
+
+
+def test_dspark_launcher_refuses_other_checkpoints_and_depths(tmp_path: Path) -> None:
+    eagle = _dspark_checkpoint(tmp_path, kind="eagle3")
+    result = _run("dspark.sh", tmp_path, STAGE="8b", DSPARK_CHECKPOINT=str(eagle))
+    assert result.returncode != 0
+    assert "not 'dspark'" in result.stderr
+    result = _run(
+        "dspark.sh", tmp_path, STAGE="8b", DSPARK_CHECKPOINT=str(eagle), NUM_SPECULATIVE_TOKENS="8"
+    )
+    assert result.returncode == 2
 
 
 def test_baseline_without_stage_keeps_the_historical_70b_launch(tmp_path: Path) -> None:
