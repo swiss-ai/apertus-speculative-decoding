@@ -16,6 +16,7 @@ revision and files used. Runs in a compute job (network, 1.4M rows).
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
 import json
 from collections import Counter, defaultdict
@@ -90,11 +91,14 @@ def fetch_benchmarks(cache: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]
                         local_dir=cache / repo.replace("/", "__"),
                     )
                 )
-                # Skip the downloader's own metadata (.cache/huggingface/trees/*.json).
+                # Only the pinned files: the cache also holds the downloader's
+                # metadata and files from earlier, wider patterns (Arena-Hard v2.0).
                 files = sorted(
                     p
                     for p in local.rglob("*")
-                    if p.suffix in {".parquet", ".jsonl", ".json"} and ".cache" not in p.parts
+                    if p.is_file()
+                    and ".cache" not in p.parts
+                    and any(fnmatch.fnmatch(str(p.relative_to(local)), g) for g in patterns)
                 )
                 found = [t for f in files for t in map(prompt_text, read_rows(f)) if t]
                 texts = list(dict.fromkeys(found))  # one entry per distinct prompt
