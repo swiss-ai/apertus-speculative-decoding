@@ -10,6 +10,9 @@
 #   - apertus-bench loadtest over LOADTEST_CONCURRENCIES on LOADTEST_WORKLOAD,
 #     sampling /metrics every second (KV-cache usage, queue, preemptions)
 # then copy the startup memory breakdown from the engine log and cancel.
+# LOADTEST_PROBE=1 first runs the DSpark quick check (64 speculator_benchmarks
+# prompts, C=8, 384 tokens) into probe/, to compare acceptance with the
+# colleague's numbers on the same deployment.
 # This script only waits; run it from a login node.
 set -euo pipefail
 
@@ -26,6 +29,8 @@ CONCURRENCIES="${LOADTEST_CONCURRENCIES:-1 8 32 64 128 256}"
 PER_SLOT="${LOADTEST_REQUESTS_PER_SLOT:-4}"
 MIN_REQUESTS="${LOADTEST_MIN_REQUESTS:-32}"
 MAX_TOKENS="${LOADTEST_MAX_TOKENS:-}"
+PROBE="${LOADTEST_PROBE:-0}"
+PROBE_WORKLOADS="${LOADTEST_PROBE_WORKLOADS:-${REPO_ROOT}/workloads/${STAGE}/probe-speculator-benchmarks.jsonl}"
 ENVIRONMENT_TOML="${LOADTEST_ENVIRONMENT:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
 METHOD="${METHOD:-baseline}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -77,15 +82,25 @@ SAMPLER=$!
 
 # The load generator runs in the serving container on the replica's node.
 SML_ENVIRONMENT="$("${SERVING_DIR}/resolve-env.sh" "${ENVIRONMENT_TOML}")"
-srun --jobid="${JOB}" --overlap --nodes=1 --ntasks=1 --nodelist="${NODE}" \
-  --environment="${SML_ENVIRONMENT}" \
-  env PYTHONPATH="${REPO_ROOT}/src" PYTHONNOUSERSITE=1 \
-  python3 -m apertus_bench loadtest --base-url "${BASE}" --model "${MODEL}" \
+BENCH=(srun --jobid="${JOB}" --overlap --nodes=1 --ntasks=1 --nodelist="${NODE}"
+  --environment="${SML_ENVIRONMENT}"
+  env PYTHONPATH="${REPO_ROOT}/src" PYTHONNOUSERSITE=1 python3 -m apertus_bench)
+ENGINE_METADATA=(--metadata "max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS:-engine-default}"
+  --metadata "max_num_seqs=${MAX_NUM_SEQS:-engine-default}")
+if [ "${PROBE}" = "1" ]; then
+  "${BENCH[@]}" run --base-url "${BASE}" --model "${MODEL}" \
+    --workloads "${PROBE_WORKLOADS}" --workload probe --concurrency 8 --requests 64 \
+    --max-tokens 384 --variant "${VARIANT}" "${BENCH_METHOD[@]}" "${ENGINE_METADATA[@]}" \
+    --metadata "deployment_id=${DEPLOYMENT_ID}" --metadata "slurm_job_id=${JOB}" \
+    --output "${OUT}/probe" > "${OUT}/probe.log" 2>&1 \
+    || echo "probe failed" | tee -a "${OUT}/status.txt"
+fi
+"${BENCH[@]}" loadtest --base-url "${BASE}" --model "${MODEL}" \
     --workloads "${WORKLOADS}" --workload "${WORKLOAD}" \
     --concurrencies ${CONCURRENCIES} --requests "${MIN_REQUESTS}" \
     --requests-per-slot "${PER_SLOT}" --metrics-interval 1 \
     ${MAX_TOKENS:+--max-tokens "${MAX_TOKENS}"} \
-    --variant "${VARIANT}" "${BENCH_METHOD[@]}" \
+    --variant "${VARIANT}" "${BENCH_METHOD[@]}" "${ENGINE_METADATA[@]}" \
     --metadata "deployment_id=${DEPLOYMENT_ID}" --metadata "slurm_job_id=${JOB}" \
     --metadata "slurm_node_id=${NODE}" --metadata "load_generator=replica node (srun --overlap)" \
     --output "${OUT}/cells" > "${OUT}/loadtest.log" 2>&1 \

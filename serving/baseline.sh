@@ -41,6 +41,7 @@ echo "environment=${SML_ENVIRONMENT}"
 echo "async_scheduling=${ASYNC_SCHEDULING:-engine-default}"
 echo "enable_prefix_caching=${ENABLE_PREFIX_CACHING:-engine-default}"
 echo "max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS:-engine-default}"
+echo "max_num_seqs=${MAX_NUM_SEQS:-engine-default}"
 if [ "${VALIDATE_ONLY:-0}" = "1" ]; then
   echo "validate_only=1; not submitting"
   exit 0
