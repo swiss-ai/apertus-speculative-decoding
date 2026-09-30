@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Load test of one plain-target deployment, with server load and GPU memory sampled.
-#   STAGE=8b ./serving/loadtest.sh
-# Steps: launch the plain target (baseline.sh), wait for it, then inside the
+# Load test of one deployment, with server load and GPU memory sampled.
+#   STAGE=8b ./serving/loadtest.sh                                  (plain target)
+#   STAGE=8b METHOD=dspark DSPARK_CHECKPOINT=... ./serving/loadtest.sh
+# METHOD=dspark serves the colleague's DSpark drafter (depth
+# NUM_SPECULATIVE_TOKENS, default 7) and also records acceptance per level.
+# Steps: launch the deployment (baseline.sh or dspark.sh), wait for it, then inside the
 # replica's own allocation (srun --overlap, so nothing heavy runs here):
 #   - an nvidia-smi sampler (memory used/total, utilization, power, every 1 s)
 #   - apertus-bench loadtest over LOADTEST_CONCURRENCIES on LOADTEST_WORKLOAD,
@@ -24,8 +27,26 @@ PER_SLOT="${LOADTEST_REQUESTS_PER_SLOT:-4}"
 MIN_REQUESTS="${LOADTEST_MIN_REQUESTS:-32}"
 MAX_TOKENS="${LOADTEST_MAX_TOKENS:-}"
 ENVIRONMENT_TOML="${LOADTEST_ENVIRONMENT:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
+METHOD="${METHOD:-baseline}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-DEPLOYMENT_ID="apertus15-${STAGE}-baseline-loadtest-${STAMP}"
+case "${METHOD}" in
+  baseline)
+    VARIANT="apertus15-${STAGE}-baseline"
+    LAUNCHER="${SERVING_DIR}/baseline.sh"
+    BENCH_METHOD=(--method none)
+    ;;
+  dspark)
+    [ -n "${DSPARK_CHECKPOINT:-}" ] || { echo "METHOD=dspark needs DSPARK_CHECKPOINT" >&2; exit 2; }
+    export DSPARK_CHECKPOINT
+    export NUM_SPECULATIVE_TOKENS="${NUM_SPECULATIVE_TOKENS:-7}"
+    VARIANT="apertus15-${STAGE}-dspark-k${NUM_SPECULATIVE_TOKENS}"
+    LAUNCHER="${REPO_ROOT}/methods/dspark/launch/dspark.sh"
+    BENCH_METHOD=(--method dspark --num-speculative-tokens "${NUM_SPECULATIVE_TOKENS}"
+      --metadata "dspark_checkpoint=${DSPARK_CHECKPOINT}")
+    ;;
+  *) echo "METHOD must be baseline or dspark (got '${METHOD}')" >&2; exit 2 ;;
+esac
+DEPLOYMENT_ID="${VARIANT}-loadtest-${STAMP}"
 OUT="${REPO_ROOT}/results/${STAGE}/loadtest/${DEPLOYMENT_ID}"
 mkdir -p "${OUT}"
 # The serving environment does not mount /users; compile caches go to scratch.
@@ -33,7 +54,7 @@ CACHE_ROOT="/iopsstor/scratch/cscs/${USER}/apertus-loadtest/vllm-cache/${DEPLOYM
 mkdir -p "${CACHE_ROOT}"
 export EXTRA_ENV="VLLM_CACHE_ROOT=${CACHE_ROOT}"
 
-RUN_SUFFIX="loadtest-${STAMP}" "${SERVING_DIR}/baseline.sh" --no-tui > "${OUT}/launch.log" 2>&1
+RUN_SUFFIX="loadtest-${STAMP}" "${LAUNCHER}" --no-tui > "${OUT}/launch.log" 2>&1
 JOB="$(grep -aoE 'Job submitted: [0-9]+' "${OUT}/launch.log" | tail -1 | awk '{print $NF}')"
 [ -n "${JOB}" ] || { echo "no job id; see ${OUT}/launch.log" >&2; exit 1; }
 echo "job=${JOB}" > "${OUT}/job.txt"
@@ -64,7 +85,7 @@ srun --jobid="${JOB}" --overlap --nodes=1 --ntasks=1 --nodelist="${NODE}" \
     --concurrencies ${CONCURRENCIES} --requests "${MIN_REQUESTS}" \
     --requests-per-slot "${PER_SLOT}" --metrics-interval 1 \
     ${MAX_TOKENS:+--max-tokens "${MAX_TOKENS}"} \
-    --variant "apertus15-${STAGE}-baseline" --method none \
+    --variant "${VARIANT}" "${BENCH_METHOD[@]}" \
     --metadata "deployment_id=${DEPLOYMENT_ID}" --metadata "slurm_job_id=${JOB}" \
     --metadata "slurm_node_id=${NODE}" --metadata "load_generator=replica node (srun --overlap)" \
     --output "${OUT}/cells" > "${OUT}/loadtest.log" 2>&1 \
@@ -74,7 +95,7 @@ kill "${SAMPLER}" 2>/dev/null || true
 SAMPLER=""
 cp "${LOGS}/log.out" "${OUT}/sml-log.out" 2>/dev/null || true
 # Static memory: weights, KV pool, CUDA graphs, as the engine reports them at start.
-grep -aE 'non-default args|Model loading took|Available KV cache memory|GPU KV cache size|Maximum concurrency|CUDA graph|Graph capturing|gpu_memory_utilization|memory profiling|torch.compile took' \
+grep -aE 'non-default args|[Ss]peculative|Loading drafter|Model loading took|Available KV cache memory|GPU KV cache size|Maximum concurrency|CUDA graph|Graph capturing|gpu_memory_utilization|memory profiling|torch.compile took' \
   "${LOGS}/replica_0.out" > "${OUT}/engine-excerpt.txt" 2>/dev/null || true
 cp "${LOGS}/replica_0.out" "${OUT}/replica_0.out" 2>/dev/null || true
 grep -q "failed" "${OUT}/status.txt" 2>/dev/null || echo "status=ok" >> "${OUT}/status.txt"
