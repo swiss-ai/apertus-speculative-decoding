@@ -15,7 +15,7 @@
 # 49,335 steps per epoch; the learning-rate schedule runs over his 10 epochs and this
 # first stage stops after epoch 1 (his thinking-on head is also an epoch-1 snapshot);
 # continue from checkpoints/resume by raising num_train_steps / num_epochs. At the
-# thinking-off rate (~12.4k tokens/s per node) an epoch is ~80-90 h on one node (3.7B tokens).
+# smoke run (job 3569220: ~80k tokens and ~7 s per step, peak 77 GB) an epoch is ~95 h on one node.
 pipeline: rollout
 stage: 8b
 
