@@ -14,6 +14,9 @@ file has that shape and splits it by conversation.
     split: rows listed in --heldout-ids -> heldout.jsonl, the rest -> train.jsonl.
            Ids are matched against the row id (``opb-<conv>_gen<k>``, as the DSpark
            run's val_ids.txt) or, with --by conversation, the conversation id.
+    prompts: the first rows' prompts (the tokens before the completion, exactly as
+           the server rendered them, thinking mode included) as ``prompt_ids`` rows
+           for ``verify_offline``, which would otherwise render them without thinking.
 """
 
 from __future__ import annotations
@@ -121,6 +124,25 @@ def split(
     return dict(counts)
 
 
+def prompts(path: Path, out: Path, limit: int, max_prompt_tokens: int) -> dict[str, int]:
+    """Write ``{"id", "prompt_ids"}`` for the first ``limit`` rows whose prompt fits."""
+    counts: Counter[str] = Counter()
+    with path.open() as handle, out.open("w") as sink:
+        for line in handle:
+            if counts["written"] >= limit:
+                break
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            first = next((i for i, m in enumerate(row["loss_mask"]) if m), None)
+            if first is None or first > max_prompt_tokens:
+                counts["skipped"] += 1
+                continue
+            sink.write(json.dumps({"id": row["id"], "prompt_ids": row["input_ids"][:first]}) + "\n")
+            counts["written"] += 1
+    return dict(counts)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="apertus-eagle-speculators-corpus")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -133,8 +155,15 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--heldout-ids", type=Path, required=True, help="one id per line")
     s.add_argument("--by", choices=("row", "conversation"), default="row")
     s.add_argument("--output-dir", type=Path, required=True)
+    q = sub.add_parser("prompts")
+    q.add_argument("--input", type=Path, required=True)
+    q.add_argument("--output", type=Path, required=True)
+    q.add_argument("--limit", type=int, default=128)
+    q.add_argument("--max-prompt-tokens", type=int, default=2048)
     args = parser.parse_args(argv)
-    if args.command == "check":
+    if args.command == "prompts":
+        print(json.dumps(prompts(args.input, args.output, args.limit, args.max_prompt_tokens)))
+    elif args.command == "check":
         report = check(args.input, args.max_seq_length)
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, indent=2) + "\n")

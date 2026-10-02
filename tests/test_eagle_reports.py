@@ -279,3 +279,25 @@ def test_speculators_split_by_row_ids_like_the_dspark_validation(tmp_path: Path)
     ids.write_text("opb-1_gen1\nopb-9_gen0\n")
     with pytest.raises(SystemExit, match="matched 1 of 2"):
         main([*args, str(tmp_path / "t")])
+
+
+def test_speculators_prompts_are_the_tokens_before_the_completion(tmp_path: Path) -> None:
+    from apertus_eagle.speculators_corpus import main
+
+    rows = [
+        _speculators_row("opb-1", 0, [1, 2, 3], [4, 5]),
+        _speculators_row("opb-2", 0, list(range(10)), [6]),
+        _speculators_row("opb-3", 0, [7], [8]),
+    ]
+    path = tmp_path / "corpus.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    out = tmp_path / "prompts.jsonl"
+    main(["prompts", "--input", str(path), "--output", str(out), "--max-prompt-tokens", "5"])
+    written = [json.loads(line) for line in out.read_text().splitlines()]
+    # The 10-token prompt does not fit; the other two keep their prompt only.
+    assert written == [
+        {"id": "opb-1_gen0", "prompt_ids": [1, 2, 3]},
+        {"id": "opb-3_gen0", "prompt_ids": [7]},
+    ]
+    main(["prompts", "--input", str(path), "--output", str(out), "--limit", "1"])
+    assert len(out.read_text().splitlines()) == 1
