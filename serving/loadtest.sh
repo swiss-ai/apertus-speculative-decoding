@@ -2,6 +2,7 @@
 # Load test of one deployment, with server load and GPU memory sampled.
 #   STAGE=8b ./serving/loadtest.sh                                  (plain target)
 #   STAGE=8b METHOD=dspark DSPARK_CHECKPOINT=... ./serving/loadtest.sh
+#   STAGE=8b METHOD=eagle EAGLE_HEAD=... ./serving/loadtest.sh       (EAGLE 3.1 head)
 # METHOD=dspark serves the colleague's DSpark drafter (depth
 # NUM_SPECULATIVE_TOKENS, default 7) and also records acceptance per level.
 # Steps: launch the deployment (baseline.sh or dspark.sh), wait for it, then inside the
@@ -49,11 +50,30 @@ case "${METHOD}" in
     BENCH_METHOD=(--method dspark --num-speculative-tokens "${NUM_SPECULATIVE_TOKENS}"
       --metadata "dspark_checkpoint=${DSPARK_CHECKPOINT}")
     ;;
-  *) echo "METHOD must be baseline or dspark (got '${METHOD}')" >&2; exit 2 ;;
+  eagle)
+    [ -n "${EAGLE_HEAD:-}" ] || { echo "METHOD=eagle needs EAGLE_HEAD" >&2; exit 2; }
+    export EAGLE_HEAD ALGORITHM="${ALGORITHM:-eagle31}"
+    export NUM_SPECULATIVE_TOKENS="${NUM_SPECULATIVE_TOKENS:-7}"
+    VARIANT="apertus15-${STAGE}-${ALGORITHM}-k${NUM_SPECULATIVE_TOKENS}"
+    LAUNCHER="${REPO_ROOT}/methods/eagle/launch/eagle.sh"
+    # The bench client refuses eagle3 cells without the checkpoint hash.
+    . "${SERVING_DIR}/stage-defaults.sh"
+    HEAD_REPORT="$(PYTHONPATH="${REPO_ROOT}/src" python3 -m apertus_bench.eagle "${EAGLE_HEAD}" \
+      --contract "${TARGET_CONTRACT}" --algorithm "${ALGORITHM}" --target-model "${TARGET_MODEL}")"
+    CHECKPOINT_SHA="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["checkpoint_manifest_sha256"])' "${HEAD_REPORT}")"
+    TARGET_REVISION="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["provenance"]["revision"])' "${HEAD_REPORT}")"
+    BENCH_METHOD=(--method eagle3 --algorithm "${ALGORITHM}"
+      --num-speculative-tokens "${NUM_SPECULATIVE_TOKENS}" --draft-tensor-parallel-size "${TARGET_TP}"
+      --metadata "eagle_head=${EAGLE_HEAD}" --metadata "checkpoint_sha256=${CHECKPOINT_SHA}"
+      --metadata "target_model=${SERVED_BASE}" --metadata "target_revision=${TARGET_REVISION}"
+      --metadata "target_tensor_parallel_size=${TARGET_TP}")
+    ;;
+  *) echo "METHOD must be baseline, dspark or eagle (got '${METHOD}')" >&2; exit 2 ;;
 esac
 DEPLOYMENT_ID="${VARIANT}-loadtest-${STAMP}"
 OUT="${REPO_ROOT}/results/${STAGE}/loadtest/${DEPLOYMENT_ID}"
 mkdir -p "${OUT}"
+[ -z "${HEAD_REPORT:-}" ] || printf '%s\n' "${HEAD_REPORT}" > "${OUT}/head-report.json"
 # The serving environment does not mount /users; compile caches go to scratch.
 CACHE_ROOT="/iopsstor/scratch/cscs/${USER}/apertus-loadtest/vllm-cache/${DEPLOYMENT_ID}"
 mkdir -p "${CACHE_ROOT}"
