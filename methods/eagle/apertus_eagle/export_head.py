@@ -226,7 +226,21 @@ def main(argv: list[str] | None = None) -> None:
         checkpoint, args.run_dir, args.output, contract, drop_embed_tokens=args.drop_embed_tokens
     )
     provenance = json.loads((args.run_dir / "provenance.json").read_text())
-    eval_cache = FeatureCache(Path(provenance["caches"]["eval"]["path"]), contract)
+    source = provenance["caches"]["eval"]
+    if source.get("mode") == "online":
+        # Online-trained runs have no feature cache: rebuild the eval records with
+        # the target, exactly as training did.
+        from apertus_eagle.online_features import OnlineFeatures, Teacher
+
+        dataset = provenance["resolved_config"]["dataset"]
+        eval_cache = OnlineFeatures(
+            [Path(path) for path in source["files"]],
+            Teacher(contract, device_name()),
+            max_seq_length=int(dataset["max_seq_length"]),
+            limit=args.reload_samples,
+        )
+    else:
+        eval_cache = FeatureCache(Path(source["path"]), contract)
     result["reload"] = reload_check(
         args.output, checkpoint, eval_cache, contract, args.reload_samples
     )
