@@ -138,6 +138,41 @@ TPOT p50 1.4 ms.
 C=128 on. The same acceptance drop from C=32 on appears with this drafter
 (2.45 → 1.82).
 
+### EAGLE 3.1 epoch 1 vs DSpark epoch 2 (preliminary)
+
+Our EAGLE 3.1 head trained on the same corpus and split, after 1 of 10 epochs
+(`e31-opb-thinkoff-stage1-ep1-se`, step 25,450), served at depth 7 with the same
+engine limits: run `apertus15-8b-eagle31-k7-loadtest-20261002T064001Z` (job
+3565020). Both drafters are early checkpoints; the numbers will move.
+
+| | plain | DSpark e2 | EAGLE 3.1 e1 |
+| --- | --- | --- | --- |
+| weights (GiB) | 17.23 | 20.51 | 17.78 |
+| KV pool (tokens) | 469,792 | 342,653 (-27%) | 433,824 (-8%) |
+| probe accepted length (C=8) | - | 6.10 | 6.13 |
+| probe output tok/s (C=8) | 1,217 | 4,798 (3.9x) | 4,096 (3.4x) |
+| probe TPOT p50 (ms) | 6.1 | 1.4 | 1.7 |
+
+Summarization sweep, output tokens/s (accepted length):
+
+| C | plain | DSpark e2 | EAGLE 3.1 e1 |
+| --- | --- | --- | --- |
+| 1 | 155 | 262 (2.41) | 228 (2.58) |
+| 8 | 691 | 952 (2.45) | 860 (2.58) |
+| 32 | 1,408 | 1,445 (1.82) | 1,409 (2.03) |
+| 64 | 1,665 | 1,526 (1.82) | 1,538 (2.02) |
+| 128 | 1,861 | 1,581 (1.82) | 1,619 (2.02) |
+| 256 | 1,883 | 1,582 (1.82) | 1,625 (2.02) |
+| 512 | 1,885 | 1,589 (1.82) | 1,638 (2.02) |
+
+- Same acceptance on the probe; DSpark is 17% faster there, presumably because
+  it drafts the block of 7 in one forward pass where EAGLE runs 7 draft steps.
+- On summarization EAGLE accepts slightly more but DSpark is faster up to C=8;
+  from C=64 on EAGLE is 2-3% ahead, helped by its larger KV pool (158 vs 129
+  requests running at once). Both are below the plain target from C=64 on.
+- The acceptance drop from C=32 on appears with EAGLE too (2.58 → 2.02), so it
+  is not specific to DSpark; it looks like an engine-level effect of batching.
+
 Rerun, e.g. with another checkpoint:
 
 ```
