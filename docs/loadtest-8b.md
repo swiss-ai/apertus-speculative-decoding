@@ -138,6 +138,45 @@ TPOT p50 1.4 ms.
 C=128 on. The same acceptance drop from C=32 on appears with this drafter
 (2.45 → 1.82).
 
+### EAGLE 3.1 head on the same corpus, epoch 1 (preliminary)
+
+2026-10-02, same engine limits, run
+`apertus15-8b-eagle31-k7-loadtest-20261002T064001Z` (job 3565020). Head
+`e31-opb-thinkoff-stage1-ep1-se`: our EAGLE 3.1 run on the colleague's
+Open-PerfectBlend thinking-off corpus and split, epoch 1 of the 2-epoch stage 1
+(step 25,450, held-out simulated acceptance length 3.45), depth 7, served with
+`methods/eagle/launch/eagle.sh`. Final numbers need the final checkpoints of
+both drafters.
+
+**Memory.** Weights 17.78 GiB (the head shares the target's embedding and
+`lm_head`); KV pool 433,824 tokens: -8% vs plain, where DSpark loses 27%.
+`nvidia-smi` 80.5 GiB.
+
+Probe: 6.13 accepted tokens per round (DSpark OPB e2: 6.10), 4,096 output
+tokens/s (3.4x plain; DSpark 4,798, 3.9x), TPOT p50 1.7 ms (DSpark 1.4).
+
+| C | output tok/s plain → DSpark OPB e2 → EAGLE e1 | TPOT p50 plain → EAGLE (ms) | TTFT p50 plain → EAGLE (s) | KV max EAGLE | running max EAGLE | preempted EAGLE | accepted length DSpark → EAGLE |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 155 → 262 → 228 | 5.9 → 3.8 | 0.09 → 0.09 | 1% | 1 | 0 | 2.41 → 2.58 |
+| 8 | 691 → 952 → 860 | 9.6 → 7.3 | 0.12 → 0.18 | 6% | 8 | 0 | 2.45 → 2.58 |
+| 32 | 1,408 → 1,445 → 1,409 | 18.9 → 20.2 | 0.16 → 0.27 | 23% | 32 | 0 | 1.82 → 2.03 |
+| 64 | 1,665 → 1,526 → 1,538 | 33.7 → 37.1 | 0.24 → 0.39 | 45% | 64 | 0 | 1.82 → 2.02 |
+| 128 | 1,861 → 1,581 → 1,619 | 63.7 → 69.5 | 0.40 → 0.64 | 85% | 128 | 0 | 1.82 → 2.02 |
+| 256 | 1,883 → 1,582 → 1,625 | 84.9 → 87.1 | 10.4 → 13.9 | 100% | 158 | 24 | 1.82 → 2.02 |
+| 512 | 1,885 → 1,589 → 1,638 | 86.3 → 90.3 | 39.5 → 47.1 | 100% | 158 | 42 | 1.82 → 2.02 |
+
+- EAGLE: 1.47x the plain target at C=1, 1.24x at C=8, even at C=32, 13% below
+  from C=128 on. Every request succeeded at every level.
+- DSpark is faster at low load (1.69x / 1.38x) although it accepts fewer
+  tokens per round: it drafts all 7 tokens in one forward pass, EAGLE runs 7
+  sequential draft steps.
+- Under load EAGLE is slightly ahead of DSpark (+2-3% from C=128): higher
+  acceptance on these long documents and a larger KV pool (158 vs 129
+  requests running at once).
+- The acceptance drop from C=32 on appears here too (2.58 → 2.02), with a
+  different drafter architecture on the same prompts, so it comes from the
+  engine's batched path rather than from either drafter.
+
 ### EAGLE 3.1 epoch 1 vs DSpark epoch 2 (preliminary)
 
 Our EAGLE 3.1 head trained on the same corpus and split, after 1 of 10 epochs
@@ -180,3 +219,6 @@ STAGE=8b METHOD=dspark DSPARK_CHECKPOINT=<dir> NUM_SPECULATIVE_TOKENS=7 LOADTEST
   MAX_NUM_BATCHED_TOKENS=16384 MAX_NUM_SEQS=256 \
   LOADTEST_CONCURRENCIES="1 8 32 64 128 256 512" serving/loadtest.sh
 ```
+
+For an EAGLE head, replace `METHOD=dspark DSPARK_CHECKPOINT=<dir>` with
+`METHOD=eagle EAGLE_HEAD=<head dir>`.
