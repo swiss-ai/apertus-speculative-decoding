@@ -2,9 +2,9 @@
 # colleague's thinking-off open-perfectblend regeneration (1,809,684 rows,
 # infra01/speculative-decoding/dspark-opb-thinking-off), his 90/10 row split
 # (val_ids.txt), 8,192-token rows, ~64k tokens per optimizer step (DSpark:
-# 65,536). Learning-rate schedule over his 10 epochs; this first stage stops
-# after 2 epochs and continues from checkpoints/resume by raising
-# num_train_steps / num_epochs. Online target features on 1 node (4 GPUs).
+# 65,536). Learning-rate schedule over his 10 epochs. Stage 1 stopped after
+# 2 epochs (2026-10-03); the run continues from checkpoints/resume to all 10
+# epochs on 1 node (4 GPUs), with online target features.
 pipeline: rollout
 stage: 8b
 
@@ -46,8 +46,8 @@ training:
   lr_decay_style: cosine
   min_lr: 0.0
   lr_total_steps: 254480  # 10 epochs
-  num_train_steps: 50896  # stage 1: 2 epochs
-  num_epochs: 2
+  num_train_steps: 254480  # 10 epochs (stage 1 ended at 50,896 = 2 epochs)
+  num_epochs: 10
   eval_interval: 2545  # 10 evaluations per epoch
   save_interval: 6362  # a kept checkpoint every quarter epoch
   resume_interval: 500
