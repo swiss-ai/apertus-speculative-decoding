@@ -135,7 +135,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--requests-per-slot",
         type=int,
         default=4,
-        help="measured requests per level = max(--requests, this x concurrency)",
+        help=(
+            "measured requests per level = max(--requests, this x concurrency), "
+            "rounded up to whole passes over the workload's prompts"
+        ),
     )
     loadtest.add_argument("--output", type=Path, required=True)
 
@@ -432,7 +435,9 @@ async def _run_loadtest(args: argparse.Namespace) -> None:
         args.base_url, args.model, _api_key(args), timeout_seconds=args.timeout_seconds
     ) as client:
         for concurrency in sorted(args.concurrencies):
-            requests = max(args.requests, args.requests_per_slot * concurrency)
+            requests = loadtest_requests(
+                args.requests, args.requests_per_slot, concurrency, len(prompts)
+            )
             output = args.output / args.workload / f"c{concurrency}"
             print(f"loadtest {args.workload} concurrency={concurrency} requests={requests}")
             summary = await run_cell(
@@ -459,6 +464,15 @@ async def _run_loadtest(args: argparse.Namespace) -> None:
     report = {"workload": args.workload, "variant": variant.name, "levels": levels}
     (args.output / "loadtest-summary.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
+
+
+def loadtest_requests(minimum: int, per_slot: int, concurrency: int, prompts: int) -> int:
+    """Requests for one level: max(minimum, per_slot x concurrency), rounded up to
+    whole passes over the prompts. Every level then sees the same prompt mix, so
+    acceptance and throughput are comparable across levels; with a partial pass
+    the low levels only saw the first prompts of the file."""
+    requests = max(minimum, per_slot * concurrency)
+    return -(-requests // prompts) * prompts
 
 
 def loadtest_level(concurrency: int, summary: dict[str, Any]) -> dict[str, Any]:

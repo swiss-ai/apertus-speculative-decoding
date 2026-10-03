@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 
-from apertus_bench.cli import loadtest_level
+from apertus_bench.cli import loadtest_level, loadtest_requests
 from apertus_bench.load import MetricsSampler, parse_load_sample, summarize_load
 
 REPO = Path(__file__).resolve().parents[1]
@@ -164,3 +164,10 @@ def test_client_does_not_cap_concurrent_connections() -> None:
     assert client.http._transport._pool._max_connections >= 10**6  # "unlimited" is sys.maxsize
     # Shorter than the server's 5 s keep-alive, so no half-closed connection is reused.
     assert client.http._transport._pool._keepalive_expiry < 5
+
+
+def test_every_level_covers_whole_passes_over_the_prompts() -> None:
+    assert loadtest_requests(32, 4, 1, 128) == 128
+    assert loadtest_requests(32, 4, 64, 128) == 256
+    assert loadtest_requests(32, 4, 100, 128) == 512
+    assert loadtest_requests(32, 4, 8, 64) == 64
