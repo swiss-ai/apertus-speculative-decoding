@@ -28,6 +28,9 @@ What load consumes is the KV-cache pool. That is what the tables below report
 
 ## Load sweep
 
+(2026-09-29; its C=1 and C=8 rows used only the first 32 prompts. The
+corrected plain sweep is in the 2026-10-03 section below.)
+
 Workload: the 128 untouched summarization test prompts (~3.8k prompt tokens,
 ~200-token answers), natural EOS, closed loop at fixed concurrency C with
 4 x C requests per level. The load generator runs on the replica's node
@@ -62,6 +65,60 @@ Workload: the 128 untouched summarization test prompts (~3.8k prompt tokens,
 - The first sweep (job 3546229) was capped at 100 concurrent requests by the
   client's HTTP connection pool, and the second (3546292) aborted on a
   keep-alive race; both are fixed in the harness.
+
+## Plain vs DSpark vs EAGLE 3.1, corrected sweep (2026-10-03)
+
+**These are the reference numbers.** The earlier sweeps below ran only the first
+32 of the 128 prompts at C=1 and C=8 and all of them from C=32 on, which
+inflated the low-load speedups and made acceptance look like it fell under
+load. Since commit d9f4b06 every level runs whole passes over the prompts.
+
+Setup, identical for all three arms: one GH200 (95 GiB) of a 4-GPU node, TP=1,
+target and drafter on the same GPU (vLLM speculative decoding, drafter in the
+same engine), pinned image `vllm_apertus_1.5_release` (vLLM 0.23.1rc1), bf16,
+`gpu_memory_utilization` 0.8, `max_model_len` 32768, prefix caching off,
+`max_num_batched_tokens` 16384, `max_num_seqs` 256, 7 draft tokens. Load
+generator on the same node's CPUs (`srun --overlap`), closed loop at fixed
+concurrency C, 128 x ceil(4C/128) requests per level after C warm-up requests,
+streaming, greedy, natural EOS. Workload: the 128 summarization test prompts
+(~3.8k prompt tokens, ~200-token answers).
+
+| arm | checkpoint | run | job |
+| --- | --- | --- | --- |
+| plain | - | `apertus15-8b-baseline-loadtest-20261003T095425Z` | 3571677 |
+| DSpark | Open-PerfectBlend thinking off, epoch 2 of 10 | `apertus15-8b-dspark-k7-loadtest-20261003T101305Z` | 3571734 |
+| EAGLE 3.1 | same corpus and split, epoch 1 (`e31-opb-thinkoff-stage1-ep1-se`) | `apertus15-8b-eagle31-k7-loadtest-20261003T103254Z` | 3571815 |
+
+Memory: weights 17.2 / 20.5 / 17.8 GiB; KV pool 469,840 / 342,693 (-27%) /
+433,888 (-8%) tokens; `nvidia-smi` 78.2 / 80.8 / 80.5 GiB (plain / DSpark /
+EAGLE).
+
+| C | output tok/s plain / DSpark / EAGLE | vs plain DSpark / EAGLE | accepted length DSpark / EAGLE | TPOT p50 ms plain / DSpark / EAGLE | TTFT p50 s plain / DSpark / EAGLE | running max | preempted |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 159 / 212 / 192 | 1.34x / 1.21x | 1.83 / 2.05 | 5.9 / 4.3 / 4.8 | 0.08 / 0.09 / 0.08 | 1 / 1 / 1 | 0 / 0 / 0 |
+| 8 | 802 / 934 / 893 | 1.16x / 1.11x | 1.81 / 2.03 | 9.1 / 7.7 / 8.3 | 0.10 / 0.11 / 0.11 | 8 / 8 / 8 | 0 / 0 / 0 |
+| 32 | 1,397 / 1,401 / 1,398 | 1.00x / 1.00x | 1.82 / 2.03 | 19.1 / 19.8 / 19.9 | 0.18 / 0.25 / 0.28 | 32 / 32 / 32 | 0 / 0 / 0 |
+| 64 | 1,649 / 1,521 / 1,548 | 0.92x / 0.94x | 1.82 / 2.02 | 34.2 / 36.9 / 37.1 | 0.24 / 0.37 / 0.39 | 64 / 64 / 64 | 0 / 0 / 0 |
+| 128 | 1,841 / 1,566 / 1,636 | 0.85x / 0.89x | 1.82 / 2.02 | 64.9 / 69.3 / 68.9 | 0.38 / 0.96 / 0.62 | 128 / 128 / 128 | 0 / 7 / 0 |
+| 256 | 1,837 / 1,579 / 1,645 | 0.86x / 0.90x | 1.82 / 2.02 | 87.3 / 75.1 / 86.6 | 10.8 / 17.9 / 13.8 | 169 / 129 / 158 | 46 / 15 / 18 |
+| 512 | 1,860 / 1,579 / 1,647 | 0.85x / 0.89x | 1.82 / 2.02 | 87.4 / 77.1 / 90.2 | 40.1 / 52.6 / 46.8 | 170 / 129 / 158 | 73 / 36 / 42 |
+
+Every request succeeded at every level. Probe in the same deployments (64
+math/HumanEval prompts, C=8): 1,234 / 4,644 / 4,070 output tok/s, accepted
+length 6.07 (DSpark) / 6.13 (EAGLE).
+
+- Acceptance is flat under load (DSpark 1.82, EAGLE 2.03 on summarization).
+  The speedup falls because the GPU becomes compute-bound: ~95% of the tokens
+  it processes here are prompt tokens, and verifying 7 draft tokens per request
+  per step costs more than the ~2 accepted return.
+- DSpark is faster up to C=8 (one forward pass for the whole draft block);
+  both break even at C=32; from C=64 on EAGLE is 3-5% ahead of DSpark (higher
+  acceptance, smaller KV-cache cost: 158 vs 129 requests running at once).
+- Both drafters are early checkpoints; rerun on the final ones.
+
+## Earlier sweeps (superseded at C=1 and C=8)
+
+Kept for the record; their C=1 and C=8 rows used only the first 32 prompts.
 
 ## DSpark drafter vs plain target (2026-09-30)
 
