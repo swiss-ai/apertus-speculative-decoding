@@ -1,0 +1,80 @@
+# Two-node variant of train-e31-opb-thinkon.yaml (EAGLE_NODES=2): 8 ranks x 4 rows = the same 32 rows per step,
+# so steps, schedule and resuming are identical; only the wall time (~half) differs.
+# EAGLE 3.1 on the DSpark thinking-on corpus, the counterpart of
+# train-e31-opb-thinkoff.yaml: the colleague's open-perfectblend regeneration with
+# reasoning on (1,754,143 rows, <|inner_prefix|>...<|inner_suffix|> in the answers,
+# 8,192-token completion cap; infra01/speculative-decoding/dspark-opb-thinking-on),
+# his 90/10 row split (val_ids.txt: 175,414 held-out rows, 1,578,729 train),
+# 8,192-token rows, same model, optimizer and loss as the thinking-off run. Rows are
+# trained as the server rendered them (Deliberation: enabled in the prompt, earlier
+# turns' reasoning already stripped), so nothing here depends on the chat template.
+#
+# Rows are 2.4x longer than thinking-off: after cutting at 8,192 the mean is ~2,330
+# tokens (thinking-off ~985), 7% of rows are cut. 32 rows per step are ~75k tokens,
+# close to DSpark's 65,536 per step (64 rows would be ~150k). 32 divides every node
+# count: 1 node = 4 ranks x 8 (below), 2 nodes (EAGLE_NODES=2) = 8 ranks x 4, etc.;
+# keep 32 rows per step if the rank count changes, then resuming stays exact.
+# 49,335 steps per epoch; the learning-rate schedule runs over his 10 epochs and this
+# first stage stops after epoch 1 (his thinking-on head is also an epoch-1 snapshot);
+# continue from checkpoints/resume by raising num_train_steps / num_epochs. At the
+# smoke run (job 3569220: ~80k tokens and ~7 s per step, peak 77 GB) an epoch is ~95 h on one node.
+pipeline: rollout
+stage: 8b
+
+model:
+  contract: targets/8b/contract.json
+  algorithm: eagle31
+  draft_model_config: methods/eagle/configs/8b/draft-e31-config.json
+  freeze_lm_head: true
+  share_target_embedding: true
+
+dataset:
+  features: online
+  data_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-on
+  train_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-on/train.jsonl]
+  # First 2,000 rows of his validation slice (the corpus is already in his shuffled order).
+  eval_data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-on/heldout.jsonl]
+  eval_limit: 2000
+  max_seq_length: 8192
+  teacher_batch_tokens: 32768
+
+training:
+  attention_backend: sdpa
+  loss_type: forward_kl
+  ttt_length: 7
+  micro_batch_size: 1
+  # 4 rows per rank x 8 ranks (2 nodes) = 32 rows (~75k tokens) per step.
+  draft_accumulation_steps: 4
+  data_parallel: 4
+  micro_batch_tokens: 8192
+  gradient_checkpointing: adaptive
+  checkpoint_free_width: 4096
+  checkpoint_free_tokens: 8192
+  learning_rate: 1.0e-4
+  warmup_ratio: 0.015
+  max_grad_norm: 0.5
+  weight_decay: 0.0
+  lr_decay_style: cosine
+  min_lr: 0.0
+  lr_total_steps: 493350  # 10 epochs
+  num_train_steps: 49335  # stage 1: 1 epoch
+  num_epochs: 1
+  eval_interval: 4934  # 10 evaluations per epoch
+  save_interval: 12334  # a kept checkpoint every quarter epoch
+  resume_interval: 500
+  stop_after_evals_without_improvement: 0
+  stop_margin_s: 900
+  seed: 1
+
+output_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs
+head_root: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads
+run_name: e31-opb-thinkon
+
+# Prompts as the server rendered them (thinking on), taken from the held-out rows:
+#   python3 -m apertus_eagle.speculators_corpus prompts --input <heldout.jsonl> --output <verify-prompts.jsonl>
+# Thinking answers are long, so verify decodes 1,024 tokens (the DSpark probe length).
+verify:
+  prompts: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-on/verify-prompts.jsonl
+  limit: 128
+  max_tokens: 1024
+  num_speculative_tokens: 3
