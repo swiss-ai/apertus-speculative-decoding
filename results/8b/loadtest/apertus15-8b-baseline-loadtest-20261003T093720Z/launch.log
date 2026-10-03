@@ -1,0 +1,18 @@
+stage=8b
+served_model=swiss-ai/Apertus-v1.5-8B-baseline-tp1-loadtest-20261003T093720Z
+target_model=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+target_contract=/users/faruk_zahiragic/apertus-spec-decoding/targets/8b/contract.json
+target_tensor_parallel_size=1
+max_model_len=32768
+gpu_memory_utilization=0.8
+results_root=/users/faruk_zahiragic/apertus-spec-decoding/results/8b
+environment=/users/faruk_zahiragic/.sml/env_resolved_arm64_9C5LYE.toml
+async_scheduling=engine-default
+enable_prefix_caching=0
+max_num_batched_tokens=16384
+max_num_seqs=256
+--system is ignored when using the SLURM launcher
+Job submitted: 3571621
+Served model name: faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-baseline-tp1-loadtest-20261003T093720Z
+Logs: ~/.sml/logs/3571621
+Tail: tail -f ~/.sml/logs/3571621/log.out

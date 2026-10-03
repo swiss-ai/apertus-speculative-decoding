@@ -104,10 +104,9 @@ Summarization sweep (plain → DSpark):
   than ~1.5 accepted tokens return.
 - The smaller KV pool fills at C=128 instead of C=256; at most 129 requests
   run at once vs 171.
-- **Open:** acceptance falls from 1.99 (C<=8) to 1.51 (C>=32) on the same
-  prompts. Greedy acceptance should not depend on batch size; the probe
-  prompts at C=32+ would tell whether this is a serving bug or specific to
-  this workload.
+- Acceptance 1.99 at C<=8 vs 1.51 from C=32 on is a prompt-mix artifact,
+  not batching: C=1 and C=8 ran 32 requests, i.e. only the first 32 of the
+  128 prompts; C>=32 ran all of them (see "Acceptance under load" below).
 - The first DSpark sweep (job 3552386) ran at the engine defaults, where k=7
   makes vLLM cap scheduled tokens at 2048 per step (at most 99 running); it is
   kept for the record (`...20260930T122216Z/NOTE.md`).
@@ -135,8 +134,8 @@ TPOT p50 1.4 ms.
 | 512 | 1,885 → 1,451 → 1,589 | 86.3 → 76.8 | 1.51 → 1.82 |
 
 1.69x the plain target at C=1, 1.38x at C=8, even at C=32, 16% below from
-C=128 on. The same acceptance drop from C=32 on appears with this drafter
-(2.45 → 1.82).
+C=128 on. Acceptance 2.45 → 1.82 from C=32 on is the same prompt-mix
+artifact.
 
 ### EAGLE 3.1 epoch 1 vs DSpark epoch 2 (preliminary)
 
@@ -170,8 +169,34 @@ Summarization sweep, output tokens/s (accepted length):
 - On summarization EAGLE accepts slightly more but DSpark is faster up to C=8;
   from C=64 on EAGLE is 2-3% ahead, helped by its larger KV pool (158 vs 129
   requests running at once). Both are below the plain target from C=64 on.
-- The acceptance drop from C=32 on appears with EAGLE too (2.58 → 2.02), so it
-  is not specific to DSpark; it looks like an engine-level effect of batching.
+- Acceptance 2.58 → 2.02 from C=32 on is the same prompt-mix artifact.
+  Within each table row both arms ran the same prompts, so per-level
+  comparisons hold; across rows, C<=8 used an easier subset.
+
+### Acceptance under load (probe prompts, 2026-10-03)
+
+The 64 probe prompts with 384-token answers (short prompts, decode-bound), same
+checkpoints and limits: DSpark `...dspark-k7-loadtest-20261003T092527Z`, EAGLE
+`...eagle31-k7-loadtest-20261003T093127Z`, plain
+`...baseline-loadtest-20261003T093720Z`. No request queued at any level.
+
+| C | output tok/s plain / DSpark e2 / EAGLE e1 | speedup DSpark / EAGLE | accepted length DSpark / EAGLE | TPOT p50 plain / DSpark / EAGLE (ms) |
+| --- | --- | --- | --- | --- |
+| 1 | 172 / 773 / 636 | 4.5x / 3.7x | 6.51 / 6.48 | 5.8 / 1.2 / 1.5 |
+| 8 | 1,170 / 4,822 / 3,945 | 4.1x / 3.4x | 6.51 / 6.43 | 6.1 / 1.3 / 1.6 |
+| 32 | 3,962 / 10,183 / 9,196 | 2.6x / 2.3x | 6.10 / 6.14 | 6.7 / 2.6 / 2.9 |
+| 64 | 6,669 / 11,585 / 11,226 | 1.7x / 1.7x | 6.10 / 6.15 | 8.1 / 4.6 / 4.8 |
+| 128 | 10,154 / 12,741 / 12,744 | 1.25x / 1.26x | 6.09 / 6.15 | 11.0 / 8.5 / 8.5 |
+
+- Acceptance does not depend on load: 6.1 at C=32, 64 and 128 alike. The
+  step from 6.5 at C<=8 is the prompt mix (32 requests = the 32 math prompts;
+  from C=32 on math and HumanEval), which the same per-level request rule
+  caused on summarization. Fixed in the harness: every level now runs whole
+  passes over the prompts.
+- The shrinking speedup is real and expected: with constant acceptance it falls
+  from 4.5x to 1.25x as the GPU goes from memory-bound to compute-bound and
+  verifying 8 tokens per request per step stops being free. On summarization
+  (~95% of processed tokens are prefill) that point comes much earlier.
 
 Rerun, e.g. with another checkpoint:
 
