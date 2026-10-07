@@ -220,7 +220,18 @@ def main(argv: list[str] | None = None) -> None:
             str(results / "preflight" / f"online-check-{run_name}.json"),
         )
 
-    trained = (run_dir / "train-summary.json").is_file()
+    summary_path = run_dir / "train-summary.json"
+    trained = summary_path.is_file()
+    if trained and node_rank == 0:
+        # A run extended after it finished (num_train_steps raised) is not done: set
+        # the old summary aside and resume from checkpoints/resume. Without this the
+        # 10-epoch extension of the DSpark-corpus run skipped 24 jobs (2026-10-03).
+        done = json.loads(summary_path.read_text())["steps"]
+        wanted = int(cfg["training"]["num_train_steps"])
+        if done < wanted and (run_dir / "checkpoints/resume/state.json").is_file():
+            summary_path.rename(run_dir / f"train-summary-step{done}.json")
+            log("run extended; resuming", finished_steps=done, num_train_steps=wanted)
+            trained = False
     if "train" in steps and trained:
         log("skip train: run finished in an earlier job", run_dir=str(run_dir))
         gates = json.loads((run_dir / "train-summary.json").read_text())["gates"]
