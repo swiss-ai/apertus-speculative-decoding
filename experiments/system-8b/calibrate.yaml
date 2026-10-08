@@ -1,0 +1,24 @@
+# Node sweep calibration (docs/system-optimizations-8b.md).
+# Two identical plain arms measure the spread between GPUs of one node; the
+# EAGLE k=7 arm repeats the 3 Oct single-deployment run (job 3571815) to show
+# whether four deployments on one node disturb each other.
+name: calibrate
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain-a, method: baseline}
+  - {name: plain-b, method: baseline}
+  - name: eagle-e1-k7
+    method: eagle
+    drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep1-se
+    k: 7
+  - name: dspark-e10-k7
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
