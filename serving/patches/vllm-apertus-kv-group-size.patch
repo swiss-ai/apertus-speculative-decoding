@@ -1,0 +1,25 @@
+Optional KV-cache group size for hybrid (full + sliding-window) layouts,
+set with VLLM_KV_CACHE_GROUP_SIZE; unset keeps vLLM's heuristic.
+
+Apertus 1.5 8B (32 full-attention layers) with the DSpark drafter (5
+sliding-window layers) gets groups of 5: the target's 32 layers are padded to
+35 slots, about 9% more KV per token than the target needs. Smaller groups
+remove the padding at the cost of more block tables per request.
+
+--- a/workspace/vllm/vllm/v1/core/kv_cache_utils.py
++++ b/workspace/vllm/vllm/v1/core/kv_cache_utils.py
+@@ -1226,6 +1226,14 @@
+         # layers while accommodating speculative decoding drafters that add
+         # extra layers to one attention type.
+         group_size = max_num_layers
++    override = os.environ.get("VLLM_KV_CACHE_GROUP_SIZE")
++    if override:
++        # Apertus 8B + DSpark is 32 full + 5 sliding-window layers: the
++        # heuristic picks groups of 5 and pads the full layers to 35 (9% of
++        # the target's KV). Groups of 1 (or 2, 4) avoid that at the cost of
++        # more block tables.
++        group_size = int(override)
++        logger.info("KV cache group size %d (VLLM_KV_CACHE_GROUP_SIZE)", group_size)
+     grouped_layers = []
+     for layers in same_type_layers.values():
+         num_padding_layers = group_size - len(layers) % group_size

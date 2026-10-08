@@ -1,0 +1,19 @@
+# Drafter KV, second lever: vLLM groups Apertus' 32 full-attention layers and
+# DSpark's 5 sliding-window layers in groups of 5, padding the target to 35
+# layer slots. VLLM_KV_CACHE_GROUP_SIZE (serving/patches/vllm-apertus-kv-group-size.patch)
+# sets smaller groups; combined here with the trained window and two lower ones.
+# Submit with SWEEP_PATCHES=serving/patches/vllm-apertus-kv-group-size.patch
+name: drafter-kv-groups
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: dspark-e10-k7-gs1, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, env: {VLLM_KV_CACHE_GROUP_SIZE: 1}}
+  - {name: dspark-e10-k7-gs2, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, env: {VLLM_KV_CACHE_GROUP_SIZE: 2}}
+  - {name: dspark-e10-k7-w1024-gs1, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/dspark-variants/e10-w1024, k: 7, env: {VLLM_KV_CACHE_GROUP_SIZE: 1}}
+  - {name: dspark-e10-k7-w512-gs1, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/dspark-variants/e10-w512, k: 7, env: {VLLM_KV_CACHE_GROUP_SIZE: 1}}
