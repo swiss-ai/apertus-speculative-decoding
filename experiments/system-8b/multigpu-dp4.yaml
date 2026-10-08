@@ -1,0 +1,12 @@
+# Whole-node layouts for the 8B target, plain vs speculative: four data-parallel engines behind one server.
+# Concurrency is per node (4 GPUs), i.e. 4x the single-GPU sweeps.
+name: multigpu-dp4
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: summarization
+    concurrencies: [4, 32, 128, 256, 512, 1024]
+arms:
+  - {name: plain-dp4, method: baseline, engine: {data_parallel_size: 4}}
+  - {name: dspark-e10-k7-dp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, engine: {data_parallel_size: 4}}
+  - {name: eagle-e1-k7-dp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep1-se, k: 7, engine: {data_parallel_size: 4}}

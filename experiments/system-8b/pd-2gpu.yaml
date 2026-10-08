@@ -1,0 +1,18 @@
+# Prefill/decode disaggregation on two GPUs of one node: one prefill and one
+# decode instance (NIXL KV transfer, apertus_bench.pd_proxy in front), plain
+# and with the DSpark drafter on both roles, against two data-parallel
+# engines on the same two GPUs. Concurrency is per pair of GPUs.
+# NIXL 1.5.0 (cu13 aarch64 wheel) is installed under the pythonpath below.
+name: pd-2gpu
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: summarization
+    concurrencies: [2, 16, 64, 128, 256, 512]
+  - workload: chat
+    concurrencies: [2, 16, 64, 128, 256, 512]
+arms:
+  - {name: pd-plain, method: pd, serve_method: baseline, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}
+  - {name: pd-dspark-e10-k7, method: pd, serve_method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}
+  - {name: plain-dp2, method: baseline, engine: {data_parallel_size: 2}}
+  - {name: dspark-e10-k7-dp2, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, engine: {data_parallel_size: 2}}
