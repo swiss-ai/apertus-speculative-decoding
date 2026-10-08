@@ -26,6 +26,7 @@ from apertus_bench.workloads import Prompt, file_sha256
 class GenerationSettings:
     temperature: float = 0.0
     top_p: float = 1.0
+    top_k: int | None = None
     seed: int = 1
     max_tokens: int | None = None
     ignore_eos: bool = False
@@ -99,6 +100,7 @@ async def _execute_requests(
                 request_index,
                 temperature=generation.temperature,
                 top_p=generation.top_p,
+                top_k=generation.top_k,
                 seed=generation.seed + request_index,
                 max_tokens=generation.max_tokens,
                 ignore_eos=generation.ignore_eos,

@@ -88,6 +88,7 @@ class StreamingChatClient:
         max_tokens: int | None,
         ignore_eos: bool,
         store_output: bool,
+        top_k: int | None = None,
     ) -> RequestMeasurement:
         payload = {
             "model": self.model,
@@ -99,6 +100,9 @@ class StreamingChatClient:
             "stream": True,
             "stream_options": {"include_usage": True},
         }
+        if top_k is not None:
+            # vLLM extension of the OpenAI schema; omitted means the server default.
+            payload["top_k"] = top_k
         if ignore_eos:
             payload["ignore_eos"] = True
 
