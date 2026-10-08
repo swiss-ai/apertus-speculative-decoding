@@ -326,7 +326,8 @@ def bench_command(arm: Arm, test: Loadtest, output: Path, deployment_id: str) ->
         base += [f"--{key.replace('_', '-')}", str(value)]
     base += arm.bench_argv
     for key, value in arm.metadata.items():
-        base += ["--metadata", f"{key}={value}"]
+        if value:  # the client refuses empty values
+            base += ["--metadata", f"{key}={value}"]
     base += ["--output", str(output)]
     return base
 
@@ -370,6 +371,14 @@ async def _stop(process: asyncio.subprocess.Process) -> None:
             return
         except TimeoutError:
             continue
+
+
+def _pythonpath() -> str:
+    """The repo's src ahead of the inherited path, which keeps the image's
+    /workspace/vllm entry (the patched vLLM) in place."""
+    inherited = os.environ.get("PYTHONPATH", "")
+    src = str(REPO_ROOT / "src")
+    return src if not inherited else f"{src}:{inherited}"
 
 
 def _write_status(path: Path, status: dict[str, Any]) -> None:
@@ -419,7 +428,7 @@ async def run_arm(
                     *command,
                     stdout=bench_log,
                     stderr=asyncio.subprocess.STDOUT,
-                    env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "src")},
+                    env={**os.environ, "PYTHONPATH": _pythonpath()},
                 )
                 code = await bench.wait()
             status["tests"][test.label] = {"exit_code": code}

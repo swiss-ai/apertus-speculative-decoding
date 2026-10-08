@@ -143,3 +143,11 @@ def test_unknown_generation_setting_is_refused() -> None:
     )
     with pytest.raises(SpecError, match="unknown generation"):
         build_plan(spec, check_heads=False)
+
+
+def test_empty_metadata_values_are_left_out(tmp_path: Path) -> None:
+    plan = build_plan(_spec(), check_heads=False)
+    command = bench_command(plan.arms[0], plan.loadtests[0], tmp_path, "dep")
+    values = [command[i + 1] for i, part in enumerate(command) if part == "--metadata"]
+    assert all(value.split("=", 1)[1] for value in values)
+    assert not any(value.startswith("speculative_config=") for value in values)
