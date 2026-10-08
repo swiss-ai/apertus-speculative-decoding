@@ -36,6 +36,7 @@ def _add_auth(parser: argparse.ArgumentParser) -> None:
 def _add_generation(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--top-p", type=float, default=1.0)
+    parser.add_argument("--top-k", type=int, help="sent only when given (server default otherwise)")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--max-tokens", type=int)
     parser.add_argument("--ignore-eos", action="store_true")
@@ -338,6 +339,7 @@ def _generation(args: argparse.Namespace) -> GenerationSettings:
     return GenerationSettings(
         temperature=args.temperature,
         top_p=args.top_p,
+        top_k=args.top_k,
         seed=args.seed,
         max_tokens=args.max_tokens,
         ignore_eos=args.ignore_eos,
