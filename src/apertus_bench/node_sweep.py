@@ -405,7 +405,10 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
         method = raw.get("method")
         if method not in METHODS:
             raise SpecError(f"arm {name}: method must be one of {sorted(METHODS)}")
-        env = {str(key): str(value) for key, value in (raw.get("env") or {}).items()}
+        env = {
+            str(key): str(value).replace("{repo}", str(REPO_ROOT))
+            for key, value in (raw.get("env") or {}).items()
+        }
         if method == "command":
             command = raw.get("command")
             if not command or not isinstance(command, list):

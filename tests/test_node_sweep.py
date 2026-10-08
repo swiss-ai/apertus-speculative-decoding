@@ -206,3 +206,11 @@ def test_pd_arm_with_a_plain_prefill_and_too_many_gpus() -> None:
     )
     with pytest.raises(SpecError, match="the node has 4"):
         build_plan(spec, check_heads=False)
+
+
+def test_env_values_can_point_into_the_repo() -> None:
+    from apertus_bench.node_sweep import REPO_ROOT
+
+    arm = {"name": "p", "method": "baseline", "env": {"PROFILE": "{repo}/x.json"}}
+    (built,) = build_plan(_spec(arms=[arm]), check_heads=False).arms
+    assert built.env["PROFILE"] == f"{REPO_ROOT}/x.json"
