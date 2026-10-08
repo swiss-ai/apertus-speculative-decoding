@@ -41,10 +41,10 @@ def collect(sweeps: list[Path], label: str) -> dict[str, dict[int, dict[str, Any
 def collect_probe(sweeps: list[Path]) -> dict[str, dict[str, Any]]:
     rows: dict[str, dict[str, Any]] = {}
     for sweep in sweeps:
-        for summary in sorted(sweep.glob("*/probe/probe/c8/summary.json")):
+        for summary in sorted(sweep.glob("*/probe/summary.json")):
             data = json.loads(summary.read_text())
             spec = data.get("speculative_decoding") or {}
-            rows[summary.parents[3].name] = {
+            rows[summary.parents[1].name] = {
                 "output_tokens_per_second": data["tokens"]["output_tokens_per_second"],
                 "mean_acceptance_length": spec.get("mean_acceptance_length"),
                 "tpot_p50_ms": (data["latency_ms"].get("tpot") or {}).get("p50"),
