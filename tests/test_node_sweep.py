@@ -168,3 +168,11 @@ def test_command_arm_runs_its_argv_on_its_gpus() -> None:
 def test_command_arm_needs_a_command() -> None:
     with pytest.raises(SpecError, match="command list"):
         build_plan(_spec(arms=[{"name": "p", "method": "command"}]), check_heads=False)
+
+
+def test_env_values_can_point_into_the_repo() -> None:
+    from apertus_bench.node_sweep import REPO_ROOT
+
+    arm = {"name": "p", "method": "baseline", "env": {"PROFILE": "{repo}/x.json"}}
+    (built,) = build_plan(_spec(arms=[arm]), check_heads=False).arms
+    assert built.env["PROFILE"] == f"{REPO_ROOT}/x.json"
