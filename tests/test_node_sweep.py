@@ -151,3 +151,20 @@ def test_empty_metadata_values_are_left_out(tmp_path: Path) -> None:
     values = [command[i + 1] for i, part in enumerate(command) if part == "--metadata"]
     assert all(value.split("=", 1)[1] for value in values)
     assert not any(value.startswith("speculative_config=") for value in values)
+
+
+def test_command_arm_runs_its_argv_on_its_gpus() -> None:
+    arms = [
+        {"name": "profile", "method": "command", "command": ["python3", "x.py", "{arm_dir}"]},
+        {"name": "plain", "method": "baseline"},
+    ]
+    profile, plain = build_plan(_spec(arms=arms), check_heads=False).arms
+    assert profile.kind == "command"
+    assert profile.serve_argv == ["python3", "x.py", "{arm_dir}"]
+    assert profile.gpus == 1
+    assert plain.kind == "serve"
+
+
+def test_command_arm_needs_a_command() -> None:
+    with pytest.raises(SpecError, match="command list"):
+        build_plan(_spec(arms=[{"name": "p", "method": "command"}]), check_heads=False)

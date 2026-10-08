@@ -5,6 +5,8 @@ length, engine settings. Each arm gets its own GPUs on the node and its own
 `vllm serve` process; the load tests of all running arms proceed in parallel,
 so a four-GPU node measures four configurations in the time of one. An arm
 that needs more GPUs than are free waits for the earlier arms to finish.
+A `command` arm runs one program on its GPUs instead (e.g. a step-time
+profile); `{arm_dir}` and `{repo}` in its argv are filled in.
 
     python3 -m apertus_bench.node_sweep plan SPEC        (print the expanded arms)
     python3 -m apertus_bench.node_sweep run SPEC --output DIR
@@ -61,7 +63,7 @@ BOOL_FLAGS = {
     "async_scheduling": ("--async-scheduling", "--no-async-scheduling"),
     "enforce_eager": ("--enforce-eager", None),
 }
-METHODS = {"baseline", "dspark", "eagle"}
+METHODS = {"baseline", "dspark", "eagle", "command"}
 # Same lines serving/loadtest.sh keeps from the engine log.
 EXCERPT = re.compile(
     r"non-default args|[Ss]peculative|Loading drafter|Model loading took|Available KV cache "
@@ -97,6 +99,7 @@ class Arm:
     bench_argv: list[str]
     env: dict[str, str]
     metadata: dict[str, str]
+    kind: str = "serve"
 
     @property
     def port(self) -> int:
@@ -229,6 +232,28 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
         method = raw.get("method")
         if method not in METHODS:
             raise SpecError(f"arm {name}: method must be one of {sorted(METHODS)}")
+        env = {str(key): str(value) for key, value in (raw.get("env") or {}).items()}
+        if method == "command":
+            command = raw.get("command")
+            if not command or not isinstance(command, list):
+                raise SpecError(f"arm {name}: a command arm needs a command list")
+            gpus = int(raw.get("gpus", 1))
+            if not 0 < gpus <= node_gpus:
+                raise SpecError(f"arm {name}: needs 1 to {node_gpus} GPUs, given {gpus}")
+            arms.append(
+                Arm(
+                    name=name,
+                    index=index,
+                    gpus=gpus,
+                    served_model="",
+                    serve_argv=[str(part) for part in command],
+                    bench_argv=[],
+                    env=env,
+                    metadata={},
+                    kind="command",
+                )
+            )
+            continue
         engine = {**common_engine, **(raw.get("engine") or {})}
         tp = int(raw.get("tensor_parallel_size", 1))
         dp = int(engine.get("data_parallel_size") or 1)
@@ -275,7 +300,6 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
             ]  # fmt: skip
             if check_heads:
                 metadata.update(_eagle_metadata(Path(raw["drafter"]), stage, served_base, tp))
-        env = {str(key): str(value) for key, value in (raw.get("env") or {}).items()}
         arms.append(
             Arm(
                 name=name,
@@ -409,10 +433,28 @@ async def run_arm(
         "VLLM_CACHE_ROOT": str(cache),
         **arm.env,
     }
-    serve_argv = [*arm.serve_argv, "--port", str(arm.port)]
-    log = (arm_dir / "replica.out").open("wb")
     status["started"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     _write_status(status_path, status)
+    if arm.kind == "command":
+        argv = [
+            part.replace("{arm_dir}", str(arm_dir)).replace("{repo}", str(REPO_ROOT))
+            for part in arm.serve_argv
+        ]
+        with (arm_dir / "command.log").open("wb") as command_log:
+            command = await asyncio.create_subprocess_exec(
+                *argv,
+                stdout=command_log,
+                stderr=asyncio.subprocess.STDOUT,
+                env={**env, "PYTHONPATH": _pythonpath()},
+            )
+            code = await command.wait()
+        status["exit_code"] = code
+        status["status"] = "ok" if code == 0 else "failed"
+        status["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+        _write_status(status_path, status)
+        return status
+    serve_argv = [*arm.serve_argv, "--port", str(arm.port)]
+    log = (arm_dir / "replica.out").open("wb")
     process = await asyncio.create_subprocess_exec(
         *serve_argv, stdout=log, stderr=asyncio.subprocess.STDOUT, env=env, start_new_session=True
     )
