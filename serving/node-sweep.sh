@@ -66,9 +66,13 @@ srun --overlap --nodes=1 --ntasks=1 nvidia-smi \
   --query-gpu=timestamp,index,memory.used,memory.total,utilization.gpu,power.draw \
   --format=csv,noheader,nounits -lms 1000 > "${OUT}/gpu-memory.csv" 2> /dev/null &
 SAMPLER=\$!
+# The image's PYTHONPATH puts /workspace/vllm (where the patch overlays are
+# mounted) ahead of the installed copy: extend it inside the container, never
+# replace it, or vLLM runs unpatched.
 srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
-  env PYTHONPATH="${REPO_ROOT}/src" PYTHONNOUSERSITE=1 SWEEP_CACHE_ROOT="${CACHE_ROOT}" \
-  python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}" || status=\$?
+  env PYTHONNOUSERSITE=1 SWEEP_CACHE_ROOT="${CACHE_ROOT}" bash -c \
+  'export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
+  || status=\$?
 kill \${SAMPLER} 2> /dev/null || true
 exit \${status:-0}
 EOF
