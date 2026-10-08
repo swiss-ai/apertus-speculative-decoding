@@ -1,0 +1,15 @@
+# Fixed draft lengths, first half (k=7 is in calibrate, k=3/1 DSpark in sched-smoke).
+name: k-grid-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: dspark-e10-k2, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 2}
+  - {name: dspark-e10-k5, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 5}
+  - {name: eagle-e1-k1, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep1-se, k: 1}
+  - {name: eagle-e1-k3, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep1-se, k: 3}
