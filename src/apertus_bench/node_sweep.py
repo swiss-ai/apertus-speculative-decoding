@@ -6,7 +6,9 @@ length, engine settings. Each arm gets its own GPUs on the node and its own
 so a four-GPU node measures four configurations in the time of one. An arm
 that needs more GPUs than are free waits for the earlier arms to finish.
 A `command` arm runs one program on its GPUs instead (e.g. a step-time
-profile); `{arm_dir}` and `{repo}` in its argv are filled in.
+profile); `{arm_dir}` and `{repo}` in its argv are filled in. A `pd` arm is a
+disaggregated deployment: prefill and decode instances on their own GPUs,
+connected by NIXL, behind apertus_bench.pd_proxy, which the load test drives.
 
     python3 -m apertus_bench.node_sweep plan SPEC        (print the expanded arms)
     python3 -m apertus_bench.node_sweep run SPEC --output DIR
@@ -63,7 +65,11 @@ BOOL_FLAGS = {
     "async_scheduling": ("--async-scheduling", "--no-async-scheduling"),
     "enforce_eager": ("--enforce-eager", None),
 }
-METHODS = {"baseline", "dspark", "eagle", "command"}
+METHODS = {"baseline", "dspark", "eagle", "command", "pd"}
+SERVER_METHODS = {"baseline", "dspark", "eagle"}
+PD_PORT_BASE = 9000
+NIXL_PORT_BASE = 5600
+DEFAULT_KV_TRANSFER = {"kv_connector": "NixlConnector", "kv_role": "kv_both"}
 # Same lines serving/loadtest.sh keeps from the engine log.
 EXCERPT = re.compile(
     r"non-default args|[Ss]peculative|Loading drafter|Model loading took|Available KV cache "
@@ -90,6 +96,17 @@ class Loadtest:
 
 
 @dataclass
+class Server:
+    """One vLLM instance of a pd arm."""
+
+    role: str
+    gpus: int
+    serve_argv: list[str]
+    port: int
+    env: dict[str, str]
+
+
+@dataclass
 class Arm:
     name: str
     index: int
@@ -100,6 +117,8 @@ class Arm:
     env: dict[str, str]
     metadata: dict[str, str]
     kind: str = "serve"
+    servers: list[Server] = field(default_factory=list)
+    pythonpath: list[str] = field(default_factory=list)
 
     @property
     def port(self) -> int:
@@ -168,6 +187,160 @@ def _eagle_metadata(head: Path, stage: str, served_model: str, tp: int) -> dict[
         "target_revision": str((report.get("provenance") or {}).get("revision")),
         "target_tensor_parallel_size": str(tp),
     }
+
+
+def _serve_argv(
+    raw: dict[str, Any], served_model: str, target_model: str, engine: dict[str, Any]
+) -> tuple[list[str], int, int, dict[str, Any] | None]:
+    """`vllm serve` argv of one instance, as the launchers serve the target."""
+    tp = int(raw.get("tensor_parallel_size", 1))
+    dp = int(engine.get("data_parallel_size") or 1)
+    speculative = _speculative_config(raw, tp)
+    argv = [
+        "vllm", "serve",
+        "--model", target_model,
+        "--served-model-name", served_model,
+        "--host", "127.0.0.1",
+        "--chat-template-content-format", "string",
+        "--tensor-parallel-size", str(tp),
+        "--enable-auto-tool-choice",
+        "--tool-call-parser", "apertus",
+        "--compilation-config.pass_config.fuse_allreduce_rms", "false",
+        *_engine_args(engine),
+    ]  # fmt: skip
+    if speculative is not None:
+        argv += ["--speculative-config", json.dumps(speculative, sort_keys=True)]
+    argv += [str(arg) for arg in raw.get("vllm_args") or []]
+    return argv, tp, dp, speculative
+
+
+def _bench(
+    raw: dict[str, Any],
+    engine: dict[str, Any],
+    speculative: dict[str, Any] | None,
+    tp: int,
+    stage: str,
+    served_base: str,
+    check_heads: bool,
+) -> tuple[list[str], dict[str, str]]:
+    """Bench client method flags and provenance metadata of a serving arm."""
+    metadata = {
+        "sweep_arm": raw["name"],
+        "max_num_batched_tokens": str(engine.get("max_num_batched_tokens", "engine-default")),
+        "max_num_seqs": str(engine.get("max_num_seqs", "engine-default")),
+        "speculative_config": json.dumps(speculative, sort_keys=True) if speculative else "",
+        "engine": json.dumps(engine, sort_keys=True),
+        "extra_vllm_args": " ".join(str(arg) for arg in raw.get("vllm_args") or []),
+        "load_generator": "replica node (same container step)",
+    }
+    method = raw["method"]
+    if method == "baseline":
+        bench = ["--method", "none"]
+    elif method == "dspark":
+        bench = ["--method", "dspark", "--num-speculative-tokens", str(raw["k"])]
+        metadata["dspark_checkpoint"] = str(raw["drafter"])
+    else:
+        bench = [
+            "--method", "eagle3", "--algorithm", "eagle31",
+            "--num-speculative-tokens", str(raw["k"]),
+            "--draft-tensor-parallel-size", str(tp),
+        ]  # fmt: skip
+        if check_heads:
+            metadata.update(_eagle_metadata(Path(raw["drafter"]), stage, served_base, tp))
+    return bench, metadata
+
+
+def _pd_arm(
+    raw: dict[str, Any],
+    name: str,
+    index: int,
+    served_model: str,
+    target_model: str,
+    common_engine: dict[str, Any],
+    node_gpus: int,
+    stage: str,
+    served_base: str,
+    check_heads: bool,
+    env: dict[str, str],
+    pythonpath: list[str],
+) -> Arm:
+    """Prefill and decode instances (NIXL KV transfer) behind the pd proxy.
+
+    Both roles take the same speculative settings by default: the prefill
+    instance must hold the drafter's KV layout for the transfer to match."""
+    kv_transfer = raw.get("kv_transfer") or DEFAULT_KV_TRANSFER
+    # serve_method / drafter / k / speculative apply to both roles unless a
+    # role overrides them.
+    shared = {key: raw[key] for key in ("drafter", "k", "speculative") if key in raw}
+    shared["method"] = raw.get("serve_method", "baseline")
+    servers: list[Server] = []
+    role_settings: dict[str, dict[str, Any]] = {}
+    for role in ("prefill", "decode"):
+        settings = {**shared, **(raw.get(role) or {}), "name": f"{name}-{role}"}
+        if settings["method"] not in SERVER_METHODS:
+            raise SpecError(f"arm {name}: {role} method must be one of {sorted(SERVER_METHODS)}")
+        role_settings[role] = settings
+        engine = {
+            **common_engine,
+            **(raw.get("engine") or {}),
+            **(settings.get("engine") or {}),
+        }
+        count = int(settings.get("count", 1))
+        if count < 1:
+            raise SpecError(f"arm {name}: {role} count must be >= 1")
+        for _ in range(count):
+            argv, tp, dp, _ = _serve_argv(settings, served_model, target_model, engine)
+            argv += ["--kv-transfer-config", json.dumps(kv_transfer, sort_keys=True)]
+            slot = index * 20 + len(servers)
+            servers.append(
+                Server(
+                    role=role,
+                    gpus=tp * dp,
+                    serve_argv=argv,
+                    port=PD_PORT_BASE + slot,
+                    env={"VLLM_NIXL_SIDE_CHANNEL_PORT": str(NIXL_PORT_BASE + slot)},
+                )
+            )
+    gpus = sum(server.gpus for server in servers)
+    if gpus > node_gpus:
+        raise SpecError(f"arm {name}: needs {gpus} GPUs, the node has {node_gpus}")
+    decode = role_settings["decode"]
+    decode_engine = {**common_engine, **(raw.get("engine") or {}), **(decode.get("engine") or {})}
+    _, decode_tp, _, decode_speculative = _serve_argv(
+        decode, served_model, target_model, decode_engine
+    )
+    bench, metadata = _bench(
+        {**decode, "name": name}, decode_engine, decode_speculative, decode_tp, stage,
+        served_base, check_heads,
+    )  # fmt: skip
+    metadata["disaggregated"] = json.dumps(
+        {
+            "prefill": sum(s.role == "prefill" for s in servers),
+            "decode": sum(s.role == "decode" for s in servers),
+            "kv_transfer": kv_transfer,
+            "metrics": "first decode instance",
+        },
+        sort_keys=True,
+    )
+    proxy_port = BASE_PORT + index
+    proxy = [
+        "python3", "-m", "apertus_bench.pd_proxy", "--port", str(proxy_port),
+        "--prefill", *[f"http://127.0.0.1:{s.port}" for s in servers if s.role == "prefill"],
+        "--decode", *[f"http://127.0.0.1:{s.port}" for s in servers if s.role == "decode"],
+    ]  # fmt: skip
+    return Arm(
+        name=name,
+        index=index,
+        gpus=gpus,
+        served_model=served_model,
+        serve_argv=proxy,
+        bench_argv=bench,
+        env=env,
+        metadata=metadata,
+        kind="pd",
+        servers=servers,
+        pythonpath=pythonpath,
+    )
 
 
 def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
@@ -254,52 +427,22 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
                 )
             )
             continue
+        pythonpath = [str(path) for path in raw.get("pythonpath") or []]
+        served_model = f"{served_base}-{name}"
+        if method == "pd":
+            arms.append(
+                _pd_arm(
+                    raw, name, index, served_model, target_model, common_engine,
+                    node_gpus, stage, served_base, check_heads, env, pythonpath,
+                )
+            )  # fmt: skip
+            continue
         engine = {**common_engine, **(raw.get("engine") or {})}
-        tp = int(raw.get("tensor_parallel_size", 1))
-        dp = int(engine.get("data_parallel_size") or 1)
+        serve_argv, tp, dp, speculative = _serve_argv(raw, served_model, target_model, engine)
         gpus = int(raw.get("gpus", tp * dp))
         if gpus < tp * dp or gpus > node_gpus:
             raise SpecError(f"arm {name}: needs {tp * dp} GPUs, given {gpus} of {node_gpus}")
-        served_model = f"{served_base}-{name}"
-        speculative = _speculative_config(raw, tp)
-        serve_argv = [
-            "vllm", "serve",
-            "--model", target_model,
-            "--served-model-name", served_model,
-            "--host", "127.0.0.1",
-            "--chat-template-content-format", "string",
-            "--tensor-parallel-size", str(tp),
-            "--enable-auto-tool-choice",
-            "--tool-call-parser", "apertus",
-            "--compilation-config.pass_config.fuse_allreduce_rms", "false",
-            *_engine_args(engine),
-        ]  # fmt: skip
-        if speculative is not None:
-            serve_argv += ["--speculative-config", json.dumps(speculative, sort_keys=True)]
-        serve_argv += [str(arg) for arg in raw.get("vllm_args") or []]
-
-        metadata = {
-            "sweep_arm": name,
-            "max_num_batched_tokens": str(engine.get("max_num_batched_tokens", "engine-default")),
-            "max_num_seqs": str(engine.get("max_num_seqs", "engine-default")),
-            "speculative_config": json.dumps(speculative, sort_keys=True) if speculative else "",
-            "engine": json.dumps(engine, sort_keys=True),
-            "extra_vllm_args": " ".join(str(arg) for arg in raw.get("vllm_args") or []),
-            "load_generator": "replica node (same container step)",
-        }
-        if method == "baseline":
-            bench = ["--method", "none"]
-        elif method == "dspark":
-            bench = ["--method", "dspark", "--num-speculative-tokens", str(raw["k"])]
-            metadata["dspark_checkpoint"] = str(raw["drafter"])
-        else:
-            bench = [
-                "--method", "eagle3", "--algorithm", "eagle31",
-                "--num-speculative-tokens", str(raw["k"]),
-                "--draft-tensor-parallel-size", str(tp),
-            ]  # fmt: skip
-            if check_heads:
-                metadata.update(_eagle_metadata(Path(raw["drafter"]), stage, served_base, tp))
+        bench, metadata = _bench(raw, engine, speculative, tp, stage, served_base, check_heads)
         arms.append(
             Arm(
                 name=name,
@@ -310,6 +453,7 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
                 bench_argv=bench,
                 env=env,
                 metadata=metadata,
+                pythonpath=pythonpath,
             )
         )
     if not arms:
@@ -356,20 +500,27 @@ def bench_command(arm: Arm, test: Loadtest, output: Path, deployment_id: str) ->
     return base
 
 
-async def _wait_ready(arm: Arm, process: asyncio.subprocess.Process, timeout: float) -> float:
+async def _wait_ready(
+    label: str,
+    port: int,
+    served_model: str,
+    processes: list[asyncio.subprocess.Process],
+    timeout: float,
+) -> float:
     started = time.monotonic()
-    url = f"http://127.0.0.1:{arm.port}"
+    url = f"http://127.0.0.1:{port}"
     async with httpx.AsyncClient(timeout=30) as client:
         while time.monotonic() - started < timeout:
-            if process.returncode is not None:
-                raise RuntimeError(f"vllm serve exited with {process.returncode}")
+            for process in processes:
+                if process.returncode is not None:
+                    raise RuntimeError(f"{label}: a server exited with {process.returncode}")
             try:
                 response = await client.get(f"{url}/v1/models")
                 if response.status_code == 200:
                     probe = await client.post(
                         f"{url}/v1/chat/completions",
                         json={
-                            "model": arm.served_model,
+                            "model": served_model,
                             "messages": [{"role": "user", "content": "Say hi."}],
                             "max_tokens": 4,
                         },
@@ -379,7 +530,7 @@ async def _wait_ready(arm: Arm, process: asyncio.subprocess.Process, timeout: fl
             except httpx.HTTPError:
                 pass
             await asyncio.sleep(5)
-    raise TimeoutError(f"{arm.name} not ready after {timeout:.0f} s")
+    raise TimeoutError(f"{label} not ready after {timeout:.0f} s")
 
 
 async def _stop(process: asyncio.subprocess.Process) -> None:
@@ -397,12 +548,14 @@ async def _stop(process: asyncio.subprocess.Process) -> None:
             continue
 
 
-def _pythonpath() -> str:
-    """The repo's src ahead of the inherited path, which keeps the image's
-    /workspace/vllm entry (the patched vLLM) in place."""
+def _pythonpath(extra: list[str] | None = None) -> str:
+    """The repo's src (and an arm's extra paths) ahead of the inherited path,
+    which keeps the image's /workspace/vllm entry (the patched vLLM) in place."""
     inherited = os.environ.get("PYTHONPATH", "")
-    src = str(REPO_ROOT / "src")
-    return src if not inherited else f"{src}:{inherited}"
+    parts = [str(REPO_ROOT / "src"), *(extra or [])]
+    if inherited:
+        parts.append(inherited)
+    return ":".join(parts)
 
 
 def _write_status(path: Path, status: dict[str, Any]) -> None:
@@ -420,6 +573,10 @@ async def run_arm(
         "gpus": gpu_ids,
         "port": arm.port,
         "serve_argv": arm.serve_argv,
+        "servers": [
+            {"role": server.role, "port": server.port, "serve_argv": server.serve_argv}
+            for server in arm.servers
+        ],
         "env": arm.env,
         "deployment_id": deployment_id,
         "tests": {},
@@ -453,13 +610,55 @@ async def run_arm(
         status["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         _write_status(status_path, status)
         return status
-    serve_argv = [*arm.serve_argv, "--port", str(arm.port)]
-    log = (arm_dir / "replica.out").open("wb")
-    process = await asyncio.create_subprocess_exec(
-        *serve_argv, stdout=log, stderr=asyncio.subprocess.STDOUT, env=env, start_new_session=True
-    )
+    env["PYTHONPATH"] = _pythonpath(arm.pythonpath)
+    processes: list[asyncio.subprocess.Process] = []
+    logs = []
     try:
-        status["ready_seconds"] = round(await _wait_ready(arm, process, 2400), 1)
+        if arm.kind == "pd":
+            # Instances first (GPUs in order), then the proxy in front of them.
+            remaining = list(gpu_ids)
+            for number, server in enumerate(arm.servers):
+                ids, remaining = remaining[: server.gpus], remaining[server.gpus :]
+                log = (arm_dir / f"replica-{server.role}-{number}.out").open("wb")
+                logs.append(log)
+                server_env = {
+                    **env,
+                    **server.env,
+                    "CUDA_VISIBLE_DEVICES": ",".join(str(gpu) for gpu in ids),
+                }
+                processes.append(
+                    await asyncio.create_subprocess_exec(
+                        *server.serve_argv, "--port", str(server.port),
+                        stdout=log, stderr=asyncio.subprocess.STDOUT, env=server_env,
+                        start_new_session=True,
+                    )
+                )  # fmt: skip
+            for number, server in enumerate(arm.servers):
+                await _wait_ready(
+                    f"{arm.name} {server.role} {number}", server.port, arm.served_model,
+                    processes, 2400,
+                )  # fmt: skip
+            log = (arm_dir / "proxy.out").open("wb")
+            logs.append(log)
+            processes.append(
+                await asyncio.create_subprocess_exec(
+                    *arm.serve_argv, stdout=log, stderr=asyncio.subprocess.STDOUT, env=env,
+                    start_new_session=True,
+                )
+            )  # fmt: skip
+        else:
+            log = (arm_dir / "replica.out").open("wb")
+            logs.append(log)
+            processes.append(
+                await asyncio.create_subprocess_exec(
+                    *arm.serve_argv, "--port", str(arm.port),
+                    stdout=log, stderr=asyncio.subprocess.STDOUT, env=env,
+                    start_new_session=True,
+                )
+            )  # fmt: skip
+        status["ready_seconds"] = round(
+            await _wait_ready(arm.name, arm.port, arm.served_model, processes, 2400), 1
+        )
         _write_status(status_path, status)
         tests = ([plan.probe] if plan.probe else []) + plan.loadtests
         for test in tests:
@@ -475,8 +674,9 @@ async def run_arm(
                 code = await bench.wait()
             status["tests"][test.label] = {"exit_code": code}
             _write_status(status_path, status)
-            if process.returncode is not None:
-                raise RuntimeError(f"vllm serve exited with {process.returncode} during tests")
+            exited = [p.returncode for p in processes if p.returncode is not None]
+            if exited:
+                raise RuntimeError(f"a server exited with {exited[0]} during tests")
         status["status"] = (
             "ok" if all(t["exit_code"] == 0 for t in status["tests"].values()) else "test_failed"
         )
@@ -484,13 +684,16 @@ async def run_arm(
         status["status"] = "failed"
         status["error"] = f"{type(error).__name__}: {error}"
     finally:
-        await _stop(process)
-        log.close()
+        for process in reversed(processes):
+            await _stop(process)
+        for log in logs:
+            log.close()
         status["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
-        replica = arm_dir / "replica.out"
-        if replica.is_file():
+        excerpt = []
+        for replica in sorted(arm_dir.glob("replica*.out")):
             lines = replica.read_text(errors="replace").splitlines()
-            excerpt = [line for line in lines if EXCERPT.search(line)]
+            excerpt += [f"{replica.name}: {line}" for line in lines if EXCERPT.search(line)]
+        if excerpt:
             (arm_dir / "engine-excerpt.txt").write_text("\n".join(excerpt) + "\n")
         _write_status(status_path, status)
     return status
@@ -542,7 +745,17 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "plan":
         plan = build_plan(spec, check_heads=not args.no_check_heads)
         for arm in plan.arms:
-            print(json.dumps({"name": arm.name, "gpus": arm.gpus, "serve": arm.serve_argv}))
+            servers = [server.serve_argv for server in arm.servers]
+            print(
+                json.dumps(
+                    {
+                        "name": arm.name,
+                        "gpus": arm.gpus,
+                        "serve": arm.serve_argv,
+                        "servers": servers,
+                    }
+                )
+            )
         return
     plan = build_plan(spec)
     args.output.mkdir(parents=True, exist_ok=True)

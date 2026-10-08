@@ -168,3 +168,41 @@ def test_command_arm_runs_its_argv_on_its_gpus() -> None:
 def test_command_arm_needs_a_command() -> None:
     with pytest.raises(SpecError, match="command list"):
         build_plan(_spec(arms=[{"name": "p", "method": "command"}]), check_heads=False)
+
+
+def test_pd_arm_gives_both_roles_the_drafter_and_a_kv_connector() -> None:
+    arm_spec = {
+        "name": "pd-dspark",
+        "method": "pd",
+        "serve_method": "dspark",
+        "drafter": DRAFTER,
+        "k": 7,
+        "decode": {"count": 2},
+        "pythonpath": ["/scratch/nixl"],
+    }
+    spec = _spec(arms=[arm_spec])
+    (arm,) = build_plan(spec, check_heads=False).arms
+    assert arm.kind == "pd"
+    assert [s.role for s in arm.servers] == ["prefill", "decode", "decode"]
+    assert arm.gpus == 3
+    assert len({s.port for s in arm.servers}) == 3
+    assert len({s.env["VLLM_NIXL_SIDE_CHANNEL_PORT"] for s in arm.servers}) == 3
+    for server in arm.servers:
+        transfer = json.loads(_flag(server.serve_argv, "--kv-transfer-config"))
+        assert transfer["kv_connector"] == "NixlConnector"
+        config = json.loads(_flag(server.serve_argv, "--speculative-config"))
+        assert config["num_speculative_tokens"] == 7
+        assert _flag(server.serve_argv, "--served-model-name") == arm.served_model
+    assert arm.serve_argv[:3] == ["python3", "-m", "apertus_bench.pd_proxy"]
+    decode_urls = arm.serve_argv[arm.serve_argv.index("--decode") + 1 :]
+    assert decode_urls == [f"http://127.0.0.1:{s.port}" for s in arm.servers[1:]]
+    assert arm.bench_argv[:2] == ["--method", "dspark"]
+    assert arm.pythonpath == ["/scratch/nixl"]
+
+
+def test_pd_arm_with_a_plain_prefill_and_too_many_gpus() -> None:
+    spec = _spec(
+        arms=[{"name": "pd", "method": "pd", "decode": {"count": 4}, "prefill": {"count": 1}}]
+    )
+    with pytest.raises(SpecError, match="the node has 4"):
+        build_plan(spec, check_heads=False)
