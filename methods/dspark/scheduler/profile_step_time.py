@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import time
 from pathlib import Path
@@ -51,6 +52,9 @@ def main() -> None:
     parser.add_argument("--max-num-seqs", type=int, default=256)
     args = parser.parse_args()
 
+    # The engine core in this process: collective_rpc then calls time_steps
+    # directly instead of serialising it to an engine process.
+    os.environ["VLLM_ENABLE_V1_MULTIPROCESSING"] = "0"
     from vllm import LLM
 
     llm = LLM(
