@@ -1,0 +1,524 @@
+Confidence-scheduled verification for DSpark (arXiv:2607.05147, section on
+confidence-scheduled verification), enabled with VLLM_DSPARK_VERIFY_SCHED=1.
+
+The DSpark checkpoints carry a trained confidence head (per-slot acceptance
+probability from [hidden; markov_w1[previous token]]) that the pinned vLLM
+skips. With the variable set, the drafter evaluates it inside the captured
+draft step, the running product (prefix survival) rides back to the
+scheduler on the ModelRunnerOutput, and the scheduler trims each running
+request's draft placeholders to a per-request verification length before
+scheduling: VLLM_DSPARK_VERIFY_MODE=greedy (default; maximises tokens
+processed per second against the step-time profile in
+VLLM_DSPARK_VERIFY_PROFILE plus an online overhead term) or threshold
+(VLLM_DSPARK_VERIFY_THRESHOLD on the prefix survival). Unset, the engine
+behaves as before (the head is not even loaded).
+
+--- a/workspace/vllm/vllm/v1/outputs.py
++++ b/workspace/vllm/vllm/v1/outputs.py
+@@ -280,6 +280,12 @@
+     # ``None`` when ``enable_return_routed_experts`` is off.
+     routed_experts: RoutedExpertsLists | None = None
+ 
++    # DSpark confidence-scheduled verification: [num_reqs, num_spec_tokens]
++    # prefix survival (running product of per-slot acceptance probabilities)
++    # of the drafts proposed in this step, rows in ``req_ids`` order. ``None``
++    # unless VLLM_DSPARK_VERIFY_SCHED=1 and the drafter has a confidence head.
++    spec_survival: np.ndarray | None = None
++
+     @staticmethod
+     def with_kv_conn_output_only(
+         kv_connector_output: KVConnectorOutput | None,
+--- a/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py
++++ b/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py
+@@ -14,6 +14,7 @@
+ DSparkMarkovHead is shared with the DSV4-style DSpark model.
+ """
+ 
++import os
+ from collections.abc import Iterable
+ 
+ import torch
+@@ -67,6 +68,15 @@
+         return logits_processor(self.markov_w2, markov_embed)
+ 
+ 
++class DSparkConfidenceHead(nn.Module):
++    """Per-slot acceptance-probability predictor (speculators ConfidenceHead):
++    one logit from ``[hidden; markov_w1[previous token]]``."""
++
++    def __init__(self, input_dim: int) -> None:
++        super().__init__()
++        self.proj = nn.Linear(input_dim, 1)
++
++
+ class Qwen3DSparkModel(DFlashQwen3Model):
+     """DFlash Qwen3 backbone + DSpark Markov head."""
+ 
+@@ -90,6 +100,18 @@
+             config.markov_rank,
+             prefix=maybe_prefix(prefix, "markov_head"),
+         )
++        # Trained jointly with the drafter; loaded only when it is used.
++        self.confidence_head_with_markov = bool(
++            getattr(config, "confidence_head_with_markov", False)
++        )
++        self.confidence_head: DSparkConfidenceHead | None = None
++        if getattr(config, "enable_confidence_head", False) and os.environ.get(
++            "VLLM_DSPARK_VERIFY_SCHED", "0"
++        ) == "1":
++            input_dim = config.hidden_size + (
++                config.markov_rank if self.confidence_head_with_markov else 0
++            )
++            self.confidence_head = DSparkConfidenceHead(input_dim)
+ 
+ 
+ class Qwen3DSparkForCausalLM(DFlashQwen3ForCausalLM):
+@@ -146,6 +168,25 @@
+     def markov_bias(self, markov_embed: torch.Tensor) -> torch.Tensor:
+         return self.model.markov_head.bias(markov_embed, self.logits_processor)
+ 
++    def has_confidence_head(self) -> bool:
++        return self.model.confidence_head is not None
++
++    def confidence(
++        self, hidden_states: torch.Tensor, markov_embed: torch.Tensor
++    ) -> torch.Tensor:
++        """Acceptance probability of each slot given its prefix was accepted
++        ([B, hidden], [B, r] -> [B] float32), as trained: sigmoid of the head
++        over the normed backbone hidden state and the previous token's Markov
++        embedding."""
++        head = self.model.confidence_head
++        assert head is not None
++        features = hidden_states
++        if self.model.confidence_head_with_markov:
++            features = torch.cat(
++                [hidden_states, markov_embed.to(hidden_states.dtype)], dim=-1
++            )
++        return torch.sigmoid(head.proj(features).float()).squeeze(-1)
++
+     def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]):
+         model_weights = {}
+         includes_embed_tokens = False
+@@ -170,10 +211,13 @@
+             process_eagle_weight(self, name)
+ 
+         # mask_embedding is an unused placeholder param; DSpark masks via the vocab row.
+-        # confidence_head is not wired into inference yet; skip its weights.
++        # confidence_head feeds only the confidence-scheduled verification
++        # (VLLM_DSPARK_VERIFY_SCHED=1); skip its weights otherwise.
+         # embed_tokens / lm_head are optional; when omitted they are shared from
+         # the target by load_dspark_model, so skip the unloaded params here.
+-        skip_substrs = ["mask_embedding", "confidence_head"]
++        skip_substrs = ["mask_embedding"]
++        if self.model.confidence_head is None:
++            skip_substrs.append("confidence_head")
+         if not includes_embed_tokens:
+             skip_substrs.append("embed_tokens")
+         if not includes_lm_head:
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+@@ -23,6 +23,7 @@
+ backbone forward AND the sequential Markov sampling.
+ """
+ 
++import os
+ from typing import Any
+ 
+ import torch
+@@ -70,6 +71,19 @@
+             * self.num_query_per_req
+         )
+ 
++        # Confidence-scheduled verification (VLLM_DSPARK_VERIFY_SCHED=1): the
++        # confidence head's per-slot acceptance probabilities and their running
++        # product (prefix survival), written inside the captured draft step.
++        self.verify_sched = os.environ.get("VLLM_DSPARK_VERIFY_SCHED", "0") == "1"
++        self._use_confidence = False
++        self.draft_confidence = torch.ones(
++            self.max_num_reqs,
++            self.num_speculative_steps,
++            dtype=torch.float32,
++            device=device,
++        )
++        self.draft_survival = torch.ones_like(self.draft_confidence)
++
+         # Reduced-vocab probabilistic drafting only; set in load_draft_model.
+         self._d2t_scatter_index: torch.Tensor | None = None
+         self._draft_scatter_buf: torch.Tensor | None = None
+@@ -80,6 +94,12 @@
+         target_attn_layer_names: set[str],
+     ) -> torch.nn.Module:
+         model = load_dspark_model(target_model, self.vllm_config)
++        self._use_confidence = self.verify_sched and model.has_confidence_head()
++        if self.verify_sched and not self._use_confidence:
++            raise ValueError(
++                "VLLM_DSPARK_VERIFY_SCHED=1 needs a DSpark checkpoint with "
++                "enable_confidence_head"
++            )
+         # Reduced draft vocab: probabilistic rejection sampling indexes draft
+         # logits by target id, so precompute the draft->target column map and a
+         # scratch buffer to scatter logits into target vocab before sampling.
+@@ -116,10 +136,16 @@
+         # read via the precomputed persistent index (fixed buffer for capture).
+         prev = self.input_buffers.input_ids[self._anchor_idx[:num_reqs]]
+ 
++        if self._use_confidence:
++            slot_hidden = sample_hidden.view(num_reqs, n_spec, -1)
+         for i in range(n_spec):
+             # Sequential stage: Markov bias from the previously sampled token.
+             markov_embed = self.model.markov_embed(prev)
+             bias = self.model.markov_bias(markov_embed)
++            if self._use_confidence:
++                self.draft_confidence[:num_reqs, i] = self.model.confidence(
++                    slot_hidden[:, i], markov_embed
++                )
+             logits_i = base_logits[:, i] + bias
+             if self.draft_logits is not None:
+                 # Probabilistic: sample in target vocab (a reduced draft vocab is
+@@ -148,6 +174,18 @@
+                 )
+             self.draft_tokens[:num_reqs, i] = draft_sampled_i
+             prev = draft_sampled_i
++        if self._use_confidence:
++            torch.cumprod(
++                self.draft_confidence[:num_reqs],
++                dim=1,
++                out=self.draft_survival[:num_reqs],
++            )
++
++    def spec_survival(self, num_reqs: int) -> torch.Tensor | None:
++        """Prefix survival of the drafts just proposed, [num_reqs, n_spec]."""
++        if not self._use_confidence:
++            return None
++        return self.draft_survival[:num_reqs]
+ 
+     def _generate_draft(
+         self,
+--- a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+@@ -1479,6 +1479,14 @@
+                 mm_inputs=mm_inputs,
+             )
+             self.req_states.draft_tokens[input_batch.idx_mapping] = draft_tokens
++            spec_survival = getattr(self.speculator, "spec_survival", None)
++            if spec_survival is not None:
++                survival = spec_survival(input_batch.num_reqs)
++                if survival is not None:
++                    # Cloned: the next draft step overwrites the buffer.
++                    async_output.attach_spec_survival(
++                        survival.clone(), self.main_stream, self.output_copy_stream
++                    )
+ 
+         if self.num_speculative_steps > 0:
+             # Spec-decode and diffusion LLMs both use draft tokens but the latter does
+--- a/workspace/vllm/vllm/v1/worker/gpu/async_utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/async_utils.py
+@@ -26,6 +26,8 @@
+         self.num_sampled_tokens = num_sampled_tokens
+         # Blocking (sleep) event to avoid busy-polling the CUDA driver lock.
+         self.copy_event = torch.cuda.Event(blocking=True)
++        self.spec_survival: torch.Tensor | None = None
++        self.spec_survival_event: torch.cuda.Event | None = None
+ 
+         with stream(copy_stream, main_stream):
+             copy_stream.wait_stream(main_stream)
+@@ -46,6 +48,22 @@
+             }
+             self.copy_event.record(copy_stream)
+ 
++    def attach_spec_survival(
++        self,
++        survival: torch.Tensor,
++        main_stream: torch.cuda.Stream,
++        copy_stream: torch.cuda.Stream,
++    ) -> None:
++        """Copy the drafts' prefix survival (DSpark confidence head) to the
++        host after the draft step; the scheduler sets per-request verification
++        lengths from it."""
++        self.spec_survival = survival
++        self.spec_survival_event = torch.cuda.Event(blocking=True)
++        with stream(copy_stream, main_stream):
++            copy_stream.wait_stream(main_stream)
++            self.spec_survival_np = async_copy_to_np(survival)
++            self.spec_survival_event.record(copy_stream)
++
+     def get_output(self) -> ModelRunnerOutput:
+         self.copy_event.synchronize()
+ 
+@@ -67,6 +85,9 @@
+         if self.logprobs_tensors is not None:
+             self.model_runner_output.logprobs = self.logprobs_tensors.tolists()
+         self.model_runner_output.prompt_logprobs_dict = self.prompt_logprobs_dict
++        if self.spec_survival_event is not None:
++            self.spec_survival_event.synchronize()
++            self.model_runner_output.spec_survival = self.spec_survival_np
+         return self.model_runner_output
+ 
+ 
+--- a/workspace/vllm/vllm/v1/core/sched/scheduler.py
++++ b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ import itertools
++import json
++import os
+ import time
+ from collections import defaultdict, deque
+ from collections.abc import Iterable
+@@ -62,6 +64,8 @@
+ from vllm.v1.structured_output import StructuredOutputManager
+ from vllm.v1.utils import record_function_or_nullcontext
+ 
++import numpy as np
++
+ logger = init_logger(__name__)
+ 
+ 
+@@ -255,6 +259,20 @@
+                 # anchor itself is the first prediction position (no separate bonus
+                 # query), so it needs exactly num_spec_tokens lookahead slots.
+                 self.num_lookahead_tokens = self.num_spec_tokens
++        # DSpark confidence-scheduled verification: per-request draft lengths
++        # from the drafter's confidence head (VLLM_DSPARK_VERIFY_SCHED=1).
++        self.verify_sched: ConfidenceVerifyScheduler | None = None
++        if (
++            speculative_config is not None
++            and speculative_config.use_dspark()
++            and os.environ.get("VLLM_DSPARK_VERIFY_SCHED", "0") == "1"
++        ):
++            if self.dynamic_sd_lookup is not None:
++                raise ValueError(
++                    "VLLM_DSPARK_VERIFY_SCHED and num_speculative_tokens_per_batch_size "
++                    "are exclusive"
++                )
++            self.verify_sched = ConfidenceVerifyScheduler.from_env()
+ 
+         # Create the KV cache manager.
+         if hash_block_size is None:
+@@ -437,6 +455,9 @@
+             throttle_prefills and not self.prefill_capacity_bound
+         ) and any(not r.is_prefill_chunk for r in self.running)
+ 
++        if self.verify_sched is not None:
++            self.verify_sched.assign(self.running)
++
+         # First, schedule the RUNNING requests.
+         req_index = 0
+         while req_index < len(self.running) and token_budget > 0:
+@@ -813,7 +834,11 @@
+                     # preserve full cudagraph for this step.
+                     # Not for diffusion where draft tokens can't be padded.
+                     if (
+-                        (self.num_spec_tokens > 0 and self.dynamic_sd_lookup is None)
++                        (
++                            self.num_spec_tokens > 0
++                            and self.dynamic_sd_lookup is None
++                            and self.verify_sched is None
++                        )
+                         and self.num_sampled_tokens_per_step > 0
+                         and num_new_tokens == 1
+                         and (scheduled_running_reqs and not prefill_scheduled)
+@@ -1524,6 +1549,9 @@
+         if self.perf_metrics and self.perf_metrics.is_enabled():
+             perf_stats = self.perf_metrics.get_step_perf_stats_per_gpu(scheduler_output)
+ 
++        if self.verify_sched is not None:
++            self.verify_sched.observe(scheduler_output, model_runner_output)
++
+         outputs: dict[int, list[EngineCoreOutput]] = defaultdict(list)
+         spec_decoding_stats: SpecDecodingStats | None = None
+ 
+@@ -2681,3 +2709,192 @@
+         self.failed_recving_kv_req_ids |= async_failed_req_ids
+         # Return sync affected IDs to skip in update_from_output
+         return sync_failed_req_ids
++
++
++class ConfidenceVerifyScheduler:
++    """Per-request verification lengths for DSpark from its confidence head.
++
++    Follows confidence-scheduled verification (DSpark, arXiv:2607.05147): with
++    ``a[r, j]`` the prefix survival of draft slot ``j`` of request ``r`` (the
++    running product of per-slot acceptance probabilities), verifying ``l_r``
++    slots per request yields ``tau = sum_r (1 + sum_{j < l_r} a[r, j])``
++    expected tokens and costs a forward pass over ``B = B0 + sum_r (1 + l_r)``
++    tokens. ``greedy`` admits slots by descending survival and keeps the prefix
++    that maximises ``(P + tau) / step_time(B)``; ``threshold`` keeps the slots
++    whose survival is at least VLLM_DSPARK_VERIFY_THRESHOLD.
++
++    ``P`` is the prefill tokens expected in the same step. The paper maximises
++    ``tau`` alone on a decode-only engine; here prefill shares the forward pass,
++    and draft slots that lengthen the step delay that prefill as well, so the
++    objective is all tokens processed per second. Without prefill it is the
++    paper's.
++
++    The step time is ``f(B) + overhead``: ``f`` is a profile of forward-pass
++    time against batch tokens at short contexts (JSON ``{"tokens": [...],
++    "step_ms": [...]}`` from VLLM_DSPARK_VERIFY_PROFILE), and ``overhead`` is
++    learned online as the mean excess of the observed step interval over
++    ``f`` (attention over long contexts, drafting, scheduling). ``B0`` counts
++    the prefill tokens expected in the step (a running mean) and the slots of
++    requests without a survival estimate yet.
++
++    The survival of a request's drafts reaches the scheduler with the output
++    of the step that drafted them. Without async scheduling that is before the
++    step verifying them is scheduled; with it, one step later, so the lengths
++    come from the request's previous drafts.
++    """
++
++    def __init__(
++        self,
++        mode: str,
++        threshold: float,
++        profile_tokens: list[float] | None,
++        profile_ms: list[float] | None,
++        log_every: int = 500,
++    ) -> None:
++        if mode not in ("greedy", "threshold"):
++            raise ValueError(f"VLLM_DSPARK_VERIFY_MODE must be greedy or threshold, got {mode}")
++        self.mode = mode
++        self.threshold = threshold
++        if mode == "greedy":
++            if not profile_tokens or len(profile_tokens) != len(profile_ms or ()):
++                raise ValueError("greedy verification needs VLLM_DSPARK_VERIFY_PROFILE")
++            order = np.argsort(profile_tokens)
++            self.tokens = np.asarray(profile_tokens, dtype=np.float64)[order]
++            self.ms = np.asarray(profile_ms, dtype=np.float64)[order]
++            if len(self.tokens) >= 2:
++                self.slope = (self.ms[-1] - self.ms[-2]) / max(
++                    self.tokens[-1] - self.tokens[-2], 1.0
++                )
++            else:
++                self.slope = 0.0
++        self.survival: dict[str, np.ndarray] = {}
++        self.overhead_ms = 0.0
++        self.prefill_tokens = 0.0
++        self._last_output_time: float | None = None
++        self.log_every = log_every
++        self._steps = 0
++        self._sum_len = 0.0
++        self._sum_reqs = 0
++
++    @classmethod
++    def from_env(cls) -> "ConfidenceVerifyScheduler":
++        mode = os.environ.get("VLLM_DSPARK_VERIFY_MODE", "greedy")
++        threshold = float(os.environ.get("VLLM_DSPARK_VERIFY_THRESHOLD", "0.5"))
++        tokens = ms = None
++        path = os.environ.get("VLLM_DSPARK_VERIFY_PROFILE")
++        if path:
++            with open(path) as handle:
++                profile = json.load(handle)
++            tokens, ms = profile["tokens"], profile["step_ms"]
++        scheduler = cls(mode, threshold, tokens, ms)
++        logger.info(
++            "DSpark confidence-scheduled verification: mode=%s threshold=%s profile=%s",
++            mode,
++            threshold,
++            path,
++        )
++        return scheduler
++
++    def step_ms(self, num_tokens: np.ndarray) -> np.ndarray:
++        num_tokens = np.asarray(num_tokens, dtype=np.float64)
++        ms = np.interp(num_tokens, self.tokens, self.ms)
++        above = num_tokens > self.tokens[-1]
++        ms[above] = self.ms[-1] + (num_tokens[above] - self.tokens[-1]) * self.slope
++        return ms
++
++    def lengths(
++        self, rows: list[np.ndarray], num_decode: int, num_unscored: int
++    ) -> np.ndarray:
++        """Verification length per scored request (``rows`` hold the prefix
++        survival of each request's draft slots, non-increasing)."""
++        sizes = np.fromiter((len(row) for row in rows), dtype=np.int64, count=len(rows))
++        survival = np.concatenate(rows).astype(np.float64)
++        owner = np.repeat(np.arange(len(rows)), sizes)
++        if self.mode == "threshold":
++            return np.bincount(owner[survival >= self.threshold], minlength=len(rows))
++        position = np.concatenate([np.arange(size) for size in sizes])
++        # Highest survival first; ties keep slot order, so each request gets
++        # a prefix of its draft.
++        order = np.lexsort((position, -survival))
++        gain = np.concatenate(([0.0], np.cumsum(survival[order])))
++        admitted = np.arange(len(order) + 1)
++        base_tokens = self.prefill_tokens + num_decode + num_unscored
++        # Unscored slots (no estimate yet) are verified anyway: count them at
++        # the mean survival of the scored ones.
++        expected = (
++            self.prefill_tokens + num_decode + num_unscored * float(survival.mean()) + gain
++        )
++        cost = np.maximum(self.step_ms(base_tokens + admitted) + self.overhead_ms, 1e-3)
++        best = int(np.argmax(expected / cost))
++        return np.bincount(owner[order[:best]], minlength=len(rows))
++
++    def assign(self, running: list[Request]) -> None:
++        """Trim the draft placeholders of running decode requests to their
++        verification length before the step is scheduled."""
++        scored: list[Request] = []
++        rows: list[np.ndarray] = []
++        num_decode = 0
++        num_unscored = 0
++        for request in running:
++            if request.is_prefill_chunk:
++                continue
++            num_decode += 1
++            num_slots = len(request.spec_token_ids)
++            if num_slots == 0:
++                continue
++            row = self.survival.get(request.request_id)
++            if row is None:
++                num_unscored += num_slots
++                continue
++            scored.append(request)
++            rows.append(row[:num_slots])
++        if len(self.survival) > 2 * len(running) + 64:
++            live = {request.request_id for request in running}
++            self.survival = {k: v for k, v in self.survival.items() if k in live}
++        if not scored:
++            return
++        lengths = self.lengths(rows, num_decode, num_unscored)
++        for request, length in zip(scored, lengths.tolist()):
++            if length < len(request.spec_token_ids):
++                request.spec_token_ids = request.spec_token_ids[:length]
++        self._steps += 1
++        self._sum_len += float(lengths.sum())
++        self._sum_reqs += len(scored)
++        if self._steps % self.log_every == 0:
++            logger.info(
++                "DSpark verification: mean length %.2f over %d steps, "
++                "step overhead %.2f ms, prefill tokens per step %.0f",
++                self._sum_len / max(self._sum_reqs, 1),
++                self.log_every,
++                self.overhead_ms,
++                self.prefill_tokens,
++            )
++            self._sum_len = 0.0
++            self._sum_reqs = 0
++
++    def observe(
++        self, scheduler_output: SchedulerOutput, model_runner_output: ModelRunnerOutput
++    ) -> None:
++        """Record the drafts' survival and update the step-time model."""
++        survival = model_runner_output.spec_survival
++        if survival is not None:
++            for index, req_id in enumerate(model_runner_output.req_ids):
++                self.survival[req_id] = survival[index]
++        now = time.monotonic()
++        last, self._last_output_time = self._last_output_time, now
++        total = scheduler_output.total_num_scheduled_tokens
++        if total == 0:
++            return
++        spec = scheduler_output.scheduled_spec_decode_tokens
++        decode = 0
++        for req_id, num_tokens in scheduler_output.num_scheduled_tokens.items():
++            verify = 1 + len(spec.get(req_id, ()))
++            if num_tokens == verify:
++                decode += verify
++        self.prefill_tokens = 0.7 * self.prefill_tokens + 0.3 * (total - decode)
++        if self.mode != "greedy" or last is None:
++            return
++        interval_ms = (now - last) * 1000.0
++        if interval_ms < 1000.0:
++            excess = interval_ms - float(self.step_ms(np.array([total]))[0])
++            self.overhead_ms = 0.9 * self.overhead_ms + 0.1 * excess
