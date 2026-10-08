@@ -10,8 +10,10 @@ request's draft placeholders to a per-request verification length before
 scheduling: VLLM_DSPARK_VERIFY_MODE=greedy (default; maximises tokens
 processed per second against the step-time profile in
 VLLM_DSPARK_VERIFY_PROFILE plus an online overhead term) or threshold
-(VLLM_DSPARK_VERIFY_THRESHOLD on the prefix survival). Unset, the engine
-behaves as before (the head is not even loaded).
+(VLLM_DSPARK_VERIFY_THRESHOLD on the prefix survival); with
+VLLM_DSPARK_VERIFY_UNIFORM=1 the greedy mode gives all decode requests of a
+step the same length, which keeps uniform-decode batches on full CUDA graphs.
+Unset, the engine behaves as before (the head is not even loaded).
 
 --- a/workspace/vllm/vllm/v1/outputs.py
 +++ b/workspace/vllm/vllm/v1/outputs.py
@@ -329,7 +331,7 @@ behaves as before (the head is not even loaded).
          outputs: dict[int, list[EngineCoreOutput]] = defaultdict(list)
          spec_decoding_stats: SpecDecodingStats | None = None
  
-@@ -2681,3 +2709,192 @@
+@@ -2681,3 +2709,234 @@
          self.failed_recving_kv_req_ids |= async_failed_req_ids
          # Return sync affected IDs to skip in update_from_output
          return sync_failed_req_ids
@@ -361,6 +363,11 @@ behaves as before (the head is not even loaded).
 +    the prefill tokens expected in the step (a running mean) and the slots of
 +    requests without a survival estimate yet.
 +
++    With VLLM_DSPARK_VERIFY_UNIFORM=1 every decode request in the step gets
++    the same length (the one maximising the same objective over the batch):
++    a batch whose requests verify different numbers of tokens is not a
++    uniform decode batch and runs with piecewise instead of full CUDA graphs.
++
 +    The survival of a request's drafts reaches the scheduler with the output
 +    of the step that drafted them. Without async scheduling that is before the
 +    step verifying them is scheduled; with it, one step later, so the lengths
@@ -374,11 +381,15 @@ behaves as before (the head is not even loaded).
 +        profile_tokens: list[float] | None,
 +        profile_ms: list[float] | None,
 +        log_every: int = 500,
++        uniform: bool = False,
 +    ) -> None:
 +        if mode not in ("greedy", "threshold"):
 +            raise ValueError(f"VLLM_DSPARK_VERIFY_MODE must be greedy or threshold, got {mode}")
 +        self.mode = mode
 +        self.threshold = threshold
++        self.uniform = uniform
++        if uniform and mode != "greedy":
++            raise ValueError("VLLM_DSPARK_VERIFY_UNIFORM needs the greedy mode")
 +        if mode == "greedy":
 +            if not profile_tokens or len(profile_tokens) != len(profile_ms or ()):
 +                raise ValueError("greedy verification needs VLLM_DSPARK_VERIFY_PROFILE")
@@ -410,11 +421,14 @@ behaves as before (the head is not even loaded).
 +            with open(path) as handle:
 +                profile = json.load(handle)
 +            tokens, ms = profile["tokens"], profile["step_ms"]
-+        scheduler = cls(mode, threshold, tokens, ms)
++        uniform = os.environ.get("VLLM_DSPARK_VERIFY_UNIFORM", "0") == "1"
++        scheduler = cls(mode, threshold, tokens, ms, uniform=uniform)
 +        logger.info(
-+            "DSpark confidence-scheduled verification: mode=%s threshold=%s profile=%s",
++            "DSpark confidence-scheduled verification: mode=%s threshold=%s "
++            "uniform=%s profile=%s",
 +            mode,
 +            threshold,
++            uniform,
 +            path,
 +        )
 +        return scheduler
@@ -436,6 +450,8 @@ behaves as before (the head is not even loaded).
 +        owner = np.repeat(np.arange(len(rows)), sizes)
 +        if self.mode == "threshold":
 +            return np.bincount(owner[survival >= self.threshold], minlength=len(rows))
++        if self.uniform:
++            return np.full(len(rows), self._uniform_length(rows, num_decode, num_unscored))
 +        position = np.concatenate([np.arange(size) for size in sizes])
 +        # Highest survival first; ties keep slot order, so each request gets
 +        # a prefix of its draft.
@@ -451,6 +467,27 @@ behaves as before (the head is not even loaded).
 +        cost = np.maximum(self.step_ms(base_tokens + admitted) + self.overhead_ms, 1e-3)
 +        best = int(np.argmax(expected / cost))
 +        return np.bincount(owner[order[:best]], minlength=len(rows))
++
++    def _uniform_length(
++        self, rows: list[np.ndarray], num_decode: int, num_unscored: int
++    ) -> int:
++        """One length for every decode request of the step."""
++        width = max(len(row) for row in rows)
++        table = np.zeros((len(rows), width))
++        for index, row in enumerate(rows):
++            table[index, : len(row)] = row
++        gain = np.concatenate(([0.0], np.cumsum(table.sum(axis=0))))
++        lengths = np.arange(width + 1)
++        # Unscored requests are trimmed to the same length; count their slots
++        # at the mean survival per position.
++        if num_unscored:
++            gain = gain * (1.0 + (num_decode - len(rows)) / max(len(rows), 1))
++        expected = self.prefill_tokens + num_decode + gain
++        cost = np.maximum(
++            self.step_ms(self.prefill_tokens + num_decode * (1 + lengths)) + self.overhead_ms,
++            1e-3,
++        )
++        return int(np.argmax(expected / cost))
 +
 +    def assign(self, running: list[Request]) -> None:
 +        """Trim the draft placeholders of running decode requests to their
@@ -481,6 +518,13 @@ behaves as before (the head is not even loaded).
 +        for request, length in zip(scored, lengths.tolist()):
 +            if length < len(request.spec_token_ids):
 +                request.spec_token_ids = request.spec_token_ids[:length]
++        if self.uniform and len(lengths):
++            # Requests without an estimate yet get the same length, so the
++            # batch stays uniform.
++            length = int(lengths[0])
++            for request in running:
++                if not request.is_prefill_chunk and len(request.spec_token_ids) > length:
++                    request.spec_token_ids = request.spec_token_ids[:length]
 +        self._steps += 1
 +        self._sum_len += float(lengths.sum())
 +        self._sum_reqs += len(scored)
