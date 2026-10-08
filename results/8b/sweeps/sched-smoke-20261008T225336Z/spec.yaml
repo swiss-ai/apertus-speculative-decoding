@@ -1,0 +1,30 @@
+# First run of DSpark confidence-scheduled verification (threshold mode, which
+# needs no step-time profile), the step-time profile for the greedy mode, and
+# two fixed draft lengths of the epoch-10 DSpark drafter.
+# Submit with SWEEP_PATCHES=serving/patches/vllm-apertus-dspark-confidence-verify.patch
+name: sched-smoke
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - name: profile-step-time
+    method: command
+    command: [python3, "{repo}/methods/dspark/scheduler/profile_step_time.py", "{arm_dir}/step-time.json"]
+  - name: dspark-e10-k7-thr05
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_MODE: threshold, VLLM_DSPARK_VERIFY_THRESHOLD: 0.5}
+  - name: dspark-e10-k3
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 3
+  - name: dspark-e10-k1
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 1
