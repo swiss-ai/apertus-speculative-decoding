@@ -1,0 +1,41 @@
+# DSpark confidence-scheduled verification, greedy mode (the paper's search,
+# with prefill counted; step-time profile from sweep profile, job 3619913):
+# per-request lengths with full CUDA graphs for every batch shape, one length
+# per step (uniform) with the default graphs and with full graphs, and
+# per-request lengths without async scheduling (survival of the very drafts
+# being verified instead of the previous step's).
+# Submit with SWEEP_PATCHES=serving/patches/vllm-apertus-dspark-confidence-verify.patch
+name: verify-greedy
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - name: dspark-e10-k7-greedy-cgfull
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    vllm_args: [--compilation-config.cudagraph_mode, FULL]
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
+  - name: dspark-e10-k7-greedy-uniform
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_UNIFORM: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
+  - name: dspark-e10-k7-greedy-uniform-cgfull
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    vllm_args: [--compilation-config.cudagraph_mode, FULL]
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_UNIFORM: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
+  - name: dspark-e10-k7-greedy-sync-cgfull
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    engine: {async_scheduling: false}
+    vllm_args: [--compilation-config.cudagraph_mode, FULL]
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
