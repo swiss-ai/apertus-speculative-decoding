@@ -1,0 +1,49 @@
+{
+  "arm": "dspark-e10-k7-greedy-uniform-graphs",
+  "deployment_id": "verify-uniform-3620271-dspark-e10-k7-greedy-uniform-graphs",
+  "env": {
+    "VLLM_DSPARK_VERIFY_PROFILE": "/users/faruk_zahiragic/apertus-spec-decoding/methods/dspark/scheduler/step-time-8b-gh200.json",
+    "VLLM_DSPARK_VERIFY_SCHED": "1",
+    "VLLM_DSPARK_VERIFY_UNIFORM": "1"
+  },
+  "error": "RuntimeError: dspark-e10-k7-greedy-uniform-graphs: a server exited with 1",
+  "finished": "2026-10-09T02:37:19+0200",
+  "gpus": [
+    0
+  ],
+  "port": 8100,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-dspark-e10-k7-greedy-uniform-graphs",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-10-09T02:34:11+0200",
+  "status": "failed",
+  "tests": {}
+}

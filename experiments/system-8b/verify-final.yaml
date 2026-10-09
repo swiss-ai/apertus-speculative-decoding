@@ -1,0 +1,30 @@
+# Load-adaptive draft length, all in one job with the plain target as
+# reference (between jobs the same arm varied by up to ~5%: k=3 in
+# sched-smoke vs verify-uniform): fixed k=3, vLLM's batch-size schedule tuned
+# on the k grid (k=7 up to 4 running requests, 3 up to 64, 2 above), and
+# uniform confidence-scheduled verification over all lengths 0..7, each with
+# its own uniform-decode graph (failed in verify-uniform on a drafter-graph
+# bug, fixed).
+# Submit with SWEEP_PATCHES=serving/patches/vllm-apertus-dspark-confidence-verify.patch
+name: verify-final
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
+  - name: dspark-e10-dyn-7-3-2
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    speculative: {num_speculative_tokens_per_batch_size: [[1, 4, 7], [5, 64, 3], [65, 256, 2]]}
+  - name: dspark-e10-k7-greedy-uniform-graphs
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_UNIFORM: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
