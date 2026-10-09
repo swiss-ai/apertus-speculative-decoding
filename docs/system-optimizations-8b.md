@@ -17,7 +17,7 @@ disaggregation are running (sections marked pending).
 | --- | --- |
 | system-level tricks on the current checkpoints | **Draft length is the big lever.** DSpark e10 at k=3 instead of 7: summarization never below plain (1.01-1.06x at C>=128 instead of 0.89x), chat at 0.93-1.00x instead of 0.74x, at the cost of ~10% at C=1. EAGLE e1 is best at k=3 at low load and k=1 under load (1.02x at C=256). |
 | DSpark scheduler on GH200 | Ported to vLLM (the checkpoints carry the trained confidence head; vLLM ignored it). The head is informative (~25% more accepted tokens per verified slot than fixed lengths), but on vLLM the scheduler **does not beat a fixed k=3**: variable lengths break vLLM's CUDA-graph shapes (fixed by capturing graphs per length), async scheduling makes the confidences one step stale, and DSpark drafts all 7 slots whatever is verified. Bottlenecks and proposed fixes below. |
-| one GPU / several GPUs / disaggregation | Four data-parallel engines per node scale plain to 3.95x one GPU and keep the single-GPU speculative pattern. TP4, TP2xDP2 and 1 prefill + 1 decode GPU: pending. |
+| one GPU / several GPUs / disaggregation | Four data-parallel engines per node scale plain to 3.95x one GPU and keep the single-GPU speculative pattern. 1 prefill + 1 decode GPU is prefill-bound (0.54-0.74x of two data-parallel engines under load), so the drafter on the decode GPU cannot help; a 3:1 split, TP4 and TP2xDP2 are pending. |
 | tune top-k | Sampling at Apertus' T 0.7 / top-p 0.8 costs ~2% acceptance against greedy; top-k 20 vs none makes no measurable difference next to top-p 0.8. The speedups follow the greedy ones. |
 | sparsify the drafter KV cache | DSpark's drafter KV is already a 2048-token window. Shrinking the window loses more acceptance than the extra requests it fits. Removing vLLM's layer-group padding (patch) gives +8% KV capacity (139 vs 129 requests at C=256), throughput unchanged. |
 | verify the papers on the cluster | DSpark scheduler: as above. MineDraft: needs a separate drafter GPU and targets vLLM 0.9; for an 8B target at most ~30% of a step is drafting and the extra GPU halves per-GPU throughput, so not pursued (analysis below). |
@@ -286,13 +286,27 @@ engines; per-GPU conclusions above carry over.
 **Tensor parallel** (TP4, TP2 x DP2; `multigpu-tp4`, `multigpu-tp2dp2`):
 pending.
 
-**Prefill/decode disaggregation** (`pd-2gpu`): one prefill and one decode
-GPU (NIXL 1.5.0 KV transfer, both with the drafter) against two
-data-parallel engines on the same two GPUs. The idea: speculation loses
-under load because prefill fills the GPU that verifies drafts; a decode-only
-GPU would stay in the regime where speculation pays. The first attempt
-(job 3620309) did not get past start-up (a proxy bug, fixed in 18ec408);
-rerun pending.
+**Prefill/decode disaggregation** (`pd-2gpu`, job 3620663): one prefill
+and one decode GPU (NIXL 1.5.0 KV transfer, `apertus_bench.pd_proxy` in
+front, the drafter on both roles so the KV layouts match) against two
+data-parallel engines on the same two GPUs. Output tok/s vs plain DP2:
+
+| C (per 2 GPUs) | summ. DSpark DP2 | 1P+1D plain | 1P+1D DSpark | chat DSpark DP2 | 1P+1D plain | 1P+1D DSpark |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | 1.50x | 0.93x | 1.40x | 1.86x | 0.97x | 1.74x |
+| 16 | 1.30x | 0.93x | 1.14x | 1.61x | 0.95x | 1.40x |
+| 64 | 1.08x | 0.83x | 0.86x | 1.07x | 0.89x | 0.83x |
+| 128 | 0.95x | 0.75x | 0.76x | 0.89x | 0.67x | 0.63x |
+| 256 | 0.90x | 0.73x | 0.72x | 0.86x | 0.54x | 0.59x |
+| 512 | 0.91x | 0.74x | 0.74x | 0.85x | 0.54x | 0.47x |
+
+A 1:1 split is prefill-bound on these prompts: TTFT p50 grows to 15-37 s
+while the decode GPU runs at ~16 ms TPOT (summarization C=512; 87 ms
+colocated). The decode GPU is in the regime where speculation pays, but the
+pipeline is limited by prefill, so the drafter adds nothing under load (and
+the KV transfer adds ~80-100 ms TTFT at low load). On chat a single decode
+instance is also capped at `max_num_seqs` 256. Next: three prefill GPUs per
+decode GPU on a whole node (`pd-3p1d`, pending), against DP4.
 
 ## MineDraft
 
@@ -327,3 +341,4 @@ available.
 | `multigpu-dp4-20261008T230335Z` | 3619861 | DP4 plain / DSpark / EAGLE |
 | `k-grid-b-20261008T225658Z` | 3619837 | EAGLE k=2/4/5, DSpark k=4 |
 | `drafter-kv-groups-20261008T230434Z` | 3619869 | KV group size 1 and 2, with windows 1024/512 |
+| `pd-2gpu-20261009T013600Z` | 3620663 | 1 prefill + 1 decode GPU vs DP2, plain and DSpark |
