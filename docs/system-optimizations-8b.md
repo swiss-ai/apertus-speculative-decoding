@@ -7,7 +7,24 @@ drafters faster than the plain target up to C=8, even at C=32 and 8-15%
 slower from C=64 on. This document records what was tried against that,
 with which runs, and what came out.
 
-Status: in progress (2026-10-09). Sections without numbers are pending runs.
+Status 2026-10-09: draft length, the DSpark scheduler, sampling, drafter KV
+and data parallelism are done; tensor-parallel layouts and prefill/decode
+disaggregation are running (sections marked pending).
+
+## Summary
+
+| canvas item | result |
+| --- | --- |
+| system-level tricks on the current checkpoints | **Draft length is the big lever.** DSpark e10 at k=3 instead of 7: summarization never below plain (1.01-1.06x at C>=128 instead of 0.89x), chat at 0.93-1.00x instead of 0.74x, at the cost of ~10% at C=1. EAGLE e1 is best at k=3 at low load and k=1 under load (1.02x at C=256). |
+| DSpark scheduler on GH200 | Ported to vLLM (the checkpoints carry the trained confidence head; vLLM ignored it). The head is informative (~25% more accepted tokens per verified slot than fixed lengths), but on vLLM the scheduler **does not beat a fixed k=3**: variable lengths break vLLM's CUDA-graph shapes (fixed by capturing graphs per length), async scheduling makes the confidences one step stale, and DSpark drafts all 7 slots whatever is verified. Bottlenecks and proposed fixes below. |
+| one GPU / several GPUs / disaggregation | Four data-parallel engines per node scale plain to 3.95x one GPU and keep the single-GPU speculative pattern. TP4, TP2xDP2 and 1 prefill + 1 decode GPU: pending. |
+| tune top-k | Sampling at Apertus' T 0.7 / top-p 0.8 costs ~2% acceptance against greedy; top-k 20 vs none makes no measurable difference next to top-p 0.8. The speedups follow the greedy ones. |
+| sparsify the drafter KV cache | DSpark's drafter KV is already a 2048-token window. Shrinking the window loses more acceptance than the extra requests it fits. Removing vLLM's layer-group padding (patch) gives +8% KV capacity (139 vs 129 requests at C=256), throughput unchanged. |
+| verify the papers on the cluster | DSpark scheduler: as above. MineDraft: needs a separate drafter GPU and targets vLLM 0.9; for an 8B target at most ~30% of a step is drafting and the extra GPU halves per-GPU throughput, so not pursued (analysis below). |
+
+**Recommendation for serving DSpark e10 on general traffic:** fixed k=3.
+k=7 only for single-stream or math/code-heavy deployments (probe 6.7
+accepted tokens, 4.2x). With EAGLE, k=3 at low load, k=1 under load.
 
 ## Setup
 
@@ -21,9 +38,7 @@ summarization (~3.8k prompt tokens, ~200-token answers, the prefill-heavy
 worst case for speculation) and chat (the 128 chat test prompts). Probe: 64
 math/HumanEval prompts at C=8, 384 tokens.
 
-Drafters:
-
-| name | checkpoint | trained on |
+| drafter | checkpoint | trained on |
 | --- | --- | --- |
 | DSpark e10 | `dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final` (Yu, final) | Open-PerfectBlend regenerated, thinking off |
 | EAGLE e1 | `e31-opb-thinkoff-stage1-ep1-se` (ours, epoch 1 of 10) | same corpus and split |
@@ -41,40 +56,58 @@ load-tests them at the same time with the same client as
 `experiments/system-8b/`, results in `results/8b/sweeps/<spec>-<stamp>/`,
 tables with `python3 -m apertus_bench.sweep_report`). Arms can also span
 several GPUs (TP/DP), run a one-off program (`command`), or be a
-prefill/decode pair behind a proxy (`pd`).
+prefill/decode pair behind a proxy (`pd`, `apertus_bench.pd_proxy`).
 
 Calibration (`calibrate`, job 3619818): two identical plain arms on two GPUs
 of one node differ by at most 1.5% in output tokens/s at any C, and plain
 reproduces the 3 Oct single-deployment run (job 3571677) within 1%. Arms do
-not disturb each other. The EAGLE e1 k=7 arm is 2-5% faster at C>=32 than
-its 3 Oct run (3571815) at the same acceptance; comparisons below are always
-within one sweep or between sweeps of this harness.
+not disturb each other.
+
+**Run-to-run spread.** Between jobs (different nodes) the same arm varies by
+up to ~6% at high load (fixed k=3, chat C=256: 0.97x in `sched-smoke`, 0.93x
+in `verify-uniform`, both against the calibration plain). Ratios between
+arms of different sweeps are good to about ±5%; decisions between close
+alternatives come from single jobs (`verify-uniform`, `verify-final`).
 
 ## Draft length
 
-Output tokens/s relative to plain, DSpark e10, greedy (sweeps `calibrate`,
-`sched-smoke`; full grid for both drafters pending in `k-grid-a/b`):
+Output tokens/s relative to plain (calibration), greedy (sweeps
+`calibrate`, `sched-smoke`, `k-grid-a`, `k-grid-b`):
 
-| C | summarization k=7 | k=3 | k=1 | chat k=7 | k=3 | k=1 |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | 1.52x | 1.47x | 1.20x | 1.87x | 1.70x | 1.26x |
-| 8 | 1.28x | 1.34x | 1.15x | 1.61x | 1.60x | 1.24x |
-| 32 | 1.06x | 1.21x | 1.08x | 1.12x | 1.31x | 1.12x |
-| 64 | 0.96x | 1.13x | 1.06x | 0.88x | 1.12x | 1.08x |
-| 128 | 0.89x | 1.05x | 1.01x | 0.77x | 1.00x | 1.01x |
-| 256 | 0.89x | 1.06x | 1.01x | 0.74x | 0.97x | 0.99x |
+Summarization:
 
-Accepted tokens per round, flat across load: summarization 2.12 / 2.00 / 1.57,
-chat 2.59 / 2.29 / 1.65, probe (math/code) 6.69 / 3.75 / 1.96.
+| C | DSpark k=1 | 2 | 3 | 4 | 5 | 7 | EAGLE k=1 | 2 | 3 | 4 | 5 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1.20x | 1.39x | 1.47x | 1.49x | 1.51x | 1.52x | 1.31x | 1.40x | 1.40x | 1.36x | 1.31x | 1.19x |
+| 8 | 1.15x | 1.26x | 1.34x | 1.28x | 1.31x | 1.28x | 1.21x | 1.24x | 1.26x | 1.22x | 1.18x | 1.13x |
+| 32 | 1.08x | 1.15x | 1.21x | 1.14x | 1.13x | 1.06x | 1.10x | 1.14x | 1.12x | 1.08x | 1.07x | 1.04x |
+| 64 | 1.06x | 1.09x | 1.13x | 1.06x | 1.04x | 0.96x | 1.07x | 1.07x | 1.09x | 1.03x | 0.99x | 0.98x |
+| 128 | 1.01x | 1.04x | 1.05x | 0.98x | 0.96x | 0.89x | 1.03x | 1.03x | 1.01x | 0.98x | 0.94x | 0.92x |
+| 256 | 1.01x | 1.05x | 1.06x | 0.99x | 0.96x | 0.89x | 1.02x | 1.03x | 1.00x | 0.97x | 0.94x | 0.93x |
 
-- k=7 wastes most of its verification on these workloads: 16% (summarization)
-  and 23% (chat) of the verified slots are accepted. Once the GPU is
-  compute-bound, every rejected slot is lost throughput.
-- k=3 keeps nearly all of the low-load gain and turns the high-load loss into
-  break-even or better: summarization never falls below plain (1.05-1.06x
-  at C>=128), chat loses at most 3%. It is the better single setting for
-  serving these workloads; k=7 wins only at C=1 and on high-acceptance
-  (math/code) traffic.
+Chat:
+
+| C | DSpark k=1 | 2 | 3 | 4 | 5 | 7 | EAGLE k=1 | 2 | 3 | 4 | 5 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1.26x | 1.54x | 1.70x | 1.79x | 1.83x | 1.87x | 1.39x | 1.54x | 1.56x | 1.53x | 1.48x | 1.36x |
+| 8 | 1.24x | 1.43x | 1.60x | 1.57x | 1.62x | 1.61x | 1.35x | 1.45x | 1.49x | 1.41x | 1.38x | 1.29x |
+| 32 | 1.12x | 1.18x | 1.31x | 1.19x | 1.17x | 1.12x | 1.19x | 1.19x | 1.23x | 1.10x | 1.05x | 1.01x |
+| 64 | 1.08x | 1.09x | 1.12x | 1.02x | 1.00x | 0.88x | 1.12x | 1.07x | 1.05x | 0.96x | 0.91x | 0.84x |
+| 128 | 1.01x | 1.01x | 1.00x | 0.91x | 0.88x | 0.77x | 1.02x | 0.99x | 0.95x | 0.89x | 0.82x | 0.76x |
+| 256 | 0.99x | 0.99x | 0.97x | 0.89x | 0.84x | 0.74x | 1.02x | 0.96x | 0.92x | 0.86x | 0.80x | 0.74x |
+
+Accepted tokens per round (flat across load), DSpark k=1/2/3/5/7:
+summarization 1.57 / 1.86 / 2.00 / 2.10 / 2.12, chat 1.65 / 2.05 / 2.29 /
+2.51 / 2.59; probe 1.96 / 2.89 / 3.75 / 5.31 / 6.69.
+
+- At k=7 only 16% (summarization) and 23% (chat) of the verified slots are
+  accepted. Once the GPU is compute-bound every rejected slot is lost
+  throughput, so the best length falls with load: DSpark 5-7 at C=1, 3 from
+  C=8 to 64, 1-3 at C>=128; EAGLE 2-3 at low load, 1 under load.
+- One fixed setting: DSpark k=3 keeps 90-97% of k=7's C=1 gain and never
+  costs more than ~7% at high load (chat); EAGLE k=1-2 is never below plain.
+- On chat at C>=128 no setting is clearly faster than plain (best within
+  ±2%); speculation pays below ~C=64 on this GPU.
 
 ## Confidence-scheduled verification (the DSpark scheduler)
 
@@ -93,7 +126,7 @@ trained against the analytic acceptance rate 1 - TV; Yu's epoch-10 run reports
 a cumulative-product bias of +0.011), but the pinned vLLM skips its weights
 ("not wired into inference yet"): every request verifies all k slots.
 
-**Implementation** (`serving/patches/vllm-apertus-dspark-confidence-verify.patch`,
+**Port** (`serving/patches/vllm-apertus-dspark-confidence-verify.patch`,
 opt-in with `VLLM_DSPARK_VERIFY_SCHED=1`):
 
 - the drafter evaluates the head inside its captured draft step, next to the
@@ -106,112 +139,119 @@ opt-in with `VLLM_DSPARK_VERIFY_SCHED=1`):
   runner (which already handles per-request draft counts) follow.
 
 Modes: `threshold` (keep slots with survival >= t), `greedy` (the paper's
-search), and `greedy` with `VLLM_DSPARK_VERIFY_UNIFORM=1` (one length per
-step for all requests). Two changes against the paper:
+search, per request), and `greedy` with `VLLM_DSPARK_VERIFY_UNIFORM=1` (one
+length per step for all decode requests, chosen from
+`VLLM_DSPARK_VERIFY_LENGTHS`, with a captured uniform-decode CUDA graph per
+length). Departures from the paper:
 
 1. **Prefill counts.** Our engine mixes prefill chunks into decode steps.
    The paper's objective treats them as free, so with 4,000 prefill tokens
-   in the step it verifies all 7 slots; but longer steps delay that
+   in the step it verifies all 7 slots, although longer steps delay that
    prefill too. The objective here is all tokens processed per second,
    `(P + tau) / t(B)`, with `P` the prefill tokens expected in the step; it
    equals the paper's when `P = 0`.
-2. **Step time.** `t(B) = f(B) + o`: `f` is the forward time against batch
-   tokens profiled at short contexts
-   (`methods/dspark/scheduler/profile_step_time.py`), `o` an online mean of
-   the observed step interval minus `f`. At high concurrency with ~4k-token
-   contexts most of a decode step is reading the KV cache, which barely
-   depends on the number of draft slots; `o` captures that, and with it the
-   scheduler keeps long drafts when verification is nearly free.
+2. **Step time.** `t(B) = f(B) + o0 + o1 * B`: `f` is the forward time
+   against batch tokens profiled at short contexts
+   (`methods/dspark/scheduler/profile_step_time.py`, measured in
+   `methods/dspark/scheduler/step-time-8b-gh200.json`: ~5.4 ms up to 32
+   tokens, knee at 128-192, then ~26 us per token), `o0 + o1 * B` an online
+   least-squares fit of the observed step interval minus `f` (attention over
+   long contexts, drafting, scheduling).
+3. **Staleness.** With async scheduling (the default) step t+1 is scheduled
+   before step t's drafts exist, so lengths come from each request's
+   previous drafts; the paper uses a two-step lag for the same reason.
 
-With async scheduling (the default) the scheduler sets step t+1's lengths
-before step t's drafts exist, so it uses each request's previous drafts
-(one step stale); the paper uses a two-step lag for the same reason.
+### Results
+
+**The head is informative** (`sched-smoke`). Threshold 0.5 on prefix
+survival verified 1.8 (summarization) / 2.3 (chat) slots per step and 0.92 /
+1.34 of them were accepted; fixed lengths interpolated to the same budget
+accept ~0.74 / ~1.06: ~25% more accepted tokens per verified slot.
+
+**First bottleneck: CUDA graphs.** The threshold arm ran at 0.59x plain at
+C=1 (fixed k=1: 1.20x). With varying lengths, decode batches are no longer
+the one uniform shape (k+1 tokens per request) vLLM captures full CUDA
+graphs for, and fall back to piecewise graphs with eager attention, ~7 ms
+more per step at small batch. The paper reports the same conflict between
+dynamic lengths and graph replay. Two fixes measured: full graphs for every
+batch shape (`cudagraph_mode FULL`; removes the overhead, the greedy mode
+then matches k=7 on the probe, 5,188 vs 5,184 tok/s, but the mode alone
+costs ~5% at high load), and one length per step with a uniform-decode graph
+captured per allowed length (what vLLM does for its own batch-size
+schedule).
+
+**Final comparison** (`verify-final`, job 3620667, all arms on one node;
+output tok/s vs plain in the same job):
+
+| C | summ. k=3 | vLLM batch-size schedule 7/3/2 | confidence scheduler (uniform) | chat k=3 | schedule 7/3/2 | confidence scheduler |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1.49x | 1.53x | 1.47x | 1.70x | 1.87x | 1.82x |
+| 8 | 1.34x | 1.31x | 1.21x | 1.65x | 1.60x | 1.54x |
+| 32 | 1.16x | 1.14x | 1.05x | 1.29x | 1.23x | 1.13x |
+| 64 | 1.10x | 1.04x | 0.99x | 1.09x | 1.00x | 0.93x |
+| 128 | 1.01x | 0.97x | 0.92x | 0.97x | 0.89x | 0.86x |
+| 256 | 1.01x | 0.96x | 0.92x | 0.93x | 0.87x | 0.83x |
+
+(vLLM's schedule: k=7 up to 4 running requests, 3 up to 64, 2 above, from
+the grid above. Earlier variants: per-request greedy with full graphs
+reaches 0.94-0.97x on summarization and 0.88-0.90x on chat at C=256, i.e.
+also below k=3; without async scheduling acceptance is higher but throughput
+8-11% lower.)
+
+Both adaptive variants keep k=7's single-stream speed but trail fixed k=3
+from C=8 on. Why, and what would fix it:
+
+- **Drafting is paid for all 7 slots.** Both adaptive arms run DSpark with a
+  7-slot block and verify fewer; at high batch the drafter's 7-slot LM head
+  and 7-step Markov loop are a real part of the step (k=3 drafts only 3).
+  Fix: let the length decision cut the draft too (stop the sequential
+  Markov loop and the per-slot LM head at the step's maximum length).
+- **Stale confidences.** Async scheduling decides lengths before the drafts
+  exist; turning it off costs more than the fresher signal gains. Fix: the
+  paper's split, a lagged batch budget plus a top-K selection on the GPU
+  over current scores, which needs the varlen batch to be built on the GPU.
+- **Cost model.** The per-token cost of verification at high load (~47 us
+  measured from step times at chat C=256 vs ~26 us in the short-context
+  profile) is not recovered by the online fit, whose slope stays ~0 at a
+  fixed load. Fix: profile `f` with long contexts and the drafter in the
+  loop instead of fitting online.
+
+## Sampling and top-k
+
+`sampling` (job 3619860), chat and summarization at T 0.7 / top-p 0.8 with
+top-k 20 (Apertus' recommended setting) and without a top-k cut:
+
+| | chat, greedy | T0.7 p0.8 k20 | T0.7 p0.8 no top-k | summ., greedy | T0.7 p0.8 k20 |
+| --- | --- | --- | --- | --- | --- |
+| DSpark k=7 accepted | 2.59 | 2.55 | 2.54 | 2.12 | 2.08 |
+| DSpark k=3 accepted | 2.29 | 2.26 | 2.26 | 2.00 | 1.98 |
+| EAGLE k=7 accepted | 2.32 | 2.29 | 2.29 | 2.02 | 2.01 |
+| DSpark k=3 vs plain, C=1 / 32 / 256 | 1.70 / 1.31 / 0.97x | 1.62 / 1.29 / 0.93x | 1.61 / 1.30 / 0.92x | 1.47 / 1.21 / 1.06x | 1.41 / 1.19 / 1.01x |
+
+Top-k does not matter next to top-p 0.8 (identical acceptance, throughput
+within 1%); sampling costs ~2% acceptance and a few percent of speedup.
 
 ## Drafter KV cache
 
-The canvas asks whether the drafter needs its full KV cache. The pool
-measured on 3 Oct: 469,840 tokens plain, 342,693 with DSpark (-27%), 433,888
-with EAGLE (-8%). Where DSpark's 27% goes (Apertus 8B: 32 full-attention
-layers; DSpark: 5 layers, all sliding-window attention with window 2048):
+The pool measured on 3 Oct: 469,840 tokens plain, 342,693 with DSpark
+(-27%), 433,888 with EAGLE (-8%). Where DSpark's 27% goes (Apertus 8B: 32
+full-attention layers; DSpark: 5 layers, all sliding-window attention with
+window 2048):
 
-- **Grouping padding, ~9%.** vLLM's hybrid KV manager needs equally sized
-  layer groups; with 32 full and 5 sliding-window layers it picks groups of
-  5 and pads the target's 32 layers to 35 slots
+- **Layer-group padding, ~9%.** vLLM's hybrid KV manager needs equally
+  sized layer groups; with 32 full and 5 sliding-window layers it picks
+  groups of 5 and pads the target's 32 layers to 35 slots
   (`_get_kv_cache_groups_uniform_page_size`).
 - **The drafter's window, ~11% at these lengths.** Its 5 layers keep at most
   2,048 tokens each per request (vLLM frees blocks outside the window); with
   ~2.8k-token requests that is 5 x 2,048 against 32 x 2,800.
-- **Drafter weights, ~6%** (3.3 GiB taken from the 0.8 x 95 GiB budget).
+- **Drafter weights, ~6%** (3.3 GiB of the 0.8 x 95 GiB budget).
 
-The pool size vLLM logs (10.46 x 32k) is a conservative bound that treats
-the window group as full length; the requests that actually fit (129 at
-C>=256 vs 171 plain) match the padded-plus-window accounting.
+EAGLE's single full-attention layer costs 1/33 of the pool; nothing to gain
+there.
 
-So the drafter's KV is already sparse in time (a window); the levers are a
-smaller window at inference and removing the padding. EAGLE's single
-full-attention layer costs 1/33 of the pool; there is little to gain there.
-Sweeps: `drafter-window` (window 1024/512/256/128 on the epoch-10 weights,
-config copies with the weights symlinked) and `drafter-kv-groups` (group size
-1 and 2 via `serving/patches/vllm-apertus-kv-group-size.patch`).
-
-### Results so far
-
-All DSpark e10, drafting 7 slots, output tokens/s relative to plain
-(sweeps `sched-smoke`, `verify-greedy`, `verify-fit`).
-
-**The head is informative.** Threshold 0.5 on prefix survival verified 1.8
-(summarization) / 2.3 (chat) slots per step and accepted 0.92 / 1.34 of
-them; fixed lengths interpolated to the same budget accept ~0.74 / ~1.06,
-so the head buys ~25% more accepted tokens per verified slot.
-
-**The engine ate it.** The threshold arm ran at 0.59x plain at C=1 (fixed
-k=1: 1.20x). With per-request or per-step varying lengths, decode batches are
-no longer the one uniform shape (k+1 tokens per request) that vLLM captures
-full CUDA graphs for, and fall back to piecewise graphs with eager
-attention, ~7 ms more per step at small batch. The paper reports the same
-conflict between dynamic lengths and graph replay and solves it inside
-DeepSeek's engine.
-
-**With full graphs** (`cudagraph_mode FULL`, FlashAttention 3 handles varlen
-batches in graphs) the overhead disappears: on the probe the greedy mode
-matches fixed k=7 (5,188 vs 5,184 tok/s) and the uniform variant is 4%
-faster (5,402). Under load:
-
-| C | summ. k=7 | k=3 | k=3 full graphs | greedy uniform, full graphs | chat k=7 | k=3 | k=3 full graphs | greedy uniform, full graphs |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 1.52x | 1.47x | 1.47x | 1.57x | 1.87x | 1.70x | 1.70x | 1.84x |
-| 8 | 1.28x | 1.34x | 1.31x | 1.24x | 1.61x | 1.60x | 1.59x | 1.58x |
-| 32 | 1.06x | 1.21x | 1.15x | 1.12x | 1.12x | 1.31x | 1.27x | 1.19x |
-| 64 | 0.96x | 1.13x | 1.08x | 1.04x | 0.88x | 1.12x | 1.07x | 1.00x |
-| 128 | 0.89x | 1.05x | 0.99x | 0.97x | 0.77x | 1.00x | 0.95x | 0.91x |
-| 256 | 0.89x | 1.06x | 0.99x | 0.97x | 0.74x | 0.97x | 0.92x | 0.89x |
-
-- The scheduler keeps k=7's low-load speed and recovers about half of k=7's
-  high-load loss, without any tuning, but stays 2-3% (summarization) and
-  ~3% (chat) behind fixed k=3 with the same graphs, and full graphs for
-  every batch shape cost fixed k=3 ~5% at high load by themselves.
-- Per-request lengths (the paper's form) do no better than one length per
-  step here, and lose more to graph shapes; without async scheduling (exact
-  instead of one-step-stale survival) acceptance is higher but throughput
-  8-11% lower.
-- Fitting the overhead as `o0 + o1 * B` did not change the picture: at
-  fixed load the batch size varies too little for the slope (fitted ~0).
-
-**Run-to-run spread.** The same fixed-k=3 arm measured in two different
-jobs (`sched-smoke`, `verify-uniform`) differs by up to 6% at high load
-(chat C=256: 0.97x vs 0.93x of the calibration plain), while arms within one
-job agree to 1.5%. Differences of a few percent between arms of different
-sweeps are within that spread; `verify-final` therefore runs plain, fixed
-k=3, vLLM's batch-size schedule and the scheduler in one job.
-
-In `verify-uniform` (job 3620271, one node) at C=256: fixed k=3 1,845 /
-5,177 tok/s (summarization / chat), vLLM's batch-size schedule (k=7 up to
-8 running requests, 3 above) 1,800 / 4,848, the uniform scheduler limited
-to lengths {1, 3, 7} 1,777 / 4,702; at C=1 the last two keep k=7's speed
-(chat 316 and 308 tok/s vs 287 for k=3).
-
-**Smaller window (`drafter-window`, job 3620352).** DSpark e10, k=7, window
-lowered at inference from the trained 2048:
+**Smaller window** (`drafter-window`, job 3620352; config copies of the e10
+checkpoint with the weights symlinked):
 
 | window | accepted, summarization | accepted, chat | running at C=256 (summ.) | tok/s vs 2048, summ. C=1 / C=256 | chat C=1 / C=256 |
 | --- | --- | --- | --- | --- | --- |
@@ -222,7 +262,68 @@ lowered at inference from the trained 2048:
 | 128 | 1.68 | 2.29 | 142 | 0.81 / 0.95 | 0.89 / 0.97 |
 
 The drafter uses its long context: on ~3.8k-token prompts every halving of
-the window costs acceptance, and the extra requests that fit (at most +13 at
-C=256) do not pay for it. A window below the trained one is not worth it;
-training the drafter with a shorter window would be the way to test the
-idea properly.
+the window costs acceptance, and the extra requests that fit do not pay for
+it. Training with a shorter window would be the proper test.
+
+**No padding** (`drafter-kv-groups`, job 3619869;
+`serving/patches/vllm-apertus-kv-group-size.patch`, `VLLM_KV_CACHE_GROUP_SIZE`):
+group size 1 lifts the pool to 370,477 tokens (+8%) and the requests that fit
+at C=256 from 129 to 139 (151 with window 512), throughput within noise
+(0.99-1.03x of the default at every C; group size 2: 360,723 tokens, one
+padding layer). The gain is capacity (fewer queued requests, lower TTFT at
+saturation), not tokens/s, since at that load the GPU is compute-bound.
+
+## Several GPUs and disaggregation
+
+**Data parallel x4** (`multigpu-dp4`, job 3619861, summarization, C per
+node): plain 598 / 2,730 / 5,439 / 6,569 / 7,286 / 7,295 tok/s at C = 4 /
+32 / 128 / 256 / 512 / 1024, i.e. 3.95x one GPU at saturation. DSpark e10
+k=7: 1.55x / 1.34x / 1.10x / 0.98x / 0.90x / 0.89x of it, EAGLE e1 k=7:
+1.20x / 1.17x / 1.01x / 0.92x / 0.88x / 0.89x: the single-GPU pattern at 4x
+the concurrency. For an 8B model, a node is best used as four independent
+engines; per-GPU conclusions above carry over.
+
+**Tensor parallel** (TP4, TP2 x DP2; `multigpu-tp4`, `multigpu-tp2dp2`):
+pending.
+
+**Prefill/decode disaggregation** (`pd-2gpu`): one prefill and one decode
+GPU (NIXL 1.5.0 KV transfer, both with the drafter) against two
+data-parallel engines on the same two GPUs. The idea: speculation loses
+under load because prefill fills the GPU that verifies drafts; a decode-only
+GPU would stay in the regime where speculation pays. The first attempt
+(job 3620309) did not get past start-up (a proxy bug, fixed in 18ec408);
+rerun pending.
+
+## MineDraft
+
+[MineDraft](https://arxiv.org/abs/2603.18016) overlaps drafting of one batch
+with verification of another by running the drafter on its own GPU (their
+setups: target on TP4 plus one draft GPU; batches of 16-64), as a vLLM 0.9.2
+plugin. Its gain is bounded by the drafting share of a step, and the paper
+itself notes it vanishes when the target is compute-bound. For the 8B
+target here: at C=1 a DSpark k=7 step takes ~8.7 ms against ~6.2 ms plain
+(summarization), and at chat C=256 ~125 ms against ~41 ms plus ~48 ms for
+the extra verified tokens; drafting and other per-step overhead are at most
+~30% of a step, so hiding all of it gives at most ~1.4x per replica while
+doubling the GPUs per replica. Per GPU that is a loss for an 8B model, and
+the plugin does not run on the pinned vLLM (model runner v2). Not pursued;
+it may be worth a look for the 70B target if a node-external draft GPU is
+available.
+
+## Runs
+
+| sweep | job | what |
+| --- | --- | --- |
+| `calibrate-20261008T224745Z` | 3619818 | two plain arms, EAGLE e1 k=7, DSpark e10 k=7 |
+| `sched-smoke-20261008T225336Z` | 3619828 | DSpark k=3, k=1, threshold scheduler (profile arm failed) |
+| `profile-20261008T231013Z` | 3619913 | step-time profile |
+| `verify-greedy-20261008T234317Z` | 3620217 | greedy scheduler, per request / uniform, full graphs, sync |
+| `verify-fit-20261009T000309Z` | 3620259 | fitted overhead, k=3 with full graphs |
+| `k-grid-a-20261009T000407Z` | 3620263 | DSpark k=2/5, EAGLE k=1/3 |
+| `verify-uniform-20261009T002023Z` | 3620271 | uniform scheduler {1,3,7}, k=3, vLLM schedule 7/3 |
+| `drafter-window-20261009T005027Z` | 3620352 | DSpark window 1024..128 |
+| `verify-final-20261009T013655Z` | 3620667 | plain, k=3, vLLM schedule 7/3/2, uniform scheduler |
+| `sampling-20261008T230331Z` | 3619860 | T 0.7 / top-p 0.8 with and without top-k 20 |
+| `multigpu-dp4-20261008T230335Z` | 3619861 | DP4 plain / DSpark / EAGLE |
+| `k-grid-b-20261008T225658Z` | 3619837 | EAGLE k=2/4/5, DSpark k=4 |
+| `drafter-kv-groups-20261008T230434Z` | 3619869 | KV group size 1 and 2, with windows 1024/512 |
