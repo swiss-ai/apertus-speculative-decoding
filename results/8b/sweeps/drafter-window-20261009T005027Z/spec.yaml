@@ -1,0 +1,20 @@
+# Drafter KV: the DSpark drafter's five layers use sliding-window attention
+# (window 2048 in training). Lower windows at inference keep less drafter KV
+# per request; this measures what that costs in acceptance and gains in
+# requests that fit (k=7, compare with dspark-e10-k7 in calibrate).
+# The variants are config.json copies with the weights symlinked
+# (docs/system-optimizations-8b.md).
+name: drafter-window
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: dspark-e10-k7-w1024, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/dspark-variants/e10-w1024, k: 7}
+  - {name: dspark-e10-k7-w512, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/dspark-variants/e10-w512, k: 7}
+  - {name: dspark-e10-k7-w256, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/dspark-variants/e10-w256, k: 7}
+  - {name: dspark-e10-k7-w128, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/dspark-variants/e10-w128, k: 7}
