@@ -1,0 +1,10 @@
+# Step-time profile of the 8B target on one GH200, for the greedy mode of
+# DSpark confidence-scheduled verification (VLLM_DSPARK_VERIFY_PROFILE).
+name: profile
+stage: 8b
+loadtests:
+  - {workload: chat, concurrencies: [1]}
+arms:
+  - name: profile-step-time
+    method: command
+    command: [python3, "{repo}/methods/dspark/scheduler/profile_step_time.py", "{arm_dir}/step-time.json"]
