@@ -15,8 +15,6 @@ first decode instance so the bench client works unchanged.
 Runs inside the serving container (FastAPI and uvicorn come with vLLM).
 """
 
-from __future__ import annotations
-
 import argparse
 import itertools
 import uuid
