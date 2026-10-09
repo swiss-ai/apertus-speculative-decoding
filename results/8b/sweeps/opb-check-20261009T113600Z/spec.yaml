@@ -1,0 +1,18 @@
+# Speedup on the drafters' own distribution: 128 prompts from the DSpark
+# Open-PerfectBlend held-out split (tools/make-opb-workload.py ->
+# workloads/8b/opb-heldout.jsonl, cluster only). Checks whether the C=1
+# speedups of the summarization/chat sweeps (1.5-1.9x) are low because of
+# the workloads or the serving setup.
+name: opb-check
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 128]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - {name: dspark-e10-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
+  - {name: eagle-e1-k7, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep1-se, k: 7}
