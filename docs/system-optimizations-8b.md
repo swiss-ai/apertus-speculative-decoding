@@ -197,7 +197,32 @@ faster (5,402). Under load:
 - Fitting the overhead as `o0 + o1 * B` did not change the picture: at
   fixed load the batch size varies too little for the slope (fitted ~0).
 
-Next (`verify-uniform`): the default graph mode plus a captured
-uniform-decode graph for each length the scheduler may pick, and vLLM's
-built-in batch-size schedule (k=7 up to 8 running, k=3 above) as the
-untuned-but-simple alternative.
+**Run-to-run spread.** The same fixed-k=3 arm measured in two different
+jobs (`sched-smoke`, `verify-uniform`) differs by up to 6% at high load
+(chat C=256: 0.97x vs 0.93x of the calibration plain), while arms within one
+job agree to 1.5%. Differences of a few percent between arms of different
+sweeps are within that spread; `verify-final` therefore runs plain, fixed
+k=3, vLLM's batch-size schedule and the scheduler in one job.
+
+In `verify-uniform` (job 3620271, one node) at C=256: fixed k=3 1,845 /
+5,177 tok/s (summarization / chat), vLLM's batch-size schedule (k=7 up to
+8 running requests, 3 above) 1,800 / 4,848, the uniform scheduler limited
+to lengths {1, 3, 7} 1,777 / 4,702; at C=1 the last two keep k=7's speed
+(chat 316 and 308 tok/s vs 287 for k=3).
+
+**Smaller window (`drafter-window`, job 3620352).** DSpark e10, k=7, window
+lowered at inference from the trained 2048:
+
+| window | accepted, summarization | accepted, chat | running at C=256 (summ.) | tok/s vs 2048, summ. C=1 / C=256 | chat C=1 / C=256 |
+| --- | --- | --- | --- | --- | --- |
+| 2048 (trained) | 2.12 | 2.59 | 129 | 1.00 / 1.00 | 1.00 / 1.00 |
+| 1024 | 1.95 | 2.59 | 136 | 0.91 / 0.98 | 0.99 / 1.00 |
+| 512 | 1.81 | 2.50 | 139 | 0.87 / 0.95 | 0.97 / 0.98 |
+| 256 | 1.74 | 2.42 | 141 | 0.84 / 0.95 | 0.94 / 0.97 |
+| 128 | 1.68 | 2.29 | 142 | 0.81 / 0.95 | 0.89 / 0.97 |
+
+The drafter uses its long context: on ~3.8k-token prompts every halving of
+the window costs acceptance, and the extra requests that fit (at most +13 at
+C=256) do not pay for it. A window below the trained one is not worth it;
+training the drafter with a shorter window would be the way to test the
+idea properly.
