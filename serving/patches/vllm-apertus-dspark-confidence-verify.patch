@@ -9,7 +9,8 @@ scheduler on the ModelRunnerOutput, and the scheduler trims each running
 request's draft placeholders to a per-request verification length before
 scheduling: VLLM_DSPARK_VERIFY_MODE=greedy (default; maximises tokens
 processed per second against the step-time profile in
-VLLM_DSPARK_VERIFY_PROFILE plus an online overhead term) or threshold
+VLLM_DSPARK_VERIFY_PROFILE plus an overhead fitted online as a linear
+function of the step's tokens) or threshold
 (VLLM_DSPARK_VERIFY_THRESHOLD on the prefix survival); with
 VLLM_DSPARK_VERIFY_UNIFORM=1 the greedy mode gives all decode requests of a
 step the same length, which keeps uniform-decode batches on full CUDA graphs.
@@ -331,7 +332,7 @@ Unset, the engine behaves as before (the head is not even loaded).
          outputs: dict[int, list[EngineCoreOutput]] = defaultdict(list)
          spec_decoding_stats: SpecDecodingStats | None = None
  
-@@ -2681,3 +2709,234 @@
+@@ -2681,3 +2709,257 @@
          self.failed_recving_kv_req_ids |= async_failed_req_ids
          # Return sync affected IDs to skip in update_from_output
          return sync_failed_req_ids
@@ -355,11 +356,14 @@ Unset, the engine behaves as before (the head is not even loaded).
 +    objective is all tokens processed per second. Without prefill it is the
 +    paper's.
 +
-+    The step time is ``f(B) + overhead``: ``f`` is a profile of forward-pass
-+    time against batch tokens at short contexts (JSON ``{"tokens": [...],
-+    "step_ms": [...]}`` from VLLM_DSPARK_VERIFY_PROFILE), and ``overhead`` is
-+    learned online as the mean excess of the observed step interval over
-+    ``f`` (attention over long contexts, drafting, scheduling). ``B0`` counts
++    The step time is ``f(B) + o0 + o1 * B``: ``f`` is a profile of
++    forward-pass time against batch tokens at short contexts (JSON
++    ``{"tokens": [...], "step_ms": [...]}`` from VLLM_DSPARK_VERIFY_PROFILE),
++    and ``o0 + o1 * B`` is fitted online (least squares with forgetting) to
++    the excess of the observed step interval over ``f``: attention over long
++    contexts, drafting and scheduling, part of which grows with the tokens in
++    the step. VLLM_DSPARK_VERIFY_FIT_SLOPE=0 keeps ``o1`` at 0 (a constant
++    overhead, the first version). ``B0`` counts
 +    the prefill tokens expected in the step (a running mean) and the slots of
 +    requests without a survival estimate yet.
 +
@@ -404,6 +408,10 @@ Unset, the engine behaves as before (the head is not even loaded).
 +                self.slope = 0.0
 +        self.survival: dict[str, np.ndarray] = {}
 +        self.overhead_ms = 0.0
++        self.overhead_slope = 0.0
++        self.fit_slope = os.environ.get("VLLM_DSPARK_VERIFY_FIT_SLOPE", "1") == "1"
++        # Exponentially weighted sums for the overhead fit (weight, B, B^2, y, B*y).
++        self._fit = np.zeros(5)
 +        self.prefill_tokens = 0.0
 +        self._last_output_time: float | None = None
 +        self.log_every = log_every
@@ -440,6 +448,24 @@ Unset, the engine behaves as before (the head is not even loaded).
 +        ms[above] = self.ms[-1] + (num_tokens[above] - self.tokens[-1]) * self.slope
 +        return ms
 +
++    def cost_ms(self, num_tokens: np.ndarray) -> np.ndarray:
++        num_tokens = np.asarray(num_tokens, dtype=np.float64)
++        return self.step_ms(num_tokens) + self.overhead_ms + self.overhead_slope * num_tokens
++
++    def _update_overhead(self, num_tokens: float, excess_ms: float) -> None:
++        if not self.fit_slope:
++            self.overhead_ms = 0.9 * self.overhead_ms + 0.1 * excess_ms
++            return
++        self._fit = 0.98 * self._fit + np.array(
++            [1.0, num_tokens, num_tokens**2, excess_ms, num_tokens * excess_ms]
++        )
++        weight, sum_b, sum_bb, sum_y, sum_by = self._fit
++        variance = weight * sum_bb - sum_b**2
++        if variance > 1e-6 * max(weight * sum_bb, 1.0):
++            slope = (weight * sum_by - sum_b * sum_y) / variance
++            self.overhead_slope = max(slope, 0.0)
++        self.overhead_ms = (sum_y - self.overhead_slope * sum_b) / weight
++
 +    def lengths(
 +        self, rows: list[np.ndarray], num_decode: int, num_unscored: int
 +    ) -> np.ndarray:
@@ -464,7 +490,7 @@ Unset, the engine behaves as before (the head is not even loaded).
 +        expected = (
 +            self.prefill_tokens + num_decode + num_unscored * float(survival.mean()) + gain
 +        )
-+        cost = np.maximum(self.step_ms(base_tokens + admitted) + self.overhead_ms, 1e-3)
++        cost = np.maximum(self.cost_ms(base_tokens + admitted), 1e-3)
 +        best = int(np.argmax(expected / cost))
 +        return np.bincount(owner[order[:best]], minlength=len(rows))
 +
@@ -483,10 +509,7 @@ Unset, the engine behaves as before (the head is not even loaded).
 +        if num_unscored:
 +            gain = gain * (1.0 + (num_decode - len(rows)) / max(len(rows), 1))
 +        expected = self.prefill_tokens + num_decode + gain
-+        cost = np.maximum(
-+            self.step_ms(self.prefill_tokens + num_decode * (1 + lengths)) + self.overhead_ms,
-+            1e-3,
-+        )
++        cost = np.maximum(self.cost_ms(self.prefill_tokens + num_decode * (1 + lengths)), 1e-3)
 +        return int(np.argmax(expected / cost))
 +
 +    def assign(self, running: list[Request]) -> None:
@@ -531,10 +554,11 @@ Unset, the engine behaves as before (the head is not even loaded).
 +        if self._steps % self.log_every == 0:
 +            logger.info(
 +                "DSpark verification: mean length %.2f over %d steps, "
-+                "step overhead %.2f ms, prefill tokens per step %.0f",
++                "step overhead %.2f ms + %.4f ms/token, prefill tokens per step %.0f",
 +                self._sum_len / max(self._sum_reqs, 1),
 +                self.log_every,
 +                self.overhead_ms,
++                self.overhead_slope,
 +                self.prefill_tokens,
 +            )
 +            self._sum_len = 0.0
@@ -565,4 +589,4 @@ Unset, the engine behaves as before (the head is not even loaded).
 +        interval_ms = (now - last) * 1000.0
 +        if interval_ms < 1000.0:
 +            excess = interval_ms - float(self.step_ms(np.array([total]))[0])
-+            self.overhead_ms = 0.9 * self.overhead_ms + 0.1 * excess
++            self._update_overhead(float(total), excess)
