@@ -1,0 +1,107 @@
+{
+  "arm": "pd-dspark-e10-k7",
+  "deployment_id": "pd-2gpu-3620663-pd-dspark-e10-k7",
+  "env": {},
+  "finished": "2026-10-09T03:56:38+0200",
+  "gpus": [
+    2,
+    3
+  ],
+  "port": 8101,
+  "ready_seconds": 5.8,
+  "serve_argv": [
+    "python3",
+    "-m",
+    "apertus_bench.pd_proxy",
+    "--port",
+    "8101",
+    "--prefill",
+    "http://127.0.0.1:9020",
+    "--decode",
+    "http://127.0.0.1:9021"
+  ],
+  "servers": [
+    {
+      "port": 9020,
+      "role": "prefill",
+      "serve_argv": [
+        "vllm",
+        "serve",
+        "--model",
+        "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+        "--served-model-name",
+        "swiss-ai/Apertus-v1.5-8B-pd-dspark-e10-k7",
+        "--host",
+        "127.0.0.1",
+        "--chat-template-content-format",
+        "string",
+        "--tensor-parallel-size",
+        "1",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "apertus",
+        "--compilation-config.pass_config.fuse_allreduce_rms",
+        "false",
+        "--gpu-memory-utilization",
+        "0.8",
+        "--no-enable-prefix-caching",
+        "--max-model-len",
+        "32768",
+        "--max-num-batched-tokens",
+        "16384",
+        "--max-num-seqs",
+        "256",
+        "--speculative-config",
+        "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+        "--kv-transfer-config",
+        "{\"kv_connector\": \"NixlConnector\", \"kv_role\": \"kv_both\"}"
+      ]
+    },
+    {
+      "port": 9021,
+      "role": "decode",
+      "serve_argv": [
+        "vllm",
+        "serve",
+        "--model",
+        "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+        "--served-model-name",
+        "swiss-ai/Apertus-v1.5-8B-pd-dspark-e10-k7",
+        "--host",
+        "127.0.0.1",
+        "--chat-template-content-format",
+        "string",
+        "--tensor-parallel-size",
+        "1",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "apertus",
+        "--compilation-config.pass_config.fuse_allreduce_rms",
+        "false",
+        "--gpu-memory-utilization",
+        "0.8",
+        "--no-enable-prefix-caching",
+        "--max-model-len",
+        "32768",
+        "--max-num-batched-tokens",
+        "16384",
+        "--max-num-seqs",
+        "256",
+        "--speculative-config",
+        "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+        "--kv-transfer-config",
+        "{\"kv_connector\": \"NixlConnector\", \"kv_role\": \"kv_both\"}"
+      ]
+    }
+  ],
+  "started": "2026-10-09T03:40:14+0200",
+  "status": "ok",
+  "tests": {
+    "chat": {
+      "exit_code": 0
+    },
+    "summarization": {
+      "exit_code": 0
+    }
+  }
+}

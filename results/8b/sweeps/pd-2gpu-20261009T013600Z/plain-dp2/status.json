@@ -1,0 +1,53 @@
+{
+  "arm": "plain-dp2",
+  "deployment_id": "pd-2gpu-3620663-plain-dp2",
+  "env": {},
+  "finished": "2026-10-09T04:09:53+0200",
+  "gpus": [
+    2,
+    3
+  ],
+  "port": 8102,
+  "ready_seconds": 180.2,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-plain-dp2",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--data-parallel-size",
+    "2"
+  ],
+  "servers": [],
+  "started": "2026-10-09T03:56:38+0200",
+  "status": "ok",
+  "tests": {
+    "chat": {
+      "exit_code": 0
+    },
+    "summarization": {
+      "exit_code": 0
+    }
+  }
+}
