@@ -1,0 +1,15 @@
+# Prefill/decode on a whole node with three prefill GPUs per decode GPU: in
+# pd-2gpu (job 3620663) one prefill GPU could not keep one decode GPU busy on
+# these prompts (TTFT up to 37 s, decode TPOT ~16 ms). Compare per node with
+# multigpu-dp4 (job 3619861: plain 7,295 tok/s at C=1024, DSpark k=7 0.89x).
+name: pd-3p1d
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: summarization
+    concurrencies: [4, 32, 128, 256, 512]
+  - workload: chat
+    concurrencies: [4, 32, 128, 256, 512]
+arms:
+  - {name: pd-3p1d-plain, method: pd, serve_method: baseline, prefill: {count: 3}, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}
+  - {name: pd-3p1d-dspark-e10-k7, method: pd, serve_method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, prefill: {count: 3}, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}

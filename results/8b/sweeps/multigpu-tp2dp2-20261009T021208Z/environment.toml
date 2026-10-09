@@ -1,0 +1,39 @@
+image = "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh"
+
+mounts = [
+  "/users/faruk_zahiragic/.sml/vllm-patch-sweep-20261009T021208Z/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py:/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py",
+  "/users/faruk_zahiragic/.sml/vllm-patch-sweep-20261009T021208Z/workspace/vllm/vllm/model_executor/models/interfaces.py:/workspace/vllm/vllm/model_executor/models/interfaces.py",
+  "/users/faruk_zahiragic/.sml/vllm-patch-sweep-20261009T021208Z/workspace/vllm/vllm/v1/worker/gpu/spec_decode/eagle/utils.py:/workspace/vllm/vllm/v1/worker/gpu/spec_decode/eagle/utils.py",
+  "/users/faruk_zahiragic/.sml/vllm-patch-sweep-20261009T021208Z/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py:/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py",
+  "/users/faruk_zahiragic/.sml/vllm-patch-sweep-20261009T021208Z/workspace/vllm/vllm/transformers_utils/configs/speculators/algos.py:/workspace/vllm/vllm/transformers_utils/configs/speculators/algos.py",
+  "/capstor/store/cscs/swissai/infra01/opentela-share:/opentelabin",
+  "/capstor",
+  "/iopsstor",
+  "/users",
+  "/usr/lib64/libhwloc.so.15:/usr/lib/libhwloc.so.15",
+  "/usr/lib64/libpciaccess.so.0:/usr/lib/libpciaccess.so.0",
+  "/usr/lib64/libxml2.so.2:/usr/lib/libxml2.so.2",
+  "/usr/lib64/libnuma.so.1:/usr/lib/libnuma.so.1",
+]
+
+workdir = "/users/faruk_zahiragic/apertus-bench-repo"
+
+[env]
+NCCL_NET = "AWS Libfabric"
+NCCL_CROSS_NIC = "1"
+NCCL_NET_GDR_LEVEL = "PHB"
+NCCL_SOCKET_IFNAME = "hsn"
+NCCL_PROTO = "^LL128"
+FI_CXI_COMPAT = "0"
+FI_MR_CACHE_MONITOR = "userfaultfd"
+FI_CXI_RX_MATCH_MODE = "software"
+FI_CXI_DEFAULT_CQ_SIZE = "131072"
+FI_CXI_DEFAULT_TX_SIZE = "32768"
+FI_CXI_DISABLE_HOST_REGISTER = "1"
+OFI_NCCL_DISABLE_DMABUF = "1"
+VLLM_ALLREDUCE_USE_SYMM_MEM = "0"
+
+[annotations]
+com.hooks.aws_ofi_nccl.enabled = "true"
+com.hooks.aws_ofi_nccl.variant = "cuda13"
+com.hooks.cxi.enabled = "true"

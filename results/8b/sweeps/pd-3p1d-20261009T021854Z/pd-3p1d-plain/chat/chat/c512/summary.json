@@ -1,0 +1,82 @@
+{
+  "requests": {
+    "attempted": 2048,
+    "successful": 2035,
+    "failed": 13,
+    "success_rate": 0.99365234375,
+    "requests_per_second": 30.17140093037265
+  },
+  "tokens": {
+    "prompt": 1280277,
+    "completion": 386444,
+    "output_tokens_per_second": 5729.511971074658,
+    "total_tokens_per_second": 24711.20763148483
+  },
+  "latency_ms": {
+    "e2e": {
+      "count": 2035,
+      "mean": 15572.568695592186,
+      "p50": 15710.698688053526,
+      "p95": 22254.6115930425,
+      "p99": 23773.755437899385
+    },
+    "ttft": {
+      "count": 2035,
+      "mean": 11132.702202747487,
+      "p50": 10798.870902974159,
+      "p95": 16872.30110715609,
+      "p99": 18034.44370252081
+    },
+    "tpot": {
+      "count": 2035,
+      "mean": 30.88775776690551,
+      "p50": 22.51527508236833,
+      "p95": 53.13299634191836,
+      "p99": 168.4547823562758
+    },
+    "stream_event_gap": {
+      "count": 382843,
+      "mean": 19.689321010823416,
+      "p50": 0.011263997294008732,
+      "p95": 76.55109108891254,
+      "p99": 455.3239441732877
+    }
+  },
+  "wall_seconds": 67.44797845801804,
+  "speculative_decoding": {
+    "enabled": false
+  },
+  "warmup": {
+    "requests": 512,
+    "failed": 1
+  },
+  "load": {
+    "samples": 24,
+    "scrape_errors": 0,
+    "duration_s": 66.099,
+    "kv_cache_size_tokens": 469840,
+    "kv_cache_usage": {
+      "mean": 0.25831375153248876,
+      "p50": 0.212743495436589,
+      "p95": 0.49860373246151746,
+      "max": 0.5459746628524724
+    },
+    "kv_cache_tokens_peak": 256521,
+    "seconds_kv_above_90pct": 0.0,
+    "running": {
+      "mean": 82.91666666666667,
+      "p50": 35.0,
+      "p95": 256.0,
+      "max": 256.0
+    },
+    "waiting": {
+      "mean": 84.66666666666667,
+      "p50": 76.0,
+      "p95": 264.0,
+      "max": 264.0
+    },
+    "preemptions": 0.0,
+    "prompt_tokens": 1280277.0,
+    "generation_tokens": 386444.0
+  }
+}
