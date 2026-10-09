@@ -214,3 +214,15 @@ def test_env_values_can_point_into_the_repo() -> None:
     arm = {"name": "p", "method": "baseline", "env": {"PROFILE": "{repo}/x.json"}}
     (built,) = build_plan(_spec(arms=[arm]), check_heads=False).arms
     assert built.env["PROFILE"] == f"{REPO_ROOT}/x.json"
+
+
+@pytest.mark.parametrize(
+    "spec_path",
+    sorted((Path(__file__).resolve().parents[1] / "experiments" / "system-8b").glob("*.yaml")),
+    ids=lambda path: path.stem,
+)
+def test_committed_specs_expand(spec_path: Path) -> None:
+    import yaml
+
+    plan = build_plan(yaml.safe_load(spec_path.read_text()), check_heads=False)
+    assert plan.arms
