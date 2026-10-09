@@ -16,9 +16,7 @@ VLLM_DSPARK_VERIFY_UNIFORM=1 the greedy mode gives all decode requests of a
 step the same length, chosen from VLLM_DSPARK_VERIFY_LENGTHS (default 0..k),
 and the engine captures a uniform-decode CUDA graph for each, so those steps
 stay on full graphs under the default cudagraph mode.
-Unset, the engine behaves as before (the head is not even loaded).
-
---- a/workspace/vllm/vllm/v1/outputs.py
+Unset, the engine behaves as before (the head is not even loaded).--- a/workspace/vllm/vllm/v1/outputs.py
 +++ b/workspace/vllm/vllm/v1/outputs.py
 @@ -280,6 +280,12 @@
      # ``None`` when ``enable_return_routed_experts`` is off.
@@ -290,7 +288,7 @@ Unset, the engine behaves as before (the head is not even loaded).
  def get_uniform_token_count(
      num_reqs: int,
      num_tokens: int,
-@@ -221,6 +235,23 @@
+@@ -221,6 +235,26 @@
              decode_query_lens = [
                  x[2] + num_new_sampled_tokens_per_step for x in num_spec_per_batch_size
              ]
@@ -299,6 +297,9 @@ Unset, the engine behaves as before (the head is not even loaded).
 +            and speculative_config.use_dspark()
 +            and os.environ.get("VLLM_DSPARK_VERIFY_SCHED", "0") == "1"
 +            and os.environ.get("VLLM_DSPARK_VERIFY_UNIFORM", "0") == "1"
++            # The target's manager only: the DSpark drafter's own manager
++            # (query length k, no sampled token) always runs the full block.
++            and self.decode_query_len > self.vllm_config.num_speculative_tokens
 +        ):
 +            # DSpark confidence-scheduled verification, uniform mode: every
 +            # decode request of a step verifies the same number of slots, one
