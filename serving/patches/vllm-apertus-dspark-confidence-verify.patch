@@ -13,7 +13,9 @@ VLLM_DSPARK_VERIFY_PROFILE plus an overhead fitted online as a linear
 function of the step's tokens) or threshold
 (VLLM_DSPARK_VERIFY_THRESHOLD on the prefix survival); with
 VLLM_DSPARK_VERIFY_UNIFORM=1 the greedy mode gives all decode requests of a
-step the same length, which keeps uniform-decode batches on full CUDA graphs.
+step the same length, chosen from VLLM_DSPARK_VERIFY_LENGTHS (default 0..k),
+and the engine captures a uniform-decode CUDA graph for each, so those steps
+stay on full graphs under the default cudagraph mode.
 Unset, the engine behaves as before (the head is not even loaded).
 
 --- a/workspace/vllm/vllm/v1/outputs.py
@@ -258,6 +260,60 @@ Unset, the engine behaves as before (the head is not even loaded).
          return self.model_runner_output
  
  
+--- a/workspace/vllm/vllm/v1/worker/gpu/cudagraph_utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/cudagraph_utils.py
+@@ -6,6 +6,7 @@
+ from itertools import product
+ from typing import Any, NamedTuple, Protocol
+ 
++import os
+ import torch
+ import torch.nn as nn
+ from tqdm import tqdm
+@@ -93,6 +94,19 @@
+     )
+ 
+ 
++
++def dspark_verify_lengths(max_length: int) -> list[int]:
++    """Verification lengths the uniform DSpark scheduler may pick
++    (VLLM_DSPARK_VERIFY_LENGTHS, comma separated; default 0..max_length)."""
++    raw = os.environ.get("VLLM_DSPARK_VERIFY_LENGTHS")
++    lengths = (
++        [int(part) for part in raw.split(",") if part.strip()]
++        if raw
++        else list(range(max_length + 1))
++    )
++    return sorted({length for length in lengths if 0 <= length <= max_length} | {max_length})
++
++
+ def get_uniform_token_count(
+     num_reqs: int,
+     num_tokens: int,
+@@ -221,6 +235,23 @@
+             decode_query_lens = [
+                 x[2] + num_new_sampled_tokens_per_step for x in num_spec_per_batch_size
+             ]
++        elif (
++            speculative_config
++            and speculative_config.use_dspark()
++            and os.environ.get("VLLM_DSPARK_VERIFY_SCHED", "0") == "1"
++            and os.environ.get("VLLM_DSPARK_VERIFY_UNIFORM", "0") == "1"
++        ):
++            # DSpark confidence-scheduled verification, uniform mode: every
++            # decode request of a step verifies the same number of slots, one
++            # of VLLM_DSPARK_VERIFY_LENGTHS; capture a uniform-decode graph
++            # for each so those steps stay on full graphs.
++            num_new_sampled_tokens_per_step = (
++                self.decode_query_len - self.vllm_config.num_speculative_tokens
++            )
++            decode_query_lens = [
++                length + num_new_sampled_tokens_per_step
++                for length in dspark_verify_lengths(self.vllm_config.num_speculative_tokens)
++            ]
+         else:
+             decode_query_lens = [self.decode_query_len]
+ 
 --- a/workspace/vllm/vllm/v1/core/sched/scheduler.py
 +++ b/workspace/vllm/vllm/v1/core/sched/scheduler.py
 @@ -1,6 +1,8 @@
@@ -295,7 +351,7 @@ Unset, the engine behaves as before (the head is not even loaded).
 +                    "VLLM_DSPARK_VERIFY_SCHED and num_speculative_tokens_per_batch_size "
 +                    "are exclusive"
 +                )
-+            self.verify_sched = ConfidenceVerifyScheduler.from_env()
++            self.verify_sched = ConfidenceVerifyScheduler.from_env(self.num_spec_tokens)
  
          # Create the KV cache manager.
          if hash_block_size is None:
@@ -332,7 +388,7 @@ Unset, the engine behaves as before (the head is not even loaded).
          outputs: dict[int, list[EngineCoreOutput]] = defaultdict(list)
          spec_decoding_stats: SpecDecodingStats | None = None
  
-@@ -2681,3 +2709,257 @@
+@@ -2681,3 +2709,267 @@
          self.failed_recving_kv_req_ids |= async_failed_req_ids
          # Return sync affected IDs to skip in update_from_output
          return sync_failed_req_ids
@@ -407,6 +463,8 @@ Unset, the engine behaves as before (the head is not even loaded).
 +            else:
 +                self.slope = 0.0
 +        self.survival: dict[str, np.ndarray] = {}
++        # Uniform mode: the lengths with captured uniform-decode graphs.
++        self.allowed_lengths: list[int] | None = None
 +        self.overhead_ms = 0.0
 +        self.overhead_slope = 0.0
 +        self.fit_slope = os.environ.get("VLLM_DSPARK_VERIFY_FIT_SLOPE", "1") == "1"
@@ -420,7 +478,7 @@ Unset, the engine behaves as before (the head is not even loaded).
 +        self._sum_reqs = 0
 +
 +    @classmethod
-+    def from_env(cls) -> "ConfidenceVerifyScheduler":
++    def from_env(cls, max_length: int) -> "ConfidenceVerifyScheduler":
 +        mode = os.environ.get("VLLM_DSPARK_VERIFY_MODE", "greedy")
 +        threshold = float(os.environ.get("VLLM_DSPARK_VERIFY_THRESHOLD", "0.5"))
 +        tokens = ms = None
@@ -431,6 +489,10 @@ Unset, the engine behaves as before (the head is not even loaded).
 +            tokens, ms = profile["tokens"], profile["step_ms"]
 +        uniform = os.environ.get("VLLM_DSPARK_VERIFY_UNIFORM", "0") == "1"
 +        scheduler = cls(mode, threshold, tokens, ms, uniform=uniform)
++        if uniform:
++            from vllm.v1.worker.gpu.cudagraph_utils import dspark_verify_lengths
++
++            scheduler.allowed_lengths = dspark_verify_lengths(max_length)
 +        logger.info(
 +            "DSpark confidence-scheduled verification: mode=%s threshold=%s "
 +            "uniform=%s profile=%s",
@@ -510,7 +572,11 @@ Unset, the engine behaves as before (the head is not even loaded).
 +            gain = gain * (1.0 + (num_decode - len(rows)) / max(len(rows), 1))
 +        expected = self.prefill_tokens + num_decode + gain
 +        cost = np.maximum(self.cost_ms(self.prefill_tokens + num_decode * (1 + lengths)), 1e-3)
-+        return int(np.argmax(expected / cost))
++        score = expected / cost
++        if self.allowed_lengths is not None:
++            allowed = [length for length in self.allowed_lengths if length <= width]
++            return max(allowed, key=lambda length: score[length])
++        return int(np.argmax(score))
 +
 +    def assign(self, running: list[Request]) -> None:
 +        """Trim the draft placeholders of running decode requests to their
