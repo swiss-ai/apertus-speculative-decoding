@@ -1,0 +1,57 @@
+{
+  "arm": "dspark-e10-k7-gs2",
+  "deployment_id": "drafter-kv-groups-3619869-dspark-e10-k7-gs2",
+  "env": {
+    "VLLM_KV_CACHE_GROUP_SIZE": "2"
+  },
+  "finished": "2026-10-09T03:55:05+0200",
+  "gpus": [
+    1
+  ],
+  "port": 8101,
+  "ready_seconds": 220.9,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-dspark-e10-k7-gs2",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-10-09T03:40:13+0200",
+  "status": "ok",
+  "tests": {
+    "chat": {
+      "exit_code": 0
+    },
+    "probe": {
+      "exit_code": 0
+    },
+    "summarization": {
+      "exit_code": 0
+    }
+  }
+}

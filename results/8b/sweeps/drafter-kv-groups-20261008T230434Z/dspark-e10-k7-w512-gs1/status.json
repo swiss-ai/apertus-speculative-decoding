@@ -1,0 +1,57 @@
+{
+  "arm": "dspark-e10-k7-w512-gs1",
+  "deployment_id": "drafter-kv-groups-3619869-dspark-e10-k7-w512-gs1",
+  "env": {
+    "VLLM_KV_CACHE_GROUP_SIZE": "1"
+  },
+  "finished": "2026-10-09T03:55:44+0200",
+  "gpus": [
+    3
+  ],
+  "port": 8103,
+  "ready_seconds": 220.6,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-dspark-e10-k7-w512-gs1",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/dspark-variants/e10-w512\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-10-09T03:40:16+0200",
+  "status": "ok",
+  "tests": {
+    "chat": {
+      "exit_code": 0
+    },
+    "probe": {
+      "exit_code": 0
+    },
+    "summarization": {
+      "exit_code": 0
+    }
+  }
+}

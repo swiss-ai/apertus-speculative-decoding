@@ -1,0 +1,24 @@
+# Sampling instead of greedy: Apertus' recommended T 0.7 / top-p 0.8 / top-k 20
+# and the same without the top-k cut (vLLM default -1), on chat; plus
+# summarization with top-k 20.
+name: sampling
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - label: chat-t07-p08-k20
+    workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+    generation: {temperature: 0.7, top_p: 0.8, top_k: 20}
+  - label: chat-t07-p08-kall
+    workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+    generation: {temperature: 0.7, top_p: 0.8, top_k: -1}
+  - label: summarization-t07-p08-k20
+    workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+    generation: {temperature: 0.7, top_p: 0.8, top_k: 20}
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - {name: eagle-e1-k7, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep1-se, k: 7}
+  - {name: dspark-e10-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
