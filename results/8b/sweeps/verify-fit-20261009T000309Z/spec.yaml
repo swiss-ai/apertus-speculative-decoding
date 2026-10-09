@@ -1,0 +1,33 @@
+# Greedy confidence-scheduled verification with the step overhead fitted as
+# o0 + o1 * B online (verify-greedy, job 3620217, used a constant and kept too
+# many slots under load), against fixed k=3 with the same full CUDA graphs.
+# Submit with SWEEP_PATCHES=serving/patches/vllm-apertus-dspark-confidence-verify.patch
+name: verify-fit
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - name: dspark-e10-k7-greedy-uniform-cgfull-fit
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    vllm_args: [--compilation-config.cudagraph_mode, FULL]
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_UNIFORM: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
+  - name: dspark-e10-k7-greedy-cgfull-fit
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    vllm_args: [--compilation-config.cudagraph_mode, FULL]
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
+  - {name: dspark-e10-k3-cgfull, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3, vllm_args: [--compilation-config.cudagraph_mode, FULL]}
+  - name: dspark-e10-k5-greedy-uniform-cgfull-fit
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 5
+    vllm_args: [--compilation-config.cudagraph_mode, FULL]
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_UNIFORM: 1, VLLM_DSPARK_VERIFY_PROFILE: "{repo}/methods/dspark/scheduler/step-time-8b-gh200.json"}
