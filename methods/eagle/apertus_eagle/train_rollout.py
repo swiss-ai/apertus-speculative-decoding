@@ -282,7 +282,7 @@ class RolloutTrainer:
         train = cfg["training"]
         self.device = torch.device(device_name())
         self.ttt_length = int(train["ttt_length"])
-        self.accum = int(train["draft_accumulation_steps"])
+        self.accum = accumulation_steps(train, self.ranks.world)
         # Padded rows per draft forward within an optimizer step; 0 = one sequence.
         self.micro_batch_tokens = int(train.get("micro_batch_tokens") or 0)
         longest = int(cfg["dataset"].get("max_seq_length", 4096))
@@ -508,6 +508,22 @@ class RolloutTrainer:
         self.optimizer.load_state_dict(state["optimizer"])
         self.optimizer.lr_scheduler.load_state_dict(state["scheduler"])
         return json.loads((directory / "state.json").read_text())
+
+
+def accumulation_steps(train: dict[str, Any], world: int) -> int:
+    """Sequences per rank per optimizer step.
+
+    ``rows_per_step`` fixes the global batch, so the per-rank share follows the rank
+    count: a run can move between node counts and still resume exactly, because
+    every step consumes the same rows of the epoch's order. Otherwise the per-rank
+    ``draft_accumulation_steps`` is taken as is.
+    """
+    rows = train.get("rows_per_step")
+    if rows is None:
+        return int(train["draft_accumulation_steps"])
+    if int(rows) % world:
+        raise SystemExit(f"rows_per_step {rows} is not divisible by {world} ranks")
+    return int(rows) // world
 
 
 def iter_records(cache: Any, order: list[int], group: int):

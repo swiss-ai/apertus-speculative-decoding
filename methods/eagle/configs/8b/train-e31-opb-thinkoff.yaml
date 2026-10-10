@@ -30,11 +30,11 @@ training:
   loss_type: forward_kl
   ttt_length: 7
   micro_batch_size: 1
-  # 16 rows per rank x 4 ranks = 64 rows (~63k tokens) per step, 25,448 steps
-  # per epoch. Keep 64 rows per step if the rank count changes: then every
-  # step consumes the same rows and resuming stays exact.
-  draft_accumulation_steps: 16
-  data_parallel: 4
+  # 64 rows (~63k tokens) per step, 25,448 steps per epoch, whatever the node
+  # count: 16 rows per rank on 1 node (4 ranks), 8 on 2 nodes. Every step then
+  # consumes the same rows, so the run resumes exactly after a node change.
+  rows_per_step: 64
+  data_parallel: 4  # ranks per node
   micro_batch_tokens: 8192
   gradient_checkpointing: adaptive
   checkpoint_free_width: 4096

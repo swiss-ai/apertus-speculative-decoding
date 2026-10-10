@@ -192,6 +192,23 @@ def test_micro_batches_group_by_length_under_the_token_budget() -> None:
     assert [[r["id"] for r in g] for g in squared] == [[100, 120], [300], [900], [2000]]
 
 
+def test_rows_per_step_keeps_the_global_batch_across_rank_counts() -> None:
+    from apertus_eagle.train_rollout import accumulation_steps
+
+    assert accumulation_steps({"draft_accumulation_steps": 16}, 8) == 16
+    assert accumulation_steps({"rows_per_step": 64, "draft_accumulation_steps": 16}, 4) == 16
+    assert accumulation_steps({"rows_per_step": 64}, 8) == 8
+    # Each step takes the next accum * world rows of the epoch order, sliced by rank,
+    # so after s steps both rank counts have consumed the same rows.
+    order = list(range(640))
+    for world in (4, 8):
+        accum = accumulation_steps({"rows_per_step": 64}, world)
+        seen = {i for r in range(world) for i in order[r::world][: 3 * accum]}
+        assert seen == set(order[:192])
+    with pytest.raises(SystemExit):
+        accumulation_steps({"rows_per_step": 64}, 12)
+
+
 def test_benchmark_prompt_text_handles_the_common_layouts() -> None:
     from apertus_eagle.benchmark_overlap import prompt_text
 
