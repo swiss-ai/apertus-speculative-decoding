@@ -108,6 +108,28 @@ summarization 1.57 / 1.86 / 2.00 / 2.10 / 2.12, chat 1.65 / 2.05 / 2.29 /
 - On chat at C>=128 no setting is clearly faster than plain (best within
   ±2%); speculation pays below ~C=64 on this GPU.
 
+## In-distribution check (Yu's held-out prompts)
+
+Yu expected larger single-request speedups than the summarization/chat
+sweeps show and pointed out that Open-PerfectBlend has no long-document
+summarization. `opb-check` (job 3622798, one node) serves 128 prompts from
+the DSpark Open-PerfectBlend validation split (`tools/make-opb-workload.py`;
+mean 563 / median 158 prompt tokens, ~480-token answers, thinking off),
+otherwise the setup above:
+
+| C | DSpark e10 k=7 | DSpark e10 k=3 | EAGLE e1 k=7 | plain tok/s |
+| --- | --- | --- | --- | --- |
+| 1 | 3.44x | 2.43x | 2.43x | 172 |
+| 8 | 2.97x | 2.31x | 2.26x | 1,177 |
+| 32 | 2.05x | 1.89x | 1.67x | 3,159 |
+| 128 | 1.23x | 1.36x | 1.12x | 6,604 |
+
+Accepted tokens per step (including the target's own token): 4.8 / 3.3 /
+4.2, flat across load; TPOT at C=1 1.4 / 2.2 / 2.0 ms vs 5.7 plain. The
+serving path reproduces Yu's numbers on his distribution; the 1.5-1.9x at
+C=1 on summarization/chat is their low acceptance (2.1-2.6). Under load the
+ordering is the same as on the other workloads: k=3 overtakes k=7 by C=128.
+
 ## Confidence-scheduled verification (the DSpark scheduler)
 
 **Paper** ([arXiv:2607.05147](https://arxiv.org/abs/2607.05147)): a
@@ -370,3 +392,4 @@ available.
 | `multigpu-tp4-20261009T021403Z` | 3620830 | TP4 plain / DSpark |
 | `multigpu-tp2dp2-20261009T021208Z` | 3620826 | TP2 x DP2 plain / DSpark |
 | `pd-3p1d-20261009T021854Z` | 3620834 | 3 prefill + 1 decode GPU, plain / DSpark |
+| `opb-check-20261009T113600Z` | 3622798 | Open-PerfectBlend held-out prompts: plain, DSpark k=7/3, EAGLE k=7 |
