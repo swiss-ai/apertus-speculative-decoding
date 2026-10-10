@@ -1,11 +1,16 @@
 """Build a load-test workload from the DSpark Open-PerfectBlend held-out split.
 
     python3 tools/make-opb-workload.py HELDOUT.jsonl OUT.jsonl [--count 128] [--scan 50000]
+        [--clean-prompts CLEAN.txt]
 
 Each held-out row is a rendered thinking-off conversation (Yu's regenerated
 answers). The prompt is every user/assistant turn before the final answer;
 max_tokens is that answer's length, capped at 1024. Rows are taken evenly
-over the first --scan lines, one per primary_id. The output holds restricted
+over the first --scan lines (with --clean-prompts: evenly over the whole
+file), one per primary_id. The validation split is by
+row, so a later turn of a held-out conversation can be in the training
+split; --clean-prompts restricts to conversations none of whose rows were
+trained on (a file of primary ids). The output holds restricted
 text and stays on the cluster (workloads/8b/*.jsonl is not committed).
 """
 
@@ -37,16 +42,24 @@ def main() -> None:
     parser.add_argument("output", type=Path)
     parser.add_argument("--count", type=int, default=128)
     parser.add_argument("--scan", type=int, default=50000)
+    parser.add_argument("--clean-prompts", type=Path)
     args = parser.parse_args()
+    clean = None
+    if args.clean_prompts:
+        clean = {line.strip() for line in args.clean_prompts.open() if line.strip()}
     step = max(args.scan // args.count, 1)
     seen: set[str] = set()
     prompts = []
     with args.heldout.open() as handle:
         for index, line in enumerate(handle):
-            if index >= args.scan or len(prompts) >= args.count:
+            if clean is None and (index >= args.scan or len(prompts) >= args.count):
                 break
-            if index % step:
+            if clean is None and index % step:
                 continue
+            if clean is not None and '"primary_id": "' in line:
+                start = line.index('"primary_id": "') + 15
+                if line[start : line.index('"', start)] not in clean:
+                    continue
             row = json.loads(line)
             if row["primary_id"] in seen:
                 continue
@@ -54,6 +67,10 @@ def main() -> None:
             if prompt:
                 seen.add(row["primary_id"])
                 prompts.append(prompt)
+    if clean is not None and len(prompts) > args.count:
+        # Evenly over every clean conversation in the file, not its first ones.
+        stride = len(prompts) / args.count
+        prompts = [prompts[int(i * stride)] for i in range(args.count)]
     args.output.write_text("".join(json.dumps(p) + "\n" for p in prompts))
     print(f"{len(prompts)} prompts -> {args.output}")
 
