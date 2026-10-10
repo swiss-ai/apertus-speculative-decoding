@@ -1,0 +1,16 @@
+# Draft-length grid on Yu's held-out prompts (workloads/8b/opb-heldout.jsonl,
+# cluster only): the k-grid-a/b sweeps used out-of-distribution workloads.
+# Four jobs (k-grid-opb-a..d); each carries its own plain arm as the reference.
+name: k-grid-opb-b
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 4}
+  - {name: dspark-e10-k5, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 5}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
