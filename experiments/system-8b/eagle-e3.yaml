@@ -1,0 +1,21 @@
+# EAGLE 3.1 at the end of epoch 3 (step 76,344, head exported with
+# --drop-embed-tokens like the epoch-1 head) against epoch 1, DSpark e10 and
+# plain, all in one job: Yu's held-out prompts (opb-check), chat and
+# summarization.
+name: eagle-e3
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: true
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 128]
+  - workload: chat
+    concurrencies: [1, 8, 32, 128]
+  - workload: summarization
+    concurrencies: [1, 8, 32, 128]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - {name: eagle-e1-k7, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep1-se, k: 7}
+  - {name: eagle-e3-k7, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se, k: 7}
