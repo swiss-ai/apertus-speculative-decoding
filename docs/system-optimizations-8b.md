@@ -14,16 +14,20 @@ checkpoints; rerun the draft-length grid when EAGLE reaches its final epoch.
 
 | canvas item | result |
 | --- | --- |
-| system-level tricks on the current checkpoints | **Draft length is the big lever.** DSpark e10 at k=3 instead of 7: summarization never below plain (1.01-1.06x at C>=128 instead of 0.89x), chat at 0.93-1.00x instead of 0.74x, at the cost of ~10% at C=1. EAGLE e1 is best at k=3 at low load and k=1 under load (1.02x at C=256). |
+| system-level tricks on the current checkpoints | **Draft length is the big lever.** DSpark e10 at k=3 instead of 7: summarization never below plain (1.01-1.06x at C>=128 instead of 0.89x), chat at 0.93-1.00x instead of 0.74x, at the cost of ~10% at C=1. EAGLE e1 is best at k=3 at low load and k=1 under load (1.02x at C=256). On the in-distribution held-out prompts acceptance is higher and the best lengths are longer: DSpark k=5 (3.07x at C=1, 1.18-1.33x at C>=128), EAGLE e3 k=4. |
 | DSpark scheduler on GH200 | Ported to vLLM (the checkpoints carry the trained confidence head; vLLM ignored it). The head is informative (~25% more accepted tokens per verified slot than fixed lengths), but on vLLM the scheduler **does not beat a fixed k=3**: variable lengths break vLLM's CUDA-graph shapes (fixed by capturing graphs per length), async scheduling makes the confidences one step stale, and DSpark drafts all 7 slots whatever is verified. Bottlenecks and proposed fixes below. |
 | one GPU / several GPUs / disaggregation | For throughput, four data-parallel engines per node (3.95x one GPU; speculation keeps its single-GPU pattern). For latency, TP4 + DSpark (C=4: 2.35x DP4 plain, 2.5 ms TPOT) but it saturates at 0.59x. Prefill/decode disaggregation on one node does not pay for an 8B target: 1P+1D is prefill-bound (0.54-0.74x of DP2), 3P+1D overflows the decode GPU's KV (0.11-0.16x of DP4 from C=256). |
 | tune top-k | Sampling at Apertus' T 0.7 / top-p 0.8 costs ~2% acceptance against greedy; top-k 20 vs none makes no measurable difference next to top-p 0.8. The speedups follow the greedy ones. |
 | sparsify the drafter KV cache | DSpark's drafter KV is already a 2048-token window. Shrinking the window loses more acceptance than the extra requests it fits. Removing vLLM's layer-group padding (patch) gives +8% KV capacity (139 vs 129 requests at C=256), throughput unchanged. |
 | verify the papers on the cluster | DSpark scheduler: as above. MineDraft: needs a separate drafter GPU and targets vLLM 0.9; for an 8B target at most ~30% of a step is drafting and the extra GPU halves per-GPU throughput, so not pursued (analysis below). |
 
-**Recommendation for serving DSpark e10 on general traffic:** fixed k=3.
-k=7 only for single-stream or math/code-heavy deployments (probe 6.7
-accepted tokens, 4.2x). With EAGLE, k=3 at low load, k=1 under load.
+**Recommendation for serving DSpark e10:** fixed k=3 for general traffic
+with much out-of-distribution content (summarization, chat); k=4-5 for
+traffic like the training data (held-out prompts: k=5 keeps 85% of k=7's
+C=1 gain and is within 4% of the best under load). k=7 only for
+single-stream or math/code-heavy deployments (probe 6.7 accepted tokens,
+4.2x). With EAGLE e3, k=4 on in-distribution traffic; out of
+distribution (epoch 1) k=3 at low load, k=1 under load.
 
 ## Setup
 
@@ -107,6 +111,46 @@ summarization 1.57 / 1.86 / 2.00 / 2.10 / 2.12, chat 1.65 / 2.05 / 2.29 /
   costs more than ~7% at high load (chat); EAGLE k=1-2 is never below plain.
 - On chat at C>=128 no setting is clearly faster than plain (best within
   ±2%); speculation pays below ~C=64 on this GPU.
+
+### Draft length on the held-out prompts
+
+The grid above uses summarization and chat, both out of distribution for
+the drafters (2.1-2.6 accepted tokens at k=7). `k-grid-opb-a..d` (jobs
+3632467, 3632468, 3632470, 3632471; four nodes, each with its own plain arm,
+plain within 3% across them) repeat it on Yu's held-out prompts (next
+section) with DSpark e10 and EAGLE e3. Output tok/s vs plain in the same
+job:
+
+| C | DSpark k=1 | 2 | 3 | 4 | 5 | 7 | EAGLE e3 k=1 | 2 | 3 | 4 | 5 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1.47x | 2.01x | 2.46x | 2.80x | 3.07x | 3.42x | 1.66x | 2.08x | 2.37x | 2.50x | 2.59x | 2.62x |
+| 8 | 1.46x | 1.92x | 2.33x | 2.55x | 2.72x | 3.00x | 1.63x | 1.96x | 2.22x | 2.34x | 2.40x | 2.43x |
+| 32 | 1.32x | 1.55x | 1.90x | 1.95x | 2.12x | 2.14x | 1.48x | 1.61x | 1.89x | 1.76x | 1.84x | 1.83x |
+| 64 | 1.28x | 1.42x | 1.63x | 1.66x | 1.70x | 1.58x | 1.40x | 1.52x | 1.63x | 1.64x | 1.57x | 1.49x |
+| 128 | 1.19x | 1.29x | 1.36x | 1.34x | 1.33x | 1.24x | 1.28x | 1.37x | 1.38x | 1.38x | 1.33x | 1.23x |
+| 256 | 1.13x | 1.18x | 1.22x | 1.20x | 1.18x | 1.09x | 1.20x | 1.27x | 1.25x | 1.24x | 1.19x | 1.11x |
+
+Accepted tokens per step (flat across load), k=1/2/3/4/5/7: DSpark 1.89 /
+2.64 / 3.27 / 3.78 / 4.18 / 4.78, EAGLE e3 1.85 / 2.55 / 3.13 / 3.59 / 3.97
+/ 4.52.
+
+- In distribution every setting is faster than plain at every load (C=256
+  still 1.09-1.27x); out of distribution chat and summarization fall to or
+  below plain above C~64.
+- The best length still falls with load but sits higher, because more
+  drafts are accepted: DSpark 7 at C<=8, 5-7 at C=32, 4-5 at C=64, 3-5 at
+  C>=128.
+- k=3 is no longer the best single setting here: it keeps only 60% of
+  k=7's C=1 gain (2.46x vs 3.42x). DSpark k=5 keeps 85% of it (3.07x), is
+  best at C=64 and within 4% of the best at C>=128; k=4 is similar.
+- EAGLE e3 gains little beyond k=5 even at C=1 (2.59x vs 2.62x); k=4 is
+  within 7% of the best at every load. Under load EAGLE e3 matches or
+  beats DSpark (C=256: 1.27x vs 1.22x, separate jobs), at C<=8 DSpark
+  leads by 23-31%.
+- So the choice depends on the traffic: k=3 when much of it is out of
+  distribution (summarization, chat), k=4-5 when it resembles the training
+  data; a load-dependent length (7 at low load, 4-5 above C~32) would get
+  the best of both on in-distribution traffic.
 
 ## In-distribution check (Yu's held-out prompts)
 
@@ -413,3 +457,4 @@ available.
 | `pd-3p1d-20261009T021854Z` | 3620834 | 3 prefill + 1 decode GPU, plain / DSpark |
 | `opb-check-20261009T113600Z` | 3622798 | Open-PerfectBlend held-out prompts: plain, DSpark k=7/3, EAGLE k=7 |
 | `eagle-e3-20261010T080528Z` | 3630557 | EAGLE epoch 3 vs epoch 1, DSpark e10, plain on held-out, chat, summarization |
+| `k-grid-opb-{a,b,c,d}-20261010T1454*Z` | 3632467, 3632468, 3632470, 3632471 | draft-length grid on the held-out prompts: DSpark e10 k=1/2/3, 4/5/7, EAGLE e3 k=1/2/3, 4/5/7, each with plain |
