@@ -78,6 +78,11 @@ class Teacher:
     def __init__(self, contract: dict[str, Any], device: str = "cuda"):
         import torch
 
+        # The cuDNN attention kernel failed at random steps of the thinking-on run
+        # (jobs 3608705 and 3610882: "mha_graph.execute ... is_good()" on one rank, then
+        # NCCL errors on the rest) after hours of identical calls. The other backends
+        # compute the same attention, so the teacher features do not change.
+        torch.backends.cuda.enable_cudnn_sdp(False)
         self.model, self.loader_class = load_teacher(contract["source"]["authorized_checkpoint"])
         self.model.eval()
         self.model.requires_grad_(False)
