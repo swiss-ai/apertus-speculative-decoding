@@ -130,6 +130,25 @@ serving path reproduces Yu's numbers on his distribution; the 1.5-1.9x at
 C=1 on summarization/chat is their low acceptance (2.1-2.6). Under load the
 ordering is the same as on the other workloads: k=3 overtakes k=7 by C=128.
 
+**EAGLE at epoch 3** (`eagle-e3`, job 3630557, one node; head exported from
+step 76,344 like the epoch-1 head). Output tok/s vs plain in the same job,
+7 draft tokens; accepted tokens per step in brackets:
+
+| workload, C | DSpark e10 | EAGLE e1 | EAGLE e3 |
+| --- | --- | --- | --- |
+| held-out, 1 | 3.43x (4.78) | 2.46x (4.19) | 2.63x (4.52) |
+| held-out, 32 | 2.06x | 1.72x | 1.82x |
+| held-out, 128 | 1.23x | 1.13x | 1.20x |
+| chat, 1 | 1.87x (2.60) | 1.37x (2.33) | 1.45x (2.49) |
+| chat, 128 | 0.77x | 0.72x | 0.75x |
+| summarization, 1 | 1.53x (2.14) | 1.20x (2.05) | 1.28x (2.20) |
+| summarization, 128 | 0.89x | 0.87x | 0.91x |
+
+Two more epochs raise EAGLE's acceptance by 4-8% (probe 6.13 -> 6.30) and its
+speedup accordingly; it still trails DSpark e10 except on summarization,
+where the two are level (2.20 vs 2.14 accepted). The load-dependence is
+unchanged: at k=7 both lose to plain under load on chat and summarization.
+
 ## Confidence-scheduled verification (the DSpark scheduler)
 
 **Paper** ([arXiv:2607.05147](https://arxiv.org/abs/2607.05147)): a
@@ -393,3 +412,4 @@ available.
 | `multigpu-tp2dp2-20261009T021208Z` | 3620826 | TP2 x DP2 plain / DSpark |
 | `pd-3p1d-20261009T021854Z` | 3620834 | 3 prefill + 1 decode GPU, plain / DSpark |
 | `opb-check-20261009T113600Z` | 3622798 | Open-PerfectBlend held-out prompts: plain, DSpark k=7/3, EAGLE k=7 |
+| `eagle-e3-20261010T080528Z` | 3630557 | EAGLE epoch 3 vs epoch 1, DSpark e10, plain on held-out, chat, summarization |
