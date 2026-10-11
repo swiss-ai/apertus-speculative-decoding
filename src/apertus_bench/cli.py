@@ -22,7 +22,7 @@ from apertus_bench.correctness import (
 from apertus_bench.diagnostics import break_even_report, format_env_exports, write_corpus
 from apertus_bench.eagle import EagleHeadError, validate_eagle_head
 from apertus_bench.runner import CellSettings, GenerationSettings, Variant, run_cell
-from apertus_bench.workloads import available_workloads, load_prompts
+from apertus_bench.workloads import available_workloads, derive_workload, load_prompts
 
 
 def _add_auth(parser: argparse.ArgumentParser) -> None:
@@ -110,6 +110,20 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate-workloads", help="validate a workload JSONL file")
     validate.add_argument("path", type=Path)
+
+    derive = subparsers.add_parser(
+        "derive-workload",
+        help="copy a workload with chat_template_kwargs set (e.g. thinking on), same prompts",
+    )
+    derive.add_argument("source", type=Path)
+    derive.add_argument("output", type=Path)
+    derive.add_argument(
+        "--chat-template-kwargs",
+        required=True,
+        help="JSON object, e.g. '{\"enable_thinking\": true}'",
+    )
+    derive.add_argument("--max-tokens", type=int, help="replace each prompt's max_tokens")
+    derive.add_argument("--id-suffix", default="", help="appended to every prompt id")
 
     run = subparsers.add_parser("run", help="run one workload/concurrency/repeat cell")
     _add_benchmark_common(run)
@@ -566,6 +580,18 @@ def main() -> None:
                     {"prompts": len(prompts), "workloads": available_workloads(prompts)}, indent=2
                 )
             )
+        elif args.command == "derive-workload":
+            kwargs = json.loads(args.chat_template_kwargs)
+            if not isinstance(kwargs, dict):
+                raise SystemExit("--chat-template-kwargs must be a JSON object")
+            count = derive_workload(
+                args.source,
+                args.output,
+                chat_template_kwargs=kwargs,
+                max_tokens=args.max_tokens,
+                id_suffix=args.id_suffix,
+            )
+            print(json.dumps({"prompts": count, "output": str(args.output)}, indent=2))
         elif args.command == "run":
             asyncio.run(_run_one(args))
         elif args.command == "matrix":

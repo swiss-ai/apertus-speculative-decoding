@@ -85,3 +85,43 @@ async def test_streaming_client_sends_top_k_only_when_given(top_k: int | None) -
     assert ("top_k" in seen) is (top_k is not None)
     if top_k is not None:
         assert seen["top_k"] == top_k
+
+
+@pytest.mark.asyncio
+async def test_streaming_client_sends_chat_template_kwargs_only_when_set() -> None:
+    seen: list[dict[str, object]] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        body = (
+            'data: {"choices": [{"delta": {"content": "x"}, "finish_reason": "stop"}]}\n\n'
+            "data: [DONE]\n\n"
+        )
+        return httpx.Response(200, text=body)
+
+    client = StreamingChatClient("https://example.test", "target", None, timeout_seconds=10)
+    await client.http.aclose()
+    client.http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    messages = [{"role": "user", "content": "hi"}]
+    plain = Prompt(id="p1", workload="chat", messages=messages, max_tokens=4)
+    thinking = Prompt(
+        id="p2",
+        workload="chat",
+        messages=messages,
+        max_tokens=4,
+        chat_template_kwargs={"enable_thinking": True},
+    )
+    async with client:
+        for prompt in (plain, thinking):
+            await client.request(
+                prompt,
+                0,
+                temperature=0.0,
+                top_p=1.0,
+                seed=1,
+                max_tokens=None,
+                ignore_eos=False,
+                store_output=False,
+            )
+    assert "chat_template_kwargs" not in seen[0]
+    assert seen[1]["chat_template_kwargs"] == {"enable_thinking": True}

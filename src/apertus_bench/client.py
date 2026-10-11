@@ -100,6 +100,8 @@ class StreamingChatClient:
             "stream": True,
             "stream_options": {"include_usage": True},
         }
+        if prompt.chat_template_kwargs:
+            payload["chat_template_kwargs"] = prompt.chat_template_kwargs
         if top_k is not None:
             # vLLM extension of the OpenAI schema; omitted means the server default.
             payload["top_k"] = top_k

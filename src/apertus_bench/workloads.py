@@ -13,6 +13,8 @@ class Prompt:
     workload: str
     messages: list[dict[str, str]]
     max_tokens: int
+    # Sent as the request's chat_template_kwargs, e.g. {"enable_thinking": True}.
+    chat_template_kwargs: dict[str, Any] | None = None
 
 
 def file_sha256(path: Path) -> str:
@@ -37,11 +39,15 @@ def _parse_prompt(record: dict[str, Any], line_number: int) -> Prompt:
     max_tokens = int(record["max_tokens"])
     if max_tokens <= 0:
         raise ValueError(f"line {line_number}: max_tokens must be positive")
+    kwargs = record.get("chat_template_kwargs")
+    if kwargs is not None and not isinstance(kwargs, dict):
+        raise ValueError(f"line {line_number}: chat_template_kwargs must be an object")
     return Prompt(
         id=str(record["id"]),
         workload=str(record["workload"]),
         messages=messages,
         max_tokens=max_tokens,
+        chat_template_kwargs=kwargs,
     )
 
 
@@ -71,3 +77,30 @@ def load_prompts(path: Path, workload: str | None = None) -> list[Prompt]:
 
 def available_workloads(prompts: list[Prompt]) -> list[str]:
     return sorted({prompt.workload for prompt in prompts})
+
+
+def derive_workload(
+    source: Path,
+    output: Path,
+    *,
+    chat_template_kwargs: dict[str, Any],
+    max_tokens: int | None = None,
+    id_suffix: str = "",
+) -> int:
+    """Copy a workload file with chat_template_kwargs (and optionally max_tokens) set.
+
+    The prompts stay identical, so a run with and without thinking compares like with like.
+    """
+    count = 0
+    with source.open(encoding="utf-8") as handle, output.open("w", encoding="utf-8") as sink:
+        for line in handle:
+            if not line.strip() or line.startswith("#"):
+                continue
+            record = json.loads(line)
+            record["id"] = f"{record['id']}{id_suffix}"
+            record["chat_template_kwargs"] = chat_template_kwargs
+            if max_tokens is not None:
+                record["max_tokens"] = max_tokens
+            sink.write(json.dumps(record, ensure_ascii=False) + "\n")
+            count += 1
+    return count
