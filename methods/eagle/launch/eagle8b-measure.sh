@@ -6,6 +6,9 @@
 #        torch-profiler window after the unprofiled headline cells)
 #        probe   (the DSpark quick check: 32 math_reasoning + 32 HumanEval prompts of
 #        RedHatAI/speculator_benchmarks, C=8, greedy, 384 tokens, one cell)
+#        probe-think (the same 64 prompts with chat_template_kwargs enable_thinking=true,
+#        1,024 tokens; build the file with: apertus-bench derive-workload, see
+#        workloads/8b/probe-speculator-benchmarks-thinking.manifest.json)
 #        screen  (validation strata, natural EOS, C=1 and C=8, 64 requests)
 #        confirm (untouched test strata, natural EOS, C=1 and C=8, 128 requests)
 # Every deployment gets a fresh VLLM_CACHE_ROOT, so compile-cache state is the
@@ -158,6 +161,8 @@ case "${PHASE}" in
     done ;;
   probe)
     cell "${WORKLOAD_DIR}/probe-speculator-benchmarks.jsonl" probe 8 64 --max-tokens 384 ;;
+  probe-think)
+    cell "${WORKLOAD_DIR}/probe-speculator-benchmarks-thinking.jsonl" probe 8 64 --max-tokens 1024 ;;
   *) echo "unknown PHASE ${PHASE}" >&2; exit 2 ;;
 esac
 

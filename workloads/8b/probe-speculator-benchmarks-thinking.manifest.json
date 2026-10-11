@@ -1,0 +1,10 @@
+{
+  "file": "workloads/8b/probe-speculator-benchmarks-thinking.jsonl",
+  "sha256": "c74db521b9b2f754b964022f1badc905e9b156ca2e3cb28932cc1e890c87eb6e",
+  "rows": 64,
+  "derived_from": "workloads/8b/probe-speculator-benchmarks.jsonl (sha256 8a42d20bc7062ae82f1a8247c9f1425069b7573c2c138351023b04119a80b7dc)",
+  "command": "apertus-bench derive-workload <source> <output> --chat-template-kwargs '{\"enable_thinking\": true}' --max-tokens 1024 --id-suffix=-think",
+  "selection": "the same 64 prompts as the thinking-off probe; each request carries chat_template_kwargs {\"enable_thinking\": true}, ids end in -think",
+  "max_tokens": 1024,
+  "note": "1,024 tokens is the DSpark probe's thinking length (docs/CONFIG_DSpark_Apertus_1.5_8B.md); most answers are cut inside the reasoning"
+}

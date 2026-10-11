@@ -13,7 +13,9 @@
 # then copy the startup memory breakdown from the engine log and cancel.
 # LOADTEST_PROBE=1 first runs the DSpark quick check (64 speculator_benchmarks
 # prompts, C=8, 384 tokens) into probe/, to compare acceptance with the
-# colleague's numbers on the same deployment.
+# colleague's numbers on the same deployment. For a thinking-on drafter point
+# LOADTEST_PROBE_WORKLOADS at probe-speculator-benchmarks-thinking.jsonl and set
+# LOADTEST_PROBE_MAX_TOKENS=1024 (the probe's thinking length).
 # This script only waits; run it from a login node.
 set -euo pipefail
 
@@ -31,6 +33,7 @@ PER_SLOT="${LOADTEST_REQUESTS_PER_SLOT:-4}"
 MIN_REQUESTS="${LOADTEST_MIN_REQUESTS:-32}"
 MAX_TOKENS="${LOADTEST_MAX_TOKENS:-}"
 PROBE="${LOADTEST_PROBE:-0}"
+PROBE_MAX_TOKENS="${LOADTEST_PROBE_MAX_TOKENS:-384}"
 PROBE_WORKLOADS="${LOADTEST_PROBE_WORKLOADS:-${REPO_ROOT}/workloads/${STAGE}/probe-speculator-benchmarks.jsonl}"
 ENVIRONMENT_TOML="${LOADTEST_ENVIRONMENT:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
 METHOD="${METHOD:-baseline}"
@@ -110,7 +113,7 @@ ENGINE_METADATA=(--metadata "max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS:-en
 if [ "${PROBE}" = "1" ]; then
   "${BENCH[@]}" run --base-url "${BASE}" --model "${MODEL}" \
     --workloads "${PROBE_WORKLOADS}" --workload probe --concurrency 8 --requests 64 \
-    --max-tokens 384 --variant "${VARIANT}" "${BENCH_METHOD[@]}" "${ENGINE_METADATA[@]}" \
+    --max-tokens "${PROBE_MAX_TOKENS}" --variant "${VARIANT}" "${BENCH_METHOD[@]}" "${ENGINE_METADATA[@]}" \
     --metadata "deployment_id=${DEPLOYMENT_ID}" --metadata "slurm_job_id=${JOB}" \
     --output "${OUT}/probe" > "${OUT}/probe.log" 2>&1 \
     || echo "probe failed" | tee -a "${OUT}/status.txt"
