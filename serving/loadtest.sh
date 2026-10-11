@@ -15,7 +15,8 @@
 # prompts, C=8, 384 tokens) into probe/, to compare acceptance with the
 # colleague's numbers on the same deployment. For a thinking-on drafter point
 # LOADTEST_PROBE_WORKLOADS at probe-speculator-benchmarks-thinking.jsonl and set
-# LOADTEST_PROBE_MAX_TOKENS=1024 (the probe's thinking length).
+# LOADTEST_PROBE_MAX_TOKENS=1024 (the probe's thinking length). LOADTEST_PROBE_ONLY=1
+# stops after the probe (no load sweep).
 # This script only waits; run it from a login node.
 set -euo pipefail
 
@@ -118,6 +119,7 @@ if [ "${PROBE}" = "1" ]; then
     --output "${OUT}/probe" > "${OUT}/probe.log" 2>&1 \
     || echo "probe failed" | tee -a "${OUT}/status.txt"
 fi
+if [ "${LOADTEST_PROBE_ONLY:-0}" != "1" ]; then
 "${BENCH[@]}" loadtest --base-url "${BASE}" --model "${MODEL}" \
     --workloads "${WORKLOADS}" --workload "${WORKLOAD}" \
     --concurrencies ${CONCURRENCIES} --requests "${MIN_REQUESTS}" \
@@ -128,6 +130,7 @@ fi
     --metadata "slurm_node_id=${NODE}" --metadata "load_generator=replica node (srun --overlap)" \
     --output "${OUT}/cells" > "${OUT}/loadtest.log" 2>&1 \
   || echo "loadtest failed" | tee -a "${OUT}/status.txt"
+fi
 
 kill "${SAMPLER}" 2>/dev/null || true
 SAMPLER=""
