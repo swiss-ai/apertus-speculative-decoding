@@ -12,10 +12,11 @@
 # close to DSpark's 65,536 per step (64 rows would be ~150k). 32 divides every node
 # count: 1 node = 4 ranks x 8 (below), 2 nodes (EAGLE_NODES=2) = 8 ranks x 4, etc.;
 # keep 32 rows per step if the rank count changes, then resuming stays exact.
-# 49,335 steps per epoch; the learning-rate schedule runs over his 10 epochs and this
-# first stage stops after epoch 1 (his thinking-on head is also an epoch-1 snapshot);
-# continue from checkpoints/resume by raising num_train_steps / num_epochs. At the
-# smoke run (job 3569220: ~80k tokens and ~7 s per step, peak 77 GB) an epoch is ~95 h on one node.
+# 49,335 steps per epoch; the learning-rate schedule runs over his 10 epochs. Stage 1
+# stopped after epoch 1 (2026-10-11, held-out simulated acceptance length 3.84); the run
+# continues from checkpoints/resume through all 10 epochs. On one node an epoch is ~95 h
+# (smoke run, job 3569220: ~80k tokens and ~7 s per step, peak 77 GB); on two nodes
+# ~5.6 s per step, ~77 h.
 pipeline: rollout
 stage: 8b
 
@@ -55,8 +56,8 @@ training:
   lr_decay_style: cosine
   min_lr: 0.0
   lr_total_steps: 493350  # 10 epochs
-  num_train_steps: 49335  # stage 1: 1 epoch
-  num_epochs: 1
+  num_train_steps: 493350  # 10 epochs (stage 1 ended at 49,335 = 1 epoch)
+  num_epochs: 10
   eval_interval: 4934  # 10 evaluations per epoch
   save_interval: 12334  # a kept checkpoint every quarter epoch
   resume_interval: 500
