@@ -265,3 +265,40 @@ STAGE=8b METHOD=dspark DSPARK_CHECKPOINT=<dir> NUM_SPECULATIVE_TOKENS=7 LOADTEST
 
 For an EAGLE head, replace `METHOD=dspark DSPARK_CHECKPOINT=<dir>` with
 `METHOD=eagle EAGLE_HEAD=<head dir>`.
+
+## Thinking-on quick check (2026-10-11)
+
+The same 64 `speculator_benchmarks` prompts as the DSpark quick check (32
+math_reasoning, 32 HumanEval), each sent with `enable_thinking=true` and a
+1,024-token cap (`workloads/8b/probe-speculator-benchmarks-thinking.jsonl`,
+built with `apertus-bench derive-workload`), C=8, one run per arm, depth 7.
+Plain 8B: 46 of 64 answers finish within the cap (mean 762 tokens; the same
+prompts average 261 with thinking off and 658 with it on among the 37 that
+finish both ways), so most of these tokens are reasoning.
+
+| arm | training | accepted length | per-position survival (1..7) | output tok/s | speedup | e2e mean (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| plain 8B | - | - | - | 1,213 | 1.0x | 4,675 |
+| EAGLE 3.1 (ours) | thinking-on corpus, 1 epoch | 5.12 | .85 .73 .64 .56 .50 .44 .40 | 3,580 | 2.95x | 1,597 |
+| DSpark (Yu) | thinking-on corpus, 1 epoch | 4.85 | .85 .72 .61 .52 .44 .38 .33 | 4,175 | 3.44x | 1,373 |
+| DSpark (Yu) | thinking-on corpus, 10 epochs | 5.74 | .91 .82 .74 .66 .59 .54 .48 | 4,716 | 3.89x | 1,205 |
+
+- At equal training (1 epoch) EAGLE accepts more per round (5.12 vs 4.85, ahead
+  from the second draft position on), but DSpark is 17% faster: its round costs
+  about 1.2x less (tokens per second per accepted token), since DSpark drafts all
+  positions in one pass and EAGLE takes seven sequential steps.
+- Yu's epoch 10 is a reference for where his training ends up, not an equal-
+  training comparison; the EAGLE run is continuing from epoch 1 to epoch 10.
+- Single run of 64 prompts at C=8 per arm; the plain arm is a separate
+  deployment at the engine's default limits (the speculative arms ran with
+  MAX_NUM_BATCHED_TOKENS=16384, MAX_NUM_SEQS=256), which should not bind at C=8.
+  The prompts are math and code, the bulk of open-perfectblend, so the probe
+  favours both drafters. Held-out accuracy on the training distribution is the
+  trainer's own number (EAGLE stage 1: simulated acceptance length 3.84).
+
+Runs: `results/8b/eagle/probe-think/apertus15-8b-baseline-probe-think-think1-20261011T155210Z`
+and `results/8b/loadtest/apertus15-8b-{eagle31,dspark}-k7-loadtest-20261011T21*` (EAGLE
+214701Z, DSpark epoch 1 215224Z, DSpark epoch 10 215738Z). Rerun an arm with
+`LOADTEST_PROBE=1 LOADTEST_PROBE_ONLY=1 LOADTEST_PROBE_MAX_TOKENS=1024
+LOADTEST_PROBE_WORKLOADS=$PWD/workloads/8b/probe-speculator-benchmarks-thinking.jsonl`
+added to the commands above.
