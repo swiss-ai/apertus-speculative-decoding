@@ -5,10 +5,8 @@ from apertus_bench.cli import loadtest_level, loadtest_requests
 from apertus_bench.load import MetricsSampler, parse_load_sample, summarize_load
 
 REPO = Path(__file__).resolve().parents[1]
-SCRAPE = (
-    REPO / "results/8b/eagle/confirm/apertus15-8b-baseline-confirm-c3-20260926T144421Z"
-    "/cells/summarization/c1/metrics_after.prom"
-)
+# A metrics scrape from the pinned vLLM image (plain 8B target, 2026-09-26).
+SCRAPE = REPO / "tests/fixtures/vllm-metrics.prom"
 
 
 def _scrape(kv: float, running: int, waiting: int, preempted: int, generated: int) -> str:
