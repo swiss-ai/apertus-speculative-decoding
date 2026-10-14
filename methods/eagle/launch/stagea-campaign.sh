@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run a list of Stage A deployments strictly one after another.
 # Each line of PLAN: "ARM PHASE BLOCK_ID [DEPTH] [PROFILE_TRACE]".
-#   PLAN=methods/eagle/configs/8b/a5-plan.txt EAGLE_HEAD=... setsid nohup ./methods/eagle/launch/stagea-campaign.sh &
+#   PLAN=methods/eagle/configs/8b/probe-plan.txt EAGLE_HEAD=... setsid nohup ./methods/eagle/launch/stagea-campaign.sh &
 set -uo pipefail
 LAUNCH_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${LAUNCH_DIR}/../../.." && pwd)"
