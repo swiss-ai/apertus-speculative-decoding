@@ -1,5 +1,10 @@
 # EAGLE 3.1 for Apertus 1.5 8B: Stage A report
 
+The raw Stage A results (heads, verification, screens, confirmation, profiles, the
+mix10k probe, early training runs and their logs) left the repository on 2026-10-14;
+the current heads are trained on the DSpark corpus. They remain in git history:
+`git show 43ad881:<path>` or `git checkout 43ad881 -- results/8b/eagle`.
+
 Status: Stage A complete, 2026-09-29 (A6 confirmation ran 2026-09-26). Full chronology, job ids
 and raw numbers: [eagle-progress.md](eagle-progress.md). Plan:
 [eagle-execution-plan.md](eagle-execution-plan.md).

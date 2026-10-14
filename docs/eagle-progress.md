@@ -1,5 +1,10 @@
 # EAGLE 3.1 execution ledger
 
+The raw Stage A results (heads, verification, screens, confirmation, profiles, the
+mix10k probe, early training runs and their logs) left the repository on 2026-10-14;
+the current heads are trained on the DSpark corpus. They remain in git history:
+`git show 43ad881:<path>` or `git checkout 43ad881 -- results/8b/eagle`.
+
 Layout note 2026-09-26: the repository was reorganised by method and target. Entries
 below keep the paths that were current when they were written. Mapping:
 
