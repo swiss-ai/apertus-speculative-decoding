@@ -1,0 +1,28 @@
+loadtest opb concurrency=64 requests=512
+{
+  "workload": "opb",
+  "variant": "plain",
+  "levels": [
+    {
+      "concurrency": 64,
+      "requests": 512,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 5287.345438770944,
+      "ttft_p50_ms": 50.89374352246523,
+      "ttft_p95_ms": 728.6376758012921,
+      "tpot_p50_ms": 10.985935432637636,
+      "tpot_p95_ms": 11.858828796453679,
+      "e2e_p95_ms": 11245.87988598505,
+      "kv_cache_usage_mean": 0.10728292514485385,
+      "kv_cache_usage_max": 0.15444081187849068,
+      "kv_cache_tokens_peak": 72562,
+      "kv_cache_size_tokens": 469840,
+      "running_max": 64.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": null,
+      "acceptance_rate": null
+    }
+  ]
+}
