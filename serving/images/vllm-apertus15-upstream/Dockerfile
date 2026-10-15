@@ -83,10 +83,12 @@ RUN git clone --branch ${VLLM_TAG} https://github.com/vllm-project/vllm.git /wor
     git -C /workspace/vllm -c user.name=build -c user.email=build@localhost \
         merge --no-edit ${SWISS_AI_APERTUS_COMMIT}
 
-# Our fixes on top, in order: the Apertus model ported to the v0.31.0 APIs
-# and the DSpark loader's inner-model fix.
-COPY vllm-apertus-mm-v0.31.patch vllm-apertus-dspark-mrv2-inner.patch /workspace/patches/
-RUN for p in vllm-apertus-mm-v0.31 vllm-apertus-dspark-mrv2-inner; do \
+# Our fixes on top, in order: the Apertus model ported to the v0.31.0 APIs,
+# the DSpark loader's inner-model fix, and the draft sized against the
+# target's LM head rather than its embedding.
+COPY vllm-apertus-mm-v0.31.patch vllm-apertus-dspark-mrv2-inner.patch \
+     vllm-apertus-dspark-output-vocab.patch /workspace/patches/
+RUN for p in vllm-apertus-mm-v0.31 vllm-apertus-dspark-mrv2-inner vllm-apertus-dspark-output-vocab; do \
         git -C /workspace/vllm apply -p3 /workspace/patches/$p.patch; \
     done
 
