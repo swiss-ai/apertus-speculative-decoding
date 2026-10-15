@@ -1,0 +1,32 @@
+# Per-step draft length for the paper DSpark scheduler (serving/patches/
+# vllm-apertus-dspark-draft-cut.patch, not in the paper): the scheduler also
+# picks how many slots to draft, so under load it stops paying the full 7-slot
+# draft step that kept the paper scheduler ~4% behind fixed k=3 at C>=128.
+# On the 128 held-out test prompts (workloads/8b/opb-heldout.jsonl, cluster
+# only), against fixed k=3 (best fixed length under load), the paper
+# scheduler without the cut, and plain. Two jobs (draft-cut-a/b) with the arms
+# in reverse order, on swapped GPUs.
+# Submit with SWEEP_PATCHES="serving/patches/vllm-apertus-dspark-confidence-verify.patch
+#   serving/patches/vllm-apertus-dspark-paper-scheduler.patch
+#   serving/patches/vllm-apertus-dspark-draft-cut.patch"
+name: draft-cut-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
+  - name: dspark-e10-k7-paper
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_MODE: paper, VLLM_DSPARK_VERIFY_PROFILE: "{arm_dir}/cost-table.json", VLLM_DSPARK_STS: "{repo}/methods/dspark/scheduler/sts-dspark-e10-8b.json"}
+  - name: dspark-e10-k7-paper-cut
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_MODE: paper, VLLM_DSPARK_DRAFT_CUT: 1, VLLM_DSPARK_VERIFY_PROFILE: "{arm_dir}/cost-table.json", VLLM_DSPARK_STS: "{repo}/methods/dspark/scheduler/sts-dspark-e10-8b.json"}
