@@ -34,6 +34,12 @@ PATCHES=(
   "${REPO_ROOT}/serving/patches/vllm-apertus-dspark-mrv2-inner.patch"
   "${REPO_ROOT}/serving/patches/vllm-apertus-dspark-anchor-layout.patch"
 )
+# These patches target the release image. An image that already carries its
+# fixes (serving/images/) takes SWEEP_BASE_PATCHES="" and its own ENV_SOURCE.
+if [ -n "${SWEEP_BASE_PATCHES+set}" ]; then
+  PATCHES=()
+  for base in ${SWEEP_BASE_PATCHES}; do PATCHES+=("${base}"); done
+fi
 for extra in ${SWEEP_PATCHES:-}; do
   PATCHES+=("$(cd "$(dirname "${extra}")" && pwd)/$(basename "${extra}")")
 done
@@ -42,13 +48,13 @@ done
 PYTHONPATH="${REPO_ROOT}/src" python3 -m apertus_bench.node_sweep plan "${SPEC}" > /dev/null
 
 mkdir -p "${OUT}"
-if [ "${VALIDATE_ONLY:-0}" != "1" ]; then
+if [ "${VALIDATE_ONLY:-0}" != "1" ] && [ "${#PATCHES[@]}" -gt 0 ]; then
   EXTRA_MOUNTS="$("${SERVING_DIR}/patch-vllm.sh" "${IMAGE}" "${PATCHES[@]}")"
   export EXTRA_MOUNTS
 fi
 SML_ENVIRONMENT="$("${SERVING_DIR}/resolve-env.sh" "${ENV_SOURCE}")"
 CACHE_ROOT="/iopsstor/scratch/cscs/${USER}/apertus-loadtest/vllm-cache/sweep-${NAME}-${STAMP}"
-printf '%s\n' "${PATCHES[@]}" > "${OUT}/patches.txt"
+printf '%s\n' "${PATCHES[@]+"${PATCHES[@]}"}" > "${OUT}/patches.txt"
 cp "${SML_ENVIRONMENT}" "${OUT}/environment.toml"
 
 cat > "${OUT}/job.sh" <<EOF
