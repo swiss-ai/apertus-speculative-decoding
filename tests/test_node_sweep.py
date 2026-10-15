@@ -216,6 +216,14 @@ def test_env_values_can_point_into_the_repo() -> None:
     assert built.env["PROFILE"] == f"{REPO_ROOT}/x.json"
 
 
+def test_env_values_can_point_into_the_arm_directory(tmp_path: Path) -> None:
+    from apertus_bench.node_sweep import arm_env
+
+    arm = {"name": "p", "method": "baseline", "env": {"DUMP": "{arm_dir}/conf.jsonl"}}
+    (built,) = build_plan(_spec(arms=[arm]), check_heads=False).arms
+    assert arm_env(built, tmp_path / "p") == {"DUMP": f"{tmp_path}/p/conf.jsonl"}
+
+
 @pytest.mark.parametrize(
     "spec_path",
     sorted((Path(__file__).resolve().parents[1] / "experiments" / "system-8b").glob("*.yaml")),

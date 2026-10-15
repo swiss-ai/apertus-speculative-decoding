@@ -6,7 +6,8 @@ length, engine settings. Each arm gets its own GPUs on the node and its own
 so a four-GPU node measures four configurations in the time of one. An arm
 that needs more GPUs than are free waits for the earlier arms to finish.
 A `command` arm runs one program on its GPUs instead (e.g. a step-time
-profile); `{arm_dir}` and `{repo}` in its argv are filled in. A `pd` arm is a
+profile); `{arm_dir}` and `{repo}` in its argv are filled in, as in the
+environment of any arm (`env`). A `pd` arm is a
 disaggregated deployment: prefill and decode instances on their own GPUs,
 connected by NIXL, behind apertus_bench.pd_proxy, which the load test drives.
 
@@ -565,6 +566,11 @@ def _write_status(path: Path, status: dict[str, Any]) -> None:
     path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\n")
 
 
+def arm_env(arm: Arm, arm_dir: Path) -> dict[str, str]:
+    """The arm's extra environment, `{arm_dir}` filled in (`{repo}` already is)."""
+    return {key: value.replace("{arm_dir}", str(arm_dir)) for key, value in arm.env.items()}
+
+
 async def run_arm(
     arm: Arm, gpu_ids: list[int], plan: Plan, output: Path, deployment_prefix: str
 ) -> dict[str, Any]:
@@ -591,7 +597,7 @@ async def run_arm(
         **os.environ,
         "CUDA_VISIBLE_DEVICES": ",".join(str(gpu) for gpu in gpu_ids),
         "VLLM_CACHE_ROOT": str(cache),
-        **arm.env,
+        **arm_env(arm, arm_dir),
     }
     status["started"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     _write_status(status_path, status)
