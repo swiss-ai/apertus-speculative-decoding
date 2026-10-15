@@ -5,9 +5,10 @@
 # swiss-ai/vllm apertus-1-5 at a601a9d9, which branched before #47808 merged.
 # Upstream has no Apertus 1.5 model yet, so this merges swiss-ai/vllm
 # apertus-1-5 (open upstream PR #50496: apertus_mm.py, registry, reasoning
-# parser; it merges cleanly) into the v0.31.0 tag and installs it over the
-# v0.31.0 precompiled kernels: the merge only adds Python. Otherwise the same
-# recipe as the release image, with the torch that v0.31.0 pins.
+# parser; it merges without conflicts, though the model needed porting to the
+# v0.31.0 APIs) into the v0.31.0 tag and installs it over the v0.31.0
+# precompiled kernels: the merge only adds Python. Otherwise the same recipe
+# as the release image, with the torch that v0.31.0 pins.
 #
 # Built by serving/images/build-image.sh.
 FROM docker.io/nvidia/cuda:13.0.0-cudnn-devel-ubuntu24.04
@@ -82,8 +83,12 @@ RUN git clone --branch ${VLLM_TAG} https://github.com/vllm-project/vllm.git /wor
     git -C /workspace/vllm -c user.name=build -c user.email=build@localhost \
         merge --no-edit ${SWISS_AI_APERTUS_COMMIT}
 
-COPY vllm-apertus-dspark-mrv2-inner.patch /workspace/patches/
-RUN git -C /workspace/vllm apply -p3 /workspace/patches/vllm-apertus-dspark-mrv2-inner.patch
+# Our fixes on top, in order: the Apertus model ported to the v0.31.0 APIs
+# and the DSpark loader's inner-model fix.
+COPY vllm-apertus-mm-v0.31.patch vllm-apertus-dspark-mrv2-inner.patch /workspace/patches/
+RUN for p in vllm-apertus-mm-v0.31 vllm-apertus-dspark-mrv2-inner; do \
+        git -C /workspace/vllm apply -p3 /workspace/patches/$p.patch; \
+    done
 
 RUN git clone --branch feature/apertus_1p5_pipeline https://github.com/swiss-ai/transformers.git /workspace/transformers && \
     git -C /workspace/transformers checkout ${TRANSFORMERS_COMMIT}
