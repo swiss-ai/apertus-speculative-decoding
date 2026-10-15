@@ -1,0 +1,593 @@
+Per-step draft length for the DSpark paper scheduler, on top of
+vllm-apertus-dspark-paper-scheduler.patch (apply that one first). Enabled with
+VLLM_DSPARK_DRAFT_CUT=1 next to VLLM_DSPARK_VERIFY_MODE=paper. Not in the
+paper, which drafts every slot each step.
+
+Under load the paper scheduler verifies ~3 of 7 drafted slots, but the draft
+step still runs the full block (17 ms of a ~80 ms step at 256 requests on
+GH200). Here the scheduler also picks how many slots the step drafts, D: the
+draft step costs draft_ms(R, D) (profiled at engine start per length) and D
+maximises the same objective, tau * SPS(B), with admission limited to the
+first D slots. The drafter then runs as a k=D drafter for that step (a block
+of D query tokens and D sequential Markov steps, one CUDA graph set per
+length; the fixed k=3 drafter shows a shorter block keeps the acceptance of
+the first slots), and the next step's GPU top-K picks among the drafted
+slots only. Survival of slots a shortened draft did not produce is
+extrapolated with the running mean conditional confidence per slot.
+VLLM_DSPARK_DRAFT_LENGTHS restricts the lengths (default 1..k).
+diff --git a/workspace/vllm/vllm/v1/core/sched/output.py b/workspace/vllm/vllm/v1/core/sched/output.py
+index 98c190d..d953fb7 100644
+--- a/workspace/vllm/vllm/v1/core/sched/output.py
++++ b/workspace/vllm/vllm/v1/core/sched/output.py
+@@ -249,6 +249,9 @@ class SchedulerOutput:
+     # K). Every decode request is scheduled with all its placeholders; the
+     # worker picks the K drafts with the highest prefix survival on the GPU.
+     spec_verify_budget: int | None = None
++    # Draft length for this step's draft (VLLM_DSPARK_DRAFT_CUT=1): the
++    # drafter proposes only this many slots; the next step verifies among them.
++    spec_draft_len: int | None = None
+ 
+     @classmethod
+     def make_empty(cls) -> "SchedulerOutput":
+diff --git a/workspace/vllm/vllm/v1/core/sched/scheduler.py b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+index eaec12b..5d4f50c 100644
+--- a/workspace/vllm/vllm/v1/core/sched/scheduler.py
++++ b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+@@ -1135,8 +1135,11 @@ class Scheduler(SchedulerInterface):
+             ]
+ 
+         spec_verify_budget = None
++        spec_draft_len = None
+         if isinstance(self.verify_sched, PaperVerifyScheduler):
+-            spec_verify_budget = self.verify_sched.budget(scheduled_spec_decode_tokens)
++            spec_verify_budget, spec_draft_len = self.verify_sched.plan(
++                scheduled_spec_decode_tokens, num_scheduled_tokens
++            )
+         scheduler_output = SchedulerOutput(
+             scheduled_new_reqs=new_reqs_data,
+             scheduled_cached_reqs=cached_reqs_data,
+@@ -1155,6 +1158,7 @@ class Scheduler(SchedulerInterface):
+             new_block_ids_to_zero=new_block_ids_to_zero,
+             num_spec_tokens_to_schedule=num_spec_tokens_to_schedule,
+             spec_verify_budget=spec_verify_budget,
++            spec_draft_len=spec_draft_len,
+         )
+ 
+         # NOTE(Kuntai): this function is designed for multiple purposes:
+@@ -3043,12 +3047,37 @@ class PaperVerifyScheduler:
+     the engine mixes into the same step are not part of ``B``. Requests whose
+     drafts have no survival yet (first decode step) count at the mean
+     survival per slot of the others.
++
++    VLLM_DSPARK_DRAFT_CUT=1 adds what the paper does not do: the scheduler
++    also picks how many slots the step drafts, ``D``. The draft step then
++    costs ``draft_ms(R, D)`` (profiled per length), and ``D`` maximises the
++    same objective with admission limited to the first ``D`` slots; the next
++    step verifies among the drafted slots only. Survival of slots a shortened
++    draft did not produce is extrapolated with the running mean conditional
++    confidence per slot (initialised from the STS calibration's observed
++    rates).
+     """
+ 
+-    def __init__(self, num_spec_tokens: int, profile_path: str, log_every: int = 500):
++    def __init__(
++        self,
++        num_spec_tokens: int,
++        profile_path: str,
++        log_every: int = 500,
++        draft_lengths: list[int] | None = None,
++        conditional: list[float] | None = None,
++    ):
+         self.num_spec_tokens = num_spec_tokens
+         self.profile_path = profile_path
+         self.survival: dict[str, np.ndarray] = {}
++        # Per-step draft length (None: draft every slot, as in the paper).
++        self.draft_lengths = draft_lengths
++        self.draft_len = num_spec_tokens
++        self.drafted: dict[str, int] = {}
++        self.conditional = np.asarray(
++            conditional if conditional is not None else [0.7] * num_spec_tokens,
++            dtype=np.float64,
++        )[:num_spec_tokens]
++        self._sum_draft_len = 0
+         self._table: dict[str, np.ndarray] | None = None
+         self.log_every = log_every
+         self._steps = 0
+@@ -3064,13 +3093,34 @@ class PaperVerifyScheduler:
+                 "VLLM_DSPARK_VERIFY_MODE=paper needs VLLM_DSPARK_VERIFY_PROFILE "
+                 "(the cost table; profiled at engine start if the file is missing)"
+             )
++        draft_lengths = None
++        if os.environ.get("VLLM_DSPARK_DRAFT_CUT", "0") == "1":
++            from vllm.v1.worker.gpu.spec_decode.dspark.speculator import (
++                dspark_draft_lengths,
++            )
++
++            draft_lengths = dspark_draft_lengths(num_spec_tokens)
++        conditional = None
++        sts_path = os.environ.get("VLLM_DSPARK_STS")
++        if sts_path:
++            with open(sts_path) as handle:
++                slots = json.load(handle).get("slots") or []
++            observed = [slot["observed"] for slot in slots]
++            if len(observed) >= num_spec_tokens:
++                conditional = [observed[0]] + [
++                    observed[j] / max(observed[j - 1], 1e-6)
++                    for j in range(1, len(observed))
++                ]
+         logger.info(
+             "DSpark confidence-scheduled verification: paper scheduler, "
+-            "cost table %s, STS %s",
++            "cost table %s, STS %s, draft lengths %s",
+             path,
+-            os.environ.get("VLLM_DSPARK_STS"),
++            sts_path,
++            draft_lengths or "all slots (as in the paper)",
++        )
++        return cls(
++            num_spec_tokens, path, draft_lengths=draft_lengths, conditional=conditional
+         )
+-        return cls(num_spec_tokens, path)
+ 
+     def assign(self, running: list[Request]) -> None:
+         """Nothing is trimmed before scheduling: the split is made on the GPU."""
+@@ -3086,11 +3136,15 @@ class PaperVerifyScheduler:
+             self._table["max_capture"] = np.float64(
+                 table.get("max_cudagraph_capture_size", 0)
+             )
++            for length, values in (table.get("draft_ms_by_len") or {}).items():
++                self._table[f"draft_ms_{length}"] = np.asarray(values, dtype=np.float64)
+         return self._table
+ 
+-    def step_ms(self, num_tokens: np.ndarray, num_reqs: int) -> np.ndarray:
++    def step_ms(
++        self, num_tokens: np.ndarray, num_reqs: int, draft_len: int | None = None
++    ) -> np.ndarray:
+         """Step time of verifying ``num_tokens`` tokens for ``num_reqs``
+-        requests, from the profiled cost table."""
++        requests (drafting ``draft_len`` slots), from the profiled cost table."""
+         table = self._load_table()
+         sizes, verify = table["verify_tokens"], table["verify_ms"]
+         num_tokens = np.asarray(num_tokens, dtype=np.float64)
+@@ -3107,9 +3161,99 @@ class PaperVerifyScheduler:
+             if beyond.any() and len(sizes) >= 2:
+                 slope = (verify[-1] - verify[-2]) / max(sizes[-1] - sizes[-2], 1.0)
+                 ms[beyond] = verify[-1] + (num_tokens[beyond] - sizes[-1]) * slope
+-        draft = float(np.interp(num_reqs, table["draft_reqs"], table["draft_ms"]))
++        draft_ms = table["draft_ms"]
++        if draft_len is not None and f"draft_ms_{draft_len}" in table:
++            draft_ms = table[f"draft_ms_{draft_len}"]
++        draft = float(np.interp(num_reqs, table["draft_reqs"], draft_ms))
+         return ms + draft
+ 
++    def _extended_rows(self, scheduled_spec: dict[str, list[int]]) -> list[np.ndarray]:
++        """Survival of every scheduled slot: the newest observed values where
++        the request's last draft produced them (positive), extrapolated with
++        the running conditional confidence per slot beyond."""
++        rows = []
++        for req_id, tokens in scheduled_spec.items():
++            length = len(tokens)
++            row = self.survival.get(req_id)
++            out = np.empty(length)
++            known = 0
++            if row is not None:
++                positive = row[:length] > 0
++                known = length if positive.all() else int(np.argmin(positive))
++                out[:known] = row[:known]
++            last = out[known - 1] if known else 1.0
++            for slot in range(known, length):
++                last *= self.conditional[slot]
++                out[slot] = last
++            rows.append(out)
++        return rows
++
++    def _best(self, rows: list[np.ndarray], num_reqs: int, draft_len: int | None):
++        """(Theta, K) of Algorithm 1's admission path over the given slots."""
++        if rows:
++            survival = np.sort(np.concatenate(rows))[::-1]
++        else:
++            survival = np.zeros(0)
++        admitted = np.arange(len(survival) + 1)
++        tau = num_reqs + np.concatenate(([0.0], np.cumsum(survival)))
++        theta = tau / np.maximum(
++            self.step_ms(num_reqs + admitted, num_reqs, draft_len), 1e-6
++        )
++        best = int(np.argmax(theta))
++        return float(theta[best]), best
++
++    def plan(
++        self, scheduled_spec: dict[str, list[int]], scheduled: Iterable[str]
++    ) -> tuple[int | None, int | None]:
++        """(batch capacity K, draft length D) for the step; D is None when
++        every slot is drafted (the paper's scheduler)."""
++        if self.draft_lengths is None:
++            return self.budget(scheduled_spec), None
++        budget = None
++        if scheduled_spec:
++            num_reqs = len(scheduled_spec)
++            rows = self._extended_rows(scheduled_spec)
++            # Next draft: the length whose best admission path is fastest.
++            self.draft_len = max(
++                self.draft_lengths,
++                key=lambda length: self._best(
++                    [row[:length] for row in rows], num_reqs, length
++                )[0],
++            )
++            # This step: admission among the slots the last drafts produced.
++            available = [
++                row[: self.drafted.get(req_id, len(row))]
++                for req_id, row in zip(scheduled_spec, rows)
++            ]
++            _, budget = self._best(available, num_reqs, self.draft_len)
++            self._log(budget, sum(len(row) for row in available), num_reqs)
++        for req_id in scheduled:
++            self.drafted[req_id] = self.draft_len
++        if len(self.drafted) > 4 * max(len(self.survival), 64):
++            live = set(scheduled) | set(self.survival)
++            self.drafted = {k: v for k, v in self.drafted.items() if k in live}
++        return budget, self.draft_len
++
++    def _log(self, budget: int, num_slots: int, num_reqs: int) -> None:
++        self._steps += 1
++        self._sum_budget += budget
++        self._sum_slots += num_slots
++        self._sum_reqs += num_reqs
++        self._sum_draft_len += self.draft_len
++        if self._steps % self.log_every == 0:
++            logger.info(
++                "DSpark paper scheduler: %.2f of %.2f drafts verified per "
++                "request, %.2f slots drafted, over %d steps (%.1f decode "
++                "requests per step)",
++                self._sum_budget / max(self._sum_reqs, 1),
++                self._sum_slots / max(self._sum_reqs, 1),
++                self._sum_draft_len / self.log_every,
++                self.log_every,
++                self._sum_reqs / self.log_every,
++            )
++            self._sum_budget = self._sum_slots = self._sum_reqs = 0
++            self._sum_draft_len = 0
++
+     def budget(self, scheduled_spec: dict[str, list[int]]) -> int | None:
+         """Batch capacity K for the step: Algorithm 1's admission path over
+         the latest survival the scheduler has, maximised globally."""
+@@ -3165,6 +3309,18 @@ class PaperVerifyScheduler:
+         if survival is not None:
+             for index, req_id in enumerate(model_runner_output.req_ids):
+                 self.survival[req_id] = survival[index]
++            if self.draft_lengths is not None and len(survival):
++                # Running mean conditional confidence per slot, over the
++                # slots these drafts produced (survival 0 = not drafted).
++                previous = np.concatenate(
++                    (np.ones((len(survival), 1)), survival[:, :-1]), axis=1
++                )
++                drafted = (survival > 0) & (previous > 0)
++                counts = drafted.sum(axis=0)
++                ratio = np.where(drafted, survival / np.maximum(previous, 1e-12), 0.0)
++                seen = counts > 0
++                mean = ratio.sum(axis=0)[seen] / counts[seen]
++                self.conditional[seen] = 0.95 * self.conditional[seen] + 0.05 * mean
+         if len(self.survival) > 4 * max(len(model_runner_output.req_ids), 64):
+             live = set(model_runner_output.req_ids)
+             self.survival = {k: v for k, v in self.survival.items() if k in live}
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+index ae81f0b..f1d0ea4 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+@@ -229,6 +229,11 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             )
+         # (K, tokens in the step) of the step being prepared, from execute_model.
+         self._dspark_verify_plan: tuple[int, int] | None = None
++        # Draft length per step (VLLM_DSPARK_DRAFT_CUT=1): the length the
++        # scheduler set for this step's draft, and how many slots each
++        # request's pending drafts have (only those can be verified).
++        self._dspark_draft_len_step: int | None = None
++        self._dspark_drafted: dict[str, int] = {}
+         # Calibration data for STS: raw confidence logits to the scheduler.
+         self.dspark_conf_dump = bool(os.environ.get("VLLM_DSPARK_CONF_DUMP"))
+ 
+@@ -917,8 +922,16 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             num_bonus_tokens = self.model_state.num_new_sampled_tokens_per_step
+             total_num_draft_tokens = verify_plan[0]
+             total_num_logits = num_reqs * num_bonus_tokens + total_num_draft_tokens
++            available_drafts = np.fromiter(
++                (
++                    self._dspark_available_drafts(req_id, int(n))
++                    for req_id, n in zip(req_ids, num_draft_tokens_per_req)
++                ),
++                dtype=np.int32,
++                count=num_reqs,
++            )
+             spec_verify_lens = self._dspark_select_drafts(
+-                idx_mapping, num_draft_tokens_per_req, total_num_draft_tokens
++                idx_mapping, available_drafts, total_num_draft_tokens
+             )
+             cu_num_logits = torch.zeros(
+                 num_reqs + 1, dtype=torch.int32, device=self.device
+@@ -1153,9 +1166,18 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         if budget is None or not spec:
+             return None
+         num_drafts = sum(len(tokens) for tokens in spec.values())
+-        budget = min(max(budget, 0), num_drafts)
++        num_drafted = sum(
++            self._dspark_available_drafts(req_id, len(tokens))
++            for req_id, tokens in spec.items()
++        )
++        budget = min(max(budget, 0), num_drafted)
+         return budget, scheduler_output.total_num_scheduled_tokens - num_drafts + budget
+ 
++    def _dspark_available_drafts(self, req_id: str, num_scheduled: int) -> int:
++        """Drafts of a request that exist: its scheduled placeholders, capped
++        at the length of its last (possibly shortened) draft."""
++        return min(num_scheduled, self._dspark_drafted.get(req_id, num_scheduled))
++
+     @torch.inference_mode()
+     def _profile_dspark_verify(self) -> None:
+         """Profile the paper scheduler's cost table once at engine start
+@@ -1227,6 +1249,51 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+ 
+             verify_ms.append(timed(verify_step))
+ 
++        draft_lengths = list(
++            getattr(self.speculator, "draft_lengths", [self.num_speculative_steps])
++        )
++        draft_ms_by_len: dict[str, list[float]] = {}
++        for draft_len in draft_lengths:
++            if len(draft_lengths) > 1:
++                self.speculator.set_draft_len(draft_len)  # type: ignore[attr-defined]
++            draft_ms_by_len[str(draft_len)] = self._profile_dspark_draft(
++                draft_sizes, timed, dummy_output
++            )
++        if len(draft_lengths) > 1:
++            self.speculator.set_draft_len(self.num_speculative_steps)  # type: ignore[attr-defined]
++        draft_ms = draft_ms_by_len[str(self.num_speculative_steps)]
++        self.kv_connector.set_disabled(False)
++
++        table = {
++            "verify_tokens": verify_sizes,
++            "verify_ms": [round(ms, 4) for ms in verify_ms],
++            "draft_reqs": draft_sizes,
++            "draft_ms": [round(ms, 4) for ms in draft_ms],
++            "draft_ms_by_len": {
++                length: [round(ms, 4) for ms in values]
++                for length, values in draft_ms_by_len.items()
++            },
++            "max_cudagraph_capture_size": max_capture,
++            "num_speculative_tokens": self.num_speculative_steps,
++            "repeats": repeats,
++            "gpu": torch.cuda.get_device_name(self.device),
++            "measured_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
++        }
++        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
++        with open(path + ".tmp", "w") as handle:
++            json.dump(table, handle, indent=1)
++        os.replace(path + ".tmp", path)
++        logger.info(
++            "DSpark verification cost table (%d verify sizes, %d draft sizes, "
++            "draft lengths %s) written to %s",
++            len(verify_sizes),
++            len(draft_sizes),
++            draft_lengths,
++            path,
++        )
++
++    def _profile_dspark_draft(self, draft_sizes, timed, dummy_output) -> list[float]:
++        """Draft-step time for each request count at the current draft length."""
+         draft_ms = []
+         for num_reqs in draft_sizes:
+             output = dummy_output(num_reqs * self.decode_query_len, num_reqs)
+@@ -1257,30 +1324,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+                 )
+ 
+             draft_ms.append(timed(draft_step))
+-        self.kv_connector.set_disabled(False)
+-
+-        table = {
+-            "verify_tokens": verify_sizes,
+-            "verify_ms": [round(ms, 4) for ms in verify_ms],
+-            "draft_reqs": draft_sizes,
+-            "draft_ms": [round(ms, 4) for ms in draft_ms],
+-            "max_cudagraph_capture_size": max_capture,
+-            "num_speculative_tokens": self.num_speculative_steps,
+-            "repeats": repeats,
+-            "gpu": torch.cuda.get_device_name(self.device),
+-            "measured_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+-        }
+-        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+-        with open(path + ".tmp", "w") as handle:
+-            json.dump(table, handle, indent=1)
+-        os.replace(path + ".tmp", path)
+-        logger.info(
+-            "DSpark verification cost table (%d verify sizes, %d draft sizes) "
+-            "written to %s",
+-            len(verify_sizes),
+-            len(draft_sizes),
+-            path,
+-        )
++        return draft_ms
+ 
+     def prepare_attn(
+         self, input_batch: InputBatch
+@@ -1401,6 +1445,8 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         num_toks = scheduler_output.total_num_scheduled_tokens
+         max_query_len = max(scheduler_output.num_scheduled_tokens.values())
+         uniform_tok_count = get_uniform_token_count(num_reqs, num_toks, max_query_len)
++        if self.dspark_paper and not dummy_run:
++            self._dspark_draft_len_step = scheduler_output.spec_draft_len
+         if self.dspark_paper and scheduler_output.spec_verify_budget is not None:
+             if dummy_run:
+                 # Cost-table profiling: run the decode graph a real step uses.
+@@ -1742,6 +1788,16 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             if hasattr(self.model, "get_mtp_target_hidden_states"):
+                 pre_hc_hidden_states = self.model.get_mtp_target_hidden_states()
+                 spec_hidden_states = pre_hc_hidden_states[: hidden_states.shape[0]]  # type: ignore[union-attr]
++            draft_len, self._dspark_draft_len_step = self._dspark_draft_len_step, None
++            if draft_len is not None:
++                self.speculator.set_draft_len(draft_len)  # type: ignore[attr-defined]
++                for req_id in input_batch.req_ids:
++                    self._dspark_drafted[req_id] = draft_len
++                if len(self._dspark_drafted) > 4 * self.max_num_reqs:
++                    live = set(input_batch.req_ids)
++                    self._dspark_drafted = {
++                        k: v for k, v in self._dspark_drafted.items() if k in live
++                    }
+             draft_tokens = self.speculator.propose(
+                 input_batch,
+                 attn_metadata,
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dflash/speculator.py b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dflash/speculator.py
+index f9ffd31..7db004b 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dflash/speculator.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dflash/speculator.py
+@@ -44,6 +44,9 @@ class DFlashSpeculator(DraftModelSpeculator):
+ 
+         # Each request emits exactly (bonus + N mask) query tokens per step.
+         self.num_query_per_req = 1 + self.num_speculative_steps
++        # Row stride of the per-request sampling buffers (sample_indices etc.);
++        # DSpark shortens it with the step's draft length.
++        self.sample_stride = self.num_speculative_steps
+ 
+         self.parallel_drafting_token_id = get_parallel_drafting_token_id(
+             self.draft_model_config.hf_config
+@@ -347,7 +350,7 @@ class DFlashSpeculator(DraftModelSpeculator):
+                 self.block_tables.kernel_block_sizes[gid],
+                 self.parallel_drafting_token_id,
+                 self.num_query_per_req,
+-                self.num_speculative_steps,
++                self.sample_stride,
+                 self.max_num_reqs,
+                 self.max_num_tokens,
+                 self.max_model_len,
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+index 4b01e6a..7467b7f 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+@@ -36,6 +36,18 @@ from vllm.v1.worker.gpu.spec_decode.dflash.speculator import DFlashSpeculator
+ from vllm.v1.worker.gpu.spec_decode.dspark.utils import load_dspark_model
+ 
+ 
++def dspark_draft_lengths(max_length: int) -> list[int]:
++    """Draft lengths the scheduler may pick per step
++    (VLLM_DSPARK_DRAFT_LENGTHS, comma separated; default 1..max_length)."""
++    raw = os.environ.get("VLLM_DSPARK_DRAFT_LENGTHS")
++    lengths = (
++        [int(part) for part in raw.split(",") if part.strip()]
++        if raw
++        else list(range(1, max_length + 1))
++    )
++    return sorted({n for n in lengths if 1 <= n <= max_length} | {max_length})
++
++
+ class DSparkSpeculator(DFlashSpeculator):
+     _speculator_name = "DSpark"
+ 
+@@ -72,6 +84,22 @@ class DSparkSpeculator(DFlashSpeculator):
+             * self.num_query_per_req
+         )
+ 
++        # Draft length per step (VLLM_DSPARK_DRAFT_CUT=1, with the paper
++        # scheduler): the scheduler picks how many slots to draft, D, and the
++        # drafter runs as a k=D drafter for that step (a block of D query
++        # tokens, D sequential Markov steps). Not in the paper, which drafts
++        # every slot. One CUDA graph set and anchor index per allowed length.
++        self.draft_lengths = [self.num_speculative_steps]
++        if os.environ.get("VLLM_DSPARK_DRAFT_CUT", "0") == "1":
++            self.draft_lengths = dspark_draft_lengths(self.num_speculative_steps)
++        self._draft_len = self.num_speculative_steps
++        self._anchor_idx_by_len = {
++            length: torch.arange(self.max_num_reqs, dtype=torch.int64, device=device)
++            * self._query_len(length)
++            for length in self.draft_lengths
++        }
++        self._cg_managers: dict[int, Any] = {}
++
+         # Confidence-scheduled verification (VLLM_DSPARK_VERIFY_SCHED=1): the
+         # confidence head's per-slot acceptance probabilities and their running
+         # product (prefix survival), written inside the captured draft step.
+@@ -96,6 +124,42 @@ class DSparkSpeculator(DFlashSpeculator):
+         self._d2t_scatter_index: torch.Tensor | None = None
+         self._draft_scatter_buf: torch.Tensor | None = None
+ 
++    def _query_len(self, draft_len: int) -> int:
++        return draft_len if self.sample_from_anchor else 1 + draft_len
++
++    def set_draft_len(self, draft_len: int) -> None:
++        """Draft ``draft_len`` slots in the next draft steps (one of
++        ``draft_lengths``)."""
++        if draft_len not in self._anchor_idx_by_len:
++            raise ValueError(
++                f"draft length {draft_len} not in {self.draft_lengths}"
++            )
++        self._draft_len = draft_len
++        self.num_query_per_req = self._query_len(draft_len)
++        self.sample_stride = draft_len
++        self._anchor_idx = self._anchor_idx_by_len[draft_len]
++        if self._cg_managers:
++            self.query_cudagraph_manager = self._cg_managers[draft_len]
++
++    def init_cudagraph_manager(self, cudagraph_mode: CUDAGraphMode) -> None:
++        if len(self.draft_lengths) == 1:
++            super().init_cudagraph_manager(cudagraph_mode)
++            return
++        for length in self.draft_lengths:
++            self.set_draft_len(length)
++            super().init_cudagraph_manager(cudagraph_mode)
++            self._cg_managers[length] = self.query_cudagraph_manager
++        self.set_draft_len(self.num_speculative_steps)
++
++    def capture(self, attn_states: dict | None = None) -> None:
++        if len(self.draft_lengths) == 1:
++            super().capture(attn_states)
++            return
++        for length in self.draft_lengths:
++            self.set_draft_len(length)
++            super().capture(attn_states)
++        self.set_draft_len(self.num_speculative_steps)
++
+     def load_draft_model(
+         self,
+         target_model: torch.nn.Module,
+@@ -143,7 +207,7 @@ class DSparkSpeculator(DFlashSpeculator):
+ 
+     def _sample_sequential(self, num_reqs: int, head_hidden: torch.Tensor) -> None:
+         # Sequential Markov sampling over the backbone's output hidden states.
+-        n_spec = self.num_speculative_steps
++        n_spec = self._draft_len
+         num_sample = num_reqs * n_spec
+         # Per-(req, position) head hidden, ordered (req, step).
+         sample_hidden = head_hidden[self.sample_indices[:num_sample]]
+@@ -200,15 +264,27 @@ class DSparkSpeculator(DFlashSpeculator):
+         if self._use_confidence:
+             # Calibrated per-slot probabilities (STS: sigmoid(logit / T_j)),
+             # then their running product, the prefix survival.
+-            torch.sigmoid(
+-                self.draft_conf_logits[:num_reqs] * self.conf_inv_temperature,
+-                out=self.draft_confidence[:num_reqs],
+-            )
+-            torch.cumprod(
+-                self.draft_confidence[:num_reqs],
+-                dim=1,
+-                out=self.draft_survival[:num_reqs],
+-            )
++            if n_spec == self.num_speculative_steps:
++                torch.sigmoid(
++                    self.draft_conf_logits[:num_reqs] * self.conf_inv_temperature,
++                    out=self.draft_confidence[:num_reqs],
++                )
++                torch.cumprod(
++                    self.draft_confidence[:num_reqs],
++                    dim=1,
++                    out=self.draft_survival[:num_reqs],
++                )
++            else:
++                # Shortened draft: slots not drafted have survival 0.
++                confidence = torch.sigmoid(
++                    self.draft_conf_logits[:num_reqs, :n_spec]
++                    * self.conf_inv_temperature[:n_spec]
++                )
++                self.draft_confidence[:num_reqs, :n_spec] = confidence
++                self.draft_survival[:num_reqs, :n_spec] = torch.cumprod(
++                    confidence, dim=1
++                )
++                self.draft_survival[:num_reqs, n_spec:] = 0.0
+ 
+     def spec_survival(self, num_reqs: int) -> torch.Tensor | None:
+         """Prefix survival of the drafts just proposed, [num_reqs, n_spec]."""
