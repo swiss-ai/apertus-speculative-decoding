@@ -1,0 +1,1023 @@
+DSpark's confidence-scheduled verification as the paper deploys it
+(arXiv:2607.05147, sections 3.2 and 5.2), on top of
+vllm-apertus-dspark-confidence-verify.patch (apply that one first). Enabled
+with VLLM_DSPARK_VERIFY_SCHED=1 and VLLM_DSPARK_VERIFY_MODE=paper.
+
+- Sequential Temperature Scaling: the drafter keeps the confidence head's raw
+  logits and computes c_j = sigmoid(z_j / T_j) with one temperature per slot
+  from VLLM_DSPARK_STS (JSON "temperatures", fitted by
+  methods/dspark/scheduler/fit_sts.py); the prefix survival is their running
+  product.
+- Hardware-aware prefix scheduler (Algorithm 1 with the section 5.2
+  adaptations): the scheduler picks the step's batch capacity K from the
+  newest survival it has (two steps old under async scheduling) by a global
+  search over the greedy admission path, Theta = tau * SPS(B) with
+  B = R + K, no early stop; every decode request is scheduled with all its
+  draft placeholders and the worker verifies the K drafts with the highest
+  current survival (top-K on the GPU, per-request query lengths built there).
+- SPS(B) is a cost table profiled once at engine start and written to
+  VLLM_DSPARK_VERIFY_PROFILE (skipped if the file exists): target forward
+  with logits over B tokens, plus the draft step for the step's R requests.
+- Decode-only steps of uneven lengths replay FULL CUDA graphs captured per
+  token count (FlashAttention 3); steps with prefill stay piecewise.
+- VLLM_DSPARK_VERIFY_MODE=none loads the head and verifies everything;
+  VLLM_DSPARK_CONF_DUMP=PATH writes the calibration data (raw logits,
+  verified and accepted counts per verification, request ids only).
+- Spec-decode metrics count the drafts actually verified.
+
+Logprobs and structured outputs are not supported with the paper scheduler
+(their CPU-side layout assumes known per-request lengths).
+diff --git a/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py b/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py
+index a9390d2..03c9401 100644
+--- a/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py
++++ b/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py
+@@ -171,13 +171,13 @@ class Qwen3DSparkForCausalLM(DFlashQwen3ForCausalLM):
+     def has_confidence_head(self) -> bool:
+         return self.model.confidence_head is not None
+ 
+-    def confidence(
++    def confidence_logit(
+         self, hidden_states: torch.Tensor, markov_embed: torch.Tensor
+     ) -> torch.Tensor:
+-        """Acceptance probability of each slot given its prefix was accepted
+-        ([B, hidden], [B, r] -> [B] float32), as trained: sigmoid of the head
+-        over the normed backbone hidden state and the previous token's Markov
+-        embedding."""
++        """Logit of the acceptance probability of each slot given its prefix
++        was accepted ([B, hidden], [B, r] -> [B] float32): the head over the
++        normed backbone hidden state and the previous token's Markov
++        embedding, before the sigmoid."""
+         head = self.model.confidence_head
+         assert head is not None
+         features = hidden_states
+@@ -185,7 +185,13 @@ class Qwen3DSparkForCausalLM(DFlashQwen3ForCausalLM):
+             features = torch.cat(
+                 [hidden_states, markov_embed.to(hidden_states.dtype)], dim=-1
+             )
+-        return torch.sigmoid(head.proj(features).float()).squeeze(-1)
++        return head.proj(features).float().squeeze(-1)
++
++    def confidence(
++        self, hidden_states: torch.Tensor, markov_embed: torch.Tensor
++    ) -> torch.Tensor:
++        """Acceptance probability as trained (sigmoid of the logit)."""
++        return torch.sigmoid(self.confidence_logit(hidden_states, markov_embed))
+ 
+     def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]):
+         model_weights = {}
+diff --git a/workspace/vllm/vllm/v1/core/sched/output.py b/workspace/vllm/vllm/v1/core/sched/output.py
+index 291e73b..98c190d 100644
+--- a/workspace/vllm/vllm/v1/core/sched/output.py
++++ b/workspace/vllm/vllm/v1/core/sched/output.py
+@@ -244,6 +244,12 @@ class SchedulerOutput:
+     # Number of spec tokens to schedule for the next step.
+     num_spec_tokens_to_schedule: int = 0
+ 
++    # DSpark paper scheduler (VLLM_DSPARK_VERIFY_MODE=paper): total draft
++    # tokens to verify across the step's decode requests (the batch capacity
++    # K). Every decode request is scheduled with all its placeholders; the
++    # worker picks the K drafts with the highest prefix survival on the GPU.
++    spec_verify_budget: int | None = None
++
+     @classmethod
+     def make_empty(cls) -> "SchedulerOutput":
+         return cls(
+diff --git a/workspace/vllm/vllm/v1/core/sched/scheduler.py b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+index 77e1c13..eaec12b 100644
+--- a/workspace/vllm/vllm/v1/core/sched/scheduler.py
++++ b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+@@ -261,7 +261,13 @@ class Scheduler(SchedulerInterface):
+                 self.num_lookahead_tokens = self.num_spec_tokens
+         # DSpark confidence-scheduled verification: per-request draft lengths
+         # from the drafter's confidence head (VLLM_DSPARK_VERIFY_SCHED=1).
+-        self.verify_sched: ConfidenceVerifyScheduler | None = None
++        # VLLM_DSPARK_VERIFY_MODE=paper follows the paper's deployed scheduler
++        # (PaperVerifyScheduler); =none loads the head and verifies everything
++        # (calibration runs).
++        self.verify_sched: ConfidenceVerifyScheduler | PaperVerifyScheduler | None = (
++            None
++        )
++        self.conf_dump: ConfidenceDump | None = None
+         if (
+             speculative_config is not None
+             and speculative_config.use_dspark()
+@@ -272,7 +278,18 @@ class Scheduler(SchedulerInterface):
+                     "VLLM_DSPARK_VERIFY_SCHED and num_speculative_tokens_per_batch_size "
+                     "are exclusive"
+                 )
+-            self.verify_sched = ConfidenceVerifyScheduler.from_env(self.num_spec_tokens)
++            mode = os.environ.get("VLLM_DSPARK_VERIFY_MODE", "greedy")
++            if mode == "paper":
++                self.verify_sched = PaperVerifyScheduler.from_env(self.num_spec_tokens)
++            elif mode != "none":
++                self.verify_sched = ConfidenceVerifyScheduler.from_env(
++                    self.num_spec_tokens
++                )
++            dump_path = os.environ.get("VLLM_DSPARK_CONF_DUMP")
++            if dump_path:
++                self.conf_dump = ConfidenceDump(
++                    dump_path, self.num_sampled_tokens_per_step
++                )
+ 
+         # Create the KV cache manager.
+         if hash_block_size is None:
+@@ -1117,6 +1134,9 @@ class Scheduler(SchedulerInterface):
+                 len(num_scheduled_tokens)
+             ]
+ 
++        spec_verify_budget = None
++        if isinstance(self.verify_sched, PaperVerifyScheduler):
++            spec_verify_budget = self.verify_sched.budget(scheduled_spec_decode_tokens)
+         scheduler_output = SchedulerOutput(
+             scheduled_new_reqs=new_reqs_data,
+             scheduled_cached_reqs=cached_reqs_data,
+@@ -1134,6 +1154,7 @@ class Scheduler(SchedulerInterface):
+             free_encoder_mm_hashes=self.encoder_cache_manager.get_freed_mm_hashes(),
+             new_block_ids_to_zero=new_block_ids_to_zero,
+             num_spec_tokens_to_schedule=num_spec_tokens_to_schedule,
++            spec_verify_budget=spec_verify_budget,
+         )
+ 
+         # NOTE(Kuntai): this function is designed for multiple purposes:
+@@ -1551,6 +1572,9 @@ class Scheduler(SchedulerInterface):
+ 
+         if self.verify_sched is not None:
+             self.verify_sched.observe(scheduler_output, model_runner_output)
++        if self.conf_dump is not None:
++            self.conf_dump.observe(scheduler_output, model_runner_output)
++        spec_verify_lens = model_runner_output.spec_verify_lens
+ 
+         outputs: dict[int, list[EngineCoreOutput]] = defaultdict(list)
+         spec_decoding_stats: SpecDecodingStats | None = None
+@@ -1639,13 +1663,27 @@ class Scheduler(SchedulerInterface):
+                 # the scheduled spec tokens count and so is similarly adjusted.
+                 if request.num_output_placeholders > 0:
+                     request.num_output_placeholders -= num_rejected
+-                spec_decoding_stats = self.make_spec_decoding_stats(
+-                    spec_decoding_stats,
+-                    num_draft_tokens=num_draft_tokens,
+-                    num_accepted_tokens=num_accepted,
+-                    num_invalid_spec_tokens=scheduler_output.num_invalid_spec_tokens,
+-                    request_id=req_id,
+-                )
++                if spec_verify_lens is not None:
++                    # Paper scheduler: count the drafts actually verified (the
++                    # worker picked them), and count steps that verified none
++                    # as drafts too, so accepted tokens per step stay comparable.
++                    if spec_decoding_stats is None and self.log_stats:
++                        spec_decoding_stats = SpecDecodingStats.new(
++                            self.num_spec_tokens
++                        )
++                    if spec_decoding_stats is not None:
++                        spec_decoding_stats.observe_draft(
++                            num_draft_tokens=int(spec_verify_lens[req_index]),
++                            num_accepted_tokens=num_accepted,
++                        )
++                else:
++                    spec_decoding_stats = self.make_spec_decoding_stats(
++                        spec_decoding_stats,
++                        num_draft_tokens=num_draft_tokens,
++                        num_accepted_tokens=num_accepted,
++                        num_invalid_spec_tokens=scheduler_output.num_invalid_spec_tokens,
++                        request_id=req_id,
++                    )
+ 
+             # Free encoder inputs only after the step has actually executed.
+             if request.has_encoder_inputs:
+@@ -2973,3 +3011,202 @@ class ConfidenceVerifyScheduler:
+         if interval_ms < 1000.0:
+             excess = interval_ms - float(self.step_ms(np.array([total]))[0])
+             self._update_overhead(float(total), excess)
++
++
++class PaperVerifyScheduler:
++    """DSpark's hardware-aware prefix scheduler as deployed (arXiv:2607.05147,
++    Algorithm 1 with the section 5.2 adaptations).
++
++    Algorithm 1: with ``a[r, j]`` the prefix survival of draft slot ``j`` of
++    request ``r`` (running product of the calibrated per-slot confidences),
++    admit slots in descending ``a`` order; verifying ``K`` of them makes a
++    batch of ``B = R + K`` tokens with ``tau = R + sum of the admitted a``
++    expected tokens, and the throughput is ``Theta = tau * SPS(B)``.
++
++    Section 5.2: the batch capacity ``K`` is chosen from survival two steps
++    old (with async scheduling, the newest drafts the scheduler has seen are
++    those of the step before the one now running), by an unconstrained global
++    search over the whole admission path (no early stop, so jagged SPS cliffs
++    do not trap it); the worker then verifies the ``K`` drafts with the
++    highest current survival (``SchedulerOutput.spec_verify_budget``; a
++    dynamic top-K on the GPU). Every decode request is scheduled with all its
++    draft placeholders, so any split of ``K`` has KV slots.
++
++    ``SPS(B)`` is a cost table profiled once at engine start
++    (VLLM_DSPARK_VERIFY_PROFILE, written by the worker):
++    ``1 / (verify_ms(B) + draft_ms(R))`` for the step's ``R`` requests, the
++    draft step being fixed for the step since DSpark drafts every slot. Up to
++    the largest captured CUDA graph the step replays the graph of the next
++    captured size, so ``verify_ms`` is a step function there.
++
++    As in the paper the objective counts decode tokens only; prefill chunks
++    the engine mixes into the same step are not part of ``B``. Requests whose
++    drafts have no survival yet (first decode step) count at the mean
++    survival per slot of the others.
++    """
++
++    def __init__(self, num_spec_tokens: int, profile_path: str, log_every: int = 500):
++        self.num_spec_tokens = num_spec_tokens
++        self.profile_path = profile_path
++        self.survival: dict[str, np.ndarray] = {}
++        self._table: dict[str, np.ndarray] | None = None
++        self.log_every = log_every
++        self._steps = 0
++        self._sum_budget = 0
++        self._sum_slots = 0
++        self._sum_reqs = 0
++
++    @classmethod
++    def from_env(cls, num_spec_tokens: int) -> "PaperVerifyScheduler":
++        path = os.environ.get("VLLM_DSPARK_VERIFY_PROFILE")
++        if not path:
++            raise ValueError(
++                "VLLM_DSPARK_VERIFY_MODE=paper needs VLLM_DSPARK_VERIFY_PROFILE "
++                "(the cost table; profiled at engine start if the file is missing)"
++            )
++        logger.info(
++            "DSpark confidence-scheduled verification: paper scheduler, "
++            "cost table %s, STS %s",
++            path,
++            os.environ.get("VLLM_DSPARK_STS"),
++        )
++        return cls(num_spec_tokens, path)
++
++    def assign(self, running: list[Request]) -> None:
++        """Nothing is trimmed before scheduling: the split is made on the GPU."""
++
++    def _load_table(self) -> dict[str, np.ndarray]:
++        if self._table is None:
++            with open(self.profile_path) as handle:
++                table = json.load(handle)
++            self._table = {
++                key: np.asarray(table[key], dtype=np.float64)
++                for key in ("verify_tokens", "verify_ms", "draft_reqs", "draft_ms")
++            }
++            self._table["max_capture"] = np.float64(
++                table.get("max_cudagraph_capture_size", 0)
++            )
++        return self._table
++
++    def step_ms(self, num_tokens: np.ndarray, num_reqs: int) -> np.ndarray:
++        """Step time of verifying ``num_tokens`` tokens for ``num_reqs``
++        requests, from the profiled cost table."""
++        table = self._load_table()
++        sizes, verify = table["verify_tokens"], table["verify_ms"]
++        num_tokens = np.asarray(num_tokens, dtype=np.float64)
++        # Captured sizes: the graph of the next captured size runs.
++        index = np.minimum(np.searchsorted(sizes, num_tokens), len(sizes) - 1)
++        ms = verify[index]
++        # Larger steps run without full graphs: interpolate, extrapolate the
++        # last slope.
++        above = num_tokens > table["max_capture"]
++        if above.any():
++            ms = ms.copy()
++            ms[above] = np.interp(num_tokens[above], sizes, verify)
++            beyond = num_tokens > sizes[-1]
++            if beyond.any() and len(sizes) >= 2:
++                slope = (verify[-1] - verify[-2]) / max(sizes[-1] - sizes[-2], 1.0)
++                ms[beyond] = verify[-1] + (num_tokens[beyond] - sizes[-1]) * slope
++        draft = float(np.interp(num_reqs, table["draft_reqs"], table["draft_ms"]))
++        return ms + draft
++
++    def budget(self, scheduled_spec: dict[str, list[int]]) -> int | None:
++        """Batch capacity K for the step: Algorithm 1's admission path over
++        the latest survival the scheduler has, maximised globally."""
++        if not scheduled_spec:
++            return None
++        rows: list[np.ndarray] = []
++        unscored: list[int] = []
++        for req_id, tokens in scheduled_spec.items():
++            row = self.survival.get(req_id)
++            if row is None:
++                unscored.append(len(tokens))
++            else:
++                rows.append(row[: len(tokens)])
++        num_reqs = len(scheduled_spec)
++        num_slots = sum(len(tokens) for tokens in scheduled_spec.values())
++        if not rows:
++            # No estimate at all yet: verify everything.
++            return num_slots
++        if unscored:
++            width = max(len(row) for row in rows)
++            table = np.full((len(rows), width), np.nan)
++            for index, row in enumerate(rows):
++                table[index, : len(row)] = row
++            mean = np.nan_to_num(np.nanmean(table, axis=0), nan=0.0)
++            rows.extend(mean[:length] for length in unscored)
++        survival = np.sort(np.concatenate(rows).astype(np.float64))[::-1]
++        admitted = np.arange(len(survival) + 1)
++        tau = num_reqs + np.concatenate(([0.0], np.cumsum(survival)))
++        # Theta = tau * SPS(B), SPS = 1 / step time.
++        theta = tau / np.maximum(self.step_ms(num_reqs + admitted, num_reqs), 1e-6)
++        budget = int(np.argmax(theta))
++        self._steps += 1
++        self._sum_budget += budget
++        self._sum_slots += num_slots
++        self._sum_reqs += num_reqs
++        if self._steps % self.log_every == 0:
++            logger.info(
++                "DSpark paper scheduler: %.2f of %.2f drafts verified per "
++                "request over %d steps (%.1f decode requests per step)",
++                self._sum_budget / max(self._sum_reqs, 1),
++                self._sum_slots / max(self._sum_reqs, 1),
++                self.log_every,
++                self._sum_reqs / self.log_every,
++            )
++            self._sum_budget = self._sum_slots = self._sum_reqs = 0
++        return budget
++
++    def observe(
++        self, scheduler_output: SchedulerOutput, model_runner_output: ModelRunnerOutput
++    ) -> None:
++        """Keep the newest drafts' survival per request."""
++        survival = model_runner_output.spec_survival
++        if survival is not None:
++            for index, req_id in enumerate(model_runner_output.req_ids):
++                self.survival[req_id] = survival[index]
++        if len(self.survival) > 4 * max(len(model_runner_output.req_ids), 64):
++            live = set(model_runner_output.req_ids)
++            self.survival = {k: v for k, v in self.survival.items() if k in live}
++
++
++class ConfidenceDump:
++    """Calibration data for Sequential Temperature Scaling (DSpark section
++    3.2.1): one JSON line per verification of a request's drafts, with the
++    raw confidence logits of the drafts (``z``), how many were verified
++    (``n``) and how many were accepted (``a``). The drafts' logits arrive
++    with the output of the step that proposed them, their outcome with the
++    next one. Request ids only, no text. A request's last line may be cut by
++    a stop; methods/dspark/scheduler/fit_sts.py drops it."""
++
++    def __init__(self, path: str, num_sampled_tokens_per_step: int) -> None:
++        self.handle = open(path, "a", buffering=1 << 20)
++        self.num_sampled = num_sampled_tokens_per_step
++        self.pending: dict[str, list[float]] = {}
++        logger.info("DSpark confidence calibration data to %s", path)
++
++    def observe(
++        self, scheduler_output: SchedulerOutput, model_runner_output: ModelRunnerOutput
++    ) -> None:
++        logits = model_runner_output.spec_conf_logits
++        verified = model_runner_output.spec_verify_lens
++        sampled = model_runner_output.sampled_token_ids
++        spec = scheduler_output.scheduled_spec_decode_tokens
++        for index, req_id in enumerate(model_runner_output.req_ids):
++            drafts = self.pending.pop(req_id, None)
++            num_verified = len(spec.get(req_id, ()))
++            if verified is not None and num_verified:
++                num_verified = int(verified[index])
++            if drafts is not None and num_verified and sampled and sampled[index]:
++                accepted = min(len(sampled[index]) - self.num_sampled, num_verified)
++                self.handle.write(
++                    json.dumps(
++                        {"req": req_id, "z": drafts, "n": num_verified, "a": accepted}
++                    )
++                    + "\n"
++                )
++            if logits is not None:
++                self.pending[req_id] = [round(float(x), 4) for x in logits[index]]
++        if len(self.pending) > 4 * max(len(model_runner_output.req_ids), 64):
++            live = set(model_runner_output.req_ids)
++            self.pending = {k: v for k, v in self.pending.items() if k in live}
+diff --git a/workspace/vllm/vllm/v1/outputs.py b/workspace/vllm/vllm/v1/outputs.py
+index 9839bcf..e6509ae 100644
+--- a/workspace/vllm/vllm/v1/outputs.py
++++ b/workspace/vllm/vllm/v1/outputs.py
+@@ -285,6 +285,13 @@ class ModelRunnerOutput:
+     # of the drafts proposed in this step, rows in ``req_ids`` order. ``None``
+     # unless VLLM_DSPARK_VERIFY_SCHED=1 and the drafter has a confidence head.
+     spec_survival: np.ndarray | None = None
++    # [num_reqs, num_spec_tokens] raw confidence-head logits of the same
++    # drafts, only with VLLM_DSPARK_CONF_DUMP set (calibration data).
++    spec_conf_logits: np.ndarray | None = None
++    # [num_reqs] draft tokens each request verified in this step when the
++    # paper scheduler (VLLM_DSPARK_VERIFY_MODE=paper) picked them on the GPU;
++    # the scheduler only knows it scheduled num_spec_tokens placeholders.
++    spec_verify_lens: np.ndarray | None = None
+ 
+     @staticmethod
+     def with_kv_conn_output_only(
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/async_utils.py b/workspace/vllm/vllm/v1/worker/gpu/async_utils.py
+index d96f344..6fec0af 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/async_utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/async_utils.py
+@@ -26,8 +26,10 @@ class AsyncOutput(AsyncModelRunnerOutput):
+         self.num_sampled_tokens = num_sampled_tokens
+         # Blocking (sleep) event to avoid busy-polling the CUDA driver lock.
+         self.copy_event = torch.cuda.Event(blocking=True)
+-        self.spec_survival: torch.Tensor | None = None
+-        self.spec_survival_event: torch.cuda.Event | None = None
++        # DSpark confidence-scheduled verification: per-request arrays copied
++        # to the host after the draft step, (ModelRunnerOutput field, GPU
++        # tensor kept alive for the copy, host copy, event).
++        self.spec_arrays: list[tuple[str, torch.Tensor, np.ndarray, torch.cuda.Event]] = []
+ 
+         with stream(copy_stream, main_stream):
+             copy_stream.wait_stream(main_stream)
+@@ -48,21 +50,31 @@ class AsyncOutput(AsyncModelRunnerOutput):
+             }
+             self.copy_event.record(copy_stream)
+ 
+-    def attach_spec_survival(
++    def attach_spec_array(
+         self,
+-        survival: torch.Tensor,
++        field: str,
++        values: torch.Tensor,
+         main_stream: torch.cuda.Stream,
+         copy_stream: torch.cuda.Stream,
+     ) -> None:
+-        """Copy the drafts' prefix survival (DSpark confidence head) to the
+-        host after the draft step; the scheduler sets per-request verification
+-        lengths from it."""
+-        self.spec_survival = survival
+-        self.spec_survival_event = torch.cuda.Event(blocking=True)
++        """Copy a per-request array of the DSpark confidence-scheduled
++        verification (the drafts' prefix survival, raw confidence logits, the
++        lengths verified this step) to the host after the draft step; it
++        reaches the scheduler as ``ModelRunnerOutput.<field>``."""
++        event = torch.cuda.Event(blocking=True)
+         with stream(copy_stream, main_stream):
+             copy_stream.wait_stream(main_stream)
+-            self.spec_survival_np = async_copy_to_np(survival)
+-            self.spec_survival_event.record(copy_stream)
++            host = async_copy_to_np(values)
++            event.record(copy_stream)
++        self.spec_arrays.append((field, values, host, event))
++
++    def attach_spec_survival(
++        self,
++        survival: torch.Tensor,
++        main_stream: torch.cuda.Stream,
++        copy_stream: torch.cuda.Stream,
++    ) -> None:
++        self.attach_spec_array("spec_survival", survival, main_stream, copy_stream)
+ 
+     def get_output(self) -> ModelRunnerOutput:
+         self.copy_event.synchronize()
+@@ -85,9 +97,9 @@ class AsyncOutput(AsyncModelRunnerOutput):
+         if self.logprobs_tensors is not None:
+             self.model_runner_output.logprobs = self.logprobs_tensors.tolists()
+         self.model_runner_output.prompt_logprobs_dict = self.prompt_logprobs_dict
+-        if self.spec_survival_event is not None:
+-            self.spec_survival_event.synchronize()
+-            self.model_runner_output.spec_survival = self.spec_survival_np
++        for field, _, host, event in self.spec_arrays:
++            event.synchronize()
++            setattr(self.model_runner_output, field, host)
+         return self.model_runner_output
+ 
+ 
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/cudagraph_utils.py b/workspace/vllm/vllm/v1/worker/gpu/cudagraph_utils.py
+index 79df31a..51617bf 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/cudagraph_utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/cudagraph_utils.py
+@@ -95,6 +95,20 @@ def _is_compatible(
+ 
+ 
+ 
++# uniform_token_count of a decode step whose requests verify different numbers
++# of drafts (DSpark paper scheduler): only the token total is known on the CPU.
++DSPARK_VARLEN_DECODE = -1
++
++
++def dspark_paper_mode() -> bool:
++    """DSpark confidence-scheduled verification as deployed in the paper
++    (VLLM_DSPARK_VERIFY_SCHED=1, VLLM_DSPARK_VERIFY_MODE=paper)."""
++    return (
++        os.environ.get("VLLM_DSPARK_VERIFY_SCHED", "0") == "1"
++        and os.environ.get("VLLM_DSPARK_VERIFY_MODE", "greedy") == "paper"
++    )
++
++
+ def dspark_verify_lengths(max_length: int) -> list[int]:
+     """Verification lengths the uniform DSpark scheduler may pick
+     (VLLM_DSPARK_VERIFY_LENGTHS, comma separated; default 0..max_length)."""
+@@ -258,6 +272,21 @@ class CudaGraphManager:
+         else:
+             decode_query_lens = [self.decode_query_len]
+ 
++        # DSpark paper scheduler: decode steps verify a different number of
++        # drafts per request, with a token total the scheduler sets. Capture
++        # FULL graphs per token count for them (FlashAttention 3 replays full
++        # graphs for any split of the tokens); steps with prefill stay on the
++        # mixed (piecewise) graphs. The drafter's own manager (query length
++        # k, no sampled token) always runs the full block.
++        varlen_decode = (
++            dspark_paper_mode()
++            and speculative_config is not None
++            and speculative_config.use_dspark()
++            and self.decode_query_len > self.vllm_config.num_speculative_tokens
++            and separate_decode_routine
++            and decode_mode == CUDAGraphMode.FULL
++        )
++
+         for num_tokens, num_active_loras in product(
+             capture_sizes, self.lora_capture_cases
+         ):
+@@ -290,6 +319,17 @@ class CudaGraphManager:
+                             (rounded_num_tokens, num_active_loras)
+                         ].append(desc)
+ 
++            if varlen_decode and num_tokens <= max_decode_tokens:
++                desc = BatchExecutionDescriptor(
++                    cg_mode=CUDAGraphMode.FULL,
++                    num_tokens=num_tokens,
++                    num_reqs=min(num_tokens, self.max_num_reqs),
++                    uniform_token_count=DSPARK_VARLEN_DECODE,
++                    num_active_loras=num_active_loras,
++                )
++                descs_by_mode[CUDAGraphMode.FULL].append(desc)
++                descs_by_token_lora[(num_tokens, num_active_loras)].append(desc)
++
+             if mixed_mode:
+                 # for PIECEWISE graphs there is no limit on requests when replaying
+                 # i.e. no request padding is needed
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/input_batch.py b/workspace/vllm/vllm/v1/worker/gpu/input_batch.py
+index 64c1096..f9e0c37 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/input_batch.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/input_batch.py
+@@ -99,6 +99,10 @@ class InputBatch:
+     # [num_reqs] per-request prompt length, only populated for R-SWA.
+     prompt_lens: torch.Tensor | None
+ 
++    # [num_reqs] draft tokens verified per request when the DSpark paper
++    # scheduler picked them on the GPU (VLLM_DSPARK_VERIFY_MODE=paper).
++    spec_verify_lens: torch.Tensor | None = None
++
+     @classmethod
+     def make_dummy(
+         cls,
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+index 8b48e8e..ae81f0b 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+@@ -19,6 +19,8 @@ instead of embedding feature-specific logic directly.
+ 
+ import functools
+ import gc
++import json
++import os
+ import time
+ from copy import deepcopy
+ from typing import Any, NamedTuple
+@@ -66,8 +68,10 @@ from vllm.v1.worker.gpu.buffer_utils import (
+ )
+ from vllm.v1.worker.gpu.cp_utils import prepare_dcp_local_seq_lens
+ from vllm.v1.worker.gpu.cudagraph_utils import (
++    DSPARK_VARLEN_DECODE,
+     BatchExecutionDescriptor,
+     ModelCudaGraphManager,
++    dspark_paper_mode,
+     get_uniform_token_count,
+ )
+ from vllm.v1.worker.gpu.dp_utils import dispatch_cg_and_sync_dp
+@@ -205,6 +209,29 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         # Draft tokens propagation - for spec-dec + struct outputs.
+         self.draft_tokens_handler = DraftTokensHandler(self.device)
+ 
++        # DSpark paper scheduler (VLLM_DSPARK_VERIFY_MODE=paper, DSpark
++        # section 5.2): the scheduler sets the step's verification budget K
++        # from older confidences; here the K pending drafts with the highest
++        # current prefix survival are verified. Survival of each request's
++        # pending drafts, by request state index.
++        self.dspark_paper = (
++            self.speculative_config is not None
++            and self.speculative_config.use_dspark()
++            and dspark_paper_mode()
++        )
++        self.dspark_req_survival: torch.Tensor | None = None
++        if self.dspark_paper:
++            self.dspark_req_survival = torch.ones(
++                self.max_num_reqs,
++                self.num_speculative_steps,
++                dtype=torch.float32,
++                device=self.device,
++            )
++        # (K, tokens in the step) of the step being prepared, from execute_model.
++        self._dspark_verify_plan: tuple[int, int] | None = None
++        # Calibration data for STS: raw confidence logits to the scheduler.
++        self.dspark_conf_dump = bool(os.environ.get("VLLM_DSPARK_CONF_DUMP"))
++
+         # Pooling models.
+         self.is_pooling_model = self.model_config.runner_type == "pooling"
+         self.pooling_runner: PoolingRunner | None = None
+@@ -715,6 +742,9 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             if self.speculator is not None:
+                 self.speculator.capture(attn_states)
+ 
++        if self.dspark_paper:
++            self._profile_dspark_verify()
++
+         end_time = time.perf_counter()
+         end_free_gpu_memory = torch.accelerator.get_memory_info()[0]
+         elapsed_time = end_time - start_time
+@@ -842,6 +872,9 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         self, scheduler_output: SchedulerOutput, batch_desc: BatchExecutionDescriptor
+     ) -> InputBatch:
+         num_tokens = scheduler_output.total_num_scheduled_tokens
++        verify_plan, self._dspark_verify_plan = self._dspark_verify_plan, None
++        if verify_plan is not None:
++            num_tokens = verify_plan[1]
+         num_tokens_after_padding = batch_desc.num_tokens
+         assert num_tokens > 0
+         if envs.VLLM_MOE_SKIP_PADDING:
+@@ -867,7 +900,52 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         # Get the number of draft tokens for each request.
+         draft_tokens = scheduler_output.scheduled_spec_decode_tokens
+         num_draft_tokens_per_req = None
+-        if not draft_tokens:
++        spec_verify_lens = None
++        num_scheduled_tokens_gpu = None
++        if draft_tokens and verify_plan is not None:
++            # DSpark paper scheduler: every decode request was scheduled with
++            # all its draft placeholders; verify the K drafts with the highest
++            # current prefix survival. The per-request split is only known on
++            # the GPU, so the CPU arrays below stay upper bounds (FlashAttention
++            # reads query_start_loc from the GPU; logprobs and structured
++            # outputs are not supported in this mode).
++            num_draft_tokens_per_req = np.fromiter(
++                (len(draft_tokens.get(req_id, ())) for req_id in req_ids),
++                dtype=np.int32,
++                count=num_reqs,
++            )
++            num_bonus_tokens = self.model_state.num_new_sampled_tokens_per_step
++            total_num_draft_tokens = verify_plan[0]
++            total_num_logits = num_reqs * num_bonus_tokens + total_num_draft_tokens
++            spec_verify_lens = self._dspark_select_drafts(
++                idx_mapping, num_draft_tokens_per_req, total_num_draft_tokens
++            )
++            cu_num_logits = torch.zeros(
++                num_reqs + 1, dtype=torch.int32, device=self.device
++            )
++            torch.cumsum(
++                spec_verify_lens + num_bonus_tokens,
++                dim=0,
++                dtype=torch.int32,
++                out=cu_num_logits[1:],
++            )
++            cu_num_logits_np = np.empty(num_reqs + 1, dtype=np.int32)
++            cu_num_logits_np[0] = 0
++            np.cumsum(
++                num_draft_tokens_per_req + num_bonus_tokens, out=cu_num_logits_np[1:]
++            )
++            max_expand_len = self.decode_query_len
++            expanded_idx_mapping, expanded_local_pos = expand_idx_mapping(
++                idx_mapping, total_num_logits, cu_num_logits, max_expand_len
++            )
++            num_scheduled_tokens_gpu = (
++                async_copy_to_gpu(
++                    num_scheduled_tokens - num_draft_tokens_per_req,
++                    device=self.device,
++                )
++                + spec_verify_lens
++            )
++        elif not draft_tokens:
+             # No draft token scheduled (common case).
+             total_num_draft_tokens = 0
+             total_num_logits = num_reqs
+@@ -908,7 +986,22 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         # Pad for full CUDA graph mode.
+         # Some attention backends like FA3 require query_start_loc to be non-decreasing.
+         query_start_loc_np[num_reqs + 1 :] = num_tokens
+-        async_copy_to_gpu(query_start_loc_np, out=self.input_buffers.query_start_loc)
++        if num_scheduled_tokens_gpu is None:
++            async_copy_to_gpu(
++                query_start_loc_np, out=self.input_buffers.query_start_loc
++            )
++        else:
++            # Verified lengths are chosen on the GPU: build query_start_loc
++            # there; the CPU copy holds the scheduled upper bounds.
++            gpu_query_start_loc = self.input_buffers.query_start_loc
++            gpu_query_start_loc[:1].zero_()
++            torch.cumsum(
++                num_scheduled_tokens_gpu,
++                dim=0,
++                dtype=torch.int32,
++                out=gpu_query_start_loc[1 : num_reqs + 1],
++            )
++            gpu_query_start_loc[num_reqs + 1 :].fill_(num_tokens)
+         query_start_loc_np = query_start_loc_np[: num_reqs_padded + 1]
+         query_start_loc = self.input_buffers.query_start_loc[: num_reqs_padded + 1]
+         prefill_len_np = self.req_states.prefill_len.np[idx_mapping_np]
+@@ -1017,6 +1110,176 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             cu_num_logits_np=cu_num_logits_np,
+             has_structured_output_reqs=scheduler_output.has_structured_output_requests,
+             prompt_lens=prompt_lens,
++            spec_verify_lens=spec_verify_lens,
++        )
++
++    def _dspark_select_drafts(
++        self,
++        idx_mapping: torch.Tensor,
++        num_draft_tokens_per_req: np.ndarray,
++        budget: int,
++    ) -> torch.Tensor:
++        """Number of drafts each request verifies: the ``budget`` drafts with
++        the highest prefix survival over the batch (a dynamic top-K, DSpark
++        section 5.2). Survival does not increase along a draft, so the K
++        highest form a prefix of each request's draft; counting them per
++        request gives that prefix even when scores tie. No host sync."""
++        assert self.dspark_req_survival is not None
++        num_reqs = idx_mapping.shape[0]
++        num_drafts = async_copy_to_gpu(num_draft_tokens_per_req, device=self.device)
++        if budget >= int(num_draft_tokens_per_req.sum()):
++            return num_drafts
++        if budget <= 0:
++            return torch.zeros_like(num_drafts)
++        num_steps = self.num_speculative_steps
++        survival = self.dspark_req_survival[idx_mapping]
++        cols = torch.arange(num_steps, device=self.device, dtype=torch.int32)
++        # Slots without a scheduled draft (trimmed near max_tokens) never win.
++        scores = torch.where(cols[None, :] < num_drafts[:, None], survival, -1.0)
++        top = torch.topk(scores.view(-1), budget, sorted=False).indices
++        lens = torch.zeros(num_reqs, dtype=torch.int32, device=self.device)
++        lens.scatter_add_(
++            0, top // num_steps, torch.ones_like(top, dtype=torch.int32)
++        )
++        return lens
++
++    def _dspark_plan_step(
++        self, scheduler_output: SchedulerOutput
++    ) -> tuple[int, int] | None:
++        """(drafts to verify, tokens in the step) when the paper scheduler set
++        a budget for this step, else None."""
++        budget = scheduler_output.spec_verify_budget
++        spec = scheduler_output.scheduled_spec_decode_tokens
++        if budget is None or not spec:
++            return None
++        num_drafts = sum(len(tokens) for tokens in spec.values())
++        budget = min(max(budget, 0), num_drafts)
++        return budget, scheduler_output.total_num_scheduled_tokens - num_drafts + budget
++
++    @torch.inference_mode()
++    def _profile_dspark_verify(self) -> None:
++        """Profile the paper scheduler's cost table once at engine start
++        (DSpark section 3.2.2: "profiled once during engine initialization and
++        stored as a lightweight cost table"), written to
++        VLLM_DSPARK_VERIFY_PROFILE for the scheduler unless that file exists.
++
++        ``verify_ms[B]``: target forward plus logits and greedy sampling over a
++        decode batch of B tokens (the graph the step replays). ``draft_ms[R]``:
++        the DSpark draft step for R requests, which drafts all slots whatever
++        is verified. The scheduler takes SPS(B) = 1 / (verify_ms(B) +
++        draft_ms(R)) for the step's R requests. Dummy batches have short
++        contexts, as the paper assumes context length is marginal."""
++        path = os.environ.get("VLLM_DSPARK_VERIFY_PROFILE")
++        if not path or os.path.exists(path):
++            return
++        if self.speculator is None or not self.is_last_pp_rank:
++            return
++        repeats = int(os.environ.get("VLLM_DSPARK_PROFILE_REPEATS", "20"))
++        capture_sizes = sorted(self.compilation_config.cudagraph_capture_sizes or [])
++        max_capture = capture_sizes[-1] if capture_sizes else 0
++        max_decode = min(
++            self.max_num_reqs * self.decode_query_len, self.max_num_tokens
++        )
++        verify_sizes = sorted(
++            {size for size in capture_sizes if size <= max_decode}
++            | set(range(max_capture + 64, max_decode + 1, 64))
++            | {max_decode}
++        )
++        draft_sizes = sorted(
++            {size for size in capture_sizes if size <= self.max_num_reqs}
++            | {1, self.max_num_reqs}
++        )
++
++        def timed(fn) -> float:
++            for _ in range(3):
++                fn()
++            torch.accelerator.synchronize()
++            started = time.perf_counter()
++            for _ in range(repeats):
++                fn()
++            torch.accelerator.synchronize()
++            return (time.perf_counter() - started) * 1000.0 / repeats
++
++        def dummy_output(num_tokens: int, num_reqs: int) -> SchedulerOutput:
++            per_req = [num_tokens // num_reqs] * num_reqs
++            per_req[-1] += num_tokens % num_reqs
++            output = SchedulerOutput.make_empty()
++            output.total_num_scheduled_tokens = num_tokens
++            output.num_scheduled_tokens = {
++                f"_dummy_req_{i}": n for i, n in enumerate(per_req)
++            }
++            # Marks a decode batch of uneven verification lengths for dispatch.
++            output.spec_verify_budget = 0
++            return output
++
++        self.kv_connector.set_disabled(True)
++        verify_ms = []
++        for num_tokens in verify_sizes:
++            output = dummy_output(num_tokens, min(num_tokens, self.max_num_reqs))
++
++            def verify_step() -> None:
++                self.execute_model(output, dummy_run=True)
++                state = self.execute_model_state
++                self.execute_model_state = None
++                assert state is not None and state.hidden_states is not None
++                logits = self.model.compute_logits(state.hidden_states[:num_tokens])
++                logits.argmax(dim=-1)
++
++            verify_ms.append(timed(verify_step))
++
++        draft_ms = []
++        for num_reqs in draft_sizes:
++            output = dummy_output(num_reqs * self.decode_query_len, num_reqs)
++            output.spec_verify_budget = None
++            self.execute_model(output, dummy_run=True)
++            state = self.execute_model_state
++            self.execute_model_state = None
++            assert state is not None and self.sampler is not None
++
++            def draft_step() -> None:
++                self.speculator.propose(  # type: ignore[union-attr]
++                    input_batch=state.input_batch,
++                    attn_metadata=state.attn_metadata,
++                    slot_mappings=state.slot_mappings_by_layer,
++                    last_hidden_states=state.hidden_states,
++                    aux_hidden_states=state.aux_hidden_states,
++                    num_sampled=torch.ones(
++                        num_reqs, dtype=torch.int32, device=self.device
++                    ),
++                    num_rejected=torch.zeros(
++                        num_reqs, dtype=torch.int32, device=self.device
++                    ),
++                    last_sampled=self.req_states.last_sampled_tokens,
++                    next_prefill_tokens=self.req_states.next_prefill_tokens,
++                    temperature=self.sampler.sampling_states.temperature.gpu,
++                    seeds=self.sampler.sampling_states.seeds.gpu,
++                    dummy_run=True,
++                )
++
++            draft_ms.append(timed(draft_step))
++        self.kv_connector.set_disabled(False)
++
++        table = {
++            "verify_tokens": verify_sizes,
++            "verify_ms": [round(ms, 4) for ms in verify_ms],
++            "draft_reqs": draft_sizes,
++            "draft_ms": [round(ms, 4) for ms in draft_ms],
++            "max_cudagraph_capture_size": max_capture,
++            "num_speculative_tokens": self.num_speculative_steps,
++            "repeats": repeats,
++            "gpu": torch.cuda.get_device_name(self.device),
++            "measured_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
++        }
++        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
++        with open(path + ".tmp", "w") as handle:
++            json.dump(table, handle, indent=1)
++        os.replace(path + ".tmp", path)
++        logger.info(
++            "DSpark verification cost table (%d verify sizes, %d draft sizes) "
++            "written to %s",
++            len(verify_sizes),
++            len(draft_sizes),
++            path,
+         )
+ 
+     def prepare_attn(
+@@ -1138,6 +1401,21 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         num_toks = scheduler_output.total_num_scheduled_tokens
+         max_query_len = max(scheduler_output.num_scheduled_tokens.values())
+         uniform_tok_count = get_uniform_token_count(num_reqs, num_toks, max_query_len)
++        if self.dspark_paper and scheduler_output.spec_verify_budget is not None:
++            if dummy_run:
++                # Cost-table profiling: run the decode graph a real step uses.
++                uniform_tok_count = DSPARK_VARLEN_DECODE
++            else:
++                self._dspark_verify_plan = self._dspark_plan_step(scheduler_output)
++                if self._dspark_verify_plan is not None:
++                    num_toks = self._dspark_verify_plan[1]
++                    # Decode-only steps (every request verifies drafts) have
++                    # uneven query lengths but a known total: full graphs
++                    # captured per token count; steps with prefill stay mixed.
++                    spec = scheduler_output.scheduled_spec_decode_tokens
++                    uniform_tok_count = (
++                        DSPARK_VARLEN_DECODE if len(spec) == num_reqs else None
++                    )
+ 
+         num_active_loras = 0
+         if self.lora_config:
+@@ -1483,10 +1761,30 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             if spec_survival is not None:
+                 survival = spec_survival(input_batch.num_reqs)
+                 if survival is not None:
++                    if self.dspark_req_survival is not None:
++                        # The next step's top-K reads it by request state.
++                        self.dspark_req_survival[input_batch.idx_mapping] = survival
+                     # Cloned: the next draft step overwrites the buffer.
+                     async_output.attach_spec_survival(
+                         survival.clone(), self.main_stream, self.output_copy_stream
+                     )
++                    if self.dspark_conf_dump:
++                        logits = self.speculator.spec_conf_logits(  # type: ignore[attr-defined]
++                            input_batch.num_reqs
++                        )
++                        async_output.attach_spec_array(
++                            "spec_conf_logits",
++                            logits.clone(),
++                            self.main_stream,
++                            self.output_copy_stream,
++                        )
++            if input_batch.spec_verify_lens is not None:
++                async_output.attach_spec_array(
++                    "spec_verify_lens",
++                    input_batch.spec_verify_lens,
++                    self.main_stream,
++                    self.output_copy_stream,
++                )
+ 
+         if self.num_speculative_steps > 0:
+             # Spec-decode and diffusion LLMs both use draft tokens but the latter does
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+index 2f48c8c..4b01e6a 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+@@ -23,6 +23,7 @@ CUDA graphs (FULL, mirroring DFlash) cover the whole draft step: the parallel
+ backbone forward AND the sequential Markov sampling.
+ """
+ 
++import json
+ import os
+ from typing import Any
+ 
+@@ -83,6 +84,13 @@ class DSparkSpeculator(DFlashSpeculator):
+             device=device,
+         )
+         self.draft_survival = torch.ones_like(self.draft_confidence)
++        # Raw head logits, and the inverse Sequential Temperature Scaling
++        # temperature per slot (DSpark section 3.2.1; VLLM_DSPARK_STS, a JSON
++        # file with "temperatures", one per slot; 1 = the head as trained).
++        self.draft_conf_logits = torch.zeros_like(self.draft_confidence)
++        self.conf_inv_temperature = torch.ones(
++            self.num_speculative_steps, dtype=torch.float32, device=device
++        )
+ 
+         # Reduced-vocab probabilistic drafting only; set in load_draft_model.
+         self._d2t_scatter_index: torch.Tensor | None = None
+@@ -100,6 +108,21 @@ class DSparkSpeculator(DFlashSpeculator):
+                 "VLLM_DSPARK_VERIFY_SCHED=1 needs a DSpark checkpoint with "
+                 "enable_confidence_head"
+             )
++        sts_path = os.environ.get("VLLM_DSPARK_STS")
++        if self._use_confidence and sts_path:
++            with open(sts_path) as handle:
++                temperatures = json.load(handle)["temperatures"]
++            if len(temperatures) < self.num_speculative_steps:
++                raise ValueError(
++                    f"{sts_path} calibrates {len(temperatures)} slots, the "
++                    f"drafter proposes {self.num_speculative_steps}"
++                )
++            self.conf_inv_temperature.copy_(
++                1.0
++                / torch.tensor(
++                    temperatures[: self.num_speculative_steps], dtype=torch.float32
++                )
++            )
+         # Reduced draft vocab: probabilistic rejection sampling indexes draft
+         # logits by target id, so precompute the draft->target column map and a
+         # scratch buffer to scatter logits into target vocab before sampling.
+@@ -143,7 +166,7 @@ class DSparkSpeculator(DFlashSpeculator):
+             markov_embed = self.model.markov_embed(prev)
+             bias = self.model.markov_bias(markov_embed)
+             if self._use_confidence:
+-                self.draft_confidence[:num_reqs, i] = self.model.confidence(
++                self.draft_conf_logits[:num_reqs, i] = self.model.confidence_logit(
+                     slot_hidden[:, i], markov_embed
+                 )
+             logits_i = base_logits[:, i] + bias
+@@ -175,6 +198,12 @@ class DSparkSpeculator(DFlashSpeculator):
+             self.draft_tokens[:num_reqs, i] = draft_sampled_i
+             prev = draft_sampled_i
+         if self._use_confidence:
++            # Calibrated per-slot probabilities (STS: sigmoid(logit / T_j)),
++            # then their running product, the prefix survival.
++            torch.sigmoid(
++                self.draft_conf_logits[:num_reqs] * self.conf_inv_temperature,
++                out=self.draft_confidence[:num_reqs],
++            )
+             torch.cumprod(
+                 self.draft_confidence[:num_reqs],
+                 dim=1,
+@@ -187,6 +216,12 @@ class DSparkSpeculator(DFlashSpeculator):
+             return None
+         return self.draft_survival[:num_reqs]
+ 
++    def spec_conf_logits(self, num_reqs: int) -> torch.Tensor | None:
++        """Raw confidence-head logits of the drafts just proposed."""
++        if not self._use_confidence:
++            return None
++        return self.draft_conf_logits[:num_reqs]
++
+     def _generate_draft(
+         self,
+         num_reqs: int,
