@@ -15,7 +15,7 @@ checkpoints; rerun the draft-length grid when EAGLE reaches its final epoch.
 | canvas item | result |
 | --- | --- |
 | system-level tricks on the current checkpoints | **Draft length is the big lever.** DSpark e10 at k=3 instead of 7: summarization never below plain (1.01-1.06x at C>=128 instead of 0.89x), chat at 0.93-1.00x instead of 0.74x, at the cost of ~10% at C=1. EAGLE e1 is best at k=3 at low load and k=1 under load (1.02x at C=256). On the in-distribution held-out prompts acceptance is higher and the best lengths are longer: DSpark k=5 (3.07x at C=1, 1.18-1.33x at C>=128), EAGLE e3 k=4. |
-| DSpark scheduler on GH200 | Ported to vLLM (the checkpoints carry the trained confidence head; vLLM ignored it). The head is informative (~25% more accepted tokens per verified slot than fixed lengths), but on vLLM the scheduler **does not beat a fixed k=3**: variable lengths break vLLM's CUDA-graph shapes (fixed by capturing graphs per length), async scheduling makes the confidences one step stale, and DSpark drafts all 7 slots whatever is verified. Bottlenecks and proposed fixes below. |
+| DSpark scheduler on GH200 | Ported to vLLM twice. The first port (per-request lengths on the CPU, online cost fit, raw head) does not beat a fixed k=3 on summarization/chat: variable lengths broke vLLM's CUDA-graph shapes, confidences were one step stale, DSpark drafts all 7 slots. The second follows the paper (STS-calibrated head, Algorithm 1 with the section 5.2 lagged budget and top-K on the GPU, cost table profiled at engine start, full graphs for uneven decode steps). On the held-out prompts it tracks the better of k=7 and k=5 at every load (3.38x at C=1, 1.17x at C=256) but does not beat the best fixed length at any load; the remaining cost is drafting all 7 slots under load. |
 | one GPU / several GPUs / disaggregation | For throughput, four data-parallel engines per node (3.95x one GPU; speculation keeps its single-GPU pattern). For latency, TP4 + DSpark (C=4: 2.35x DP4 plain, 2.5 ms TPOT) but it saturates at 0.59x. Prefill/decode disaggregation on one node does not pay for an 8B target: 1P+1D is prefill-bound (0.54-0.74x of DP2), 3P+1D overflows the decode GPU's KV (0.11-0.16x of DP4 from C=256). |
 | tune top-k | Sampling at Apertus' T 0.7 / top-p 0.8 costs ~2% acceptance against greedy; top-k 20 vs none makes no measurable difference next to top-p 0.8. The speedups follow the greedy ones. |
 | sparsify the drafter KV cache | DSpark's drafter KV is already a 2048-token window. Shrinking the window loses more acceptance than the extra requests it fits. Removing vLLM's layer-group padding (patch) gives +8% KV capacity (139 vs 129 requests at C=256), throughput unchanged. |
@@ -300,6 +300,84 @@ from C=8 on. Why, and what would fix it:
   fixed load. Fix: profile `f` with long contexts and the drafter in the
   loop instead of fitting online.
 
+### The scheduler as the paper deploys it
+
+The port above departs from the paper in its cost model, its use of stale
+per-request lengths and the uncalibrated head. A second patch
+(`serving/patches/vllm-apertus-dspark-paper-scheduler.patch`, applied after
+the first; `VLLM_DSPARK_VERIFY_MODE=paper`) follows the paper instead:
+
+- **Calibrated head (STS, section 3.2.1).** One temperature per slot,
+  `c_j = sigmoid(z_j / T_j)`, fitted left to right by grid search to minimise
+  the ECE (20 bins, as in DeepSpec's evaluation) of the running product
+  against the observed prefix survival (`methods/dspark/scheduler/fit_sts.py`).
+  Data: DSpark e10 at k=7 verifying everything with the head loaded, on 512
+  held-out prompts disjoint from the 128 test prompts
+  (`workloads/8b/opb-calib.jsonl`, `tools/make-opb-workload.py --offset 48
+  --exclude opb-heldout.jsonl`), 298k verifications (`paper-calib`, job
+  3669651). The trained head is already close: ECE 1.0-2.4% per slot, later
+  slots underconfident; STS (T = 1.04, 0.97, 1.00, 0.89, 0.85, 0.87, 0.83;
+  `methods/dspark/scheduler/sts-dspark-e10-8b.json`) brings it to 0.7-2.3%,
+  ~1% from slot 4 on, as the paper reports.
+- **Algorithm 1 with the section 5.2 adaptations.** The scheduler sets the
+  step's batch capacity K from the newest survival it has (two steps old
+  under async scheduling) by a global search over the greedy admission path,
+  `Theta = tau * SPS(B)`, `B = R + K`, decode tokens only, no early stop.
+  Every decode request is scheduled with all its draft placeholders, and the
+  worker verifies the K drafts with the highest *current* survival: a top-K
+  on the GPU, with per-request query lengths, `query_start_loc` and the
+  rejection sampler's offsets built there (no host sync).
+- **Cost table profiled once at engine start (section 3.2.2).** Target
+  forward with logits over B tokens (the graph a decode step replays) plus
+  the draft step for the step's R requests, which drafts all 7 slots whatever
+  is verified. On GH200: verify 5.7 ms up to 32 tokens, 7.8 ms at 128, 19.6
+  ms at 512, then a cliff to 27.3 ms at 576 where full CUDA graphs end (the
+  "jagged" capacity curve of section 5.2); draft step 1.9 ms for one request,
+  9.2 ms at 128, 17.1 ms at 256.
+- **CUDA graphs.** Decode-only steps of uneven lengths replay FULL graphs
+  captured per token count (FlashAttention 3 replays them for any split);
+  steps with prefill stay piecewise. The extra graphs take 4.8 instead of
+  1.1 GiB.
+
+Drafts verified per request (scheduler log, both jobs): 7.0 at C=1, 5.9 at
+C=8, 4.5 at C=32, 3.6 at C=64, 3.0-3.3 at C>=128.
+
+**Result** (`paper-eval-a`/`-b`, jobs 3669829 / 3669831, the 128 held-out
+test prompts, arms on swapped GPUs between the two jobs, means of both;
+output tok/s vs plain in the same job):
+
+| C | DSpark k=7 | DSpark k=5 | paper scheduler | vs k=7 | vs k=5 | k=7, job b vs a |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 3.43x | 3.06x | 3.38x | -1.5% | +10.3% | +0.0% |
+| 8 | 2.98x | 2.72x | 2.93x | -1.5% | +7.6% | +1.4% |
+| 32 | 2.15x | 2.05x | 2.14x | -0.6% | +4.2% | +4.6% |
+| 64 | 1.59x | 1.63x | 1.60x | +1.0% | -1.8% | +3.8% |
+| 128 | 1.28x | 1.32x | 1.30x | +1.7% | -2.0% | +5.6% |
+| 256 | 1.13x | 1.17x | 1.17x | +3.5% | -0.6% | +6.5% |
+
+Accepted tokens per step: 4.8 (k=7) and 4.2 (k=5) at every load; the
+scheduler 4.8 / 4.7 / 4.4 / 4.3 / 3.6 / 3.8 from C=1 to 256.
+
+- The paper's scheduler follows the better of the two fixed lengths at every
+  load: k=7's single-stream speed (within 1.5%) and k=5's throughput under
+  load (within 2%). As one setting for all loads it is the best tested here:
+  never more than 2% below either, 10% above k=5 at C=1 and 3.5% above k=7
+  at C=256.
+- It does not beat the best fixed length at any one load. The differences to
+  the better arm (-1.5% to +1.0%) are below the spread between identical arms
+  on different GPUs (up to 6.5%, last column).
+- At C>=128 the grid's k=3 and k=4 reached 1.34-1.36x and 1.20-1.22x
+  (separate jobs), ~4% above the scheduler. The scheduler verifies ~3 drafts
+  per request there but, as in the paper, drafts all 7: at 256 requests the
+  draft step alone is 17 ms against 64 ms for verifying 2,048 tokens, a cost
+  k=3 does not pay.
+
+With the first port and this one the conclusion holds: on vLLM, at 8B, the
+scheduler buys load-independence (one setting matching the best fixed length
+within noise across C=1..256), not throughput beyond the best fixed length.
+The remaining gap is the 7-slot drafting under load; cutting the draft at
+the step's longest verified length is the next change (not in the paper).
+
 ## Sampling and top-k
 
 `sampling` (job 3619860), chat and summarization at T 0.7 / top-p 0.8 with
@@ -458,3 +536,5 @@ available.
 | `opb-check-20261009T113600Z` | 3622798 | Open-PerfectBlend held-out prompts: plain, DSpark k=7/3, EAGLE k=7 |
 | `eagle-e3-20261010T080528Z` | 3630557 | EAGLE epoch 3 vs epoch 1, DSpark e10, plain on held-out, chat, summarization |
 | `k-grid-opb-{a,b,c,d}-20261010T1454*Z` | 3632467, 3632468, 3632470, 3632471 | draft-length grid on the held-out prompts: DSpark e10 k=1/2/3, 4/5/7, EAGLE e3 k=1/2/3, 4/5/7, each with plain |
+| `paper-calib-20261015T145635Z` | 3669651 | paper scheduler: STS calibration data (k=7, head loaded), raw-head scheduler, k=7, plain on 512 calibration prompts |
+| `paper-eval-a-20261015T153126Z`, `paper-eval-b-20261015T153130Z` | 3669829, 3669831 | paper scheduler with STS vs DSpark k=7, k=5, plain on the held-out prompts, arms on swapped GPUs |
