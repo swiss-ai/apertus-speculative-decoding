@@ -19,7 +19,8 @@ set -euo pipefail
 cd "$1"
 git fetch -q ~/.sml/sync.bundle "+refs/heads/$2:refs/remotes/bundle/$2"
 aside="$(mktemp -d)"
-git diff --name-only --diff-filter=A HEAD "bundle/$2" | while read -r f; do
+# --no-renames: an added file identical to a deleted one is still an addition.
+git diff --no-renames --name-only --diff-filter=A HEAD "bundle/$2" | while read -r f; do
   if [ -e "$f" ]; then mkdir -p "${aside}/$(dirname "$f")"; mv "$f" "${aside}/$f"; fi
 done
 git merge -q --ff-only "bundle/$2"
