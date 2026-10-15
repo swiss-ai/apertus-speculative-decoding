@@ -37,7 +37,13 @@ trap 'podman system reset -f > /dev/null 2>&1 || true' EXIT
 podman build --network=host --platform linux/arm64 -t "${TAG}" "${CONTEXT}"
 # Write next to the target, then move: a running job may be reading the old one.
 rm -f "${OUT}.partial"
-enroot import -x mount -o "${OUT}.partial" "podman://${TAG}"
+# On Clariden enroot can exit non-zero in its podman cleanup after mksquashfs
+# has finished (job 3672013): keep the image if the squashfs is whole.
+if ! enroot import -x mount -o "${OUT}.partial" "podman://${TAG}"; then
+  echo "enroot import exited non-zero; checking the squashfs" >&2
+  unsquashfs -s "${OUT}.partial" > /dev/null
+  unsquashfs -l "${OUT}.partial" > /dev/null
+fi
 mv -f "${OUT}.partial" "${OUT}"
 ls -la "${OUT}"
 EOF
