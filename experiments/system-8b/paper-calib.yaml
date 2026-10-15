@@ -1,0 +1,41 @@
+# DSpark scheduler as the paper deploys it (serving/patches/
+# vllm-apertus-dspark-paper-scheduler.patch), step 1: calibration data for
+# Sequential Temperature Scaling and a first run of the scheduler with the raw
+# head. All on 512 Open-PerfectBlend held-out prompts disjoint from the test
+# prompts (workloads/8b/opb-calib.jsonl, tools/make-opb-workload.py --offset 48
+# --exclude opb-heldout.jsonl; cluster only).
+# - calib: DSpark k=7 verifying everything with the head loaded, writing the
+#   raw logits and accepted counts (fit with methods/dspark/scheduler/fit_sts.py);
+# - paper-raw: the paper scheduler, uncalibrated head, cost table profiled at
+#   engine start into the arm directory;
+# - fixed k=7 and plain as references.
+# Submit with SWEEP_PATCHES="serving/patches/vllm-apertus-dspark-confidence-verify.patch
+#   serving/patches/vllm-apertus-dspark-paper-scheduler.patch"
+name: paper-calib
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - label: calib
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-calib.jsonl
+    concurrencies: [64]
+    min_requests: 512
+    requests_per_slot: 1
+  - label: smoke
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-calib.jsonl
+    concurrencies: [1, 8, 64, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - name: dspark-e10-k7-calib
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_MODE: none, VLLM_DSPARK_CONF_DUMP: "{arm_dir}/conf-dump.jsonl"}
+  - name: dspark-e10-k7-paper-raw
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_MODE: paper, VLLM_DSPARK_VERIFY_PROFILE: "{arm_dir}/cost-table.json"}
