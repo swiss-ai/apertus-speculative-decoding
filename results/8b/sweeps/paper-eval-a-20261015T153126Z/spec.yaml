@@ -1,0 +1,27 @@
+# DSpark scheduler as the paper deploys it, step 2: evaluation on the 128
+# held-out test prompts of the draft-length grid (workloads/8b/opb-heldout.jsonl,
+# cluster only), against the best fixed draft lengths there (k=7 at low load,
+# k=5 as the best single setting) and the plain target, all in one job.
+# The scheduler arm uses the STS temperatures fitted on the disjoint
+# calibration prompts (paper-calib) and profiles its cost table at start.
+# Two jobs (paper-eval-a/b) with the arms in reverse order, so each runs on a
+# different GPU: within one job arms differed by up to ~5% at high load.
+# Submit with SWEEP_PATCHES="serving/patches/vllm-apertus-dspark-confidence-verify.patch
+#   serving/patches/vllm-apertus-dspark-paper-scheduler.patch"
+name: paper-eval-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - {name: dspark-e10-k5, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 5}
+  - name: dspark-e10-k7-paper
+    method: dspark
+    drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+    k: 7
+    env: {VLLM_DSPARK_VERIFY_SCHED: 1, VLLM_DSPARK_VERIFY_MODE: paper, VLLM_DSPARK_VERIFY_PROFILE: "{arm_dir}/cost-table.json", VLLM_DSPARK_STS: "{repo}/methods/dspark/scheduler/sts-dspark-e10-8b.json"}
