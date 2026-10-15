@@ -457,7 +457,7 @@ index f9ffd31..7db004b 100644
                  self.max_num_tokens,
                  self.max_model_len,
 diff --git a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
-index 4b01e6a..7467b7f 100644
+index 4b01e6a..efb1253 100644
 --- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
 +++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
 @@ -36,6 +36,18 @@ from vllm.v1.worker.gpu.spec_decode.dflash.speculator import DFlashSpeculator
@@ -502,7 +502,7 @@ index 4b01e6a..7467b7f 100644
          # Confidence-scheduled verification (VLLM_DSPARK_VERIFY_SCHED=1): the
          # confidence head's per-slot acceptance probabilities and their running
          # product (prefix survival), written inside the captured draft step.
-@@ -96,6 +124,42 @@ class DSparkSpeculator(DFlashSpeculator):
+@@ -96,6 +124,43 @@ class DSparkSpeculator(DFlashSpeculator):
          self._d2t_scatter_index: torch.Tensor | None = None
          self._draft_scatter_buf: torch.Tensor | None = None
  
@@ -520,7 +520,8 @@ index 4b01e6a..7467b7f 100644
 +        self.num_query_per_req = self._query_len(draft_len)
 +        self.sample_stride = draft_len
 +        self._anchor_idx = self._anchor_idx_by_len[draft_len]
-+        if self._cg_managers:
++        # Absent while init_cudagraph_manager is still creating them.
++        if draft_len in self._cg_managers:
 +            self.query_cudagraph_manager = self._cg_managers[draft_len]
 +
 +    def init_cudagraph_manager(self, cudagraph_mode: CUDAGraphMode) -> None:
@@ -545,7 +546,7 @@ index 4b01e6a..7467b7f 100644
      def load_draft_model(
          self,
          target_model: torch.nn.Module,
-@@ -143,7 +207,7 @@ class DSparkSpeculator(DFlashSpeculator):
+@@ -143,7 +208,7 @@ class DSparkSpeculator(DFlashSpeculator):
  
      def _sample_sequential(self, num_reqs: int, head_hidden: torch.Tensor) -> None:
          # Sequential Markov sampling over the backbone's output hidden states.
@@ -554,7 +555,7 @@ index 4b01e6a..7467b7f 100644
          num_sample = num_reqs * n_spec
          # Per-(req, position) head hidden, ordered (req, step).
          sample_hidden = head_hidden[self.sample_indices[:num_sample]]
-@@ -200,15 +264,27 @@ class DSparkSpeculator(DFlashSpeculator):
+@@ -200,15 +265,27 @@ class DSparkSpeculator(DFlashSpeculator):
          if self._use_confidence:
              # Calibrated per-slot probabilities (STS: sigmoid(logit / T_j)),
              # then their running product, the prefix survival.
