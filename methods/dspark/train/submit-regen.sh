@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Submit the 70B open-perfectblend regeneration on Clariden (login node only submits).
 #   MODE=prep  ./methods/dspark/train/submit-regen.sh   # side deps, dataset, shards, parts
-#   MODE=pilot [PILOT_TPS="4 2"] ./methods/dspark/train/submit-regen.sh   # throughput on one node
+#   MODE=pilot [TP=4] ./methods/dspark/train/submit-regen.sh   # throughput on one node
 #   MODE=parts [TP=4] REGEN_NODES=8 ./methods/dspark/train/submit-regen.sh
 # MODE=parts is an array with one node per part, at most REGEN_NODES at a time;
 # resubmitting resumes every unfinished part (PARTS=3,17 limits it to some).
@@ -63,13 +63,12 @@ case "${MODE}" in
     ;;
   pilot)
     LIMIT="${LIMIT:-6000}"
-    { header dspark-70b-regen-pilot 02:00:00 "${LOG_ROOT}/%j.out"
-      # A server that fails to start is retried once without custom all-reduce.
-      echo "for tp in ${PILOT_TPS:-4}; do"
-      echo "  pilot=\"LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl BUDGET_SECONDS=2700\""
-      echo "  env \$pilot TP=\$tp OUT=${DSPARK_DIR}/pilot/tp\$tp.jsonl ${RUN} bash methods/dspark/train/regen-part.sh \\"
-      echo "    || env \$pilot TP=\$tp OUT=${DSPARK_DIR}/pilot/tp\$tp-nocar.jsonl VLLM_EXTRA=--disable-custom-all-reduce ${RUN} bash methods/dspark/train/regen-part.sh || true"
-      echo "done"
+    { header dspark-70b-regen-pilot 02:30:00 "${LOG_ROOT}/%j.out"
+      # Until one starts: as configured, without custom all-reduce, eager.
+      echo "pilot=\"LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl BUDGET_SECONDS=2400 HEALTH_SECONDS=1500 TP=${TP}\""
+      echo "env \$pilot OUT=${DSPARK_DIR}/pilot/tp${TP}.jsonl ${RUN} bash methods/dspark/train/regen-part.sh \\"
+      echo "  || env \$pilot OUT=${DSPARK_DIR}/pilot/tp${TP}-nocar.jsonl VLLM_EXTRA=--disable-custom-all-reduce ${RUN} bash methods/dspark/train/regen-part.sh \\"
+      echo "  || env \$pilot OUT=${DSPARK_DIR}/pilot/tp${TP}-eager.jsonl VLLM_EXTRA=--enforce-eager ${RUN} bash methods/dspark/train/regen-part.sh || true"
     } > "${SCRIPT}"
     mkdir -p "${DSPARK_DIR}/pilot"
     ;;

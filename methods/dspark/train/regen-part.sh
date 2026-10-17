@@ -29,7 +29,7 @@ setsid vllm serve "${TARGET_MODEL}" --tensor-parallel-size "${TP}" --data-parall
   --port "${PORT}" ${VLLM_EXTRA:-} > "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" 2>&1 &
 server=$!
 trap 'stop_server ${server}' EXIT
-if ! wait_health "${PORT}" "${server}" 2400; then
+if ! wait_health "${PORT}" "${server}" "${HEALTH_SECONDS:-2400}"; then
   stamp "SERVER_FAILED"
   grep -E "Error|Traceback" "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" | tail -5
   exit 1

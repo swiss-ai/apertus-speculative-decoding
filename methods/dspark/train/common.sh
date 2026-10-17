@@ -16,12 +16,17 @@ CORPUS_8B_DIR="/capstor/store/cscs/swissai/infra01/speculative-decoding/dspark-o
 export HF_HOME="${HF_HOME:-/iopsstor/scratch/cscs/${USER}/hf_home}"
 export PYTHONPATH="${SPECULATORS}/src:${SPECULATORS}/hs_connectors/src:${SIDE_DEPS}${PYTHONPATH:+:${PYTHONPATH}}"
 export PYTHONNOUSERSITE=1
-# Compile caches default to home, which is at its quota: a truncated compiled
-# graph crashed CUDA-graph capture (illegal memory access, job 3680143). Keep
-# them node-local; compiling costs ~3 min per job.
+# JIT and compile caches default to home. The first pilot (job 3680143) built
+# vLLM's graphs and FlashInfer's all-reduce kernels there while home was at its
+# quota, and every later server that loaded them crashed in CUDA-graph capture.
+# Keep them all node-local; building costs a few minutes per job.
 export VLLM_CACHE_ROOT=/tmp/dspark-cache/vllm
 export TRITON_CACHE_DIR=/tmp/dspark-cache/triton
 export TORCHINDUCTOR_CACHE_DIR=/tmp/dspark-cache/inductor
+export FLASHINFER_WORKSPACE_BASE=/tmp/dspark-cache/flashinfer
+export TORCH_EXTENSIONS_DIR=/tmp/dspark-cache/torch_extensions
+export CUDA_CACHE_PATH=/tmp/dspark-cache/nv
+export XDG_CACHE_HOME=/tmp/dspark-cache/xdg
 # Loading the 70B from capstor takes ~6 min, compile and graphs ~4 more.
 export VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-3600}"
 export PYTHONUNBUFFERED=1
