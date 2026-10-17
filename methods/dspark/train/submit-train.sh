@@ -33,7 +33,7 @@ sed -i "s|^workdir = \".*\"|workdir = \"${REPO_ROOT}\"|" "${SML_ENVIRONMENT}"
 
 pass_env() {
   local v
-  for v in DSPARK_DIR RUN_ID DATA EPOCHS MAX_STEPS CHECK_ROWS GRAD_CKPT WORKERS PREFETCH SEQ ANCHORS LR \
+  for v in DSPARK_DIR RUN_ID DATA EPOCHS MAX_STEPS CHECK_ROWS GRAD_CKPT WORKERS PREFETCH SEQ ANCHORS LR CKPT_FREQ \
            EXTRACT_MEM EXTRACT_EAGER IN OUT FULL ALLOW_MISSING; do
     if [ -n "${!v:-}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
