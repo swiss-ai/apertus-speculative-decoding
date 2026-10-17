@@ -52,7 +52,12 @@ case "${MODE}" in
     NODES="${NODES:-2}"
     NAME="dspark-70b-${RUN_ID}"
     TIME="${TIME:-12:00:00}"
-    CMD="export HEAD_NODE=\$(scontrol show hostnames \"\${SLURM_JOB_NODELIST}\" | head -1)
+    # The trainer saves and exits at a step boundary STOP_MARGIN seconds before
+    # the time limit (speculators-deadline-stop.patch); a save took up to 27 min.
+    IFS=: read -r th tm ts <<< "${TIME}"
+    LIMIT_S=$(( 10#${th} * 3600 + 10#${tm} * 60 + 10#${ts} ))
+    CMD="export DSPARK_STOP_AT=\$(( \$(date +%s) + ${LIMIT_S} - ${STOP_MARGIN:-2400} ))
+export HEAD_NODE=\$(scontrol show hostnames \"\${SLURM_JOB_NODELIST}\" | head -1)
 srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/train-node.sh"
     CHAIN="${CHAIN:-1}"
     ;;
