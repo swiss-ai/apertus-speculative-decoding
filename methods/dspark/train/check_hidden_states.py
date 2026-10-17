@@ -14,9 +14,11 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 
 import openai
 import torch
+from hs_connectors.transfer import FileTransfer
 from safetensors import safe_open
 from speculators.data_generation.vllm_client import generate_hidden_states
 from speculators.train.data import build_client_item
@@ -64,10 +66,17 @@ def main() -> int:
             handle = generate_hidden_states(
                 client, model, build_client_item({"input_ids": torch.tensor(ids)})
             )
-            with safe_open(handle, framework="pt", device=args.device) as g:
-                hs = g.get_tensor("hidden_states")
-                tok = g.get_tensor("token_ids")
-            os.remove(handle)
+            # The server writes asynchronously behind a .lock file; read it the
+            # way the trainer does, which waits for the lock.
+            transfer = FileTransfer(Path(handle).parent)
+            data = transfer.get_generated(handle)
+            if data is None:
+                print(f"row {row['id']}: no hidden-state file at {handle}")
+                ok = False
+                continue
+            hs = data["hidden_states"].to(args.device)
+            tok = data["token_ids"]
+            transfer.delete(handle)
             shape_ok = tuple(hs.shape) == (len(ids), args.layers + 1, hidden)
             same_ids = tok.tolist() == ids
             finite = bool(torch.isfinite(hs).all())
