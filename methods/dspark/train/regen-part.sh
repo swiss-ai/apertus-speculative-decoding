@@ -5,6 +5,8 @@
 # TP=4 (default) serves one replica per node, TP=2 two data-parallel ones. --resume skips the
 # conversations already in OUT, so a rerun continues; the client stops cleanly
 # BUDGET_SECONDS after this script started (set it below the job's time limit).
+# fuse_allreduce_rms off as in every launcher of this repo: with it, the 70B at
+# TP2/TP4 crashed in CUDA-graph capture (jobs 3680758-3680939).
 set -euo pipefail
 . "${REPO_ROOT}/methods/dspark/train/common.sh"
 : "${IN:?}" "${OUT:?}"
@@ -26,6 +28,7 @@ stamp "${NAME}: $(wc -l < "${IN}") conversations in ${IN}; ${done_rows} rows alr
 setsid vllm serve "${TARGET_MODEL}" --tensor-parallel-size "${TP}" --data-parallel-size "${DP}" \
   --trust-remote-code --skip-mm-profiling --chat-template-content-format string \
   --max-model-len 8192 --gpu-memory-utilization 0.90 --max-num-seqs "${MAX_NUM_SEQS}" \
+  --compilation-config.pass_config.fuse_allreduce_rms false \
   --port "${PORT}" ${VLLM_EXTRA:-} > "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" 2>&1 &
 server=$!
 trap 'stop_server ${server}' EXIT

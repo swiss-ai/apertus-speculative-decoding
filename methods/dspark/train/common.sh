@@ -16,10 +16,9 @@ CORPUS_8B_DIR="/capstor/store/cscs/swissai/infra01/speculative-decoding/dspark-o
 export HF_HOME="${HF_HOME:-/iopsstor/scratch/cscs/${USER}/hf_home}"
 export PYTHONPATH="${SPECULATORS}/src:${SPECULATORS}/hs_connectors/src:${SIDE_DEPS}${PYTHONPATH:+:${PYTHONPATH}}"
 export PYTHONNOUSERSITE=1
-# JIT and compile caches default to home. The first pilot (job 3680143) built
-# vLLM's graphs and FlashInfer's all-reduce kernels there while home was at its
-# quota, and every later server that loaded them crashed in CUDA-graph capture.
-# Keep them all node-local; building costs a few minutes per job.
+# JIT and compile caches default to home, which was at its 50 GB quota when the
+# first pilot (job 3680143) wrote there. Keep them node-local so no job depends
+# on home space or on another job's half-written build; a few minutes per job.
 export VLLM_CACHE_ROOT=/tmp/dspark-cache/vllm
 export TRITON_CACHE_DIR=/tmp/dspark-cache/triton
 export TORCHINDUCTOR_CACHE_DIR=/tmp/dspark-cache/inductor

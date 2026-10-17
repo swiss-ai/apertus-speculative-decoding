@@ -28,9 +28,7 @@ mkdir -p "${LOG_ROOT}" "${DSPARK_DIR}/regen"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
 # The batch script stays outside the container and srun starts it, as Yu's and
-# model-launch's jobs do: with the container on the batch step itself
-# (#SBATCH --environment), vLLM's custom all-reduce hit illegal memory accesses
-# during CUDA-graph capture (jobs 3680758, 3680807).
+# model-launch's jobs do (#SBATCH --environment is experimental at CSCS).
 RUN="srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT}"
 
 header() {  # name time output [extra #SBATCH line]; directives must precede commands
@@ -64,11 +62,11 @@ case "${MODE}" in
   pilot)
     LIMIT="${LIMIT:-6000}"
     { header dspark-70b-regen-pilot 02:30:00 "${LOG_ROOT}/%j.out"
-      # Until one starts: as configured, without custom all-reduce, eager.
+      # As configured (eager if graphs fail), then with twice the batch.
       echo "pilot=\"LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl BUDGET_SECONDS=2400 HEALTH_SECONDS=1500 TP=${TP}\""
       echo "env \$pilot OUT=${DSPARK_DIR}/pilot/tp${TP}.jsonl ${RUN} bash methods/dspark/train/regen-part.sh \\"
-      echo "  || env \$pilot OUT=${DSPARK_DIR}/pilot/tp${TP}-nocar.jsonl VLLM_EXTRA=--disable-custom-all-reduce ${RUN} bash methods/dspark/train/regen-part.sh \\"
       echo "  || env \$pilot OUT=${DSPARK_DIR}/pilot/tp${TP}-eager.jsonl VLLM_EXTRA=--enforce-eager ${RUN} bash methods/dspark/train/regen-part.sh || true"
+      echo "env \$pilot OUT=${DSPARK_DIR}/pilot/tp${TP}-seqs512.jsonl MAX_NUM_SEQS=512 CONCURRENCY=1024 ${RUN} bash methods/dspark/train/regen-part.sh || true"
     } > "${SCRIPT}"
     mkdir -p "${DSPARK_DIR}/pilot"
     ;;
@@ -76,7 +74,7 @@ case "${MODE}" in
     ARRAY="${PARTS:-0-$(( NPARTS - 1 ))}"
     { header dspark-70b-regen 12:00:00 "${LOG_ROOT}/%A_%a.out" "#SBATCH --array=${ARRAY}%${REGEN_NODES}"
       echo "part=\$(printf '%03d' \${SLURM_ARRAY_TASK_ID})"
-      echo "TP=${TP} VLLM_EXTRA=${VLLM_EXTRA:-} BUDGET_SECONDS=42600 IN=${DSPARK_DIR}/prompts/parts/part-\${part}.jsonl OUT=${DSPARK_DIR}/regen/part-\${part}.jsonl ${RUN} bash methods/dspark/train/regen-part.sh"
+      echo "TP=${TP} VLLM_EXTRA=${VLLM_EXTRA:-} MAX_NUM_SEQS=${MAX_NUM_SEQS:-256} CONCURRENCY=${CONCURRENCY:-512} BUDGET_SECONDS=42600 IN=${DSPARK_DIR}/prompts/parts/part-\${part}.jsonl OUT=${DSPARK_DIR}/regen/part-\${part}.jsonl ${RUN} bash methods/dspark/train/regen-part.sh"
     } > "${SCRIPT}"
     ;;
   *) echo "unknown MODE ${MODE}" >&2; exit 2 ;;

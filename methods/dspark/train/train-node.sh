@@ -15,8 +15,7 @@ NODE_RANK="${SLURM_NODEID:-0}"
 LAYERS="${LAYERS:-1 20 39 58 77}"
 EXTRACT_GPUS="${EXTRACT_GPUS:-0,1}"
 TRAIN_GPUS="${TRAIN_GPUS:-2,3}"
-# Prefill only, so CUDA graphs buy little; the 70B at TP2 crashed in Inductor
-# autotuning during graph capture (job 3680758). EXTRACT_EAGER=0 re-enables them.
+# Prefill only, so CUDA graphs buy little; EXTRACT_EAGER=0 enables them.
 eager=()
 [ "${EXTRACT_EAGER:-1}" = 1 ] && eager=(--enforce-eager)
 EXTRACT_TP=$(( $(tr -cd , <<< "${EXTRACT_GPUS}" | wc -c) + 1 ))
@@ -50,6 +49,7 @@ mon=$!
 CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 scripts/launch_vllm.py train "${TARGET_MODEL}" \
   --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" -- \
   --tensor-parallel-size "${EXTRACT_TP}" "${eager[@]}" --trust-remote-code --skip-mm-profiling \
+  --compilation-config.pass_config.fuse_allreduce_rms false \
   --renderer-num-workers 1 --mm-processor-cache-gb 0 --port "${PORT}" \
   --gpu-memory-utilization "${EXTRACT_MEM:-0.92}" --max-model-len 8192 \
   > "${LOG}/extract-${JOB}-node${NODE_RANK}.log" 2>&1 &
