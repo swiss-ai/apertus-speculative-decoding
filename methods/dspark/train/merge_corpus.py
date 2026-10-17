@@ -32,7 +32,8 @@ def main() -> int:
     t0 = time.time()
 
     index: dict[str, tuple[int, int, int]] = {}
-    files = sorted(glob.glob(args.parts))
+    # regenerate-responses writes failed requests next to the rows (*.errors.jsonl).
+    files = sorted(p for p in glob.glob(args.parts) if ".errors." not in p)
     torn = 0
     for k, path in enumerate(files):
         with open(path, "rb") as f:
