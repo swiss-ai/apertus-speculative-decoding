@@ -26,7 +26,7 @@ stamp "${NAME}: $(wc -l < "${IN}") conversations in ${IN}; ${done_rows} rows alr
 setsid vllm serve "${TARGET_MODEL}" --tensor-parallel-size "${TP}" --data-parallel-size "${DP}" \
   --trust-remote-code --skip-mm-profiling --chat-template-content-format string \
   --max-model-len 8192 --gpu-memory-utilization 0.90 --max-num-seqs "${MAX_NUM_SEQS}" \
-  --port "${PORT}" > "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" 2>&1 &
+  --port "${PORT}" ${VLLM_EXTRA:-} > "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" 2>&1 &
 server=$!
 trap 'stop_server ${server}' EXIT
 if ! wait_health "${PORT}" "${server}" 2400; then

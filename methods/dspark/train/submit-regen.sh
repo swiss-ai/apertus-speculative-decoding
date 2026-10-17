@@ -27,6 +27,12 @@ sed -i "s|^workdir = \".*\"|workdir = \"${REPO_ROOT}\"|" "${SML_ENVIRONMENT}"
 mkdir -p "${LOG_ROOT}" "${DSPARK_DIR}/regen"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
+# The batch script stays outside the container and srun starts it, as Yu's and
+# model-launch's jobs do: with the container on the batch step itself
+# (#SBATCH --environment), vLLM's custom all-reduce hit illegal memory accesses
+# during CUDA-graph capture (jobs 3680758, 3680807).
+RUN="srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT}"
+
 header() {  # name time output [extra #SBATCH line]; directives must precede commands
   cat <<SBATCH
 #!/bin/bash
@@ -40,7 +46,6 @@ header() {  # name time output [extra #SBATCH line]; directives must precede com
 #SBATCH --cpus-per-task=288
 #SBATCH --exclusive
 #SBATCH --exclude=${EXCLUDE}
-#SBATCH --environment=${SML_ENVIRONMENT}
 #SBATCH --chdir=${REPO_ROOT}
 #SBATCH --output=$3
 ${4:-}
@@ -53,14 +58,17 @@ SCRIPT="${LOG_ROOT}/submit-regen-${MODE}-${STAMP}.sbatch"
 case "${MODE}" in
   prep)
     { header dspark-70b-prep 01:00:00 "${LOG_ROOT}/%j.out"
-      echo "NPARTS=${NPARTS} bash methods/dspark/train/prep.sh"
+      echo "NPARTS=${NPARTS} ${RUN} bash methods/dspark/train/prep.sh"
     } > "${SCRIPT}"
     ;;
   pilot)
     LIMIT="${LIMIT:-6000}"
     { header dspark-70b-regen-pilot 02:00:00 "${LOG_ROOT}/%j.out"
+      # A server that fails to start is retried once without custom all-reduce.
       echo "for tp in ${PILOT_TPS:-4}; do"
-      echo "  TP=\$tp LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl OUT=${DSPARK_DIR}/pilot/tp\$tp.jsonl BUDGET_SECONDS=3000 bash methods/dspark/train/regen-part.sh || true"
+      echo "  pilot=\"LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl BUDGET_SECONDS=2700\""
+      echo "  env \$pilot TP=\$tp OUT=${DSPARK_DIR}/pilot/tp\$tp.jsonl ${RUN} bash methods/dspark/train/regen-part.sh \\"
+      echo "    || env \$pilot TP=\$tp OUT=${DSPARK_DIR}/pilot/tp\$tp-nocar.jsonl VLLM_EXTRA=--disable-custom-all-reduce ${RUN} bash methods/dspark/train/regen-part.sh || true"
       echo "done"
     } > "${SCRIPT}"
     mkdir -p "${DSPARK_DIR}/pilot"
@@ -69,7 +77,7 @@ case "${MODE}" in
     ARRAY="${PARTS:-0-$(( NPARTS - 1 ))}"
     { header dspark-70b-regen 12:00:00 "${LOG_ROOT}/%A_%a.out" "#SBATCH --array=${ARRAY}%${REGEN_NODES}"
       echo "part=\$(printf '%03d' \${SLURM_ARRAY_TASK_ID})"
-      echo "TP=${TP} BUDGET_SECONDS=42600 IN=${DSPARK_DIR}/prompts/parts/part-\${part}.jsonl OUT=${DSPARK_DIR}/regen/part-\${part}.jsonl bash methods/dspark/train/regen-part.sh"
+      echo "TP=${TP} VLLM_EXTRA=${VLLM_EXTRA:-} BUDGET_SECONDS=42600 IN=${DSPARK_DIR}/prompts/parts/part-\${part}.jsonl OUT=${DSPARK_DIR}/regen/part-\${part}.jsonl ${RUN} bash methods/dspark/train/regen-part.sh"
     } > "${SCRIPT}"
     ;;
   *) echo "unknown MODE ${MODE}" >&2; exit 2 ;;
