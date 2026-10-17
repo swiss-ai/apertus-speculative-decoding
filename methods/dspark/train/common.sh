@@ -70,3 +70,20 @@ wait_health() {
   done
   return 1
 }
+
+# stop_server PID: vLLM forks engine and worker processes; started with setsid,
+# the whole group goes, and the GPUs are free again before the next server
+# (job 3680758: TP2 workers that outlived their server left TP4 6.8 GB free).
+stop_server() {
+  kill -TERM -- "-$1" 2> /dev/null || true
+  local i
+  for i in $(seq 1 30); do
+    kill -0 -- "-$1" 2> /dev/null || break
+    sleep 2
+  done
+  kill -KILL -- "-$1" 2> /dev/null || true
+  for i in $(seq 1 30); do
+    [ "$(nvidia-smi --query-compute-apps=pid --format=csv,noheader | wc -l)" = 0 ] && return 0
+    sleep 2
+  done
+}

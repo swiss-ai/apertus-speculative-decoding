@@ -2,13 +2,13 @@
 # Regenerate one prompt file with the 70B on one node, thinking off, with Yu's
 # sampling (T 0.7, top-p 0.8, top-k 20, 4,096-token cap, 8,192 context).
 #   REPO_ROOT=... IN=prompts.jsonl OUT=answers.jsonl [TP=2] [LIMIT=N] bash regen-part.sh
-# TP=2 serves two data-parallel replicas per node, TP=4 one. --resume skips the
+# TP=4 (default) serves one replica per node, TP=2 two data-parallel ones. --resume skips the
 # conversations already in OUT, so a rerun continues; the client stops cleanly
 # BUDGET_SECONDS after this script started (set it below the job's time limit).
 set -euo pipefail
 . "${REPO_ROOT}/methods/dspark/train/common.sh"
 : "${IN:?}" "${OUT:?}"
-TP="${TP:-2}"
+TP="${TP:-4}"
 DP=$(( 4 / TP ))
 PORT="${PORT:-8000}"
 CONCURRENCY="${CONCURRENCY:-512}"
@@ -23,12 +23,12 @@ check_side_deps
 done_rows=0
 [ -f "${OUT}" ] && done_rows=$(wc -l < "${OUT}")
 stamp "${NAME}: $(wc -l < "${IN}") conversations in ${IN}; ${done_rows} rows already; TP=${TP} DP=${DP} job=${SLURM_JOB_ID:-}"
-vllm serve "${TARGET_MODEL}" --tensor-parallel-size "${TP}" --data-parallel-size "${DP}" \
+setsid vllm serve "${TARGET_MODEL}" --tensor-parallel-size "${TP}" --data-parallel-size "${DP}" \
   --trust-remote-code --skip-mm-profiling --chat-template-content-format string \
   --max-model-len 8192 --gpu-memory-utilization 0.90 --max-num-seqs "${MAX_NUM_SEQS}" \
   --port "${PORT}" > "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" 2>&1 &
 server=$!
-trap 'kill ${server} 2> /dev/null || true' EXIT
+trap 'stop_server ${server}' EXIT
 if ! wait_health "${PORT}" "${server}" 2400; then
   stamp "SERVER_FAILED"
   grep -E "Error|Traceback" "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" | tail -5

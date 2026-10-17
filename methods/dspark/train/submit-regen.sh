@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Submit the 70B open-perfectblend regeneration on Clariden (login node only submits).
 #   MODE=prep  ./methods/dspark/train/submit-regen.sh   # side deps, dataset, shards, parts
-#   MODE=pilot ./methods/dspark/train/submit-regen.sh   # throughput: TP2xDP2 vs TP4 on one node
-#   MODE=parts TP=4 REGEN_NODES=8 ./methods/dspark/train/submit-regen.sh
+#   MODE=pilot [PILOT_TPS="4 2"] ./methods/dspark/train/submit-regen.sh   # throughput on one node
+#   MODE=parts [TP=4] REGEN_NODES=8 ./methods/dspark/train/submit-regen.sh
 # MODE=parts is an array with one node per part, at most REGEN_NODES at a time;
 # resubmitting resumes every unfinished part (PARTS=3,17 limits it to some).
 # Extra sbatch options (e.g. a dependency) go in SBATCH_EXTRA.
@@ -17,7 +17,7 @@ ACCOUNT="${DSPARK_ACCOUNT:-infra01}"
 PARTITION="${REGEN_PARTITION:-normal}"
 DSPARK_DIR="${DSPARK_DIR:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b}"
 NPARTS="${NPARTS:-32}"
-TP="${TP:-2}"
+TP="${TP:-4}"
 REGEN_NODES="${REGEN_NODES:-8}"
 EXCLUDE="${DSPARK_EXCLUDE:-nid007129,nid007593,nid007611}"
 ENV_SOURCE="${DSPARK_ENV_SOURCE:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
@@ -59,7 +59,7 @@ case "${MODE}" in
   pilot)
     LIMIT="${LIMIT:-6000}"
     { header dspark-70b-regen-pilot 02:00:00 "${LOG_ROOT}/%j.out"
-      echo "for tp in 2 4; do"
+      echo "for tp in ${PILOT_TPS:-4}; do"
       echo "  TP=\$tp LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl OUT=${DSPARK_DIR}/pilot/tp\$tp.jsonl BUDGET_SECONDS=3000 bash methods/dspark/train/regen-part.sh || true"
       echo "done"
     } > "${SCRIPT}"

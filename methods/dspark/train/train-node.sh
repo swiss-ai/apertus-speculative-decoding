@@ -15,6 +15,10 @@ NODE_RANK="${SLURM_NODEID:-0}"
 LAYERS="${LAYERS:-1 20 39 58 77}"
 EXTRACT_GPUS="${EXTRACT_GPUS:-0,1}"
 TRAIN_GPUS="${TRAIN_GPUS:-2,3}"
+# Prefill only, so CUDA graphs buy little; the 70B at TP2 crashed in Inductor
+# autotuning during graph capture (job 3680758). EXTRACT_EAGER=0 re-enables them.
+eager=()
+[ "${EXTRACT_EAGER:-1}" = 1 ] && eager=(--enforce-eager)
 EXTRACT_TP=$(( $(tr -cd , <<< "${EXTRACT_GPUS}" | wc -c) + 1 ))
 RANKS_PER_NODE=$(( $(tr -cd , <<< "${TRAIN_GPUS}" | wc -c) + 1 ))
 PORT=8001
@@ -43,14 +47,14 @@ smi=$!
 ( while sleep 300; do echo "$(date -u +%FT%TZ) $(free -g | awk '/Mem:/ {print "used_gb=" $3}') tmp=$(du -sh ${HS} 2> /dev/null | cut -f1)"; done ) \
   > "${LOG}/host-${JOB}-node${NODE_RANK}.log" &
 mon=$!
-CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" python3 scripts/launch_vllm.py train "${TARGET_MODEL}" \
+CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 scripts/launch_vllm.py train "${TARGET_MODEL}" \
   --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" -- \
-  --tensor-parallel-size "${EXTRACT_TP}" --trust-remote-code --skip-mm-profiling \
+  --tensor-parallel-size "${EXTRACT_TP}" "${eager[@]}" --trust-remote-code --skip-mm-profiling \
   --renderer-num-workers 1 --mm-processor-cache-gb 0 --port "${PORT}" \
   --gpu-memory-utilization "${EXTRACT_MEM:-0.92}" --max-model-len 8192 \
   > "${LOG}/extract-${JOB}-node${NODE_RANK}.log" 2>&1 &
 server=$!
-trap 'kill ${server} ${smi} ${mon} 2> /dev/null || true' EXIT
+trap 'kill ${smi} ${mon} 2> /dev/null || true; stop_server ${server}' EXIT
 if ! wait_health "${PORT}" "${server}" 2400; then
   stamp "EXTRACTION_SERVER_FAILED"
   grep -E "Error|Traceback" "${LOG}/extract-${JOB}-node${NODE_RANK}.log" | tail -5
