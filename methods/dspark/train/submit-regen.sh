@@ -27,7 +27,7 @@ sed -i "s|^workdir = \".*\"|workdir = \"${REPO_ROOT}\"|" "${SML_ENVIRONMENT}"
 mkdir -p "${LOG_ROOT}" "${DSPARK_DIR}/regen"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
-header() {  # name time nodes
+header() {  # name time output [extra #SBATCH line]; directives must precede commands
   cat <<SBATCH
 #!/bin/bash
 #SBATCH --job-name=$1
@@ -42,6 +42,8 @@ header() {  # name time nodes
 #SBATCH --exclude=${EXCLUDE}
 #SBATCH --environment=${SML_ENVIRONMENT}
 #SBATCH --chdir=${REPO_ROOT}
+#SBATCH --output=$3
+${4:-}
 set -euo pipefail
 export REPO_ROOT=${REPO_ROOT} DSPARK_DIR=${DSPARK_DIR}
 SBATCH
@@ -50,15 +52,13 @@ SBATCH
 SCRIPT="${LOG_ROOT}/submit-regen-${MODE}-${STAMP}.sbatch"
 case "${MODE}" in
   prep)
-    { header dspark-70b-prep 01:00:00
-      echo "#SBATCH --output=${LOG_ROOT}/%j.out"
+    { header dspark-70b-prep 01:00:00 "${LOG_ROOT}/%j.out"
       echo "NPARTS=${NPARTS} bash methods/dspark/train/prep.sh"
     } > "${SCRIPT}"
     ;;
   pilot)
     LIMIT="${LIMIT:-6000}"
-    { header dspark-70b-regen-pilot 02:00:00
-      echo "#SBATCH --output=${LOG_ROOT}/%j.out"
+    { header dspark-70b-regen-pilot 02:00:00 "${LOG_ROOT}/%j.out"
       echo "for tp in 2 4; do"
       echo "  TP=\$tp LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl OUT=${DSPARK_DIR}/pilot/tp\$tp.jsonl BUDGET_SECONDS=3000 bash methods/dspark/train/regen-part.sh"
       echo "done"
@@ -67,9 +67,7 @@ case "${MODE}" in
     ;;
   parts)
     ARRAY="${PARTS:-0-$(( NPARTS - 1 ))}"
-    { header dspark-70b-regen 12:00:00
-      echo "#SBATCH --array=${ARRAY}%${REGEN_NODES}"
-      echo "#SBATCH --output=${LOG_ROOT}/%A_%a.out"
+    { header dspark-70b-regen 12:00:00 "${LOG_ROOT}/%A_%a.out" "#SBATCH --array=${ARRAY}%${REGEN_NODES}"
       echo "part=\$(printf '%03d' \${SLURM_ARRAY_TASK_ID})"
       echo "TP=${TP} BUDGET_SECONDS=42600 IN=${DSPARK_DIR}/prompts/parts/part-\${part}.jsonl OUT=${DSPARK_DIR}/regen/part-\${part}.jsonl bash methods/dspark/train/regen-part.sh"
     } > "${SCRIPT}"

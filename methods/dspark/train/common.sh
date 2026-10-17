@@ -33,7 +33,7 @@ install_side_deps() {
   local round err name
   for round in $(seq 1 25); do
     err="$(python3 -c "import speculators, hs_connectors, speculators.train.data, speculators.cli" 2>&1 \
-      | grep -oE "No module named '[A-Za-z0-9_.]+'" | head -1 | sed "s/No module named '//; s/'//" | cut -d. -f1)"
+      | grep -oE "No module named '[A-Za-z0-9_.]+'" | head -1 | sed "s/No module named '//; s/'//" | cut -d. -f1 || true)"
     if [ -z "${err}" ]; then echo "side deps complete after $((round - 1)) installs"; break; fi
     name="${pkg[${err}]:-${err}}"
     echo "missing ${err} -> installing ${name}"
