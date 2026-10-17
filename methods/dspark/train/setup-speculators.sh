@@ -8,7 +8,7 @@ set -euo pipefail
 TRAIN_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${TRAIN_DIR}/../../.." && pwd)"
 HOST="${1:-clariden1}"
-REMOTE="${2:-/iopsstor/scratch/cscs/${USER}/apertus-spec-decoding-dspark70b}"
+REMOTE="${2:-/iopsstor/scratch/cscs/$(ssh -o BatchMode=yes "${HOST}" 'echo $USER')/apertus-spec-decoding-dspark70b}"
 COMMIT=7046ac63fac4eeb218dc2e92a385c7d1ec8c4e00
 DEST="${REPO_ROOT}/scratch/speculators"
 
