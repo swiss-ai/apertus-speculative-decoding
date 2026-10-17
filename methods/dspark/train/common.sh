@@ -16,6 +16,14 @@ CORPUS_8B_DIR="/capstor/store/cscs/swissai/infra01/speculative-decoding/dspark-o
 export HF_HOME="${HF_HOME:-/iopsstor/scratch/cscs/${USER}/hf_home}"
 export PYTHONPATH="${SPECULATORS}/src:${SPECULATORS}/hs_connectors/src:${SIDE_DEPS}${PYTHONPATH:+:${PYTHONPATH}}"
 export PYTHONNOUSERSITE=1
+# Compile caches default to home, which is at its quota: a truncated compiled
+# graph crashed CUDA-graph capture (illegal memory access, job 3680143). Keep
+# them node-local; compiling costs ~3 min per job.
+export VLLM_CACHE_ROOT=/tmp/dspark-cache/vllm
+export TRITON_CACHE_DIR=/tmp/dspark-cache/triton
+export TORCHINDUCTOR_CACHE_DIR=/tmp/dspark-cache/inductor
+# Loading the 70B from capstor takes ~6 min, compile and graphs ~4 more.
+export VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-3600}"
 export PYTHONUNBUFFERED=1
 
 stamp() { echo "=== [$(date -u +%FT%TZ)] $(hostname) $*"; }

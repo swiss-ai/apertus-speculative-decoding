@@ -60,7 +60,7 @@ case "${MODE}" in
     LIMIT="${LIMIT:-6000}"
     { header dspark-70b-regen-pilot 02:00:00 "${LOG_ROOT}/%j.out"
       echo "for tp in 2 4; do"
-      echo "  TP=\$tp LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl OUT=${DSPARK_DIR}/pilot/tp\$tp.jsonl BUDGET_SECONDS=3000 bash methods/dspark/train/regen-part.sh"
+      echo "  TP=\$tp LIMIT=${LIMIT} IN=${DSPARK_DIR}/prompts/parts/part-000.jsonl OUT=${DSPARK_DIR}/pilot/tp\$tp.jsonl BUDGET_SECONDS=3000 bash methods/dspark/train/regen-part.sh || true"
       echo "done"
     } > "${SCRIPT}"
     mkdir -p "${DSPARK_DIR}/pilot"

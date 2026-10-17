@@ -33,7 +33,6 @@ JOB="${SLURM_JOB_ID:-local}"
 mkdir -p "${CKPT}" "${LOG}"
 rm -rf "${HS}" && mkdir -p "${HS}"
 export SPEC_PG_TIMEOUT_MIN="${SPEC_PG_TIMEOUT_MIN:-60}"
-export TORCHINDUCTOR_CACHE_DIR="${DSPARK_DIR}/cache/inductor"
 check_side_deps
 cd "${SPECULATORS}"
 
