@@ -3,9 +3,9 @@
 # apertus_opb_prepare.sh): prepare-data packs at 8,192 tokens.
 #   IN=answers.jsonl OUT=dir bash prepare.sh        # any regenerated jsonl (pilot)
 #   FULL=1 bash prepare.sh                          # the whole corpus
-# FULL=1 first merges the parts in the 8B corpus's row order, then checks with
-# Yu's val_ids.py that the trainer holds out the 8B run's conversations, and
-# copies the corpus to the shared store.
+# FULL=1 first merges the parts so that the trainer holds out the 8B run's
+# validation conversations (merge_corpus.py), checks the prepared dataset with
+# Yu's val_ids.py, and copies the corpus to the shared store.
 set -euo pipefail
 . "${REPO_ROOT}/methods/dspark/train/common.sh"
 check_side_deps
@@ -18,7 +18,8 @@ if [ "${FULL:-0}" = 1 ]; then
   stamp "merge"
   python3 "${REPO_ROOT}/methods/dspark/train/merge_corpus.py" \
     --parts "${DSPARK_DIR}/regen/part-*.jsonl" --order "${CORPUS_8B_DIR}/open-perfectblend_apertus15-8b_thinking-off_seed0.jsonl" \
-    --out "${IN}" --missing "${DSPARK_DIR}/missing-ids.txt" ${ALLOW_MISSING:+--allow-missing}
+    --val-ids "${CORPUS_8B_DIR}/val_ids.txt" --out "${IN}" --missing "${DSPARK_DIR}/missing-ids.txt" \
+    ${ALLOW_MISSING:+--allow-missing}
 fi
 : "${IN:?}" "${OUT:?}"
 stamp "prepare-data ${IN} -> ${OUT}"
@@ -30,13 +31,16 @@ echo
 if [ "${FULL:-0}" = 1 ]; then
   stamp "held-out split"
   python3 "${CORPUS_8B_DIR}/val_ids.py" "${IN}" "${OUT}" "${DSPARK_DIR}"
-  if cmp -s "${DSPARK_DIR}/val_ids.txt" "${CORPUS_8B_DIR}/val_ids.txt"; then
-    stamp "SPLIT_MATCHES_8B"
+  shared=$(comm -12 <(sort "${DSPARK_DIR}/val_ids.txt") <(sort "${CORPUS_8B_DIR}/val_ids.txt") | wc -l)
+  if cmp -s <(sort "${DSPARK_DIR}/val_ids.txt") <(sort "${IN}.heldout.txt"); then
+    stamp "SPLIT_VERIFIED: $(wc -l < "${DSPARK_DIR}/val_ids.txt") held out, ${shared} of them in the 8B run's held-out set"
   else
-    stamp "SPLIT_DIFFERS_FROM_8B ($(comm -12 <(sort "${DSPARK_DIR}/val_ids.txt") <(sort "${CORPUS_8B_DIR}/val_ids.txt") | wc -l) ids shared)"
+    stamp "SPLIT_MISMATCH: the prepared dataset does not hold out the planned rows"
+    exit 1
   fi
   mkdir -p "${STORE_DIR}"
-  cp "${IN}" "${DSPARK_DIR}/val_ids.txt" "${DSPARK_DIR}/val_rows.tsv" "${DSPARK_DIR}/prompts/MANIFEST.json" "${STORE_DIR}/"
+  cp "${IN}" "${DSPARK_DIR}/val_ids.txt" "${DSPARK_DIR}/val_rows.tsv" "${DSPARK_DIR}/missing-ids.txt" \
+    "${DSPARK_DIR}/prompts/MANIFEST.json" "${STORE_DIR}/"
   chmod -R g+rwX "${STORE_DIR}"
   stamp "corpus copied to ${STORE_DIR}"
 fi
