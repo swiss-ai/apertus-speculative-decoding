@@ -30,6 +30,11 @@ install_side_deps() {
     [markdown_it]=markdown-it-py [multiprocess]=multiprocess [xxhash]=xxhash [dill]=dill
     [shellingham]=shellingham [annotated_types]=annotated-types [pydantic_core]=pydantic-core)
   mkdir -p "${SIDE_DEPS}"
+  # speculators reads its own version from package metadata, which a PYTHONPATH
+  # checkout lacks; record the version Yu's checkpoints carry.
+  local meta="${SIDE_DEPS}/speculators-0.9.0.dev36.dist-info"
+  mkdir -p "${meta}"
+  printf 'Metadata-Version: 2.1\nName: speculators\nVersion: 0.9.0.dev36\n' > "${meta}/METADATA"
   local round err name
   for round in $(seq 1 25); do
     err="$(python3 -c "import speculators, hs_connectors, speculators.train.data, speculators.cli" 2>&1 \
