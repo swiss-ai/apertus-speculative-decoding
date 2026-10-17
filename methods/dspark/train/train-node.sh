@@ -69,6 +69,16 @@ if [ -n "${CHECK_ROWS:-}" ]; then
     2>&1 | tee "${LOG}/hs-check-${JOB}-node${NODE_RANK}.log" | tail -4
 fi
 
+# Every node's 70B server must be up before torchrun: load times differ by
+# minutes and the head's rendezvous store refused late joiners after 60 s
+# (job 3681626). Ready files on shared storage act as a barrier.
+touch "${LOG}/ready-${JOB}-node${NODE_RANK}"
+for i in $(seq 1 360); do
+  [ "$(ls "${LOG}"/ready-"${JOB}"-node* 2> /dev/null | wc -l)" -ge "${NODES}" ] && break
+  sleep 10
+done
+stamp "all ${NODES} extraction servers up"
+
 extra=()
 [ "${GRAD_CKPT:-0}" = 1 ] && extra+=(--gradient-checkpointing)
 [ -n "${MAX_STEPS:-}" ] && extra+=(--max-steps "${MAX_STEPS}")
@@ -77,7 +87,8 @@ stamp "torchrun start"
 rc=0
 CUDA_VISIBLE_DEVICES="${TRAIN_GPUS}" DSPARK_PORT="${PORT}" torchrun --nnodes "${NODES}" \
   --nproc_per_node "${RANKS_PER_NODE}" --node_rank "${NODE_RANK}" --rdzv_backend c10d \
-  --rdzv_endpoint "${HEAD_NODE}:29500" --rdzv_id "${JOB}" --no-python \
+  --rdzv_endpoint "${HEAD_NODE}:29500" --rdzv_id "${JOB}" \
+  --rdzv_conf join_timeout=1800,read_timeout=600 --no-python \
   bash "${REPO_ROOT}/methods/dspark/train/rank-wrapper.sh" \
   --verifier-name-or-path "${TARGET_MODEL}" --data-path "${DATA}" \
   --hidden-states-backend file --hidden-states-path "${HS}" --on-missing generate --on-generate delete \
