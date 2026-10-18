@@ -6,9 +6,10 @@ the trainer holds out the last 10 % (Yu's val_ids.py reproduces this). With the
 row count known up front, this script inverts that: it writes the conversations
 of the 8B run's val_ids.txt to the lines that end up in the held-out slice, the
 other rows to the training slice, and rows prepare-data will drop to the lines
-it skips. A few conversations the 70B could not regenerate change nothing but
-the count; if the held-out set does not exactly fill its slice, the difference
-is moved across and reported. Ids absent from the parts are listed in --missing;
+it skips. Rows the 70B did not produce (failed conversations, or turns after
+the regeneration stopped a longer conversation) change nothing but the count;
+if the held-out set does not exactly fill its slice, the difference is moved
+across and reported. Ids absent from the parts are listed in --missing;
 the merge stops there unless --allow-missing.
 """
 
@@ -34,7 +35,7 @@ def row_id(line: bytes) -> str | None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--parts", required=True, help="glob of the regenerated part files")
-    ap.add_argument("--order", required=True, help="the 8B corpus jsonl (defines the row set)")
+    ap.add_argument("--order", required=True, help="the 8B corpus jsonl")
     ap.add_argument("--val-ids", required=True, help="the 8B run's val_ids.txt")
     ap.add_argument("--out", required=True)
     ap.add_argument("--missing", required=True, help="where to list ids absent from the parts")
@@ -80,7 +81,12 @@ def main() -> int:
         print("MERGE_INCOMPLETE")
         return 1
 
+    # Turns the 70B answered but the 8B run did not (it stopped those
+    # conversations earlier) are training rows: the split is per row, as Yu's.
+    in_order = set(order)
     present = [rid for rid in order if rid in index]
+    extras = sorted(rid for rid in index if rid not in in_order)
+    present += extras
     with open(args.val_ids) as f:
         val_ids = {line.strip() for line in f if line.strip()}
     dropped = [rid for rid in present if index[rid][3] >= args.seq_length]
@@ -88,19 +94,21 @@ def main() -> int:
     kept = [rid for rid in present if rid not in dropped_set]
     n, m = len(present), len(kept)
     split = int(m * args.ratio)
+    extra_set = set(extras)
     val = [rid for rid in kept if rid in val_ids]
-    train = [rid for rid in kept if rid not in val_ids]
+    train = [rid for rid in kept if rid not in val_ids and rid not in extra_set]
     want = m - split
     moved = len(val) - want
     if moved > 0:  # surplus held-out rows go to training
         train += val[want:]
         val = val[:want]
-    elif moved < 0:  # fill the held-out slice from the end of the training rows
+    elif moved < 0:  # fill the held-out slice from the 8B run's training rows
         val += train[moved:]
         train = train[:moved]
+    train += [rid for rid in kept if rid in extra_set]
     print(f"rows {n}, dropped by prepare-data {len(dropped)}, kept {m}, split at {split}; "
           f"held out {len(val)} ({len(val_ids & set(val))} of the 8B run's {len(val_ids)}); "
-          f"moved across the split {moved:+d}", flush=True)
+          f"moved across the split {moved:+d}; 70B-only rows {len(extras)}", flush=True)
 
     # prepare-data: kept order = first permutation without the dropped lines,
     # then a second permutation; prepared row i comes from line s1k[p2[i]].
