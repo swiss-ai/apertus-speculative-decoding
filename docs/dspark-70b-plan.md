@@ -35,9 +35,9 @@ more than two nodes; training starts on two nodes and may use more.
 | Hidden states | 46 KB/token | 98 KB/token; online extraction every epoch (`--on-generate delete`) as for the 8B |
 | Job limit | 24 h (Daint) | 12 h (Clariden `normal`), so twice the chain links |
 
-Layout on two nodes, as Yu's v3: per node one TP2 extraction server on GPUs 0–1 and
-two trainer ranks on GPUs 2–3, hidden states in node-local `/tmp`. Both ranks of a
-node share their server.
+Layout per node, as Yu's v3: one TP2 extraction server on GPUs 0–1 and two trainer
+ranks on GPUs 2–3, hidden states in node-local `/tmp`. Both ranks of a node share
+their server. The run uses four such nodes (see Measured).
 
 ## Phases
 
@@ -57,8 +57,29 @@ node share their server.
 7. **Evaluation.** Trainer held-out curve against the 8B (5.12 → 5.94 expected
    accepted length), then the 64-prompt probe, k sweep and greedy equality on 70B TP4.
 
-## Estimates (replaced by pilot measurements)
+## Measured (2026-10-18)
 
-- Regeneration: ~934 M completion tokens at 6–10k tokens/s per node, ~32 node-hours.
-- Training: ~4–6 s per step (extraction-bound on two TP2 servers; Muon on 6B
-  parameters ~2 s), ~250k steps, 12–17 days of compute on two nodes.
+- Every 70B vLLM server needs `--compilation-config.pass_config.fuse_allreduce_rms false`
+  (as all launchers in this repo); without it CUDA-graph capture crashes at TP2 and TP4.
+- Regeneration: TP4, 256 sequences, ~4.7k output tokens/s per node; array 3681366,
+  32 parts on 16 nodes. 1,751,728 rows (8B: 1,809,684); 1,357,138 of 1,358,781
+  conversations. 1,641 failed (prompt + 4,096-token cap above the 8,192 context);
+  ~3 % of multi-turn conversations end earlier than in the 8B corpus because the
+  regeneration stops a conversation once a turn passes 4,096 tokens (70B answers:
+  mean 816 tokens, 8B 515).
+- Split (job 3691346): 1,576,555 training / 175,173 held out, of which 174,942 are
+  rows of the 8B run's held-out set (the rest of that set was not regenerated);
+  verified with Yu's val_ids.py. Corpus, val_ids.txt and missing-ids.txt in
+  `infra01/speculative-decoding/dspark-opb-70b-thinking-off/`.
+- Hidden states from the TP2 extraction server: shape (tokens, 6, 8192), last layer
+  through norm and lm_head predicts the next answer token 98.3 % of the time.
+- Training layout: 4 nodes, 8 ranks × 8,192 tokens × 512 anchors (Yu: 4 × 16,384 ×
+  1,024, the same 65,536 tokens and 4,096 anchors per step). Four nodes is the most
+  that keeps this batch while a rank still fits an 8,192-token conversation.
+- 3.56 s per step, ~33,200 steps per epoch (~33 h), 10 epochs ~14 days of compute.
+  Host RAM ~510–640 GB of 856; trainer GPUs 82–97 GB; checkpoint 25 GB, one
+  directory per epoch.
+- Chain: run id `opb-thinkoff`, jobs 3691347–3691384 (12 h each). Each saves a
+  resumable checkpoint 40 min before its time limit (speculators-deadline-stop.patch).
+  Link 1 trained to step 2,209 and hung in a collective (no cause logged); link 2
+  resumed from the step-2,076 checkpoint.
