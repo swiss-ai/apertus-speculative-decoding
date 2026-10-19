@@ -2,7 +2,8 @@
 # Build the trainer checkout and ship it to the cluster (which cannot reach GitHub).
 #   methods/dspark/train/setup-speculators.sh [ssh-host] [remote-checkout]
 # speculators at Yu's commit 7046ac6 with his patch (pruned output head,
-# process-group timeout) and ours (stop and save before the job's time limit),
+# process-group timeout) and ours (stop and save before the job's time limit;
+# stack dumps on SIGUSR1),
 # into scratch/speculators here and in the remote checkout.
 set -euo pipefail
 TRAIN_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -19,7 +20,7 @@ fi
 git -C "${DEST}" fetch -q --depth 1 origin "${COMMIT}"
 git -C "${DEST}" checkout -q --force FETCH_HEAD
 git -C "${DEST}" clean -qfd
-for p in speculators_7046ac6_daint.patch speculators-deadline-stop.patch; do
+for p in speculators_7046ac6_daint.patch speculators-deadline-stop.patch speculators-stack-dump.patch; do
   git -C "${DEST}" apply "${TRAIN_DIR}/patches/${p}"
 done
 git -C "${DEST}" diff --stat | tail -1

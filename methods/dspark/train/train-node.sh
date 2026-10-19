@@ -27,7 +27,9 @@ ANCHORS="${ANCHORS:-1024}"
 LR="${LR:-3e-4}"
 WORKERS="${WORKERS:-4}"
 PREFETCH="${PREFETCH:-2}"
-CKPT_FREQ="${CKPT_FREQ:-0.0625}"
+# Yu saved every 1/16 epoch (~2 h here, longer than the hangs above allowed);
+# 1/64 (~30 min) bounds the work a stalled job loses. A save takes ~1 min.
+CKPT_FREQ="${CKPT_FREQ:-0.015625}"
 RUN_DIR="${DSPARK_DIR}/runs/${RUN_ID}"
 CKPT="${RUN_DIR}/checkpoints"
 LOG="${RUN_DIR}/logs"
@@ -79,6 +81,38 @@ for i in $(seq 1 360); do
 done
 stamp "all ${NODES} extraction servers up"
 
+# Stall monitor (every node): a rank stuck outside NCCL left the others in a
+# collective until the 60-min timeout, 1,300-2,200 steps into each of the first
+# four jobs (3691347-50). When the rank-0 log shows no new event for longer than
+# its phase allows, dump every trainer process's stacks (SIGUSR1, see
+# speculators-stack-dump.patch) and stop torchrun, so the next job resumes.
+stall_monitor() {
+  local last="" changed now event limit
+  changed=$(date +%s)
+  while sleep 60; do
+    event="$(cat "${LOG}"/train-"${JOB}"-node*.log 2> /dev/null | grep -aoE \
+      "global_step=[0-9]+|Saving checkpoint|Checkpoint saved|Validation epoch [0-9]+/[0-9]+ (started|completed)|Training epoch [0-9]+/[0-9]+ started" \
+      | tail -1 || true)"
+    now=$(date +%s)
+    if [ "${event}" != "${last}" ]; then last="${event}"; changed=${now}; continue; fi
+    case "${event}" in
+      "") limit=1800 ;;
+      "Saving checkpoint") limit=2700 ;;
+      *started) limit=14400 ;;
+      *) limit=$(( ${STALL_MINUTES:-15} * 60 )) ;;
+    esac
+    if (( now - changed > limit )); then
+      stamp "STALL: no event since '${last}' for $(( (now - changed) / 60 )) min; dumping stacks, stopping"
+      pkill -USR1 -f "python3 -m speculators.train" || true
+      sleep 60
+      pkill -TERM -f "torchrun --nnodes" || true
+      return
+    fi
+  done
+}
+stall_monitor &
+monitor=$!
+
 extra=()
 [ "${GRAD_CKPT:-0}" = 1 ] && extra+=(--gradient-checkpointing)
 [ -n "${MAX_STEPS:-}" ] && extra+=(--max-steps "${MAX_STEPS}")
@@ -99,6 +133,7 @@ CUDA_VISIBLE_DEVICES="${TRAIN_GPUS}" DSPARK_PORT="${PORT}" torchrun --nnodes "${
   --num-workers "${WORKERS}" --prefetch-factor "${PREFETCH}" --checkpoint-freq "${CKPT_FREQ}" \
   --fsdp-shard "${extra[@]}" --save-path "${CKPT}" \
   > "${LOG}/train-${JOB}-node${NODE_RANK}.log" 2>&1 || rc=$?
+kill "${monitor}" 2> /dev/null || true
 stamp "torchrun rc=${rc} wall=$(( $(date +%s) - t0 ))s; checkpoints: $(ls "${CKPT}" 2> /dev/null | tail -3 | tr '\n' ' ')"
 grep -oE "val/eal_epoch=[0-9.]+" "${LOG}/train-${JOB}-node${NODE_RANK}.log" | tail -3 | paste -sd" " || true
 exit "${rc}"
