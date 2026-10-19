@@ -825,7 +825,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if ranks.main:
                 with history_path.open("a") as handle:
                     handle.write(json.dumps(record) + "\n")
-            if lr_used > 0 and update_norm == 0.0 and math.isfinite(grad_norm):
+            # The cosine tail reaches lr ~1e-12, where updates legitimately round to zero.
+            if lr_used > 1e-8 and update_norm == 0.0 and math.isfinite(grad_norm):
                 raise SystemExit(f"optimizer step {step} at lr {lr_used} did not change fc.weight")
             if step % eval_interval == 0 or step == trainer.max_steps:
                 result = trainer.evaluate(eval_cache)
