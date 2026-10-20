@@ -318,3 +318,28 @@ def test_speculators_prompts_are_the_tokens_before_the_completion(tmp_path: Path
     ]
     main(["prompts", "--input", str(path), "--output", str(out), "--limit", "1"])
     assert len(out.read_text().splitlines()) == 1
+
+
+def test_arena_hard_rows_follow_the_overlap_report_order(tmp_path: Path) -> None:
+    from apertus_eagle.arena_hard_workload import build_rows
+
+    questions = tmp_path / "question.jsonl"
+    rows = [
+        {"question_id": "q0", "turns": [{"content": "first"}]},
+        {"question_id": "q1", "turns": [{"content": "second"}]},
+        {"question_id": "dup", "turns": [{"content": "first"}]},
+        {"question_id": "q2", "turns": [{"content": "third"}]},
+    ]
+    questions.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    built = build_rows([questions], {"arena-hard-00001"}, 1024)
+    assert [r["id"] for r in built] == ["arena-hard-00000", "arena-hard-00001", "arena-hard-00002"]
+    assert [r["question_id"] for r in built] == ["q0", "q1", "q2"]
+    assert [r["workload"] for r in built] == [
+        "arena-hard-clean",
+        "arena-hard-contaminated",
+        "arena-hard-clean",
+    ]
+    assert built[2]["messages"] == [{"role": "user", "content": "third"}]
+    assert {r["max_tokens"] for r in built} == {1024}
+    with pytest.raises(SystemExit):
+        build_rows([questions], {"arena-hard-00007"}, 1024)
