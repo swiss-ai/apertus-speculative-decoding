@@ -1,0 +1,92 @@
+{
+  "requests": {
+    "attempted": 1024,
+    "successful": 1024,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 20.692928912507004
+  },
+  "tokens": {
+    "prompt": 576264,
+    "completion": 491703,
+    "output_tokens_per_second": 9936.303930728936,
+    "total_tokens_per_second": 21581.41133974938
+  },
+  "latency_ms": {
+    "e2e": {
+      "count": 1024,
+      "mean": 11413.315310481434,
+      "p50": 9801.308622500073,
+      "p95": 26084.810573751744,
+      "p99": 31227.114797840582
+    },
+    "ttft": {
+      "count": 1024,
+      "mean": 784.0096810429493,
+      "p50": 266.5024785001151,
+      "p95": 3463.952063000579,
+      "p99": 4434.78206254058
+    },
+    "tpot": {
+      "count": 1024,
+      "mean": 24.136083180503697,
+      "p50": 21.765427409871165,
+      "p95": 33.548961238748625,
+      "p99": 58.4121505765991
+    },
+    "stream_event_gap": {
+      "count": 152747,
+      "mean": 71.17949347030039,
+      "p50": 57.82608499794151,
+      "p95": 160.9959235000133,
+      "p99": 248.69137229841758
+    }
+  },
+  "wall_seconds": 49.48550320399954,
+  "speculative_decoding": {
+    "enabled": true,
+    "drafts": 152883.0,
+    "draft_tokens": 458649.0,
+    "accepted_tokens": 338997.0,
+    "acceptance_rate": 0.739120765552743,
+    "mean_acceptance_length": 3.2173622966582287,
+    "acceptance_rate_per_position": {
+      "0": 0.8524100128856708,
+      "1": 0.731395904057351,
+      "2": 0.6335563797152071
+    }
+  },
+  "warmup": {
+    "requests": 256,
+    "failed": 0
+  },
+  "load": {
+    "samples": 50,
+    "scrape_errors": 0,
+    "duration_s": 49.08,
+    "kv_cache_size_tokens": 433872,
+    "kv_cache_usage": {
+      "mean": 0.5322525446231008,
+      "p50": 0.6274893052072577,
+      "p95": 0.6962310075232335,
+      "max": 0.7141171264198259
+    },
+    "kv_cache_tokens_peak": 309835,
+    "seconds_kv_above_90pct": 0.0,
+    "running": {
+      "mean": 220.58,
+      "p50": 252.0,
+      "p95": 256.0,
+      "max": 256.0
+    },
+    "waiting": {
+      "mean": 6.06,
+      "p50": 0.0,
+      "p95": 79.0,
+      "max": 136.0
+    },
+    "preemptions": 0.0,
+    "prompt_tokens": 576264.0,
+    "generation_tokens": 491181.0
+  }
+}
