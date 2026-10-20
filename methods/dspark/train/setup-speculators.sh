@@ -21,7 +21,7 @@ git -C "${DEST}" fetch -q --depth 1 origin "${COMMIT}"
 git -C "${DEST}" checkout -q --force FETCH_HEAD
 git -C "${DEST}" clean -qfd
 for p in speculators_7046ac6_daint.patch speculators-deadline-stop.patch speculators-stack-dump.patch \
-  speculators-stall-traceback.patch; do
+  speculators-stall-traceback.patch speculators-dtensor-allgather.patch; do
   git -C "${DEST}" apply "${TRAIN_DIR}/patches/${p}"
 done
 git -C "${DEST}" diff --stat | tail -1

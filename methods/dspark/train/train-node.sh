@@ -38,10 +38,20 @@ JOB="${SLURM_JOB_ID:-local}"
 mkdir -p "${CKPT}" "${LOG}"
 rm -rf "${HS}" && mkdir -p "${HS}"
 export SPEC_PG_TIMEOUT_MIN="${SPEC_PG_TIMEOUT_MIN:-60}"
+# Every hang of the first six jobs (3691347-52) was an NCCL all-to-all from
+# Muon's sharded Newton-Schulz that one rank finished and the others never did.
+# CSCS lists NCCL hangs on Alps as a known issue, worked around by disabling
+# Slingshot eager messages (docs.cscs.ch/software/communication/nccl). Transport
+# only; DSPARK_CXI_EAGER=1 keeps eager messages. DSPARK_DTENSOR_ALLGATHER=1
+# (speculators-dtensor-allgather.patch) replaces the all-to-all altogether.
+if [ "${DSPARK_CXI_EAGER:-0}" != 1 ]; then
+  export FI_CXI_RDZV_GET_MIN=0 FI_CXI_RDZV_THRESHOLD=0 FI_CXI_RDZV_EAGER_SIZE=0
+fi
+export DSPARK_DTENSOR_ALLGATHER="${DSPARK_DTENSOR_ALLGATHER:-0}"
 check_side_deps
 cd "${SPECULATORS}"
 
-stamp "node ${NODE_RANK}/${NODES} head=${HEAD_NODE} run=${RUN_ID} data=${DATA} extract=${EXTRACT_GPUS} (TP${EXTRACT_TP}) train=${TRAIN_GPUS}"
+stamp "node ${NODE_RANK}/${NODES} head=${HEAD_NODE} run=${RUN_ID} data=${DATA} extract=${EXTRACT_GPUS} (TP${EXTRACT_TP}) train=${TRAIN_GPUS} rdzv_threshold=${FI_CXI_RDZV_THRESHOLD:-default} dtensor_allgather=${DSPARK_DTENSOR_ALLGATHER}"
 nvidia-smi --query-gpu=timestamp,index,utilization.gpu,memory.used --format=csv,noheader -l 60 \
   > "${LOG}/gpu-${JOB}-node${NODE_RANK}.csv" 2> /dev/null &
 smi=$!
