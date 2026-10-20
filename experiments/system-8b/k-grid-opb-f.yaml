@@ -1,0 +1,15 @@
+# Draft-length grid on Yu's held-out prompts for EAGLE e10 (k-grid-opb-c/d
+# with the final head; DSpark e10 is in k-grid-opb-a/b). Own plain arm.
+name: k-grid-opb-f
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: eagle-e10-k4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 4}
+  - {name: eagle-e10-k5, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 5}
+  - {name: eagle-e10-k7, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 7}
