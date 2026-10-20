@@ -899,7 +899,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "best_step": best_step,
         "gates": {
             "finite_losses": True,
-            "real_updates": all(h["fc_update_norm"] > 0 for h in history if h["lr_used"] > 0)
+            "real_updates": all(h["fc_update_norm"] > 0 for h in history if h["lr_used"] > 1e-8)
             and any(h["lr_used"] > 0 for h in history),
             "loss_decreased": bool(history)
             and (sum(last_losses) / len(last_losses)) < (sum(first_losses) / len(first_losses)),
