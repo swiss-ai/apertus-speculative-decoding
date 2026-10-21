@@ -25,3 +25,8 @@ the corpus (`check.json`); chat and summarization are clean.
 
 Recommendation: report Arena-Hard, and preferably AlpacaEval and HumanEval,
 both on all prompts and on the clean subset (`contaminated_ids` in the report).
+
+Measured 2026-10-21 for Arena-Hard ([system-optimizations-8b.md](system-optimizations-8b.md#arena-hard-all-clean-and-contaminated-prompts),
+jobs 3713289, 3713291): the 129 contaminated prompts accept no more than the
+371 clean ones (within 1%) for DSpark e10 and EAGLE e10 at k=3/5/7, so the
+overlap does not inflate the drafters' Arena-Hard numbers.
