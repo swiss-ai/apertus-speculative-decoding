@@ -84,11 +84,19 @@ fi
 # Every node's 70B server must be up before torchrun: load times differ by
 # minutes and the head's rendezvous store refused late joiners after 60 s
 # (job 3681626). Ready files on shared storage act as a barrier.
+# A node whose container starts late (1.5 h in job 3691353) must not leave the
+# others to time out: wait up to 2 h, then fail so the next job takes over.
 touch "${LOG}/ready-${JOB}-node${NODE_RANK}"
-for i in $(seq 1 360); do
-  [ "$(ls "${LOG}"/ready-"${JOB}"-node* 2> /dev/null | wc -l)" -ge "${NODES}" ] && break
+ready=0
+for i in $(seq 1 720); do
+  ready=$(ls "${LOG}"/ready-"${JOB}"-node* 2> /dev/null | wc -l)
+  [ "${ready}" -ge "${NODES}" ] && break
   sleep 10
 done
+if [ "${ready}" -lt "${NODES}" ]; then
+  stamp "NODES_NOT_READY: ${ready} of ${NODES} extraction servers up after 2 h"
+  exit 1
+fi
 stamp "all ${NODES} extraction servers up"
 
 # Stall monitor (every node): a rank stuck outside NCCL left the others in a
@@ -106,7 +114,7 @@ stall_monitor() {
     now=$(date +%s)
     if [ "${event}" != "${last}" ]; then last="${event}"; changed=${now}; continue; fi
     case "${event}" in
-      "") limit=1800 ;;
+      "") limit=2700 ;;
       "Saving checkpoint") limit=2700 ;;
       *started) limit=14400 ;;
       *) limit=$(( ${STALL_MINUTES:-15} * 60 )) ;;
