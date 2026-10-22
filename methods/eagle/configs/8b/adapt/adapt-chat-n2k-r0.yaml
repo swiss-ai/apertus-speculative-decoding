@@ -1,0 +1,63 @@
+# Drafter updates (T5), step B: continue EAGLE e10 (served head = checkpoints/best,
+# step 251,955) on 2000 stand-in served chat traces.
+# Fresh optimizer and constant low learning rate after a short warmup, so the
+# evals every 32 steps trace the step-budget curve of one run; domain dev
+# acceptance is eval_data, open-perfectblend held-out (first 512 of e10's 2,000
+# eval rows) is extra_eval "opb" (forgetting). Exports the final checkpoint.
+pipeline: rollout
+stage: 8b
+
+model:
+  contract: targets/8b/contract.json
+  algorithm: eagle31
+  draft_model_config: methods/eagle/configs/8b/draft-e31-config.json
+  freeze_lm_head: true
+  share_target_embedding: true
+  init_from: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-opb-thinkoff-stage1/checkpoints/best
+
+dataset:
+  features: online
+  data_root: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/adapt-data
+  train_data:
+    - /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/adapt-data/chat-n2000.jsonl
+  eval_data: [/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/traces/chat/dev.jsonl]
+  extra_eval:
+    - name: opb
+      data: [/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/heldout.jsonl]
+      limit: 512
+  max_seq_length: 8192
+  teacher_batch_tokens: 32768
+
+training:
+  attention_backend: sdpa
+  loss_type: forward_kl
+  ttt_length: 7
+  micro_batch_size: 1
+  rows_per_step: 32
+  data_parallel: 4
+  micro_batch_tokens: 8192
+  gradient_checkpointing: adaptive
+  checkpoint_free_width: 4096
+  checkpoint_free_tokens: 8192
+  learning_rate: 3.0e-5
+  warmup_ratio: 0.05  # 19 steps
+  max_grad_norm: 0.5
+  weight_decay: 0.0
+  lr_decay_style: constant
+  min_lr: 0.0
+  lr_total_steps: 384
+  num_train_steps: 384
+  num_epochs: 1000
+  eval_interval: 32
+  save_interval: 128
+  resume_interval: 128
+  stop_after_evals_without_improvement: 0
+  stop_margin_s: 600
+  seed: 1
+
+export:
+  checkpoint: final
+
+output_root: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/runs
+head_root: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/heads
+run_name: adapt-chat-n2k-r0
