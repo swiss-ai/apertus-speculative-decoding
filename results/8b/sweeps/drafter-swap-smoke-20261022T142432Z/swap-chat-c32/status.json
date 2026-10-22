@@ -1,0 +1,43 @@
+{
+  "arm": "swap-chat-c32",
+  "deployment_id": "drafter-swap-smoke-3722022-swap-chat-c32",
+  "env": {},
+  "exit_code": 0,
+  "finished": "2026-10-23T00:35:53+0200",
+  "gpus": [
+    0
+  ],
+  "port": 8100,
+  "serve_argv": [
+    "python3",
+    "-m",
+    "apertus_bench.drafter_swap",
+    "session",
+    "--old",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+    "--new",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se",
+    "--workload",
+    "{repo}/workloads/8b/eagle-8b-test.jsonl",
+    "--workload-name",
+    "chat",
+    "--greedy-prompts",
+    "{repo}/workloads/8b/eagle-8b-validation.jsonl",
+    "--greedy-workload",
+    "chat",
+    "--concurrency",
+    "32",
+    "--duration",
+    "360",
+    "--swap-at",
+    "180",
+    "--port",
+    "8190",
+    "--output",
+    "{arm_dir}"
+  ],
+  "servers": [],
+  "started": "2026-10-23T00:24:57+0200",
+  "status": "ok",
+  "tests": {}
+}
