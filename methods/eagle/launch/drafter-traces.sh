@@ -34,10 +34,15 @@ mkdir -p "${POOLS}" "${TRACES}" "${HF_HOME}" "${XDG_CACHE_HOME}"
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 log "job=${SLURM_JOB_ID} host=$(hostname) revision=$(git -C "${REPO_ROOT}" rev-parse HEAD) domains=${DOMAINS}"
 
+# Prompts no pool or dev row may duplicate: the test and validation workloads,
+# and the workload-coverage slices (read-only evaluation sets of another branch).
+PROTECT=("${REPO_ROOT}/workloads/8b/eagle-8b-test.jsonl" "${REPO_ROOT}/workloads/8b/eagle-8b-validation.jsonl")
+COVERAGE="${DRAFTER_COVERAGE:-/iopsstor/scratch/cscs/${USER}/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl}"
+[ -f "${COVERAGE}" ] && PROTECT+=("${COVERAGE}")
 if [ ! -f "${POOLS}/manifest.json" ]; then
   # pyarrow is not in the serving image; the data-check jobs use the same pydeps.
   PYTHONPATH="${REPO_ROOT}/scratch/pydeps-data:${PYTHONPATH:-}" python3 -m apertus_eagle.build_adaptation_pools --contract "${CONTRACT}" \
-    --output-dir "${POOLS}" --infomaniak-dir "${DATA_ROOT}/src/infomaniak" \
+    --output-dir "${POOLS}" --infomaniak-dir "${DATA_ROOT}/src/infomaniak" --protect "${PROTECT[@]}" \
     --split-index "${DRAFTER_SPLIT_INDEX:-/users/${USER}/apertus-spec-decoding/results/70b/eagle/data/split-index.jsonl}" \
     --domains "$(echo "${DOMAINS}" | tr ' ' ',')" ${POOL_ARGS[@]+"${POOL_ARGS[@]}"}
 else
