@@ -1,5 +1,9 @@
 """A2: regenerate assistant turns with the frozen target (greedy, natural EOS).
 
+``--temperature`` > 0 samples instead (with ``--top-p``/``--top-k``), as served
+traffic is answered; each row then gets its own seed derived from its id and
+``--seed``, so a row's response does not depend on the batch it ran in.
+
 Runs inside the serving image on one allocated GPU. For every split row the
 prompt is the row's messages up to the final assistant turn, rendered by the
 serving chat template with the serving default (``Deliberation: disabled``,
@@ -43,6 +47,11 @@ GENERATION_POLICY = {
 }
 
 
+def row_seed(row_id: str, seed: int) -> int:
+    """Per-request sampling seed, stable across batching and row order."""
+    return (int(hashlib.sha256(str(row_id).encode()).hexdigest()[:8], 16) + seed) % (2**31)
+
+
 def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -80,7 +89,19 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--render-checks", type=int, default=32)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.85)
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--top-p", type=float, default=1.0)
+    parser.add_argument("--top-k", type=int, default=-1)
+    parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args(argv)
+    policy = dict(GENERATION_POLICY)
+    if args.temperature > 0:
+        policy.update(
+            temperature=args.temperature,
+            top_p=args.top_p,
+            top_k=args.top_k,
+            seed=f"per row: (sha256(id)[:8] + {args.seed}) mod 2**31",
+        )
 
     contract = load_contract(args.contract)
     identity = target_identity(contract)
@@ -104,7 +125,7 @@ def main(argv: list[str] | None = None) -> None:
     summary: dict[str, Any] = {
         "target": identity,
         "contract": contract["_path"],
-        "policy": GENERATION_POLICY,
+        "policy": policy,
         "max_seq_length": args.max_seq_length,
         "max_new_tokens": args.max_new_tokens,
         "max_prompt_tokens": args.max_prompt_tokens,
@@ -172,13 +193,15 @@ def main(argv: list[str] | None = None) -> None:
 
         params = [
             SamplingParams(
-                temperature=0.0,
+                temperature=args.temperature,
+                # Greedy keeps the original arguments (vLLM defaults for top_p/top_k).
+                **({"top_p": args.top_p, "top_k": args.top_k} if args.temperature > 0 else {}),
                 max_tokens=min(args.max_new_tokens, args.max_seq_length - len(ids)),
                 stop_token_ids=list(eos_ids),
                 skip_special_tokens=False,
-                seed=0,
+                seed=row_seed(row["id"], args.seed) if args.temperature > 0 else 0,
             )
-            for _row, _messages, ids in prepared
+            for row, _messages, ids in prepared
         ]
         started = time.time()
         outputs = llm.generate(
@@ -202,7 +225,8 @@ def main(argv: list[str] | None = None) -> None:
                         {
                             "id": row["id"],
                             "split": row.get("split") or input_path.stem,
-                            "domain": row.get("domain"),
+                            "domain": row.get("domain") or row.get("workload"),
+                            "language": row.get("language"),
                             "source": row.get("dataset_name") or row.get("source"),
                             "messages": messages,
                             "prompt_ids": ids,
