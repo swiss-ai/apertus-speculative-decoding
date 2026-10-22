@@ -1,0 +1,126 @@
+{
+  "profile": {
+    "tool": "nsys",
+    "window_s": 10.0,
+    "delay_s": 5.0,
+    "levels": null,
+    "loadtests": null,
+    "nsys": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+    "trace": "cuda,nvtx,osrt",
+    "cuda_graph_trace": "node",
+    "gpu_metrics": false,
+    "gpu_metrics_frequency": 10000,
+    "nvtx": true,
+    "eager_draft": false,
+    "sample": "none",
+    "extra_args": [],
+    "stats": [
+      "cuda_gpu_kern_sum",
+      "cuda_gpu_mem_time_sum",
+      "cuda_api_sum",
+      "nvtx_sum",
+      "nvtx_gpu_proj_sum",
+      "nvtx_gpu_proj_trace",
+      "osrt_sum"
+    ],
+    "report_timeout_s": 900.0
+  },
+  "reports": [
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/dspark-e10-k7-nsys/nsys/dspark-e10-k7-nsys.1.nsys-rep",
+      "report_bytes": 26003263,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/dspark-e10-k7-nsys/nsys/dspark-e10-k7-nsys.1.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k7-nsys.1_cuda_api_sum.csv",
+        "dspark-e10-k7-nsys.1_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k7-nsys.1_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k7-nsys.1_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k7-nsys.1_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k7-nsys.1_nvtx_sum.csv",
+        "dspark-e10-k7-nsys.1_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 8,
+        "delay_s": 5.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-22T15:04:03.194093+00:00",
+        "start_latency_s": 1.663,
+        "truncated": false,
+        "open_s": 14.233,
+        "stopped_at": "2026-10-22T15:04:19.089915+00:00",
+        "counters": {
+          "prompt_tokens": 40872.0,
+          "generation_tokens": 36122.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 7395.0,
+            "draft_tokens": 51765.0,
+            "accepted_tokens": 28830.0,
+            "acceptance_rate": 0.5569400173862649,
+            "mean_acceptance_length": 4.898580121703854,
+            "acceptance_rate_per_position": {
+              "0": 0.8512508451656524,
+              "1": 0.7230561189993239,
+              "2": 0.605814739688979,
+              "3": 0.5134550371872887,
+              "4": 0.4486815415821501,
+              "5": 0.39891818796484113,
+              "6": 0.35740365111561867
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/dspark-e10-k7-nsys/nsys/dspark-e10-k7-nsys.2.nsys-rep",
+      "report_bytes": 9383845,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/dspark-e10-k7-nsys/nsys/dspark-e10-k7-nsys.2.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k7-nsys.2_cuda_api_sum.csv",
+        "dspark-e10-k7-nsys.2_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k7-nsys.2_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k7-nsys.2_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k7-nsys.2_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k7-nsys.2_nvtx_sum.csv",
+        "dspark-e10-k7-nsys.2_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 128,
+        "delay_s": 5.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-22T15:04:36.622452+00:00",
+        "start_latency_s": 0.29,
+        "truncated": false,
+        "open_s": 13.114,
+        "stopped_at": "2026-10-22T15:04:50.025825+00:00",
+        "counters": {
+          "prompt_tokens": 93743.0,
+          "generation_tokens": 88027.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 18158.0,
+            "draft_tokens": 127106.0,
+            "accepted_tokens": 70089.0,
+            "acceptance_rate": 0.5514216480732617,
+            "mean_acceptance_length": 4.859951536512831,
+            "acceptance_rate_per_position": {
+              "0": 0.8500385505011565,
+              "1": 0.7159378786209935,
+              "2": 0.6017733230531996,
+              "3": 0.5119506553585197,
+              "4": 0.44349597973345084,
+              "5": 0.3909020817270625,
+              "6": 0.3458530675184492
+            }
+          }
+        }
+      }
+    }
+  ]
+}
