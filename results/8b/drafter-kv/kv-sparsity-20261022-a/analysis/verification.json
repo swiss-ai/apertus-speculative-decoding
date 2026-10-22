@@ -1,0 +1,29 @@
+{
+  "source_revision": "27c3879b19f76e7029755150e3663d9e6c1f5297",
+  "focused_cpu_tests": {
+    "passed": 104,
+    "failed": 0,
+    "seconds": 1.26,
+    "argv": [
+      "/tmp/apertus-kv-tests/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-q",
+      "tests/test_drafter_kv_experiment.py",
+      "tests/test_drafter_kv_evidence.py",
+      "tests/test_draft_kv_policy.py",
+      "tests/test_node_sweep.py",
+      "tests/test_drafter_kv_trace_coverage.py",
+      "tests/test_draft_kv_captures.py"
+    ],
+    "environment": {
+      "PYTHONPATH": "src"
+    }
+  },
+  "runtime_harness_and_test_ruff": "passed",
+  "shell_syntax": "passed",
+  "gpu_regressions": "see allocations/preflight-int64-stress/results/state-kernels.log and earlier preflight artifacts",
+  "memory_archive_exact_byte_sha256_verified": true
+}

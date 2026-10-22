@@ -1,0 +1,85 @@
+--- a/workspace/vllm/vllm/model_executor/models/qwen3_dflash.py
++++ b/workspace/vllm/vllm/model_executor/models/qwen3_dflash.py
+@@ -235,7 +235,8 @@
+ 
+         q, k = self.rotary_emb(positions, q, k)
+ 
+-        attn_output = self.attn(q, k, v)
++        from vllm.apertus_draft_kv.integration import sparse_layer_attention
++        attn_output = sparse_layer_attention(self, q, k, v, positions)
+         output, _ = self.o_proj(attn_output)
+         return output
+ 
+@@ -843,3 +844,7 @@
+             MASK_EMBEDDING_FILENAME,
+         )
+         return state.reshape(-1)
++
++
++from vllm.apertus_draft_kv.integration import install_model_hooks
++install_model_hooks(globals())
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py
+@@ -29,6 +29,9 @@
+             backend=speculative_config.attention_backend,
+         ),
+     )
++
++    from vllm.apertus_draft_kv.integration import sparse_draft_config
++    draft_vllm_config = sparse_draft_config(draft_vllm_config)
+ 
+     with set_model_tag("dspark_head"):
+         draft_model = get_model(
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dflash/speculator.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dflash/speculator.py
+@@ -636,3 +636,7 @@
+         PAD_SLOT_ID=PAD_SLOT_ID,
+         BLOCK_SIZE=BLOCK_SIZE,
+     )
++
++
++from vllm.apertus_draft_kv.integration import install_speculator_hooks
++install_speculator_hooks(globals())
+--- a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+@@ -728,6 +728,8 @@
+         return cuda_graph_size
+ 
+     def _remove_request(self, req_id: str) -> bool:
++        from vllm.apertus_draft_kv.integration import notify_request_removed
++        notify_request_removed(self.speculator, req_id)
+         # Call model_state.remove_request *before* req_states.remove_request
+         # so the model_state can still look up the slot index.
+         self.model_state.remove_request(req_id)
+@@ -1479,6 +1481,8 @@
+                 mm_inputs=mm_inputs,
+             )
+             self.req_states.draft_tokens[input_batch.idx_mapping] = draft_tokens
++            from vllm.apertus_draft_kv.integration import attach_release_events
++            attach_release_events(self.speculator, model_runner_output)
+ 
+         if self.num_speculative_steps > 0:
+             # Spec-decode and diffusion LLMs both use draft tokens but the latter does
+--- a/workspace/vllm/vllm/v1/core/sched/scheduler.py
++++ b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+@@ -1505,6 +1505,8 @@
+         scheduler_output: SchedulerOutput,
+         model_runner_output: ModelRunnerOutput,
+     ) -> dict[int, EngineCoreOutputs]:
++        from vllm.apertus_draft_kv.integration import apply_release_events
++        apply_release_events(self.kv_cache_manager, model_runner_output)
+         sampled_token_ids = model_runner_output.sampled_token_ids
+         logprobs = model_runner_output.logprobs
+         prompt_logprobs_dict = model_runner_output.prompt_logprobs_dict
+--- a/workspace/vllm/vllm/v1/outputs.py
++++ b/workspace/vllm/vllm/v1/outputs.py
+@@ -243,6 +243,9 @@
+     # each request due to speculative/jump decoding.
+     sampled_token_ids: list[list[int]] = field(default_factory=list)
+ 
++    # Drafter-only physical page ownership after bootstrap compression.
++    apertus_draft_kv_releases: dict[str, list[int]] | None = None
++
+     # [num_reqs, max_num_logprobs + 1]
+     # [num_reqs, max_num_logprobs + 1]
+     # [num_reqs]

@@ -6,6 +6,11 @@ improves serving speed or capacity. It is isolated on
 `experiment/drafter-kv-sparsity`, based on main `c15baf59`. Only the drafter cache
 changes; target KV and verification remain native.
 
+The [completed thinking-off screen](../results/8b/drafter-kv/kv-sparsity-20261022-a/README.md)
+failed the expansion gates: physical drafter storage falls, but throughput,
+latency, and summarization acceptance regress. The experiment stopped before
+confirmation or evaluation of the other heads, after 3.61 allocated GPU-hours.
+
 ## Evidence and policy
 
 The [action-items canvas](https://swissai-initiative.slack.com/docs/T0627JS49GT/F0C6431UBTP)
