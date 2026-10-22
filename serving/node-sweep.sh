@@ -40,6 +40,11 @@ done
 
 # Fail on a bad spec here, not after the queue wait.
 PYTHONPATH="${REPO_ROOT}/src" python3 -m apertus_bench.node_sweep plan "${SPEC}" > /dev/null
+# Arms with a `profile` block need the NVTX hook (inert without VLLM_APERTUS_NVTX=1).
+PROFILED="$(PYTHONPATH="${REPO_ROOT}/src" python3 -m apertus_bench.node_sweep profiled "${SPEC}")"
+if [ "${PROFILED}" != "0" ]; then
+  PATCHES+=("${REPO_ROOT}/serving/patches/vllm-apertus-nvtx.patch")
+fi
 
 mkdir -p "${OUT}"
 if [ "${VALIDATE_ONLY:-0}" != "1" ]; then
