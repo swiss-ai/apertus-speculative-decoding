@@ -1,0 +1,24 @@
+# Per-request draft length (docs/per-request-k.md), step A2: fixed draft
+# lengths k=1/2/4 against plain on the "mixed" workload (see mixed-calib-a,
+# which has k=3/5 and the labelled confidence dump at k=7). Together the two
+# jobs give the best fixed length per concurrency on mixed traffic, the
+# load-based baseline. Same patches as mixed-calib-a (inactive in these arms).
+# Submit with SWEEP_PARTITION=normal SWEEP_TIME=02:00:00
+#   SWEEP_PATCHES="serving/patches/vllm-apertus-dspark-confidence-verify.patch
+#   serving/patches/vllm-apertus-dspark-paper-scheduler.patch
+#   serving/patches/vllm-apertus-dspark-draft-cut.patch
+#   serving/patches/vllm-apertus-dspark-kv-cost.patch
+#   serving/patches/vllm-apertus-dspark-conf-dump-task.patch"
+name: mixed-calib-b
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: mixed
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/per-request-k/workloads/8b/mixed.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k1, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 1}
+  - {name: dspark-e10-k2, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 2}
+  - {name: dspark-e10-k4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 4}
