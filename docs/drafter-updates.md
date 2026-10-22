@@ -129,9 +129,9 @@ closed-loop sampled load, swap at 180 s. Record:
 | drafter digest changed, then restored; target digest unchanged | yes | yes |
 
 - **Pause:** the swap stalls every stream for about the RPC time, at most
-  half a second. That is cheaper than an engine restart (0 requests lost
-  instead of a replica's warm-up of several minutes; full startup with
-  compile and graph capture took about 75 s here).
+  half a second, and no request is lost. A restart costs far more: this
+  server took 207 s from launch to its first completion (load, compile,
+  CUDA graph capture), and in-flight requests would be dropped or drained.
 - **Where the time goes:** most of it is reading 0.5 GB of safetensors from
   /iopsstor with a cold page cache. Reading the file into host memory before
   the RPC would cut the stall to the copy (about 60 ms).
