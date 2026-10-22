@@ -575,11 +575,13 @@ def submit(campaign: Path, allocation: str, spec_path: Path, repo: Path) -> dict
         **os.environ, "SWEEP_OUTPUT": str(output), "SWEEP_TIME": walltime,
         "SBATCH_COMMENT": item["job_comment"], "SBATCH_NO_REQUEUE": "1",
         "SWEEP_DRAFT_KV": "1",
+        "VLLM_PATCH_DIR": str(output.parent / "vllm-overlay"),
     }
     exclusive_json(output.parent / "submit-command.json", {
         "argv": command, "SWEEP_OUTPUT": str(output), "SWEEP_TIME": walltime,
         "SBATCH_COMMENT": item["job_comment"],
         "SWEEP_DRAFT_KV": "1", "SBATCH_NO_REQUEUE": "1",
+        "VLLM_PATCH_DIR": environment["VLLM_PATCH_DIR"],
         "SWEEP_PATCHES": environment.get("SWEEP_PATCHES", ""),
         "IMAGE": environment.get("IMAGE"), "ENV_SOURCE": environment.get("ENV_SOURCE"),
     })
