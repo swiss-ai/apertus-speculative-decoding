@@ -909,6 +909,8 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
     report = {"schema_version": 1, "phase": phase, "created_at": now(), "candidate": candidate,
               "passed": passed, "promising": chosen.get("promising", False),
               "correctness_controls_passed": chosen.get("correctness_controls_passed", False),
+              "correctness_controls_passed_scope": (
+                  "selected candidate only; inspect decisions per policy when candidate is null"),
               "selected_speed_cell": chosen.get("selected_speed_cell"), "decisions": decisions,
               "trace_summaries": traces, "evidence": str(evidence_path.resolve()),
               "artifact_path_mapping": artifact_path_mapping(),

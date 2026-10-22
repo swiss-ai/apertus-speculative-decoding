@@ -382,6 +382,7 @@ def test_screen_ranks_importance_only_and_freezes_validation_speed_cell(
     report = kv.analyze(campaign, "screen", evidence, report_path)
     assert report["passed"]
     assert report["candidate"] == "importance512"
+    assert "selected candidate only" in report["correctness_controls_passed_scope"]
     assert report["selected_speed_cell"] == {"workload": "code", "concurrency": 32}
     kv.authorize_phase(campaign, "confirm", report_path)
     assert status(campaign)["phase_authorizations"]["confirm"]["speed_cell"] == {
