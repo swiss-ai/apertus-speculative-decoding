@@ -382,3 +382,38 @@ def test_training_sequence_is_the_served_stream_with_generated_loss() -> None:
     assert mask == [0, 0, 0, 0, 0, 1, 1, 0]
     ids, mask = training_sequence(row, max_seq_length=6)
     assert len(ids) == 6 and mask == [0, 0, 0, 0, 0, 0]
+
+
+def test_init_from_is_skipped_when_the_run_can_resume(tmp_path: Path) -> None:
+    from apertus_eagle.train_rollout import init_source
+
+    start = tmp_path / "e10" / "final"
+    start.mkdir(parents=True)
+    (start / "draft.safetensors").write_bytes(b"")
+    resume = tmp_path / "run" / "checkpoints" / "resume"
+    cfg = {"model": {"init_from": str(start)}}
+    assert init_source({"model": {}}, resume) is None
+    assert init_source(cfg, resume) == start
+    resume.mkdir(parents=True)
+    (resume / "state.json").write_text("{}")
+    assert init_source(cfg, resume) is None
+    with pytest.raises(SystemExit, match="no draft.safetensors"):
+        init_source({"model": {"init_from": str(tmp_path / "missing")}}, tmp_path / "x")
+
+
+def test_init_state_must_match_the_draft_and_its_frozen_copies() -> None:
+    np = pytest.importorskip("numpy")
+    from apertus_eagle.train_rollout import init_state_problems
+
+    target = {"fc.weight": np.zeros((4, 8)), "lm_head.weight": np.ones((16, 4))}
+    frozen = ["lm_head.weight"]
+    trained = {"fc.weight": np.full((4, 8), 0.5), "lm_head.weight": np.ones((16, 4))}
+    assert init_state_problems(trained, target, frozen) == []
+    other_target = {**trained, "lm_head.weight": np.full((16, 4), 2.0)}
+    assert init_state_problems(other_target, target, frozen) == [
+        "lm_head.weight: frozen tensor differs from the target's copy"
+    ]
+    assert init_state_problems({"fc.weight": np.zeros((4, 4))}, target, frozen) == [
+        "missing lm_head.weight",
+        "fc.weight: shape (4, 4) != (4, 8)",
+    ]

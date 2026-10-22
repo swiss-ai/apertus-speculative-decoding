@@ -259,6 +259,45 @@ def micro_batches(
     return groups
 
 
+def init_source(cfg: dict[str, Any], resume_dir: Path) -> Path | None:
+    """Checkpoint whose draft weights start this run (``model.init_from``), or None.
+
+    A run that already holds ``checkpoints/resume`` continues from there instead:
+    its weights descend from ``init_from`` and its optimizer state must be kept.
+    Only the draft weights are taken; optimizer, schedule and step start fresh.
+    """
+    value = cfg["model"].get("init_from")
+    if not value or (resume_dir / "state.json").is_file():
+        return None
+    path = Path(value)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    if not (path / "draft.safetensors").is_file():
+        raise SystemExit(f"model.init_from {path} has no draft.safetensors")
+    return path
+
+
+def init_state_problems(
+    source: dict[str, Any], target: dict[str, Any], frozen: list[str]
+) -> list[str]:
+    """Why ``source`` cannot start a draft whose state is ``target`` (empty: it can).
+
+    Keys and shapes must match exactly, and the frozen tensors (embedding and
+    lm_head copied from the target) must equal the current target's: a draft
+    trained against another target checkpoint is refused, not silently adapted.
+    """
+    problems = [f"missing {key}" for key in sorted(set(target) - set(source))]
+    problems += [f"unexpected {key}" for key in sorted(set(source) - set(target))]
+    for key in sorted(set(source) & set(target)):
+        if tuple(source[key].shape) != tuple(target[key].shape):
+            problems.append(
+                f"{key}: shape {tuple(source[key].shape)} != {tuple(target[key].shape)}"
+            )
+        elif key in frozen and not bool((source[key] == target[key]).all()):
+            problems.append(f"{key}: frozen tensor differs from the target's copy")
+    return problems
+
+
 class RolloutTrainer:
     def __init__(
         self,
@@ -266,6 +305,7 @@ class RolloutTrainer:
         contract: dict[str, Any],
         output: Path,
         ranks: Ranks | None = None,
+        init_from: Path | None = None,
     ):
         import torch
         from torchspec.models.draft import AutoDraftModelConfig, AutoEagle3DraftModel
@@ -350,6 +390,30 @@ class RolloutTrainer:
         draft.freeze_embedding()
         if self.freeze_lm_head:
             draft.freeze_lm_head()
+        self.init_report = None
+        if init_from is not None:
+            # Before the optimizer exists: its fp32 masters are copied from these weights.
+            from safetensors.torch import load_file
+
+            source = load_file(str(init_from / "draft.safetensors"), device="cpu")
+            current = draft.state_dict()
+            frozen = [name for name, p in draft.named_parameters() if not p.requires_grad]
+            problems = init_state_problems(source, current, frozen)
+            if problems:
+                raise SystemExit(f"model.init_from {init_from}: " + "; ".join(problems[:8]))
+            draft.load_state_dict(source, strict=True)
+            state_file = init_from / "state.json"
+            self.init_report = {
+                "path": str(init_from),
+                "draft_sha256": hashlib.sha256(
+                    (init_from / "draft.safetensors").read_bytes()
+                ).hexdigest(),
+                "state": json.loads(state_file.read_text()) if state_file.is_file() else None,
+                "tensors": len(source),
+                "frozen_checked": frozen,
+                "optimizer": "fresh (init_from loads draft weights only)",
+            }
+            del source
         self.draft = draft.to(self.device)
         # Same seed on every rank already; make the start bitwise identical anyway.
         self.ranks.broadcast_module(self.draft)
@@ -591,10 +655,35 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             limit=int(dataset.get("eval_limit") or 0) or None,
             max_batch_tokens=batch_tokens,
         )
+        extra_evals = {
+            spec["name"]: OnlineFeatures(
+                [cache_path_of(p) for p in spec["data"]],
+                teacher,
+                max_seq_length=max_seq,
+                limit=int(spec.get("limit") or 0) or None,
+                max_batch_tokens=batch_tokens,
+            )
+            for spec in dataset.get("extra_eval") or []
+        }
     else:
         train_cache = FeatureCache(cache_path("train_cache"), contract)
         eval_cache = FeatureCache(cache_path("eval_cache"), contract)
-    trainer = RolloutTrainer(cfg, contract, output, ranks)
+        extra_evals = {
+            spec["name"]: FeatureCache(cache_path_of(spec["cache"]), contract)
+            for spec in dataset.get("extra_eval") or []
+        }
+    # dataset.extra_eval: further held-out sets (e.g. the original corpus, to see
+    # forgetting while adapting). Reported next to eval_data; best/patience use
+    # eval_data only.
+    resume_dir = output / "checkpoints" / "resume"
+    trainer = RolloutTrainer(cfg, contract, output, ranks, init_from=init_source(cfg, resume_dir))
+
+    def evaluate_all() -> dict[str, Any]:
+        result = trainer.evaluate(eval_cache)
+        if extra_evals:
+            result["extra"] = {name: trainer.evaluate(c) for name, c in extra_evals.items()}
+        return result
+
     train = cfg["training"]
     eval_interval = int(train["eval_interval"])
     save_interval = int(train.get("save_interval") or 0)
@@ -645,8 +734,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "files": source.manifest.get("files"),
                 "samples": len(source),
             }
-            for name, source in (("train", train_cache), ("eval", eval_cache))
+            for name, source in (
+                ("train", train_cache),
+                ("eval", eval_cache),
+                *((f"extra_eval:{n}", c) for n, c in extra_evals.items()),
+            )
         },
+        "init_from": trainer.init_report,
         "torchspec_root": str(torchspec_root),
         "torchspec_revision": _git_revision(torchspec_root),
         "harness_revision": _git_revision(REPO_ROOT),
@@ -666,7 +760,6 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     stop_reason = "max_steps"
     # Resumable state: everything the loop needs to continue at the same step.
     resume_interval = int(train.get("resume_interval") or 0)
-    resume_dir = output / "checkpoints" / "resume"
     history_path = output / "history.jsonl"
     incomplete_path = output / INCOMPLETE_MARKER
     if ranks.main:
@@ -686,7 +779,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             ]
         print(json.dumps({"resumed": {k: v for k, v in loop.items() if k != "evals"}}), flush=True)
     else:
-        initial = trainer.evaluate(eval_cache)
+        initial = evaluate_all()
         evals.append({"step": 0, **initial})
         print(json.dumps({"eval": evals[-1]}), flush=True)
         loop = {
@@ -829,7 +922,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if lr_used > 1e-8 and update_norm == 0.0 and math.isfinite(grad_norm):
                 raise SystemExit(f"optimizer step {step} at lr {lr_used} did not change fc.weight")
             if step % eval_interval == 0 or step == trainer.max_steps:
-                result = trainer.evaluate(eval_cache)
+                result = evaluate_all()
                 evals.append({"step": step, **result})
                 print(json.dumps({"eval": evals[-1]}), flush=True)
                 if result["simulated_acc_len"] > best:
