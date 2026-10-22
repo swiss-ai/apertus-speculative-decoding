@@ -1,0 +1,25 @@
+Opt-in NVTX ranges on the vLLM engine step for Nsight Systems profiles
+(docs/waste-profiling.md). With VLLM_APERTUS_NVTX=1 the worker module installs
+apertus_bench.vllm_nvtx, which wraps the scheduler, the model runner (v2), the
+rejection sampler and the DSpark/DFlash/EAGLE speculators in NVTX ranges. The
+wrapping happens at run time, so this overlay touches only gpu_worker.py and
+composes with the scheduler patches that edit model_runner.py and the
+speculators. Without the variable it does nothing. serving/node-sweep.sh adds
+it when the spec has a profiled arm.
+
+--- a/workspace/vllm/vllm/v1/worker/gpu_worker.py
++++ b/workspace/vllm/vllm/v1/worker/gpu_worker.py
+@@ -1320,3 +1320,13 @@
+     # Init ec connector here before KV caches init
+     # NOTE: We do not init KV caches for Encoder-only instance in EPD disagg mode
+     ensure_ec_transfer_initialized(vllm_config)
++
++
++# Apertus (serving/patches/vllm-apertus-nvtx.patch): opt-in NVTX ranges on the
++# engine step for Nsight Systems profiles. The ranges live in the bench repo
++# (apertus_bench.vllm_nvtx, on the arm's PYTHONPATH) and wrap methods rather
++# than edit them, so this overlay composes with the scheduler patches.
++if os.environ.get("VLLM_APERTUS_NVTX") == "1":
++    from apertus_bench.vllm_nvtx import install as _apertus_nvtx_install
++
++    _apertus_nvtx_install()
