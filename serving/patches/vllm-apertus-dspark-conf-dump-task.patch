@@ -1,0 +1,70 @@
+Task label and context length in the DSpark confidence dump, on top of
+vllm-apertus-dspark-kv-cost.patch (apply the confidence-verify, paper-scheduler,
+draft-cut and kv-cost patches first).
+
+VLLM_DSPARK_CONF_DUMP lines carry request ids only, so a dump cannot be split
+by workload: the per-request draft-length study (docs/per-request-k.md) needs
+the task each request came from, which a serving gateway would know. A request
+that sends a task in its vllm_xargs ({"task": "chat"}; the bench client sends a
+workload row's "vllm_xargs") gets it in its dump lines as "label", and every
+line gets the request's context length ("ctx", tokens computed) for the KV-read
+term of methods/dspark/scheduler/headroom_sim.py. Nothing changes without
+VLLM_DSPARK_CONF_DUMP.
+diff --git a/workspace/vllm/vllm/v1/core/sched/scheduler.py b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+index 9eac5db..2b35c00 100644
+--- a/workspace/vllm/vllm/v1/core/sched/scheduler.py
++++ b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+@@ -1583,7 +1583,7 @@ class Scheduler(SchedulerInterface):
+         if self.verify_sched is not None:
+             self.verify_sched.observe(scheduler_output, model_runner_output)
+         if self.conf_dump is not None:
+-            self.conf_dump.observe(scheduler_output, model_runner_output)
++            self.conf_dump.observe(scheduler_output, model_runner_output, self.requests)
+         spec_verify_lens = model_runner_output.spec_verify_lens
+ 
+         outputs: dict[int, list[EngineCoreOutput]] = defaultdict(list)
+@@ -3445,7 +3445,10 @@ class ConfidenceDump:
+     (``n``) and how many were accepted (``a``). The drafts' logits arrive
+     with the output of the step that proposed them, their outcome with the
+     next one. Request ids only, no text. A request's last line may be cut by
+-    a stop; methods/dspark/scheduler/fit_sts.py drops it."""
++    a stop; methods/dspark/scheduler/fit_sts.py drops it. Each line also
++    carries the request's context length (``ctx``, tokens computed) and, when
++    the request sent one (``vllm_xargs`` -> ``SamplingParams.extra_args``), its
++    task label (``label``)."""
+ 
+     def __init__(self, path: str, num_sampled_tokens_per_step: int) -> None:
+         self.handle = open(path, "a", buffering=1 << 20)
+@@ -3454,7 +3457,10 @@ class ConfidenceDump:
+         logger.info("DSpark confidence calibration data to %s", path)
+ 
+     def observe(
+-        self, scheduler_output: SchedulerOutput, model_runner_output: ModelRunnerOutput
++        self,
++        scheduler_output: SchedulerOutput,
++        model_runner_output: ModelRunnerOutput,
++        requests: dict[str, Request] | None = None,
+     ) -> None:
+         logits = model_runner_output.spec_conf_logits
+         verified = model_runner_output.spec_verify_lens
+@@ -3467,12 +3473,14 @@ class ConfidenceDump:
+                 num_verified = int(verified[index])
+             if drafts is not None and num_verified and sampled and sampled[index]:
+                 accepted = min(len(sampled[index]) - self.num_sampled, num_verified)
+-                self.handle.write(
+-                    json.dumps(
+-                        {"req": req_id, "z": drafts, "n": num_verified, "a": accepted}
+-                    )
+-                    + "\n"
+-                )
++                row = {"req": req_id, "z": drafts, "n": num_verified, "a": accepted}
++                request = (requests or {}).get(req_id)
++                if request is not None:
++                    row["ctx"] = int(request.num_computed_tokens)
++                    extra = request.sampling_params.extra_args if request.sampling_params else None
++                    if extra and "task" in extra:
++                        row["label"] = str(extra["task"])
++                self.handle.write(json.dumps(row) + "\n")
+             if logits is not None:
+                 self.pending[req_id] = [round(float(x), 4) for x in logits[index]]
+         if len(self.pending) > 4 * max(len(model_runner_output.req_ids), 64):
