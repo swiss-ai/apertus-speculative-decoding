@@ -1,0 +1,18 @@
+diff --git a/src/speculators/train/__main__.py b/src/speculators/train/__main__.py
+index c3d2c23..a87a130 100644
+--- a/src/speculators/train/__main__.py
++++ b/src/speculators/train/__main__.py
+@@ -1,7 +1,13 @@
+ """Enable ``torchrun -m speculators.train config.yaml``."""
+ 
++import faulthandler
++import signal
++
+ from speculators.train.cli import main
+ from speculators.train.config import TrainConfig
+ 
+ if __name__ == "__main__":
++    # SIGUSR1 prints every thread's stack to stderr; forked dataloader workers
++    # inherit it. Lets a stall monitor show where a hung rank waits.
++    faulthandler.register(signal.SIGUSR1, all_threads=True)
+     main(TrainConfig.resolve())
