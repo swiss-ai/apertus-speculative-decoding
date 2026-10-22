@@ -60,6 +60,7 @@ ENGINE_FLAGS = {
     "gpu_memory_utilization": "--gpu-memory-utilization",
     "max_model_len": "--max-model-len",
     "data_parallel_size": "--data-parallel-size",
+    "pipeline_parallel_size": "--pipeline-parallel-size",
 }
 BOOL_FLAGS = {
     "enable_prefix_caching": ("--enable-prefix-caching", "--no-enable-prefix-caching"),
@@ -193,9 +194,14 @@ def _eagle_metadata(head: Path, stage: str, served_model: str, tp: int) -> dict[
 def _serve_argv(
     raw: dict[str, Any], served_model: str, target_model: str, engine: dict[str, Any]
 ) -> tuple[list[str], int, int, dict[str, Any] | None]:
-    """`vllm serve` argv of one instance, as the launchers serve the target."""
+    """`vllm serve` argv of one instance, as the launchers serve the target.
+
+    Returns the argv, the tensor-parallel size, the number of tensor-parallel
+    groups (data-parallel replicas x pipeline stages) and the speculative config."""
     tp = int(raw.get("tensor_parallel_size", 1))
-    dp = int(engine.get("data_parallel_size") or 1)
+    # GPUs beyond tensor parallelism: data-parallel replicas times pipeline stages.
+    replicas = int(engine.get("data_parallel_size") or 1)
+    stages = int(engine.get("pipeline_parallel_size") or 1)
     speculative = _speculative_config(raw, tp)
     argv = [
         "vllm", "serve",
@@ -212,7 +218,7 @@ def _serve_argv(
     if speculative is not None:
         argv += ["--speculative-config", json.dumps(speculative, sort_keys=True)]
     argv += [str(arg) for arg in raw.get("vllm_args") or []]
-    return argv, tp, dp, speculative
+    return argv, tp, replicas * stages, speculative
 
 
 def _bench(

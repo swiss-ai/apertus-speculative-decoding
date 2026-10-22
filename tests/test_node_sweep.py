@@ -102,6 +102,23 @@ def test_data_parallel_arm_takes_its_gpus() -> None:
     assert _flag(arm.serve_argv, "--data-parallel-size") == "4"
 
 
+def test_pipeline_parallel_arm_takes_its_gpus() -> None:
+    engine = {"pipeline_parallel_size": 2, "data_parallel_size": 2}
+    spec = _spec(arms=[{"name": "pp2dp2", "method": "baseline", "engine": engine}])
+    (arm,) = build_plan(spec, check_heads=False).arms
+    assert arm.gpus == 4
+    assert _flag(arm.serve_argv, "--pipeline-parallel-size") == "2"
+    assert _flag(arm.serve_argv, "--tensor-parallel-size") == "1"
+    too_wide = {
+        "name": "pp4tp2",
+        "method": "baseline",
+        "tensor_parallel_size": 2,
+        "engine": {"pipeline_parallel_size": 4},
+    }
+    with pytest.raises(SpecError, match="needs 8 GPUs"):
+        build_plan(_spec(arms=[too_wide]), check_heads=False)
+
+
 def test_bench_command_passes_generation_and_provenance(tmp_path: Path) -> None:
     spec = _spec(
         loadtests=[
