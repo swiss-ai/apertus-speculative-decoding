@@ -18,6 +18,8 @@ def main():
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--graphs", action="store_true")
     parser.add_argument("--retry-set", type=_name)
+    parser.add_argument("--stress", action="store_true",
+                        help="replay the frozen validation chat cell at concurrency256")
     args = parser.parse_args()
     campaign = args.campaign.resolve()
     inventory = args.inventory.resolve()
@@ -43,16 +45,18 @@ def main():
                          ["revision"],
                          "inventory_sha256": digest(inventory)},
         })
+    load_source = inputs["corpora"]["eagle-8b-validation.jsonl"]["path"] if args.stress else source
     spec = {
         "name": "drafter-kv-runtime-preflight", "stage": "8b", "node_gpus": 4,
         "probe": False,
         "engine": {"max_num_batched_tokens": 16384, "max_num_seqs": 256,
                    "async_scheduling": False},
-        "loadtests": [{"workload": w, "workloads_file": source,
-                       "concurrencies": [1, 8], "min_requests": 2,
-                       "requests_per_slot": 1,
+        "loadtests": [{"workload": w, "workloads_file": load_source,
+                       "concurrencies": [256] if args.stress else [1, 8],
+                       "min_requests": 1024 if args.stress else 2,
+                       "requests_per_slot": 4 if args.stress else 1,
                        "generation": {"temperature": 0.0, "top_p": 1.0, "seed": 1}}
-                      for w in ["chat", "code", "summarization"]],
+                      for w in (["chat"] if args.stress else ["chat", "code", "summarization"])],
         "arms": arms,
         "drafter_kv": {"phase": "preflight", "inventory": str(inventory),
                        "inventory_sha256": digest(inventory), "corpora": inputs["corpora"]},
@@ -76,6 +80,7 @@ def main():
         "inventory_sha256": digest(inventory), "specs": specs,
         "purpose": "installed allocator/state correctness and full-coverage backend control",
         "custom_query_graphs": args.graphs,
+        "high_concurrency_regression": args.stress,
     })
     print(json.dumps(specs, indent=2))
 

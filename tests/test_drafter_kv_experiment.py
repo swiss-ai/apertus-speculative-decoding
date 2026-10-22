@@ -41,6 +41,100 @@ def test_independent_run_names_and_phase_counts_cannot_be_reused(campaign):
         kv.init_campaign(campaign, "test-kv")
 
 
+def terminal(campaign, allocation, slurm_state, seconds):
+    with kv.ledger(campaign) as state:
+        state["allocations"][allocation].update({"state": "terminal", "slurm_state": slurm_state,
+                                                  "elapsed_seconds": seconds})
+
+
+def test_failed_replacement_preserves_actual_budget_and_logical_repeat_count(campaign):
+    kv.reserve(campaign, "screen", "screen-01", 5400)
+    kv.reserve(campaign, "screen", "screen-02", 1200)
+    terminal(campaign, "screen-01", "FAILED", 600)
+    raw = campaign / "allocations/screen-01/failed-raw.txt"
+    raw.write_text("preserve this failed result\n")
+    replacement = kv.reserve(campaign, "screen", "screen-01-retry", 1200,
+                             replacement_for="screen-01")
+    state = status(campaign)
+    assert kv.budget(state)["actual_gpu_hours"] == pytest.approx(2 / 3)
+    assert kv.budget(state)["committed_gpu_hours"] == pytest.approx(10 / 3)
+    assert replacement["logical_repeat"] == "screen-01"
+    assert state["allocations"]["screen-01"]["superseded_by"] == "screen-01-retry"
+    active, history = kv.phase_attempts(state, "screen")
+    assert {a["allocation"] for a in active} == {"screen-02", "screen-01-retry"}
+    assert [a["allocation"] for a in history] == ["screen-01"]
+    assert (campaign / "allocations/screen-01/supersession.json").is_file()
+    assert raw.read_text() == "preserve this failed result\n"
+    with pytest.raises(ValueError, match="independent allocations"):
+        kv.reserve(campaign, "screen", "would-add-third-repeat", 1)
+
+
+def test_replacement_chain_is_one_to_one_and_never_replaces_completed_or_running(campaign):
+    kv.reserve(campaign, "screen", "screen-01", 1200)
+    kv.reserve(campaign, "screen", "screen-02", 1200)
+    with pytest.raises(ValueError, match="terminal failed/cancelled"):
+        kv.reserve(campaign, "screen", "running-retry", 1200, replacement_for="screen-01")
+    terminal(campaign, "screen-01", "FAILED", 10)
+    terminal(campaign, "screen-02", "COMPLETED", 10)
+    kv.reserve(campaign, "screen", "screen-01-retry", 1200, replacement_for="screen-01")
+    with pytest.raises(ValueError, match="already has a replacement"):
+        kv.reserve(campaign, "screen", "fork", 1200, replacement_for="screen-01")
+    with pytest.raises(ValueError, match="terminal failed/cancelled"):
+        kv.reserve(campaign, "screen", "completed-retry", 1200, replacement_for="screen-02")
+    terminal(campaign, "screen-01-retry", "TIMEOUT", 20)
+    leaf = kv.reserve(campaign, "screen", "screen-01-retry2", 1200,
+                      replacement_for="screen-01-retry")
+    assert leaf["logical_repeat"] == "screen-01"
+
+
+def test_replacement_needs_same_phase_and_accounting_and_cannot_exceed_phase_budget(campaign):
+    kv.reserve(campaign, "screen", "screen-01", 5400)
+    kv.reserve(campaign, "screen", "screen-02", 5400)
+    terminal(campaign, "screen-01", "CANCELLED", 5400)
+    with pytest.raises(ValueError, match="same phase"):
+        kv.reserve(campaign, "preflight", "wrong-phase", 1, replacement_for="screen-01")
+    with pytest.raises(ValueError, match="phase allocation budget"):
+        kv.reserve(campaign, "screen", "over-budget", 1, replacement_for="screen-01")
+    terminal(campaign, "screen-02", "CANCELLED", 0)
+    with kv.ledger(campaign) as state:
+        del state["allocations"]["screen-02"]["elapsed_seconds"]
+    with pytest.raises(ValueError, match="reconcile failed allocation"):
+        kv.reserve(campaign, "screen", "unaccounted", 1, replacement_for="screen-02")
+
+
+def test_analyzer_uses_only_replacement_leaves_and_retains_failure_history(
+    campaign, tmp_path, monkeypatch,
+):
+    kv.reserve(campaign, "screen", "screen-01", 1200)
+    kv.reserve(campaign, "screen", "screen-02", 1200)
+    terminal(campaign, "screen-01", "FAILED", 10)
+    kv.reserve(campaign, "screen", "screen-01-retry", 1200, replacement_for="screen-01")
+    terminal(campaign, "screen-01-retry", "COMPLETED", 100)
+    terminal(campaign, "screen-02", "COMPLETED", 100)
+    selected = []
+
+    def cells(allocation):
+        selected.append(allocation["allocation"])
+        return {}, [], {}
+
+    monkeypatch.setattr(kv, "_allocation_cells", cells)
+    evidence = tmp_path / "no-controls.json"
+    evidence.write_text('{"policies":{}}')
+    report = kv.analyze(campaign, "screen", evidence, tmp_path / "report.json")
+    assert set(selected) == {"screen-02", "screen-01-retry"}
+    assert [a["allocation"] for a in report["superseded_attempt_history"]] == ["screen-01"]
+
+
+def test_monitor_does_not_rehalt_for_an_explicitly_superseded_failure(campaign, monkeypatch):
+    kv.reserve(campaign, "screen", "screen-01", 1200)
+    terminal(campaign, "screen-01", "FAILED", 10)
+    kv.reserve(campaign, "screen", "screen-01-retry", 1200, replacement_for="screen-01")
+    monkeypatch.setattr(kv, "reconcile", lambda campaign: kv.budget(status(campaign)))
+    report = kv.monitor(campaign, once=True)
+    assert report["active_allocations"] == ["screen-01-retry"]
+    assert not status(campaign)["halted"]
+
+
 def test_ambiguous_submission_never_releases_its_reservation(campaign):
     kv.reserve(campaign, "preflight", "audit", 1200)
     kv.mark_submission(campaign, "audit")

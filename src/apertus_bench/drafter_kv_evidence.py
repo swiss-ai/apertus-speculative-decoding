@@ -26,10 +26,19 @@ from apertus_bench.drafter_kv_experiment import (
     digest,
     exclusive_json,
     now,
+    phase_attempts,
 )
 
 PAGE = 16
 NATIVE_WINDOW = 2048
+# Frozen experiment: k=7 and anchor-first block8. An unaligned interval
+# covering the2048 retained context tokens plus8 native query/lookahead tokens
+# intersects at most ceil((2048+8+15)/16)=130 physical pages. Native completed
+# prefills may temporarily own the entire prompt; those are bootstrap, not the
+# bounded steady-state denominator for an eviction storage claim.
+SPECULATIVE_TOKENS = 7
+NATIVE_QUERY_TOKENS = SPECULATIVE_TOKENS + 1
+NATIVE_STEADY_MAX_PAGES = math.ceil((NATIVE_WINDOW + NATIVE_QUERY_TOKENS + PAGE - 1) / PAGE)
 MAX_JOIN_AGE_NS = 1_000_000_000
 
 
@@ -49,8 +58,7 @@ class Deployment:
 
 def discover(campaign: Path, phase: str) -> tuple[list[Deployment], list[str]]:
     state = json.loads((campaign / "ledger.json").read_text())
-    allocations = [a for a in state["allocations"].values()
-                   if a["phase"] == phase and a["state"] != "released_before_submit"]
+    allocations, _ = phase_attempts(state, phase)
     errors = []
     if len(allocations) != PHASE_REPEATS[phase]:
         errors.append(f"expected {PHASE_REPEATS[phase]} independent {phase} allocations")
@@ -237,6 +245,11 @@ def _snapshot(allocation: dict, worker: dict, released: set[str], sparse: bool) 
         (draft_groups if group["drafter"] else target_groups).append((group, pages))
     if not target_groups or not draft_groups:
         raise ValueError("missing target or draft ownership groups")
+    maximum_draft_pages = (int(worker["budget_tokens"]) // PAGE + 1
+                           if sparse else NATIVE_STEADY_MAX_PAGES)
+    if any(count > maximum_draft_pages for _, pages in draft_groups for count in pages.values()):
+        kind = "sparse budget" if sparse else "native steady-state"
+        raise ValueError(f"drafter ownership exceeds {kind} bound{maximum_draft_pages}pages")
     if sum(sum(p.values()) for _, p in draft_groups) * block_bytes != physical_draft:
         raise ValueError("draft physical bytes disagree with owned pages")
     if sum(sum(p.values()) for _, p in target_groups) * block_bytes != physical_target:
@@ -415,6 +428,14 @@ def memory_evidence(
         "shared_pool_reservation_is_not_a_savings_measure": True,
         "scratch_and_bootstrap_reported_separately": True,
         "worker_allocator_maximum_join_age_ns": MAX_JOIN_AGE_NS,
+        "steady_state_ownership_bounds": {
+            "page_tokens": PAGE, "native_window_tokens": NATIVE_WINDOW,
+            "frozen_speculative_tokens": SPECULATIVE_TOKENS,
+            "native_query_tokens_including_anchor": NATIVE_QUERY_TOKENS,
+            "native_maximum_owned_pages_per_request": NATIVE_STEADY_MAX_PAGES,
+            "native_derivation": "ceil((window_tokens+query_tokens+page_tokens-1)/page_tokens)",
+            "sparse_maximum_owned_pages_per_request": "budget_tokens/page_tokens+1stagingpage",
+        },
         "join": "same-output embedded worker snapshot, otherwise strict timestamp/request-ID join",
         "length_stratum_tokens": PAGE,
         "coverage": {d.identity: {
@@ -430,6 +451,7 @@ def build_evidence(campaign: Path, phase: str, output: Path) -> dict[str, Any]:
         raise ValueError("phase must be screen/confirm/on/eagle")
     output.mkdir(parents=True, exist_ok=False)
     deployments, errors = discover(campaign, phase)
+    _, failed_history = phase_attempts(json.loads((campaign / "ledger.json").read_text()), phase)
     native = "nativefull" if phase == "eagle" else "native2048"
     policies = list(SCREEN_POLICIES[1:]) if phase == "screen" else sorted(
         {d.policy for d in deployments if d.policy != native})
@@ -437,13 +459,16 @@ def build_evidence(campaign: Path, phase: str, output: Path) -> dict[str, Any]:
     controls = {p: correctness_evidence(deployments, p, native, errors) for p in policies}
     memory = {p: memory_evidence(deployments, p, native, errors, traces) for p in policies}
     control_path, memory_path = output / "correctness-controls.json", output / "memory.json"
-    exclusive_json(control_path, {"created_at": now(), "phase": phase, "policies": controls})
+    exclusive_json(control_path, {"created_at": now(), "phase": phase, "policies": controls,
+                                  "superseded_attempt_history": failed_history})
     exclusive_json(memory_path, {"created_at": now(), "phase": phase, "policies": memory,
-                                 "traces": traces})
+                                 "traces": traces, "superseded_attempt_history": failed_history})
     report = {"schema_version": 1, "phase": phase, "created_at": now(), "policies": {
         p: {"correctness_controls_passed": controls[p]["passed"], "memory": memory[p]["memory"],
             "artifact_paths": [str(control_path.resolve()), str(memory_path.resolve())]}
         for p in policies}, "source_campaign": str(campaign.resolve()),
+        "selected_allocations": sorted({d.allocation for d in deployments}),
+        "superseded_attempt_history": failed_history,
         "source_ledger_sha256": digest(campaign / "ledger.json")}
     exclusive_json(output / "evidence.json", report)
     return report

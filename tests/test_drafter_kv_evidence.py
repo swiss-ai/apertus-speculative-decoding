@@ -5,8 +5,10 @@ import pytest
 
 from apertus_bench import drafter_kv_evidence as evidence_module
 from apertus_bench.drafter_kv_evidence import (
+    NATIVE_STEADY_MAX_PAGES,
     Deployment,
     correctness_evidence,
+    discover,
     memory_evidence,
     trace_snapshots,
 )
@@ -72,11 +74,12 @@ def test_missing_repeated_capture_or_failed_control_never_passes(tmp_path):
 
 
 def trace(item, *, metadata=500, target_pages=256, release=True,
-          worker_owner="request", allocation_owners=None, gap_ns=100, length=4096):
+          worker_owner="request", allocation_owners=None, gap_ns=100, length=4096,
+          owned_pages=None):
     sparse = item.policy == "importance512"
     budget = 512 if sparse else 2048
     policy = "importance" if sparse else "off"
-    owned = 33 if sparse else 129
+    owned = owned_pages if owned_pages is not None else (33 if sparse else 129)
     worker = {"event": "step", "timestamp_ns": 100, "request_ids": [worker_owner],
               "policy": policy, "budget_tokens": budget, "native_sequence_lengths": [length],
               "draft_metadata_bytes": metadata if sparse else 0, "draft_query_scratch_bytes": 100,
@@ -135,6 +138,39 @@ def test_target_physical_page_mismatch_refuses_capacity_claim(tmp_path):
     assert not evidence["passed"]
     assert not evidence["memory"]["matched_lengths"]
     assert evidence["memory"]["draft_storage_ratio"] is None
+
+
+def test_native_full_prefill_transient_cannot_inflate_eviction_savings(tmp_path):
+    assert NATIVE_STEADY_MAX_PAGES == 130
+    deployments = [deployment(tmp_path, "one", p) for p in ["native2048", "importance512"]]
+    # The sparse metadata makes this policy miss the45% storage gate against
+    # bounded native KV. A full-prefill denominator would incorrectly pass it.
+    trace(deployments[0], owned_pages=200)
+    trace(deployments[1], metadata=45000)
+    traces = {d.identity: trace_snapshots(d) for d in deployments}
+    native = traces[deployments[0].identity]
+    assert not native["samples"]
+    assert any("native steady-state bound130pages" in reason
+               for reason in native["rejected_allocation_samples"])
+    evidence = memory_evidence(deployments, "importance512", "native2048", [], traces)
+    assert not evidence["passed"]
+    assert evidence["memory"]["draft_storage_ratio"] is None
+    trace(deployments[0], owned_pages=129)
+    traces[deployments[0].identity] = trace_snapshots(deployments[0])
+    bounded = memory_evidence(deployments, "importance512", "native2048", [], traces)
+    assert bounded["memory"]["draft_storage_ratio"] == pytest.approx(78000 / 129000)
+    assert not bounded["passed"]
+
+
+def test_sparse_allocator_ownership_must_fit_budget_plus_one_staging_page(tmp_path):
+    item = deployment(tmp_path, "one", "importance512")
+    trace(item, owned_pages=34)
+    report = trace_snapshots(item)
+    assert not report["samples"]
+    assert any("sparse budget bound33pages" in reason
+               for reason in report["rejected_allocation_samples"])
+    trace(item, owned_pages=33)
+    assert len(trace_snapshots(item)["samples"]) == 1
 
 
 def test_attention_mask_without_observed_physical_page_release_is_not_sparsification(tmp_path):
@@ -203,3 +239,27 @@ def test_builder_writes_immutable_analyzer_inputs_from_captures_and_traces(tmp_p
     assert not report["policies"]["importance1024"]["correctness_controls_passed"]
     with pytest.raises(FileExistsError):
         evidence_module.build_evidence(campaign, "screen", output)
+
+
+def test_discovery_selects_only_unsuperseded_attempts_for_two_logical_repeats(tmp_path):
+    campaign = tmp_path / "campaign"
+    campaign.mkdir()
+    allocations = {}
+    for name in ["failed", "replacement", "second"]:
+        parent = campaign / "allocations" / name
+        parent.mkdir(parents=True)
+        allocations[name] = {"allocation": name, "phase": "screen", "state": "terminal",
+                             "slurm_state": "COMPLETED", "output": str(parent / "results")}
+        if name == "failed":
+            allocations[name].update({"slurm_state": "FAILED", "superseded_by": "replacement"})
+            continue  # Its failed/missing outputs must not enter replacement evidence.
+        metadata = {key: "same-exact-identity" for key in [
+            "head_config_sha256", "exact_head_checkpoint_sha256", "target_model",
+            "target_revision", "target_tensor_parallel_size"]}
+        metadata["kv_policy"] = "importance512"
+        spec = {"arms": [{"name": "importance512", "metadata": metadata}]}
+        (parent / "spec.yaml").write_text(json.dumps(spec))
+    (campaign / "ledger.json").write_text(json.dumps({"allocations": allocations}))
+    deployments, errors = discover(campaign, "screen")
+    assert not errors
+    assert {d.allocation for d in deployments} == {"replacement", "second"}

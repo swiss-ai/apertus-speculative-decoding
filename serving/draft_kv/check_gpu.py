@@ -236,6 +236,77 @@ def check_graph_replay():
     return {"cuda_graph_replay": "passed", "layers": 5}
 
 
+def check_large_cache_offsets():
+    """Reject int32 address overflow with realistic global-pool physical IDs.
+
+    A native bf16 page occupies32768 elements. ID65536 therefore crosses the
+    signed32-bit element-offset boundary. Allocate the4.3GB address span without
+    initializing the backing history; only five selected pages are touched.
+    """
+    device = torch.device("cuda")
+    torch.manual_seed(22091)
+    cache = torch.empty((65538, 2, 16, 8, 128), device=device, dtype=torch.bfloat16)
+    initialized_ids = torch.tensor([0, 32768, 65535, 65536, 65537], device=device)
+    payload = torch.randn((5, 2, 16, 8, 128), device=device, dtype=cache.dtype)
+    cache.index_copy_(0, initialized_ids, payload)
+    q = torch.randn((8, 32, 128), device=device, dtype=cache.dtype)
+    k = torch.randn((8, 8, 128), device=device, dtype=cache.dtype)
+    v = torch.randn_like(k)
+    starts = torch.tensor([0, 8], device=device, dtype=torch.int32)
+    ends = torch.tensor([4053], device=device, dtype=torch.int64)
+    positions = torch.arange(4053, 4061, device=device, dtype=torch.int64)
+    anchors = torch.tensor([0], device=device, dtype=torch.int32)
+    sinks = torch.linspace(-1.0, 2.0, 32, device=device)
+    # The second view models layouts whose page stride includes large padding
+    # or layer interleaving. It uses the same actual allocation and populated
+    # physical memory, so neither case fabricates an out-of-bounds tensor view.
+    strided = cache.as_strided((3, 2, 16, 8, 128), (2**30, 16384, 1024, 128, 1))
+    reports = []
+    for name, cache_view, ids_host in (
+        ("native_high_ids", cache, [0, 65535, 65536, 65537]),
+        ("large_page_stride", strided, [0, 1, 2]),
+    ):
+        ids = torch.tensor([ids_host], device=device, dtype=torch.int32)
+        tags = torch.arange(4000, 4000 + 16 * len(ids_host), 16, device=device).view(1, -1)
+        case = dict(
+            q=q,
+            k=k,
+            v=v,
+            kv_cache=cache_view,
+            block_ids=ids,
+            block_tags=tags,
+            context_ends=ends,
+            query_start_loc=starts,
+            query_positions=positions,
+            anchor_indices=anchors,
+        )
+        expected, expected_mass = reference_attention(
+            **case, window_size=2048, causal=False, sinks=sinks
+        )
+        scores = torch.zeros_like(expected_mass)
+        actual = sparse_attention(
+            **case,
+            scores=scores,
+            window_size=2048,
+            causal=False,
+            sinks=sinks,
+            max_query_len=8,
+        )
+        torch.cuda.synchronize()
+        torch.testing.assert_close(actual.float(), expected, rtol=0.015, atol=0.025)
+        torch.testing.assert_close(scores, expected_mass, rtol=0.003, atol=0.001)
+        maximum_offset = max(ids_host) * cache_view.stride(0)
+        assert maximum_offset >= 2**31, "regression did not cross the int32 boundary"
+        reports.append(
+            {
+                "layout": name,
+                "max_element_offset": maximum_offset,
+                "max_output_error": (actual.float() - expected).abs().max().item(),
+            }
+        )
+    return {"large_cache_offsets": "passed", "allocated_bytes": cache.numel() * 2, "cases": reports}
+
+
 def check_draft_config():
     """Keep shared layer registries while disabling compilation only for draft."""
     integration = importlib.import_module("vllm.apertus_draft_kv.integration")
@@ -745,6 +816,8 @@ def main():
     config_report = check_draft_config() if args.state_check else None
     if config_report:
         print(json.dumps(config_report), flush=True)
+    offset_report = check_large_cache_offsets()
+    print(json.dumps(offset_report), flush=True)
     reports = []
     configurations = [(torch.bfloat16, 32, False, True, 2048, 16)]
     if not args.smoke:
@@ -781,6 +854,7 @@ def main():
                 "device": torch.cuda.get_device_name(),
                 "cases": len(configurations),
                 "graph": graph_report,
+                "large_cache_offsets": offset_report,
                 "state": state_reports,
                 "graph_helper": graph_helper_report,
             }

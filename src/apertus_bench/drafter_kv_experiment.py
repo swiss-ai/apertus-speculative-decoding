@@ -134,9 +134,19 @@ def budget(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def phase_attempts(data: dict[str, Any], phase: str) -> tuple[list[dict], list[dict]]:
+    """Current leaves and superseded history; both remain charged by budget()."""
+    attempts = [a for a in data["allocations"].values() if a["phase"] == phase]
+    active = [copy.deepcopy(a) for a in attempts
+              if a["state"] != "released_before_submit" and not a.get("superseded_by")]
+    history = [copy.deepcopy(a) for a in attempts if a.get("superseded_by")]
+    return active, history
+
+
 def reserve(
     campaign: Path, phase: str, allocation: str, seconds: int,
     command: list[str] | None = None,
+    replacement_for: str | None = None,
 ) -> dict[str, Any]:
     _name(allocation)
     if phase not in PHASE_LIMITS or not 0 < seconds <= MAX_SECONDS:
@@ -148,9 +158,28 @@ def reserve(
             raise ValueError(f"{phase} requires an explicit recorded parent gate")
         if allocation in data["allocations"]:
             raise FileExistsError(f"allocation already recorded: {allocation}")
-        if phase in PHASE_REPEATS:
-            count = sum(a["phase"] == phase and a["state"] != "released_before_submit"
-                        for a in data["allocations"].values())
+        predecessor = None
+        if replacement_for is not None:
+            _name(replacement_for)
+            predecessor = data["allocations"].get(replacement_for)
+            if predecessor is None or predecessor["phase"] != phase:
+                raise ValueError(
+                    "replacement must refer to an existing allocation in the same phase")
+            if predecessor.get("superseded_by"):
+                raise ValueError(
+                    "allocation already has a replacement; replace only the chain leaf")
+            if (predecessor["state"] != "terminal"
+                    or predecessor.get("slurm_state") not in TERMINAL - {"COMPLETED"}):
+                raise ValueError("only a terminal failed/cancelled allocation may be replaced")
+            elapsed = predecessor.get("elapsed_seconds")
+            if not isinstance(elapsed, int) or elapsed < 0:
+                raise ValueError(
+                    "reconcile failed allocation elapsed time before reserving replacement")
+        if phase in PHASE_REPEATS and predecessor is None:
+            logical_repeats = {a.get("logical_repeat", a["allocation"])
+                               for a in data["allocations"].values()
+                               if a["phase"] == phase and a["state"] != "released_before_submit"}
+            count = len(logical_repeats)
             if count >= PHASE_REPEATS[phase]:
                 raise ValueError(f"{phase} already has its declared independent allocations")
         status = budget(data)
@@ -168,8 +197,24 @@ def reserve(
             "job_comment": (f"apertus-drafter-kv:{data['campaign_id']}:"
                             f"{allocation}:{uuid.uuid4().hex}"),
             "submission_attempted": False,
+            "logical_repeat": (predecessor.get("logical_repeat", predecessor["allocation"])
+                               if predecessor else allocation),
+            "replacement_for": replacement_for,
         }
         exclusive_json(output / "reservation.json", item)
+        if predecessor is not None:
+            record = {
+                "recorded_at": now(), "phase": phase, "replacement_for": replacement_for,
+                "replacement_allocation": allocation, "logical_repeat": item["logical_repeat"],
+                "predecessor_job_id": predecessor.get("job_id"),
+                "predecessor_slurm_state": predecessor["slurm_state"],
+                "predecessor_elapsed_seconds": predecessor["elapsed_seconds"],
+                "predecessor_output": predecessor["output"],
+                "prior_attempt_cost_remains_charged": True,
+            }
+            exclusive_json(campaign / "allocations" / replacement_for / "supersession.json", record)
+            predecessor["superseded_by"] = allocation
+            predecessor["superseded_at"] = record["recorded_at"]
         data["allocations"][allocation] = item
     return item
 
@@ -531,6 +576,7 @@ def prepare_submission(campaign: Path, allocation: str, spec_path: Path, repo: P
     validate_frozen_spec(spec)
     with ledger(campaign) as data:
         item = copy.deepcopy(data["allocations"][allocation])
+        _, failed_history = phase_attempts(data, item["phase"])
         if item["phase"] != spec["drafter_kv"]["phase"]:
             raise ValueError("spec phase differs from budget reservation")
         if item["state"] != "reserved" or item["submission_attempted"]:
@@ -553,6 +599,7 @@ def prepare_submission(campaign: Path, allocation: str, spec_path: Path, repo: P
         "expanded_arms": [{"name": a.name, "serve_argv": a.serve_argv,
                            "env": a.env, "metadata": a.metadata} for a in plan.arms],
         "frozen_inputs": spec["drafter_kv"],
+        "superseded_attempt_history": failed_history,
         "SWEEP_DRAFT_KV": "1",
     }
     path = campaign / "allocations" / allocation / "launch-provenance.json"
@@ -730,8 +777,7 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
         raise ValueError("analyze supports screen/confirm/on/eagle")
     evidence = json.loads(evidence_path.read_text())
     with ledger(campaign) as data:
-        allocations = [copy.deepcopy(a) for a in data["allocations"].values()
-                       if a["phase"] == phase and a["state"] != "released_before_submit"]
+        allocations, failed_history = phase_attempts(data, phase)
         authorization = copy.deepcopy(data["phase_authorizations"].get(phase))
     errors, blocks, traces = [], [], {}
     if len(allocations) != PHASE_REPEATS[phase]:
@@ -838,6 +884,8 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
               "correctness_controls_passed": chosen.get("correctness_controls_passed", False),
               "selected_speed_cell": chosen.get("selected_speed_cell"), "decisions": decisions,
               "trace_summaries": traces, "evidence": str(evidence_path.resolve()),
+              "selected_allocations": [a["allocation"] for a in allocations],
+              "superseded_attempt_history": failed_history,
               "evidence_sha256": digest(evidence_path),
               "uncertainty_unit": (
                   "independent node allocation; GPU replicates averaged within node"),
@@ -854,8 +902,11 @@ def monitor(campaign: Path, *, once: bool = False) -> dict[str, Any]:
             allocations = copy.deepcopy(list(data["allocations"].values()))
         over_budget = current["committed_gpu_hours"] > TOTAL_GPU_HOURS + 1e-9 or any(
             h > PHASE_LIMITS[p] + 1e-9 for p, h in current["phase_committed_gpu_hours"].items())
-        failed = any(a.get("slurm_state") in TERMINAL - {"COMPLETED"} for a in allocations)
+        failed = any(not a.get("superseded_by")
+                     and a.get("slurm_state") in TERMINAL - {"COMPLETED"} for a in allocations)
         for allocation in allocations:
+            if allocation.get("superseded_by"):
+                continue
             status_path = Path(allocation["output"]) / "sweep-status.json"
             if status_path.is_file():
                 statuses = json.loads(status_path.read_text())
@@ -886,6 +937,7 @@ def _parser() -> argparse.ArgumentParser:
         if action == "reserve":
             command.add_argument("--seconds", type=int, default=MAX_SECONDS)
             command.add_argument("--command-json")
+            command.add_argument("--replacement-for")
         if action == "register":
             command.add_argument("--job-id", required=True)
         if action == "stop":
@@ -923,7 +975,8 @@ def main(argv: list[str] | None = None) -> None:
             result = {**data, "budget": budget(data)}
     elif action == "reserve":
         result = reserve(args.campaign, args.phase, args.allocation, args.seconds,
-                         json.loads(args.command_json) if args.command_json else None)
+                         json.loads(args.command_json) if args.command_json else None,
+                         replacement_for=args.replacement_for)
     elif action == "register":
         result = register(args.campaign, args.allocation, args.job_id)
     elif action == "mark-submit":

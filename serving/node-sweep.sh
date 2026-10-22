@@ -92,7 +92,7 @@ if [ "${SWEEP_DRAFT_KV_PREFLIGHT:-0}" = "1" ]; then
 fi
 srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
   env PYTHONNOUSERSITE=1 SWEEP_CACHE_ROOT="${CACHE_ROOT}" bash -c \
-  'export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
+  'if [ "${SWEEP_DRAFT_KV:-0}" = "1" ]; then cd "${REPO_ROOT}"; fi; export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
   || status=\$?
 kill \${SAMPLER} 2> /dev/null || true
 exit \${status:-0}

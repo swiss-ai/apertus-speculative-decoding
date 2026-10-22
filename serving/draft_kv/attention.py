@@ -126,7 +126,10 @@ def _sparse_attention_kernel(
         anchor_valid = (anchor >= 0) & (anchor < query_len)
 
     for slot in range(NUM_SLOTS):
-        physical_page = tl.load(BLOCK_IDS + request * bid_s0 + slot * bid_s1)
+        # Physical IDs index the global pool, whose per-layer span can exceed
+        # 2**31 elements. Promote before multiplying by the cache page stride;
+        # promoting the resulting pointer would leave an overflowed int32 offset.
+        physical_page = tl.load(BLOCK_IDS + request * bid_s0 + slot * bid_s1).to(tl.int64)
         page_start = tl.load(BLOCK_TAGS + request * tag_s0 + slot * tag_s1)
         valid_page = (physical_page >= 0) & (page_start >= 0)
         context_pos = page_start + tokens
