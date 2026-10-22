@@ -201,6 +201,9 @@ def _prepare_pages(
     tl.store(tags_ptr + state * MAX_PAGES + offsets, tags, offsets < MAX_PAGES)
     tl.store(scores_ptr + state * MAX_PAGES + offsets, scores, offsets < MAX_PAGES)
     tl.store(lookup_ptr + state * MAX_PAGES + offsets, -1, offsets < MAX_PAGES)
+    # Scatter destinations may belong to another warp's clear lane after page
+    # recycling. Complete every clear before publishing any retained mapping.
+    tl.debug_barrier()
     # modulo129 is injective across the at-most129-page native horizon.
     tl.store(
         lookup_ptr + state * MAX_PAGES + (tags // PAGE) % MAX_PAGES,
@@ -613,7 +616,8 @@ class SparseDraftRuntime:
         return s.draft_tokens[:n]
 
     def trace(self, input_batch, ends, state_selection_ms):
-        if not trace_due(self.steps):
+        first_completed = first_completed_prompt_requests(self.owner, input_batch)
+        if not trace_due(self.steps) and not first_completed:
             return
         indices = input_batch.idx_mapping_np.tolist()
         row_tags = self.tags[indices].cpu().tolist()
@@ -625,6 +629,7 @@ class SparseDraftRuntime:
         record = {
             "event": "step",
             "step": self.steps,
+            "first_completed_prompt_request_ids": first_completed,
             "request_ids": input_batch.req_ids,
             "policy": self.policy,
             "budget_tokens": self.budget,
@@ -746,6 +751,9 @@ def install_speculator_hooks(namespace):
 
 
 def notify_request_removed(speculator, req_id):
+    completed = getattr(speculator, "_apertus_trace_completed_requests", None)
+    if completed is not None:
+        completed.discard(req_id)
     runtime = getattr(speculator, "_apertus_sparse_runtime", None)
     if runtime is not None:
         runtime.remove_request(req_id)
@@ -782,6 +790,31 @@ def trace_due(step):
     return bool(os.environ.get("VLLM_DRAFT_KV_TRACE")) and (step == 1 or step % 64 == 0)
 
 
+def first_completed_prompt_requests(speculator, batch):
+    """Trace completed prefills once per resident request, independent of step cadence.
+
+    Host-side prefill progress is already available; no GPU work is needed to
+    decide whether to sample. Request removal clears the IDs for reuse/resume.
+    """
+    if not os.environ.get("VLLM_DRAFT_KV_TRACE"):
+        return []
+    completed = getattr(speculator, "_apertus_trace_completed_requests", None)
+    if completed is None:
+        completed = speculator._apertus_trace_completed_requests = set()
+    first = []
+    for req_id, computed, scheduled, prompt_length in zip(
+        batch.req_ids,
+        batch.num_computed_prefill_tokens_np,
+        batch.num_scheduled_tokens,
+        batch.prefill_len_np,
+        strict=True,
+    ):
+        if int(computed) + int(scheduled) >= int(prompt_length) and req_id not in completed:
+            first.append(req_id)
+            completed.add(req_id)
+    return first
+
+
 def trace_record(record):
     path = os.environ.get("VLLM_DRAFT_KV_TRACE")
     if not path:
@@ -799,7 +832,8 @@ def trace_native(speculator, batch, rejected):
     step = getattr(speculator, "_apertus_trace_step", 0) + 1
     speculator._apertus_trace_step = step
     speculator._apertus_worker_trace = None
-    if not trace_due(step):
+    first_completed = first_completed_prompt_requests(speculator, batch)
+    if not trace_due(step) and not first_completed:
         return
     rejection = rejected.cpu().tolist()
     positions = batch.positions.cpu().tolist()
@@ -822,6 +856,7 @@ def trace_native(speculator, batch, rejected):
     record = {
         "event": "step",
         "step": step,
+        "first_completed_prompt_request_ids": first_completed,
         "request_ids": batch.req_ids,
         "policy": "off",
         "budget_tokens": HORIZON,

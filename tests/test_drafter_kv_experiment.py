@@ -277,3 +277,12 @@ def test_screen_ranks_importance_only_and_freezes_validation_speed_cell(
     kv.authorize_phase(campaign, "confirm", report_path)
     assert status(campaign)["phase_authorizations"]["confirm"]["speed_cell"] == {
         "workload": "code", "concurrency": 32}
+
+    # A stable diagnostic recent-only arm must never become the next candidate.
+    for key, metrics in cells.items():
+        if key[0] in kv.CANDIDATES:
+            metrics["acceptance"] = 1
+    rejected = kv.analyze(campaign, "screen", evidence, tmp_path / "failed-screen.json")
+    assert rejected["decisions"]["recent512"]["stable_and_storage_passed"]
+    assert rejected["candidate"] is None
+    assert not rejected["passed"]

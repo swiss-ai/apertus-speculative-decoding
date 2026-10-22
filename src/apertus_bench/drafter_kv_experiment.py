@@ -815,10 +815,12 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
         }
     qualified = [p for p, d in decisions.items()
                  if p in CANDIDATES and d["stable_and_storage_passed"]]
-    if phase == "screen" and qualified:
-        best = max(decisions[p]["score_c32_c256"] for p in qualified)
-        tied = [p for p in qualified if decisions[p]["score_c32_c256"] >= best * 0.98]
-        candidate = min(tied, key=lambda p: (int(re.search(r"[0-9]+$", p).group()), p))
+    if phase == "screen":
+        candidate = None
+        if qualified:
+            best = max(decisions[p]["score_c32_c256"] for p in qualified)
+            tied = [p for p in qualified if decisions[p]["score_c32_c256"] >= best * 0.98]
+            candidate = min(tied, key=lambda p: (int(re.search(r"[0-9]+$", p).group()), p))
     else:
         candidate = policies[0] if policies else None
     chosen = decisions.get(candidate) or {}
