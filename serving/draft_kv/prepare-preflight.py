@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from apertus_bench.drafter_kv_experiment import digest, exclusive_json, now
+from apertus_bench.drafter_kv_experiment import _name, digest, exclusive_json, now
 from apertus_bench.node_sweep import build_plan
 
 
@@ -17,6 +17,7 @@ def main():
     parser.add_argument("campaign", type=Path)
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--graphs", action="store_true")
+    parser.add_argument("--retry-set", type=_name)
     args = parser.parse_args()
     campaign = args.campaign.resolve()
     inventory = args.inventory.resolve()
@@ -60,6 +61,8 @@ def main():
     directory = campaign / "specs/preflight"
     if args.graphs:
         directory = directory / "graphs"
+    if args.retry_set:
+        directory = directory / args.retry_set
     directory.mkdir(parents=True, exist_ok=False)
     # Predeclared identical retry specs preserve failed-run artifacts and commands.
     specs = []

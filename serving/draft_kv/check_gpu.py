@@ -248,6 +248,14 @@ def check_draft_config():
     target = CompilationConfig(
         mode=CompilationMode.VLLM_COMPILE,
         cudagraph_mode=CUDAGraphMode.FULL_AND_PIECEWISE,
+        # The server resolves these delayed defaults before loading a drafter.
+        # In particular, replacing a bare config with capture_sizes=None would
+        # revalidate that non-optional list and fail before testing registries.
+        cudagraph_capture_sizes=[8, 16, 32],
+        max_cudagraph_capture_size=32,
+        use_inductor_graph_partition=False,
+        ir_enable_torch_wrap=True,
+        backend="inductor",
     )
     target_layer, draft_layer = object(), object()
     forward_registry = {"model.layers.0.self_attn.attn": target_layer}
@@ -269,6 +277,8 @@ def check_draft_config():
     assert draft.mode == CompilationMode.NONE and draft.cudagraph_mode == CUDAGraphMode.NONE
     assert target.mode == CompilationMode.VLLM_COMPILE
     assert target.cudagraph_mode == CUDAGraphMode.FULL_AND_PIECEWISE
+    assert target.cudagraph_capture_sizes == [8, 16, 32]
+    assert target.max_cudagraph_capture_size == 32
     assert draft.static_forward_context is forward_registry
     assert draft.static_all_moe_layers is moe_registry
     assert draft.static_forward_context["model.layers.0.self_attn.attn"] is target_layer
