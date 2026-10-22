@@ -4,6 +4,8 @@
 # Ships the missing commits as a git bundle. Untracked cluster copies of files
 # that the new commits add (run records pulled back and committed here) are
 # set aside, compared after the merge, and kept only if they differ.
+# The remote bundle is named after the branch, so checkouts of different
+# branches can be synced at the same time.
 set -euo pipefail
 HOST="${1:-clariden1}"
 REMOTE="${2:-apertus-spec-decoding}"
@@ -12,12 +14,13 @@ BASE="$(ssh -o BatchMode=yes "${HOST}" "git -C ${REMOTE} rev-parse HEAD")"
 if [ "${BASE}" = "$(git rev-parse HEAD)" ]; then echo "cluster already at ${BASE:0:7}"; exit 0; fi
 BUNDLE="$(mktemp --suffix=.bundle)"
 trap 'rm -f "${BUNDLE}"' EXIT
+REMOTE_BUNDLE=".sml/sync-${BRANCH//\//-}.bundle"
 git bundle create -q "${BUNDLE}" "${BASE}..${BRANCH}"
-scp -q -o BatchMode=yes "${BUNDLE}" "${HOST}:.sml/sync.bundle"
-ssh -o BatchMode=yes "${HOST}" bash -s -- "${REMOTE}" "${BRANCH}" <<'REMOTE_SCRIPT'
+scp -q -o BatchMode=yes "${BUNDLE}" "${HOST}:${REMOTE_BUNDLE}"
+ssh -o BatchMode=yes "${HOST}" bash -s -- "${REMOTE}" "${BRANCH}" "${REMOTE_BUNDLE}" <<'REMOTE_SCRIPT'
 set -euo pipefail
 cd "$1"
-git fetch -q ~/.sml/sync.bundle "+refs/heads/$2:refs/remotes/bundle/$2"
+git fetch -q ~/"$3" "+refs/heads/$2:refs/remotes/bundle/$2"
 aside="$(mktemp -d)"
 # --no-renames: an added file identical to a deleted one is still an addition.
 git diff --no-renames --name-only --diff-filter=A HEAD "bundle/$2" | while read -r f; do
@@ -27,6 +30,6 @@ git merge -q --ff-only "bundle/$2"
 (cd "${aside}" && find . -type f) | while read -r f; do
   if ! cmp -s "${aside}/$f" "$f"; then echo "kept differing cluster copy: $f.cluster"; mv "${aside}/$f" "$f.cluster"; fi
 done
-rm -rf "${aside}" ~/.sml/sync.bundle
+rm -rf "${aside}" ~/"$3"
 git log --oneline -1
 REMOTE_SCRIPT
