@@ -18,6 +18,10 @@ DATA_ROOT="${DRAFTER_DATA_ROOT:-/iopsstor/scratch/cscs/${USER}/spec-exp-data/dra
 POOLS="${DATA_ROOT}/pools"
 TRACES="${DATA_ROOT}/traces"
 DOMAINS="${DRAFTER_DOMAINS:-chat summarization multilingual}"
+# Smoke runs: e.g. DRAFTER_POOL_ARGS="--pool 64 --dev 16 --test 16 --summary-files 1"
+# DRAFTER_GEN_ARGS="--limit 16" with DRAFTER_DATA_ROOT pointing at a scratch root.
+read -r -a POOL_ARGS <<< "${DRAFTER_POOL_ARGS:-}"
+read -r -a GEN_ARGS <<< "${DRAFTER_GEN_ARGS:-}"
 # Apertus recommended sampling, as the colleague's open-perfectblend regeneration.
 SAMPLING=(--temperature 0.7 --top-p 0.8 --top-k 20 --seed 1)
 CONTRACT="${REPO_ROOT}/targets/8b/contract.json"
@@ -34,7 +38,7 @@ if [ ! -f "${POOLS}/manifest.json" ]; then
   python3 -m apertus_eagle.build_adaptation_pools --contract "${CONTRACT}" \
     --output-dir "${POOLS}" --infomaniak-dir "${DATA_ROOT}/src/infomaniak" \
     --split-index "${DRAFTER_SPLIT_INDEX:-/users/${USER}/apertus-spec-decoding/results/70b/eagle/data/split-index.jsonl}" \
-    --domains "$(echo "${DOMAINS}" | tr ' ' ',')"
+    --domains "$(echo "${DOMAINS}" | tr ' ' ',')" ${POOL_ARGS[@]+"${POOL_ARGS[@]}"}
 else
   log "pools exist: ${POOLS}/manifest.json"
 fi
@@ -52,7 +56,7 @@ for domain in ${DOMAINS}; do
     --contract "${CONTRACT}" --input "${POOLS}/${domain}/dev.jsonl" "${POOLS}/${domain}/pool.jsonl" \
     --output-dir "${out}" --max-seq-length 8192 --max-new-tokens 2048 \
     --max-prompt-tokens 4096 --gpu-memory-utilization 0.9 "${SAMPLING[@]}" \
-    > "${out}/generate.log" 2>&1 &
+    ${GEN_ARGS[@]+"${GEN_ARGS[@]}"} > "${out}/generate.log" 2>&1 &
   pids+=("$!")
   log "started ${domain} on GPU ${gpu} (pid $!)"
   gpu=$((gpu + 1))
