@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import pytest
 from apertus_eagle.build_adaptation_pools import (
     Guard,
     language_quotas,
@@ -56,3 +57,43 @@ def test_trace_seeds_depend_on_the_row_not_its_position() -> None:
     assert row_seed("chat-1", 0) == row_seed("chat-1", 0)
     assert row_seed("chat-1", 0) != row_seed("chat-2", 0)
     assert 0 <= row_seed("x", 2**31 - 1) < 2**31
+
+
+def test_swap_summary_helpers() -> None:
+    from apertus_bench.drafter_swap import acceptance_between, compare_greedy, swap_stall
+
+    samples = [
+        {"t": 0.0, "drafts": 0, "accepted_tokens": 0},
+        {"t": 10.0, "drafts": 100, "accepted_tokens": 250},
+        {"t": 20.0, "drafts": 200, "accepted_tokens": 600},
+    ]
+    assert acceptance_between(samples, 0, 10)["mean_acceptance_length"] == 3.5
+    assert acceptance_between(samples, 10, 20)["mean_acceptance_length"] == 4.5
+    assert acceptance_between(samples, 30, 40)["mean_acceptance_length"] is None
+    # Two streams ticking every 0.1 s; one stalls 0.7 s (4.9 to 5.6) across the swap.
+    steady = [i * 0.1 for i in range(100)]
+    stalled = [t for t in steady if not 4.95 < t < 5.55]
+    stall = swap_stall([steady, stalled], 5.0, 5.4)
+    assert stall["max_gap_across_swap_s"] == 0.7
+    assert stall["streams_across_swap"] >= 2
+    left = [{"id": "a", "sha256": "1", "text": "same"}, {"id": "b", "sha256": "2", "text": "abc"}]
+    right = [{"id": "a", "sha256": "1", "text": "same"}, {"id": "b", "sha256": "3", "text": "abd"}]
+    assert compare_greedy(left, right) == {
+        "prompts": 2,
+        "exact": 1,
+        "exact_rate": 0.5,
+        "first_divergence_chars": [2],
+    }
+
+
+def test_drafter_reload_refuses_another_architecture(tmp_path: Path) -> None:
+    from apertus_bench.drafter_reload import architecture_mismatch, checkpoint_files, is_shared_name
+
+    old = {"hidden_size": 4096, "num_hidden_layers": 1, "fc_norm": True, "torch_dtype": "bf16"}
+    assert architecture_mismatch(old, {**old, "torch_dtype": "fp16"}) == {}
+    assert architecture_mismatch(old, {**old, "num_hidden_layers": 2}) == {
+        "num_hidden_layers": [1, 2]
+    }
+    assert is_shared_name("lm_head.weight") and not is_shared_name("layers.0.mlp.up_proj.weight")
+    with pytest.raises(FileNotFoundError):
+        checkpoint_files(tmp_path)
