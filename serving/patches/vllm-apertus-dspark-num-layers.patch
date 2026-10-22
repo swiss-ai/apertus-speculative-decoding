@@ -1,0 +1,26 @@
+Serve DSpark drafters with fewer decoder layers than target features
+(docs/small-drafter.md). The fork sizes the drafter's fc input as
+hidden_size times the number of target layers it finds in eagle_config or
+dflash_config, else times the drafter's own num_hidden_layers. A speculators
+DSpark checkpoint has its target layers only at the top level of the config
+(algos.py, target_layer_ids), so fc is sized by the drafter's layer count:
+right for the 5-layer drafter with 5 target layers, wrong (and the load
+fails) for a 1-3 layer drafter reading the same 5 layers. Use the top-level
+target_layer_ids when the other two are absent. No change for 5-layer
+drafters. Opt in with SWEEP_PATCHES=serving/patches/vllm-apertus-dspark-num-layers.patch.
+
+--- a/workspace/vllm/vllm/model_executor/models/qwen3_dflash.py
++++ b/workspace/vllm/vllm/model_executor/models/qwen3_dflash.py
+@@ -380,6 +380,12 @@
+                 num_features_to_use = len(drafter_config["target_layer_ids"])
+             elif "layer_ids" in drafter_config:
+                 num_features_to_use = len(drafter_config["layer_ids"])
++            elif getattr(self.config, "target_layer_ids", None):
++                # DSpark keeps its target layers at the top level of the
++                # config (speculators algos.py), not in dflash_config: size fc
++                # by them, not by the drafter's own layer count, so a drafter
++                # with fewer layers than target features loads.
++                num_features_to_use = len(self.config.target_layer_ids)
+             if hasattr(self.config, "target_hidden_size"):
+                 fc_input_size = self.config.target_hidden_size * num_features_to_use
+             else:
