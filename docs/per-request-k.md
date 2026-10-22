@@ -13,9 +13,8 @@ that knows each request's task could set the draft length per task.
 
 Status 2026-10-22: offline headroom (A1, A2) done on the held-out
 calibration dump and a new labelled dump on a mixed workload; gate G2 not
-passed, so no serving patch. The fixed k=1/2/4 arms on the mixed workload
-(mixed-calib-b, job 3721369) are still queued; they check the simulator's
-best fixed k there (k=2 at C>=128).
+passed, so no serving patch. Fixed k=1..5 measured on the mixed workload
+(mixed-calib-a/b) and included in the simulator fit.
 
 ## Summary
 
@@ -52,9 +51,9 @@ the 5-layer backbone is ~2/3 (2.4 of 3.5 GFLOP per query token: hidden 4096,
 MLP 21504; LM head over the 131k draft vocab 1.07 GFLOP; Markov bias 0.07).
 The per-step overhead and the prefill cost per prompt token are fitted to
 measured plain and fixed-k throughput: held-out grid k-grid-opb-a/b, 2.8 ms
-and 32 us/token, rms error 2.9% over 28 points; mixed, mixed-calib-a, 0.6 ms
-and 31 us/token, rms 2.2%. The mixed fit predicts the k=7 arm it was not fitted
-to within 2.5%.
+and 32 us/token, rms error 2.9% over 28 points; mixed, mixed-calib-a/b (plain
+and k=1..5, 24 points), 0.6 ms and 31 us/token, rms 2.0%. The mixed fit
+predicts the k=7 arm it was not fitted to within 2.5%.
 
 ### Policies
 
@@ -130,6 +129,24 @@ verifications):
 | per-request stale +1, GPU verify | +4.7% | +6.1% | +2.4% |
 | per-task length (label only) | +2.2% | +3.8% | -0.1% |
 
+Measured on mixed (output tok/s vs plain, mixed-calib-a for plain/k=3/5/7,
+mixed-calib-b for k=1/2/4, each against its own plain arm; plain within
+1.2% between the jobs):
+
+| C | k=1 | k=2 | k=3 | k=4 | k=5 | k=7 (dump arm) | plain tok/s |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1.38x | 1.82x | 2.11x | 2.31x | 2.44x | 2.56x | 169 |
+| 8 | 1.36x | 1.71x | 1.94x | 2.08x | 2.13x | 2.20x | 1,156 |
+| 32 | 1.22x | 1.39x | 1.52x | 1.56x | 1.53x | 1.49x | 3,110 |
+| 64 | 1.19x | 1.23x | 1.34x | 1.30x | 1.27x | 1.20x | 4,150 |
+| 128 | 1.11x | 1.14x | 1.15x | 1.14x | 1.08x | 1.01x | 5,160 |
+| 256 | 1.06x | 1.06x | 1.05x | 1.04x | 0.99x | 0.92x | 5,920 |
+
+The best measured fixed length on mixed is k=4 at C=32, k=3 at C=64-128
+and k=1-3 (within 2%) at C=256; the simulator picks k=3, 2, 2 at
+C=64/128/256, within 1.5% of the measured envelope. On mixed traffic
+speculation at fixed k is worth only 5-15% from C=128 on.
+
 (The lagged slot budgets with the backbone cut too, +5.8% to +9.4%, track
 the non-causal bound within 0.2%: the lag of the budget itself costs
 nothing. The per-task recalibrated head is within 0.2% of the plain head.)
@@ -202,7 +219,7 @@ would change the outcome:
 | `paper-calib-20261015T145635Z` (existing) | 3669651 | held-out calibration dump, DSpark e10 k=7, 512 prompts, 298k verifications (no labels) |
 | `k-grid-opb-{a,b}-20261010T1454*Z` (existing) | 3632467, 3632468 | measured fixed k=1..7 and plain on the held-out prompts (simulator fit) |
 | `kv-cost-{a,b}-20261015T2306*Z` (existing) | 3672289, 3672290 | cost table; paper scheduler + cut + KV vs k=3 measured |
-| `mixed-calib-b` (queued) | 3721369 | mixed workload: plain, DSpark e10 k=1, k=2, k=4 |
+| `mixed-calib-b-20261022T130130Z` | 3721369 | mixed workload: plain, DSpark e10 k=1, k=2, k=4 |
 | `mixed-calib-a-20261022T130127Z` | 3721368 | mixed workload: plain, DSpark e10 k=3, k=5, k=7 with the labelled dump (450k verifications; on the cluster, sha256 in the record) |
 
 Simulator inputs and outputs: `results/8b/per-request-k/` (cost table,
