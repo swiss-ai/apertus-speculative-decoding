@@ -18,9 +18,10 @@ import math
 import os
 import random
 import re
-import shlex
+import shutil
 import subprocess
 import tempfile
+import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,7 @@ GPUS = 4
 MAX_SECONDS = 5400
 PHASE_REPEATS = {"screen": 2, "confirm": 5, "on": 2, "eagle": 2}
 SCREEN_POLICIES = ("native2048", "recent512", "importance1024", "importance512")
+CANDIDATES = ("importance1024", "importance512")
 TERMINAL = {
     "COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY",
     "PREEMPTED", "BOOT_FAIL", "DEADLINE", "REVOKED",
@@ -48,7 +50,7 @@ HEAD_PATHS = {
 
 
 def now() -> str:
-    return dt.datetime.now(dt.timezone.utc).isoformat()
+    return dt.datetime.now(dt.UTC).isoformat()
 
 
 def digest(path: Path) -> str:
@@ -103,7 +105,8 @@ def init_campaign(campaign: Path, campaign_id: str) -> dict[str, Any]:
         "schema_version": 1, "campaign_id": campaign_id, "created_at": now(),
         "phase_limits_gpu_hours": PHASE_LIMITS, "total_limit_gpu_hours": TOTAL_GPU_HOURS,
         "allocated_gpus_per_node": GPUS, "allocations": {}, "phase_authorizations": {},
-        "halted": False, "predeclared_speed_cell": {"workload": "summarization", "concurrency": 256},
+        "halted": False,
+        "predeclared_speed_cell": {"workload": "summarization", "concurrency": 256},
     }
     exclusive_json(campaign / "campaign.json", data)
     exclusive_json(campaign / "ledger.json", data)
@@ -162,7 +165,8 @@ def reserve(
             "phase": phase, "allocation": allocation, "reserved_at": now(),
             "reserved_seconds": seconds, "allocated_gpus": GPUS, "state": "reserved",
             "output": str(output / "results"), "command": command,
-            "job_comment": f"apertus-drafter-kv:{data['campaign_id']}:{allocation}:{uuid.uuid4().hex}",
+            "job_comment": (f"apertus-drafter-kv:{data['campaign_id']}:"
+                            f"{allocation}:{uuid.uuid4().hex}"),
             "submission_attempted": False,
         }
         exclusive_json(output / "reservation.json", item)
@@ -220,6 +224,8 @@ def authorize_phase(campaign: Path, phase: str, evidence: Path) -> dict[str, Any
         raise ValueError("extensions require the confirmation report to be promising")
     if not report.get("correctness_controls_passed"):
         raise ValueError("native/candidate correctness controls must pass")
+    if report.get("candidate") not in CANDIDATES:
+        raise ValueError("extension candidate must be a screened importance policy")
     with ledger(campaign) as data:
         if phase in data["phase_authorizations"]:
             raise FileExistsError("phase already authorized")
@@ -343,6 +349,31 @@ def freeze_inputs(
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
         "slurm_node_id": os.environ.get("SLURMD_NODENAME"),
     }
+    artifact_root = output.with_name(output.stem + "-artifacts")
+    artifact_root.mkdir(exist_ok=False)
+    artifacts = [config, path / "run.yaml", path / "train_command.txt", path / "speculators.patch",
+                 path / "training_state.json", path / "val_metrics.json",
+                 path / "export-report.json"]
+    run_dir = report["head_config"].get("apertus_training", {}).get("run_dir")
+    if run_dir:
+        report["training_run_dir"] = run_dir
+        artifacts += [Path(run_dir) / name for name in [
+            "train-summary.json", "provenance.json", "evals.json", "history.json"]]
+    report["training_and_export_artifacts"] = []
+    for source in artifacts:
+        if not source.is_file():
+            continue
+        record = {"source": str(source.resolve()), "bytes": source.stat().st_size,
+                  "sha256": digest(source)}
+        if source.stat().st_size <= 16 * 1024 * 1024:
+            destination = artifact_root / source.name
+            if destination.exists():
+                raise FileExistsError(f"duplicate provenance artifact name: {source.name}")
+            shutil.copyfile(source, destination)
+            record["copy"] = str(destination.resolve())
+        else:
+            record["preserved_at_original_path"] = True
+        report["training_and_export_artifacts"].append(record)
     if hash_weights:
         payload = {"config_sha256": report["head_config_sha256"], "files": report["weights"]}
         report["checkpoint_sha256"] = hashlib.sha256(
@@ -386,8 +417,8 @@ def generate_specs(
             candidate = candidate or authorization["candidate"]
             if candidate != authorization["candidate"]:
                 raise ValueError("candidate differs from the recorded parent decision")
-    if phase != "screen" and candidate not in SCREEN_POLICIES[1:]:
-        raise ValueError("candidate must be one screened sparse policy")
+    if phase != "screen" and candidate not in CANDIDATES:
+        raise ValueError("candidate must be one screened importance policy")
     output = campaign / "specs" / phase
     output.mkdir(parents=True, exist_ok=False)
     corpora = inputs["corpora"]
@@ -424,7 +455,8 @@ def generate_specs(
         policies = list(SCREEN_POLICIES) if phase == "screen" else [
             native, candidate, native, candidate]
         if repeat % 2:
-            policies = policies[2:] + policies[:2] if phase == "screen" else list(reversed(policies))
+            policies = (policies[2:] + policies[:2] if phase == "screen"
+                        else list(reversed(policies)))
         arms = []
         counts: dict[str, int] = {}
         for policy in policies:
@@ -480,6 +512,15 @@ def validate_frozen_spec(spec: dict[str, Any]) -> None:
     inventory = json.loads(Path(frozen["inventory"]).read_text())
     if digest(Path(inventory["head_path"]) / "config.json") != inventory["head_config_sha256"]:
         raise ValueError("exact head config changed")
+    for weight in inventory.get("weights") or []:
+        path = Path(inventory["head_path"]) / weight["name"]
+        if not path.is_file() or path.stat().st_size != weight["bytes"]:
+            raise ValueError("frozen checkpoint file changed or disappeared")
+    if inventory.get("container"):
+        container = inventory["container"]
+        path = Path(container["path"])
+        if not path.is_file() or path.stat().st_size != container["bytes"]:
+            raise ValueError("frozen container image changed or disappeared")
     for entry in frozen["corpora"].values():
         if digest(Path(entry["path"])) != entry["sha256"]:
             raise ValueError(f"immutable corpus changed: {entry['path']}")
@@ -494,6 +535,12 @@ def prepare_submission(campaign: Path, allocation: str, spec_path: Path, repo: P
             raise ValueError("spec phase differs from budget reservation")
         if item["state"] != "reserved" or item["submission_attempted"]:
             raise ValueError("allocation is not unsubmitted")
+    generation_path = campaign / "specs" / item["phase"] / "generation.json"
+    generation = json.loads(generation_path.read_text())
+    expected_spec = next((p for p in generation["specs"]
+                          if Path(p["path"]).resolve() == spec_path.resolve()), None)
+    if not expected_spec or expected_spec["sha256"] != digest(spec_path):
+        raise ValueError("only unchanged campaign-generated specs may be submitted")
     from apertus_bench.node_sweep import build_plan
     plan = build_plan(spec, check_heads=False)
     provenance = {
@@ -503,6 +550,7 @@ def prepare_submission(campaign: Path, allocation: str, spec_path: Path, repo: P
         "expanded_arms": [{"name": a.name, "serve_argv": a.serve_argv,
                            "env": a.env, "metadata": a.metadata} for a in plan.arms],
         "frozen_inputs": spec["drafter_kv"],
+        "SWEEP_DRAFT_KV": "1",
     }
     path = campaign / "allocations" / allocation / "launch-provenance.json"
     exclusive_json(path, provenance)
@@ -525,11 +573,13 @@ def submit(campaign: Path, allocation: str, spec_path: Path, repo: Path) -> dict
     command = [str(repo / "serving/node-sweep.sh"), str(frozen_spec.resolve())]
     environment = {
         **os.environ, "SWEEP_OUTPUT": str(output), "SWEEP_TIME": walltime,
-        "SBATCH_COMMENT": item["job_comment"],
+        "SBATCH_COMMENT": item["job_comment"], "SBATCH_NO_REQUEUE": "1",
+        "SWEEP_DRAFT_KV": "1",
     }
     exclusive_json(output.parent / "submit-command.json", {
         "argv": command, "SWEEP_OUTPUT": str(output), "SWEEP_TIME": walltime,
         "SBATCH_COMMENT": item["job_comment"],
+        "SWEEP_DRAFT_KV": "1", "SBATCH_NO_REQUEUE": "1",
         "SWEEP_PATCHES": environment.get("SWEEP_PATCHES", ""),
         "IMAGE": environment.get("IMAGE"), "ENV_SOURCE": environment.get("ENV_SOURCE"),
     })
@@ -543,7 +593,8 @@ def submit(campaign: Path, allocation: str, spec_path: Path, repo: Path) -> dict
     if match:
         registered = register(campaign, allocation, match.group(1))
         if result.returncode:
-            raise RuntimeError(f"launcher failed after reporting job {registered['job_id']}; inspect logs")
+            raise RuntimeError(
+                f"launcher failed after reporting job {registered['job_id']}; inspect logs")
         return registered
     raise RuntimeError(
         "submission outcome unknown; reservation retained. Inspect submit logs and recover the "
@@ -573,26 +624,34 @@ def node_bootstrap_ci(values: list[float], *, samples: int = 20000) -> list[floa
 
 
 def trace_summary(path: Path) -> dict[str, Any]:
-    count = filled = 0
-    peaks = dict.fromkeys(["draft_allocated_bytes", "draft_context_live_bytes", "draft_metadata_bytes",
-                          "draft_query_scratch_bytes", "target_live_bytes", "bootstrap_peak_pages"], 0)
+    count = filled = allocations = 0
+    peaks = dict.fromkeys([
+        "draft_allocated_bytes", "target_allocated_bytes", "draft_live_bytes", "target_live_bytes",
+        "draft_context_live_bytes", "draft_metadata_bytes", "draft_query_scratch_bytes",
+        "draft_context_projection_scratch_bytes", "bootstrap_peak_pages",
+        "shared_pool_reserved_bytes",
+    ], 0)
     if not path.is_file():
         return {"available": False}
     with path.open() as handle:
         for line in handle:
             event = json.loads(line)
-            if event.get("event") != "step":
+            if event.get("event") not in {"step", "allocation"}:
                 continue
-            count += 1
-            lengths = event.get("native_sequence_lengths") or []
-            filled += bool(lengths and min(lengths) >= 2048
-                           and event.get("bootstrap_active_requests") == 0)
+            if event["event"] == "step":
+                count += 1
+                lengths = event.get("native_sequence_lengths") or []
+                filled += bool(lengths and min(lengths) >= 2048
+                               and event.get("bootstrap_active_requests") == 0)
+            else:
+                allocations += 1
             for field in peaks:
                 value = event.get(field)
                 if isinstance(value, (int, float)):
                     peaks[field] = max(peaks[field], value)
     return {"available": True, "step_samples": count, "steady_filled_samples": filled,
-            "peaks": peaks, "path": str(path), "sha256": digest(path)}
+            "allocation_samples": allocations, "peaks": peaks,
+            "path": str(path), "sha256": digest(path)}
 
 
 def _allocation_cells(allocation: dict[str, Any]) -> tuple[dict, list[str], dict]:
@@ -684,7 +743,8 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
         storage_ok = all(memory.get(k) is True for k in [
             "includes_selection_metadata", "native_filled_window", "physical_eviction_verified"])
         storage_ratio = memory.get("draft_storage_ratio")
-        if not storage_ok or not isinstance(storage_ratio, (float, int)) or storage_ratio > 0.55:
+        if (not storage_ok or not isinstance(storage_ratio, (float, int))
+                or not math.isfinite(storage_ratio) or not 0 <= storage_ratio <= 0.55):
             failures.append("45% lower physical draft storage including metadata not established")
         ratios: dict[tuple[str, int], dict[str, list[float]]] = {}
         for block in blocks:
@@ -733,7 +793,8 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
                           and selected["throughput_ratio_ci95"][0] > 1.0)
         capacity_pass = (memory.get("matched_lengths") is True
                          and isinstance(memory.get("combined_live_kv_bytes_ratio"), (int, float))
-                         and memory["combined_live_kv_bytes_ratio"] <= 0.95)
+                         and math.isfinite(memory["combined_live_kv_bytes_ratio"])
+                         and 0 <= memory["combined_live_kv_bytes_ratio"] <= 0.95)
         decisions[policy] = {
             "stable_and_storage_passed": not failures, "failure_reasons": sorted(set(failures)),
             "score_c32_c256": score, "selected_speed_cell": speed_cell,
@@ -743,7 +804,8 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
             "artifacts": [{"path": str(Path(p).resolve()), "sha256": digest(Path(p))}
                           for p in artifacts if Path(p).is_file()],
         }
-    qualified = [p for p, d in decisions.items() if d["stable_and_storage_passed"]]
+    qualified = [p for p, d in decisions.items()
+                 if p in CANDIDATES and d["stable_and_storage_passed"]]
     if phase == "screen" and qualified:
         best = max(decisions[p]["score_c32_c256"] for p in qualified)
         tied = [p for p in qualified if decisions[p]["score_c32_c256"] >= best * 0.98]
@@ -759,10 +821,34 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
               "selected_speed_cell": chosen.get("selected_speed_cell"), "decisions": decisions,
               "trace_summaries": traces, "evidence": str(evidence_path.resolve()),
               "evidence_sha256": digest(evidence_path),
-              "uncertainty_unit": "independent node allocation; duplicate GPUs averaged within node",
+              "uncertainty_unit": (
+                  "independent node allocation; GPU replicates averaged within node"),
               "bootstrap": {"samples": 20000, "seed": 20261022, "scale": "paired log ratio"}}
     exclusive_json(output, report)
     return report
+
+
+def monitor(campaign: Path, *, once: bool = False) -> dict[str, Any]:
+    """Enforce only this campaign's budget/failure stops; no launches or phase changes."""
+    while True:
+        current = reconcile(campaign)
+        with ledger(campaign) as data:
+            allocations = copy.deepcopy(list(data["allocations"].values()))
+        over_budget = current["committed_gpu_hours"] > TOTAL_GPU_HOURS + 1e-9 or any(
+            h > PHASE_LIMITS[p] + 1e-9 for p, h in current["phase_committed_gpu_hours"].items())
+        failed = any(a.get("slurm_state") in TERMINAL - {"COMPLETED"} for a in allocations)
+        for allocation in allocations:
+            status_path = Path(allocation["output"]) / "sweep-status.json"
+            if status_path.is_file():
+                statuses = json.loads(status_path.read_text())
+                failed = failed or any(value != "ok" for value in statuses.values())
+        if over_budget or failed:
+            stopped = stop_owned(campaign, "budget" if over_budget else "failure")
+            return {"budget": current, **stopped}
+        live = [a for a in allocations if a["state"] not in {"terminal", "released_before_submit"}]
+        if once or not live:
+            return {"budget": current, "active_allocations": [a["allocation"] for a in live]}
+        time.sleep(30)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -772,12 +858,12 @@ def _parser() -> argparse.ArgumentParser:
     init.add_argument("campaign", type=Path)
     init.add_argument("--campaign-id", required=True)
     for action in ["status", "reconcile", "stop", "reserve", "register", "mark-submit", "release",
-                   "authorize", "freeze", "generate", "prepare"]:
+                   "authorize", "freeze", "generate", "prepare", "submit", "analyze", "monitor"]:
         command = sub.add_parser(action)
         command.add_argument("campaign", type=Path)
-        if action in {"reserve", "register", "mark-submit", "release", "prepare"}:
+        if action in {"reserve", "register", "mark-submit", "release", "prepare", "submit"}:
             command.add_argument("--allocation", required=True)
-        if action in {"reserve", "authorize", "generate"}:
+        if action in {"reserve", "authorize", "generate", "analyze"}:
             command.add_argument("--phase", choices=list(PHASE_LIMITS), required=True)
         if action == "reserve":
             command.add_argument("--seconds", type=int, default=MAX_SECONDS)
@@ -789,7 +875,7 @@ def _parser() -> argparse.ArgumentParser:
                                  required=True)
         if action == "authorize":
             command.add_argument("--evidence", type=Path, required=True)
-        if action in {"freeze", "prepare"}:
+        if action in {"freeze", "prepare", "submit"}:
             command.add_argument("--repo", type=Path, default=Path(__file__).resolve().parents[2])
         if action == "freeze":
             command.add_argument("--head", choices=list(HEAD_PATHS), required=True)
@@ -798,9 +884,14 @@ def _parser() -> argparse.ArgumentParser:
             command.add_argument("--image", type=Path)
         if action == "generate":
             command.add_argument("--inventory", type=Path, required=True)
-            command.add_argument("--candidate", choices=SCREEN_POLICIES[1:])
-        if action == "prepare":
+            command.add_argument("--candidate", choices=CANDIDATES)
+        if action in {"prepare", "submit"}:
             command.add_argument("--spec", type=Path, required=True)
+        if action == "analyze":
+            command.add_argument("--evidence", type=Path, required=True)
+            command.add_argument("--output", type=Path, required=True)
+        if action == "monitor":
+            command.add_argument("--once", action="store_true")
     return p
 
 
@@ -835,6 +926,12 @@ def main(argv: list[str] | None = None) -> None:
                                                candidate=args.candidate)]
     elif action == "prepare":
         result = str(prepare_submission(args.campaign, args.allocation, args.spec, args.repo))
+    elif action == "submit":
+        result = submit(args.campaign, args.allocation, args.spec, args.repo)
+    elif action == "analyze":
+        result = analyze(args.campaign, args.phase, args.evidence, args.output)
+    elif action == "monitor":
+        result = monitor(args.campaign, once=args.once)
     print(json.dumps(result, indent=2, sort_keys=True))
 
 

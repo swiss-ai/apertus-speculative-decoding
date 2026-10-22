@@ -7,6 +7,7 @@ on PYTHONPATH, or execute this file directly. Fails if CUDA/Triton are absent.
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import sys
 from pathlib import Path
@@ -232,9 +233,191 @@ def check_graph_replay():
     return {"cuda_graph_replay": "passed", "layers": 5}
 
 
+def check_state_kernels(policy):
+    """Compare installed GPU tag/recycle/selection kernels with the CPU policy."""
+    integration = importlib.import_module("vllm.apertus_draft_kv.integration")
+    from draft_kv.policy import PolicyConfig, select_pages
+    from vllm.v1.worker.gpu.buffer_utils import UvaBackedTensor
+
+    device = torch.device("cuda")
+    page_size, max_pages, horizon = 16, 129, 2048
+    states_host, group_id = [2, 0], 1  # Batch order differs from request-state order.
+    states = torch.tensor(states_host, device=device, dtype=torch.int32)
+    tags = torch.full((3, max_pages), -1, device=device, dtype=torch.int64)
+    scores = torch.zeros((3, max_pages), device=device, dtype=torch.float32)
+    lookup = torch.full((3, max_pages), -1, device=device, dtype=torch.int32)
+    table = torch.arange(3 * 256, device=device, dtype=torch.int32).reshape(3, 256) + 700
+    counts = UvaBackedTensor((2, 3), dtype=torch.int32)
+    counts.np[group_id, states_host] = max_pages
+    counts.copy_to_uva()
+    config = PolicyConfig(policy="off" if policy == "full" else policy, budget=512)
+
+    def prepare(rows, rejected_host, capacity):
+        starts_host = [0, len(rows[0]), len(rows[0]) + len(rows[1])]
+        positions = torch.tensor(rows[0] + rows[1], device=device, dtype=torch.int64)
+        starts = torch.tensor(starts_host, device=device, dtype=torch.int32)
+        rejected = torch.tensor(rejected_host, device=device, dtype=torch.int32)
+        ends = torch.empty(2, device=device, dtype=torch.int64)
+        batch_ids = torch.empty((2, capacity), device=device, dtype=torch.int32)
+        batch_tags = torch.empty((2, capacity), device=device, dtype=torch.int64)
+        batch_scores = torch.empty((2, capacity), device=device, dtype=torch.float32)
+        integration._prepare_pages[(2,)](
+            tags,
+            scores,
+            lookup,
+            ends,
+            positions,
+            starts,
+            rejected,
+            states,
+            counts.gpu,
+            counts.gpu.stride(0),
+            group_id,
+            batch_ids,
+            batch_tags,
+            batch_scores,
+            table,
+            table.stride(0),
+            C=capacity,
+            V=256,
+        )
+        context_slots, context_positions = torch.empty_like(positions), torch.empty_like(positions)
+        integration._context_slots[(2, (max(map(len, rows)) + 255) // 256)](
+            context_slots,
+            context_positions,
+            positions,
+            starts,
+            rejected,
+            states,
+            ends,
+            lookup,
+            tags,
+            table,
+            table.stride(0),
+            B=256,
+        )
+        torch.testing.assert_close(context_positions, positions)
+        ends_host = ends.cpu().tolist()
+        actual_slots = context_slots.cpu().tolist()
+        ids_host, tags_host = batch_ids.cpu().tolist(), batch_tags.cpu().tolist()
+        for request, (row, rejected_count) in enumerate(zip(rows, rejected_host, strict=True)):
+            assert ends_host[request] == row[len(row) - rejected_count - 1] + 1
+            page_ids = {
+                tag: physical
+                for tag, physical in zip(tags_host[request], ids_host[request], strict=True)
+                if tag >= 0
+            }
+            assert len(page_ids) == sum(tag >= 0 for tag in tags_host[request])
+            for offset, position in enumerate(row):
+                valid = (
+                    offset < len(row) - rejected_count
+                    and position >= ends_host[request] - horizon + 1
+                )
+                expected = -1
+                if valid:
+                    tag = position // page_size * page_size
+                    assert tag in page_ids, "accepted context page was lost"
+                    expected = page_ids[tag] * page_size + position % page_size
+                assert actual_slots[starts_host[request] + offset] == expected
+        return ends, batch_scores
+
+    def finish(ends, batch_scores, capacity, is_final):
+        state_tags, incoming = tags.cpu().tolist(), batch_scores.cpu().tolist()
+        expected_sets = []
+        for request, state in enumerate(states_host):
+            end = int(ends[request])
+            candidates = {
+                tag // page_size: incoming[request][slot]
+                for slot, tag in enumerate(state_tags[state])
+                if tag >= 0
+            }
+            expected_sets.append(
+                set(
+                    select_pages(
+                        candidates,
+                        config=config,
+                        newest_position=end - 1,
+                        oldest_visible_position=max(0, end - horizon + 1),
+                    )
+                )
+                if is_final
+                else set(candidates)
+            )
+        final = torch.full((2,), int(is_final), device=device, dtype=torch.int32)
+        integration._finish_pages[(2,)](
+            tags,
+            scores,
+            batch_scores,
+            ends,
+            states,
+            final,
+            C=capacity,
+            V=256,
+            BUDGET=32,
+            RECENT=128,
+            FULL=policy == "full",
+            IMPORTANCE=policy == "importance",
+        )
+        state_tags = tags.cpu().tolist()
+        for request, state in enumerate(states_host):
+            actual = {tag // page_size for tag in state_tags[state] if tag >= 0}
+            assert actual == expected_sets[request], (
+                policy,
+                request,
+                actual,
+                expected_sets[request],
+            )
+        assert torch.isfinite(scores).all(), "nonfinite cumulative page scores"
+
+    # Unaligned native bootstrap uses129 pages. Nonfinal prefill cannot prune
+    # context or commit scores; final prefill applies the requested budget.
+    ends_host = [2049, 2053]
+    ends, batch_scores = prepare([list(range(end)) for end in ends_host], [0, 0], max_pages)
+    assert (tags >= 0).sum().item() == 2 * max_pages
+    batch_scores.copy_(torch.arange(max_pages, 0, -1, device=device).expand(2, -1))
+    finish(ends, batch_scores, max_pages, False)
+    assert torch.count_nonzero(scores) == 0, "nonfinal prefill scores leaked"
+    finish(ends, batch_scores, max_pages, True)
+    capacity = max_pages
+    if policy != "full":
+        # Runtime compacts selected page metadata and physical block ownership,
+        # retaining exactly one free staging page and updating the UVA count.
+        for state in states_host:
+            live = (tags[state] >= 0).nonzero().flatten()
+            spare = (tags[state] < 0).nonzero().flatten()[:1]
+            retained = torch.cat((live, spare))
+            selected_tags = tags[state].index_select(0, retained)
+            selected_scores = scores[state].index_select(0, retained)
+            selected_ids = table[state, :max_pages].index_select(0, retained)
+            assert live.numel() == 32 and retained.numel() == 33
+            tags[state].fill_(-1)
+            scores[state].zero_()
+            tags[state, :33].copy_(selected_tags)
+            scores[state, :33].copy_(selected_scores)
+            table[state, :33].copy_(selected_ids)
+            counts.np[group_id, state] = 33
+        counts.copy_to_uva()
+        capacity = 33
+    # Accepted8-token rounds cross a page boundary. The last round accepts one
+    # position then rejects16 suffix positions, including a future page.
+    for accepted, rejected_count in ((8, 4), (8, 4), (1, 16)):
+        rows = [list(range(end, end + accepted + rejected_count)) for end in ends_host]
+        ends, batch_scores = prepare(rows, [rejected_count] * 2, capacity)
+        batch_scores.add_(0.125)
+        finish(ends, batch_scores, capacity, True)
+        ends_host = [end + accepted for end in ends_host]
+    assert (tags[1] == -1).all(), "unused request state was modified"
+    return {"state_kernels": "passed", "policy": policy, "capacity": capacity}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke", action="store_true", help="one bf16 case plus graph replay")
+    parser.add_argument(
+        "--state-check",
+        action="store_true",
+        help="also test installed vLLM overlay state kernels against CPU policy",
+    )
     args = parser.parse_args()
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required; no CPU skip is counted as validation")
@@ -257,13 +440,21 @@ def main():
         reports.append(report)
         print(json.dumps(report), flush=True)
     reports.append(check_graph_replay())
+    graph_report = reports[-1]
+    state_reports = []
+    if args.state_check:
+        for policy in ("importance", "recent", "full"):
+            report = check_state_kernels(policy)
+            state_reports.append(report)
+            print(json.dumps(report), flush=True)
     print(
         json.dumps(
             {
                 "status": "passed",
                 "device": torch.cuda.get_device_name(),
                 "cases": len(configurations),
-                "graph": reports[-1],
+                "graph": graph_report,
+                "state": state_reports,
             }
         ),
         flush=True,

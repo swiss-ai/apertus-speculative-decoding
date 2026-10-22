@@ -44,6 +44,10 @@ PYTHONPATH="${REPO_ROOT}/src" python3 -m apertus_bench.node_sweep plan "${SPEC}"
 mkdir -p "${OUT}"
 if [ "${VALIDATE_ONLY:-0}" != "1" ]; then
   EXTRA_MOUNTS="$("${SERVING_DIR}/patch-vllm.sh" "${IMAGE}" "${PATCHES[@]}")"
+  if [ "${SWEEP_DRAFT_KV:-0}" = "1" ]; then
+    EXTRA_MOUNTS="$(bash "${SERVING_DIR}/draft_kv/prepare-overlay.sh" \
+      "${IMAGE}" "${VLLM_PATCH_DIR}" "${OUT}" "${EXTRA_MOUNTS}")"
+  fi
   export EXTRA_MOUNTS
 fi
 SML_ENVIRONMENT="$("${SERVING_DIR}/resolve-env.sh" "${ENV_SOURCE}")"
