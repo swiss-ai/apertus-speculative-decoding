@@ -110,6 +110,7 @@ async def test_streaming_client_sends_chat_template_kwargs_only_when_set() -> No
         messages=messages,
         max_tokens=4,
         chat_template_kwargs={"enable_thinking": True},
+        vllm_xargs={"task": "chat"},
     )
     async with client:
         for prompt in (plain, thinking):
@@ -124,4 +125,6 @@ async def test_streaming_client_sends_chat_template_kwargs_only_when_set() -> No
                 store_output=False,
             )
     assert "chat_template_kwargs" not in seen[0]
+    assert "vllm_xargs" not in seen[0]
     assert seen[1]["chat_template_kwargs"] == {"enable_thinking": True}
+    assert seen[1]["vllm_xargs"] == {"task": "chat"}
