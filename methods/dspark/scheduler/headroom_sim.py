@@ -110,6 +110,10 @@ class CostModel:
         self.kv_ms_per_token = float(table.get("kv_ms_per_token", 0.0))
         self.overhead_ms = overhead_ms
         self.prefill_us = prefill_us
+        # Part of the per-pair draft cost in the 5-layer backbone (the rest:
+        # LM head and Markov step): 2.4 of 3.5 GFLOP per (request, slot) for
+        # DSpark e10 (hidden 4096, MLP 21504, draft vocab 131072).
+        self.backbone_share = 0.67
         top = self.verify_tokens[-1]
         tail = self.verify_tokens > 0.75 * top
         if tail.sum() < 3:
@@ -156,7 +160,9 @@ def topk_plan(surv: np.ndarray, cost: CostModel, base_ms: float, draft: str) -> 
     gain = reqs + np.concatenate([[0.0], np.cumsum(flat)])
     count = np.arange(len(flat) + 1, dtype=np.float64)
     max_len = np.concatenate([[0], np.maximum.accumulate(slot + 1)])
-    if draft == "all":
+    if draft == "none":
+        draft_ms = 0.0
+    elif draft == "all":
         draft_ms = cost.draft_batch(SLOTS, reqs)
     elif draft == "batch":
         draft_ms = np.array([cost.draft_batch(m, reqs) for m in range(SLOTS + 1)])[max_len]
@@ -217,15 +223,28 @@ def simulate(
     slots = [start() for _ in range(concurrency)]
     prefill_ms = sum(cost.prefill_us * s["prompt"] / 1000.0 for s in slots if s)
     time_ms = 0.0
-    tokens = steps = verified = 0
+    tokens = steps = verified = drafted_pairs = 0
     history: deque[np.ndarray] = deque(maxlen=LAG)
+    mean_prior = np.mean(np.concatenate([t.survival for t in trajectories]), axis=0)
+
+    def stale_survival(slot: dict) -> np.ndarray:
+        """The request's survival LAG records back, else its label prior."""
+        traj = slot["t"]
+        if signal == "label-block":
+            return label_prior[traj.label]
+        if slot["pos"] >= LAG:
+            return traj.survival[(slot["pos"] - LAG) % len(traj.accepted)]
+        if signal == "label" and label_prior and traj.label in label_prior:
+            return label_prior[traj.label]
+        return mean_prior
+
     while any(slots):
         live = [s for s in slots if s]
         reqs = len(live)
         index = [s["pos"] % len(s["t"].accepted) for s in live]
         conf = np.array([s["t"].survival[i] for s, i in zip(live, index, strict=True)])
         acc = np.array([s["t"].accepted[i] for s, i in zip(live, index, strict=True)])
-        if signal == "conf":
+        if signal in ("conf", "label-block"):
             surv = conf
         elif signal == "label":
             surv = np.array([label_prior[s["t"].label] for s in live])
@@ -237,6 +256,7 @@ def simulate(
         else:
             raise ValueError(signal)
         base = cost.base(sum(s["prompt"] + s["made"] for s in live))
+        drafted = backbone = None
         if rule == "fixed":
             lengths = np.full(reqs, int(param))
         elif rule == "threshold":
@@ -248,19 +268,54 @@ def simulate(
             fractions = history[0] if len(history) == LAG else slot_counts(planned)
             history.append(slot_counts(planned))
             lengths = budget_lengths(surv, fractions)
+        elif rule in ("budget-head", "stale-budget"):
+            # The backbone runs before the head's confidences exist, so only
+            # the LM head and Markov steps follow the current survival: the
+            # backbone drafts every slot (budget-head) or the per-request
+            # block the scheduler set from the lagged survival plus
+            # ``param`` slots (stale-budget).
+            planned = topk_plan(surv, cost, base, draft)
+            fractions = history[0] if len(history) == LAG else slot_counts(planned)
+            history.append(slot_counts(planned))
+            if rule == "budget-head":
+                backbone = np.full(reqs, SLOTS)
+            else:
+                old = np.array([stale_survival(s) for s in live])
+                backbone = np.minimum(topk_plan(old, cost, base, draft) + int(param or 0), SLOTS)
+            masked = np.where(np.arange(SLOTS)[None, :] < backbone[:, None], surv, -1.0)
+            lengths = np.minimum(budget_lengths(masked, fractions), backbone)
+        elif rule in ("stale", "stale-verify"):
+            # Lengths set by the scheduler from the newest survival it has,
+            # LAG records old (before that, the label prior or the mean);
+            # stale-verify drafts ``param`` slots more and the GPU verifies
+            # the best prefix of them on the current survival.
+            old = np.array([stale_survival(s) for s in live])
+            lengths = topk_plan(old, cost, base, draft)
+            if rule == "stale-verify":
+                drafted = np.minimum(lengths + int(param or 0), SLOTS)
+                draft_fixed = float(cost.draft_pairs(reqs, drafted.max(), drafted.sum()))
+                kept = np.where(np.arange(SLOTS)[None, :] < drafted[:, None], surv, 0.0)
+                lengths = np.minimum(topk_plan(kept, cost, base + draft_fixed, "none"), drafted)
         else:
             raise ValueError(rule)
+        if drafted is None:
+            drafted = lengths
+        if backbone is None:
+            backbone = drafted
         if draft == "all":
             draft_ms = cost.draft_batch(SLOTS, reqs)
         elif draft == "batch":
-            draft_ms = cost.draft_batch(int(lengths.max()), reqs)
+            draft_ms = cost.draft_batch(int(drafted.max()), reqs)
         else:
-            draft_ms = float(cost.draft_pairs(reqs, lengths.max(), lengths.sum()))
+            share = cost.backbone_share
+            pairs = share * backbone.sum() + (1.0 - share) * drafted.sum()
+            draft_ms = float(cost.draft_pairs(reqs, backbone.max(), pairs))
         gained = 1 + np.minimum(acc, lengths)
         time_ms += base + float(cost.verify(reqs + lengths.sum())) + draft_ms
         steps += 1
         tokens += int(gained.sum())
         verified += int(lengths.sum())
+        drafted_pairs += int(drafted.sum())
         for s, g in zip(live, gained, strict=True):
             s["made"] += int(g)
             s["pos"] += 1
@@ -273,6 +328,7 @@ def simulate(
         "tokens_per_s": tokens / (time_ms + prefill_ms) * 1000.0,
         "tokens_per_step_per_req": tokens / max(steps, 1) / concurrency,
         "verified_per_step": verified / max(steps, 1),
+        "drafted_per_step": drafted_pairs / max(steps, 1),
         "step_ms": time_ms / max(steps, 1),
         "steps": steps,
     }
@@ -334,10 +390,28 @@ POLICIES: list[tuple[str, dict]] = [
     ("paper top-K + cut", {"rule": "topk", "draft": "batch"}),
     ("per-request conf, per step (bound)", {"rule": "topk", "draft": "pair"}),
     ("per-request conf, lagged budgets", {"rule": "budget", "draft": "pair"}),
+    ("per-request conf, lagged budgets, head cut only", {"rule": "budget-head", "draft": "pair"}),
+    (
+        "per-request stale block +1, lagged budgets",
+        {"rule": "stale-budget", "draft": "pair", "param": 1},
+    ),
+    (
+        "per-request stale block +2, lagged budgets",
+        {"rule": "stale-budget", "draft": "pair", "param": 2},
+    ),
+    ("per-request stale lengths (CPU, lag 2)", {"rule": "stale", "draft": "pair"}),
+    (
+        "per-request stale draft +1, GPU verify",
+        {"rule": "stale-verify", "draft": "pair", "param": 1},
+    ),
     ("oracle, batch draft", {"rule": "topk", "draft": "batch", "signal": "oracle"}),
     ("oracle, pair draft", {"rule": "topk", "draft": "pair", "signal": "oracle"}),
 ]
 LABEL_POLICIES: list[tuple[str, dict]] = [
+    ("per-request stale lengths, label prior first",
+     {"rule": "stale", "draft": "pair", "signal": "label"}),
+    ("per-request label block +1, lagged budgets",
+     {"rule": "stale-budget", "draft": "pair", "param": 1, "signal": "label-block"}),
     ("per-task length (label only)", {"rule": "topk", "draft": "pair", "signal": "label"}),
     ("per-request conf x label, lagged budgets",
      {"rule": "budget", "draft": "pair", "signal": "conf-label"}),
