@@ -1,0 +1,71 @@
+# Sampling and top-k on one GPU, thinking on (settings as topk-off), the
+# thinking-on DSpark drafter at k=3/5/7. normal, SWEEP_TIME 08:00:00.
+name: topk-think
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - label: opb-think-greedy
+    workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {}
+  - label: arena-hard-clean-think-greedy
+    workload: arena-hard-clean
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {}
+  - label: opb-think-default
+    workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 0.7, top_p: 0.8, top_k: 20}
+  - label: arena-hard-clean-think-default
+    workload: arena-hard-clean
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 0.7, top_p: 0.8, top_k: 20}
+  - label: opb-think-t1-kall
+    workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: -1}
+  - label: arena-hard-clean-think-t1-kall
+    workload: arena-hard-clean
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: -1}
+  - label: opb-think-t1-k50
+    workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 50}
+  - label: arena-hard-clean-think-t1-k50
+    workload: arena-hard-clean
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 50}
+  - label: opb-think-t1-k20
+    workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 20}
+  - label: arena-hard-clean-think-t1-k20
+    workload: arena-hard-clean
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 20}
+  - label: opb-think-t1-k5
+    workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 5}
+  - label: arena-hard-clean-think-t1-k5
+    workload: arena-hard-clean
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 5}
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-on-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 3}
+  - {name: dspark-on-k5, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 5}
+  - {name: dspark-on-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 7}

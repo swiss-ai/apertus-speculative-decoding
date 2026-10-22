@@ -251,7 +251,11 @@ def test_env_values_can_point_into_the_arm_directory(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "spec_path",
-    sorted((Path(__file__).resolve().parents[1] / "experiments" / "system-8b").glob("*.yaml")),
+    sorted(
+        path
+        for spec_dir in ("system-8b", "high-concurrency-8b")
+        for path in (Path(__file__).resolve().parents[1] / "experiments" / spec_dir).glob("*.yaml")
+    ),
     ids=lambda path: path.stem,
 )
 def test_committed_specs_expand(spec_path: Path) -> None:

@@ -1,0 +1,21 @@
+# Two engines over two GPUs each, plain and both thinking-off drafters at
+# k=3/5; max_num_seqs 512 per engine. normal, SWEEP_TIME 05:00:00.
+name: tp2dp2
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 512, data_parallel_size: 2}
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-contaminated
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+arms:
+  - {name: plain-tp2dp2, method: baseline, tensor_parallel_size: 2}
+  - {name: dspark-off-k3-tp2dp2, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3, tensor_parallel_size: 2}
+  - {name: dspark-off-k5-tp2dp2, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 5, tensor_parallel_size: 2}
+  - {name: eagle-k3-tp2dp2, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3, tensor_parallel_size: 2}
+  - {name: eagle-k5-tp2dp2, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 5, tensor_parallel_size: 2}

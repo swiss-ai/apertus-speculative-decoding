@@ -1,0 +1,24 @@
+# One engine over the node's four GPUs (the latency layout), plain and both
+# thinking-off drafters at k=3/5/7; max_num_seqs 1024 = 4 x 256 (the 9 Oct
+# TP4 run held 256). normal, SWEEP_TIME 06:00:00.
+name: tp4
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 1024}
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-contaminated
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+arms:
+  - {name: plain-tp4, method: baseline, tensor_parallel_size: 4}
+  - {name: dspark-off-k3-tp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3, tensor_parallel_size: 4}
+  - {name: dspark-off-k5-tp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 5, tensor_parallel_size: 4}
+  - {name: dspark-off-k7-tp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, tensor_parallel_size: 4}
+  - {name: eagle-k3-tp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3, tensor_parallel_size: 4}
+  - {name: eagle-k5-tp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 5, tensor_parallel_size: 4}
+  - {name: eagle-k7-tp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 7, tensor_parallel_size: 4}

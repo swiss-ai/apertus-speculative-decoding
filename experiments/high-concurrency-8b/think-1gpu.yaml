@@ -1,0 +1,24 @@
+# The thinking-on DSpark drafter (e10, Yu, final) on one GPU at k=3/5/7 against
+# plain, thinking-on held-out prompts and Arena-Hard with thinking on (C=1 only
+# on the held-out prompts: 500 thinking answers single-stream take >1 h).
+# normal, SWEEP_TIME 04:00:00.
+name: think-1gpu
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: arena-hard-clean
+    label: arena-hard-clean-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 32, 64, 128, 256]
+  - workload: arena-hard-contaminated
+    label: arena-hard-contaminated-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-on-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 3}
+  - {name: dspark-on-k5, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 5}
+  - {name: dspark-on-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 7}
