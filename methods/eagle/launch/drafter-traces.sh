@@ -35,7 +35,8 @@ log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 log "job=${SLURM_JOB_ID} host=$(hostname) revision=$(git -C "${REPO_ROOT}" rev-parse HEAD) domains=${DOMAINS}"
 
 if [ ! -f "${POOLS}/manifest.json" ]; then
-  python3 -m apertus_eagle.build_adaptation_pools --contract "${CONTRACT}" \
+  # pyarrow is not in the serving image; the data-check jobs use the same pydeps.
+  PYTHONPATH="${REPO_ROOT}/scratch/pydeps-data:${PYTHONPATH:-}" python3 -m apertus_eagle.build_adaptation_pools --contract "${CONTRACT}" \
     --output-dir "${POOLS}" --infomaniak-dir "${DATA_ROOT}/src/infomaniak" \
     --split-index "${DRAFTER_SPLIT_INDEX:-/users/${USER}/apertus-spec-decoding/results/70b/eagle/data/split-index.jsonl}" \
     --domains "$(echo "${DOMAINS}" | tr ' ' ',')" ${POOL_ARGS[@]+"${POOL_ARGS[@]}"}
