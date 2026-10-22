@@ -23,6 +23,8 @@ from apertus_bench.correctness import DEFAULT_TOLERANCE, calibrate_gate, compare
 from apertus_bench.drafter_kv_experiment import (
     PHASE_REPEATS,
     SCREEN_POLICIES,
+    artifact_path,
+    artifact_path_mapping,
     digest,
     exclusive_json,
     now,
@@ -65,7 +67,7 @@ def discover(campaign: Path, phase: str) -> tuple[list[Deployment], list[str]]:
     deployments = []
     identities = set()
     for allocation in allocations:
-        output = Path(allocation["output"])
+        output = artifact_path(allocation["output"])
         if allocation["state"] != "terminal" or allocation.get("slurm_state") != "COMPLETED":
             errors.append(f"{allocation['allocation']}: incomplete Slurm accounting")
         spec_path = output.parent / "spec.yaml"
@@ -89,7 +91,7 @@ def discover(campaign: Path, phase: str) -> tuple[list[Deployment], list[str]]:
                 continue
             deployments.append(Deployment(
                 allocation["allocation"], arm["name"], policy, output / arm["name"],
-                Path(workload) if workload else None,
+                artifact_path(workload) if workload else None,
                 next((c["sha256"] for c in spec.get("drafter_kv", {}).get("corpora", {}).values()
                       if c["path"] == workload), None),
             ))
@@ -460,13 +462,16 @@ def build_evidence(campaign: Path, phase: str, output: Path) -> dict[str, Any]:
     memory = {p: memory_evidence(deployments, p, native, errors, traces) for p in policies}
     control_path, memory_path = output / "correctness-controls.json", output / "memory.json"
     exclusive_json(control_path, {"created_at": now(), "phase": phase, "policies": controls,
+                                  "artifact_path_mapping": artifact_path_mapping(),
                                   "superseded_attempt_history": failed_history})
     exclusive_json(memory_path, {"created_at": now(), "phase": phase, "policies": memory,
-                                 "traces": traces, "superseded_attempt_history": failed_history})
+                                 "traces": traces, "artifact_path_mapping": artifact_path_mapping(),
+                                 "superseded_attempt_history": failed_history})
     report = {"schema_version": 1, "phase": phase, "created_at": now(), "policies": {
         p: {"correctness_controls_passed": controls[p]["passed"], "memory": memory[p]["memory"],
             "artifact_paths": [str(control_path.resolve()), str(memory_path.resolve())]}
         for p in policies}, "source_campaign": str(campaign.resolve()),
+        "artifact_path_mapping": artifact_path_mapping(),
         "selected_allocations": sorted({d.allocation for d in deployments}),
         "superseded_attempt_history": failed_history,
         "source_ledger_sha256": digest(campaign / "ledger.json")}

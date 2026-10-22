@@ -61,6 +61,33 @@ def digest(path: Path) -> str:
     return h.hexdigest()
 
 
+def artifact_path_mapping() -> dict[str, str] | None:
+    """Describe an opt-in local read mapping without rewriting canonical artifacts."""
+    source_root = os.environ.get("APERTUS_DRAFT_KV_SOURCE_ROOT")
+    artifact_root = os.environ.get("APERTUS_DRAFT_KV_ARTIFACT_ROOT")
+    if source_root is None and artifact_root is None:
+        return None
+    if not source_root or not artifact_root:
+        raise ValueError("set both APERTUS_DRAFT_KV_SOURCE_ROOT and APERTUS_DRAFT_KV_ARTIFACT_ROOT")
+    if not Path(source_root).is_absolute() or not Path(artifact_root).is_absolute():
+        raise ValueError("artifact mapping roots must be absolute paths")
+    return {"source_root": source_root, "artifact_root": artifact_root,
+            "method": "lexical_relative_to_prefix; canonical artifact contents unchanged"}
+
+
+def artifact_path(value: str | Path) -> Path:
+    """Map a collected artifact read to its local copy; never resolve or mutate it."""
+    path = Path(value)
+    mapping = artifact_path_mapping()
+    if mapping is None:
+        return path
+    try:
+        relative = path.relative_to(Path(mapping["source_root"]))
+    except ValueError:
+        return path
+    return Path(mapping["artifact_root"]) / relative
+
+
 def exclusive_json(path: Path, data: Any) -> None:
     with path.open("x", encoding="utf-8") as handle:
         json.dump(data, handle, indent=2, sort_keys=True)
@@ -718,7 +745,7 @@ def trace_summary(path: Path) -> dict[str, Any]:
 
 
 def _allocation_cells(allocation: dict[str, Any]) -> tuple[dict, list[str], dict]:
-    output = Path(allocation["output"])
+    output = artifact_path(allocation["output"])
     spec_path = output.parent / "spec.yaml"
     errors: list[str] = []
     cells: dict[tuple[str, str, int], dict[str, list[float]]] = {}
@@ -884,6 +911,7 @@ def analyze(campaign: Path, phase: str, evidence_path: Path, output: Path) -> di
               "correctness_controls_passed": chosen.get("correctness_controls_passed", False),
               "selected_speed_cell": chosen.get("selected_speed_cell"), "decisions": decisions,
               "trace_summaries": traces, "evidence": str(evidence_path.resolve()),
+              "artifact_path_mapping": artifact_path_mapping(),
               "selected_allocations": [a["allocation"] for a in allocations],
               "superseded_attempt_history": failed_history,
               "evidence_sha256": digest(evidence_path),

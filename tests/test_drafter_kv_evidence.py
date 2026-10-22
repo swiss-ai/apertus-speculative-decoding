@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from apertus_bench import drafter_kv_evidence as evidence_module
+from apertus_bench import drafter_kv_experiment as experiment_module
 from apertus_bench.drafter_kv_evidence import (
     NATIVE_STEADY_MAX_PAGES,
     Deployment,
@@ -263,3 +264,64 @@ def test_discovery_selects_only_unsuperseded_attempts_for_two_logical_repeats(tm
     deployments, errors = discover(campaign, "screen")
     assert not errors
     assert {d.allocation for d in deployments} == {"replacement", "second"}
+
+
+def test_canonical_cluster_artifacts_are_read_locally_without_rewriting_specs(
+    tmp_path, monkeypatch,
+):
+    canonical_root = Path("/users/example/apertus-experiment")
+    local_root = tmp_path / "collected"
+    campaign = local_root / "results/campaign"
+    campaign.mkdir(parents=True)
+    workload = local_root / "workloads/correctness.jsonl"
+    workload.parent.mkdir()
+    workload.write_text(json.dumps({"id": "one", "workload": "chat", "max_tokens": 128,
+                                   "messages": [{"role": "user", "content": "Hello"}]}) + "\n")
+    canonical_workload = str(canonical_root / workload.relative_to(local_root))
+    allocations, specs = {}, {}
+    for name in ["screen-01", "screen-02"]:
+        parent = campaign / "allocations" / name
+        output = parent / "results"
+        output.mkdir(parents=True)
+        allocations[name] = {
+            "allocation": name, "phase": "screen", "state": "terminal", "slurm_state": "COMPLETED",
+            "output": str(canonical_root / output.relative_to(local_root)),
+        }
+        metadata = {key: "exact-identity" for key in [
+            "head_config_sha256", "exact_head_checkpoint_sha256", "target_model",
+            "target_revision", "target_tensor_parallel_size"]}
+        metadata["kv_policy"] = "native2048"
+        spec = {"arms": [{"name": "native", "metadata": metadata,
+                          "env": {"VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS": canonical_workload}}],
+                "loadtests": [{"workload": "chat", "workloads_file": canonical_workload,
+                               "concurrencies": [1]}],
+                "drafter_kv": {"corpora": {"correctness": {
+                    "path": canonical_workload, "sha256": digest(workload)}}}}
+        path = parent / "spec.yaml"
+        path.write_text(json.dumps(spec))
+        specs[path] = path.read_bytes()
+        (output / "sweep-status.json").write_text('{"native":"ok"}')
+        cell = output / "native/chat/chat/c1"
+        cell.mkdir(parents=True)
+        (cell / "metadata.json").write_text(json.dumps({
+            "workload_file_sha256": digest(workload), "extra": {"kv_policy": "native2048"}}))
+        (cell / "summary.json").write_text(json.dumps({
+            "tokens": {"output_tokens_per_second": 100}, "requests": {"success_rate": 1},
+            "speculative_decoding": {"mean_acceptance_length": 2},
+            "latency_ms": {"ttft": {"p95": 10}, "tpot": {"p95": 5}}}))
+        for filename in ["requests.jsonl", "metrics_before.prom", "metrics_after.prom"]:
+            (cell / filename).write_text("")
+    (campaign / "ledger.json").write_text(json.dumps({"allocations": allocations}))
+    monkeypatch.setenv("APERTUS_DRAFT_KV_SOURCE_ROOT", str(canonical_root))
+    monkeypatch.setenv("APERTUS_DRAFT_KV_ARTIFACT_ROOT", str(local_root))
+    deployments, errors = discover(campaign, "screen")
+    assert not errors
+    assert all(d.correctness_workload == workload for d in deployments)
+    assert all(d.directory.is_relative_to(local_root) for d in deployments)
+    cells, failures, _ = experiment_module._allocation_cells(allocations["screen-01"])
+    assert not failures
+    assert cells[("native2048", "chat", 1)]["throughput"] == 100
+    derived = evidence_module.build_evidence(campaign, "screen", tmp_path / "new-evidence")
+    assert derived["artifact_path_mapping"]["source_root"] == str(canonical_root)
+    for path, original in specs.items():
+        assert path.read_bytes() == original

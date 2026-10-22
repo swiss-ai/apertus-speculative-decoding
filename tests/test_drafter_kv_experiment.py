@@ -30,6 +30,21 @@ def test_pending_reservations_charge_whole_four_gpu_allocation(campaign):
         kv.reserve(campaign, "preflight", "would-overspend", 1)
 
 
+def test_artifact_read_mapping_is_optional_paired_and_uses_a_path_prefix(tmp_path, monkeypatch):
+    monkeypatch.delenv("APERTUS_DRAFT_KV_SOURCE_ROOT", raising=False)
+    monkeypatch.delenv("APERTUS_DRAFT_KV_ARTIFACT_ROOT", raising=False)
+    canonical = Path("/users/example/experiment/results/cell")
+    assert kv.artifact_path(canonical) == canonical
+    monkeypatch.setenv("APERTUS_DRAFT_KV_SOURCE_ROOT", "/users/example/experiment")
+    with pytest.raises(ValueError, match="set both"):
+        kv.artifact_path(canonical)
+    monkeypatch.setenv("APERTUS_DRAFT_KV_ARTIFACT_ROOT", str(tmp_path))
+    assert kv.artifact_path(canonical) == tmp_path / "results/cell"
+    unrelated = Path("/users/example/experiment-other/results/cell")
+    assert kv.artifact_path(unrelated) == unrelated
+    assert kv.artifact_path_mapping()["artifact_root"] == str(tmp_path)
+
+
 def test_independent_run_names_and_phase_counts_cannot_be_reused(campaign):
     kv.reserve(campaign, "screen", "screen-01", 3600)
     with pytest.raises(FileExistsError):
