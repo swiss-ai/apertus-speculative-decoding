@@ -569,10 +569,10 @@ async def _wait_ready(
     raise TimeoutError(f"{label} not ready after {timeout:.0f} s")
 
 
-async def _stop(process: asyncio.subprocess.Process) -> None:
+async def _stop(process: asyncio.subprocess.Process, grace_s: float = 60) -> None:
     if process.returncode is not None:
         return
-    for sig, grace in ((signal.SIGINT, 60), (signal.SIGKILL, 30)):
+    for sig, grace in ((signal.SIGINT, grace_s), (signal.SIGKILL, 30)):
         try:
             os.killpg(process.pid, sig)
         except ProcessLookupError:
@@ -729,22 +729,17 @@ async def run_arm(
             "ok" if all(t["exit_code"] == 0 for t in status["tests"].values()) else "test_failed"
         )
         if arm.profile is not None:
-            # nsys writes each report after its window closes; stopping the
-            # server before then loses the last one.
-            expected = profiling.expected_windows(
+            status["profile"]["expected_reports"] = profiling.expected_windows(
                 arm.profile, [(test.label, test.concurrencies) for test in plan.loadtests]
             )
-            found = await profiling.wait_for_reports(
-                nsys_dir, expected, arm.profile.report_timeout_s
-            )
-            status["profile"]["expected_reports"] = expected
-            status["profile"]["reports_before_stop"] = len(found)
     except Exception as error:  # noqa: BLE001 - recorded, the other arms go on
         status["status"] = "failed"
         status["error"] = f"{type(error).__name__}: {error}"
     finally:
         for process in reversed(processes):
-            await _stop(process)
+            # nsys writes the reports of all windows when the server exits
+            # (seen in nsys-smoke, job 3722011): give it time before SIGKILL.
+            await _stop(process, arm.profile.report_timeout_s if arm.profile else 60)
         for log in logs:
             log.close()
         if arm.profile is not None and profiling.reports(nsys_dir):
