@@ -54,6 +54,14 @@ SML_ENVIRONMENT="$("${SERVING_DIR}/resolve-env.sh" "${ENV_SOURCE}")"
 CACHE_ROOT="/iopsstor/scratch/cscs/${USER}/apertus-loadtest/vllm-cache/sweep-${NAME}-${STAMP}"
 printf '%s\n' "${PATCHES[@]}" > "${OUT}/patches.txt"
 cp "${SML_ENVIRONMENT}" "${OUT}/environment.toml"
+if [ "${SWEEP_DRAFT_KV:-0}" = "1" ] && [ "${VALIDATE_ONLY:-0}" != "1" ]; then
+  # Parse the actual CSCS environment before reserving a compute node. This
+  # catches plugin serialization limits that a TOML parser alone cannot detect.
+  srun --test-only --nodes=1 --ntasks=1 --time=00:01:00 \
+    --account="${ACCOUNT}" --partition="${PARTITION}" \
+    --environment="${SML_ENVIRONMENT}" /bin/true \
+    > "${OUT}/environment-validation.log" 2>&1
+fi
 
 cat > "${OUT}/job.sh" <<EOF
 #!/bin/bash

@@ -574,11 +574,18 @@ def submit(campaign: Path, allocation: str, spec_path: Path, repo: Path) -> dict
     seconds = item["reserved_seconds"]
     walltime = f"{seconds // 3600:02d}:{seconds % 3600 // 60:02d}:{seconds % 60:02d}"
     command = [str(repo / "serving/node-sweep.sh"), str(frozen_spec.resolve())]
+    # CSCS serializes the environment definition into a bounded plugin value.
+    # Keep repeated mount prefixes short while isolating every allocation by its
+    # ownership nonce. The exact external overlay path is retained in provenance.
+    overlay_key = hashlib.sha256(item["job_comment"].encode()).hexdigest()[:16]
+    overlay = Path.home() / ".sml" / f"dkv-{overlay_key}"
+    if overlay.exists():
+        raise FileExistsError(f"refusing to reuse an allocation overlay: {overlay}")
     environment = {
         **os.environ, "SWEEP_OUTPUT": str(output), "SWEEP_TIME": walltime,
         "SBATCH_COMMENT": item["job_comment"], "SBATCH_NO_REQUEUE": "1",
         "SWEEP_DRAFT_KV": "1",
-        "VLLM_PATCH_DIR": str(output.parent / "vllm-overlay"),
+        "VLLM_PATCH_DIR": str(overlay),
         "SWEEP_DRAFT_KV_PREFLIGHT": "1" if item["phase"] == "preflight" else "0",
         "SWEEP_JOB_COMMENT": item["job_comment"], "SWEEP_NO_REQUEUE": "1",
     }
