@@ -50,6 +50,15 @@ SML_ENVIRONMENT="$("${SERVING_DIR}/resolve-env.sh" "${ENV_SOURCE}")"
 CACHE_ROOT="/iopsstor/scratch/cscs/${USER}/apertus-loadtest/vllm-cache/sweep-${NAME}-${STAMP}"
 printf '%s\n' "${PATCHES[@]}" > "${OUT}/patches.txt"
 cp "${SML_ENVIRONMENT}" "${OUT}/environment.toml"
+# Provenance: the checkout's revision, its uncommitted changes (empty when
+# clean) and the submit command with the settings taken from the environment.
+git -C "${REPO_ROOT}" rev-parse HEAD > "${OUT}/git-revision.txt"
+git -C "${REPO_ROOT}" diff HEAD > "${OUT}/checkout.patch"
+{
+  printf '%q ' "$0" "$@"
+  echo
+  env | grep -E '^(SWEEP_[A-Z_]*|IMAGE|ENV_SOURCE|VLLM_PATCH_DIR)=' | sort || true
+} > "${OUT}/submit-command.txt"
 
 cat > "${OUT}/job.sh" <<EOF
 #!/bin/bash
@@ -66,6 +75,10 @@ srun --overlap --nodes=1 --ntasks=1 nvidia-smi \
   --query-gpu=timestamp,index,memory.used,memory.total,utilization.gpu,power.draw \
   --format=csv,noheader,nounits -lms 1000 > "${OUT}/gpu-memory.csv" 2> /dev/null &
 SAMPLER=\$!
+echo "job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} started=\$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "${OUT}/slurm.txt"
+# The image's digest, read on the compute node while the arms start.
+sha256sum "${IMAGE}" > "${OUT}/image.sha256" &
+DIGEST=\$!
 # The image's PYTHONPATH puts /workspace/vllm (where the patch overlays are
 # mounted) ahead of the installed copy: extend it inside the container, never
 # replace it, or vLLM runs unpatched.
@@ -74,6 +87,7 @@ srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
   'export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
   || status=\$?
 kill \${SAMPLER} 2> /dev/null || true
+wait \${DIGEST} || true
 exit \${status:-0}
 EOF
 

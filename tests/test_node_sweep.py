@@ -128,6 +128,31 @@ def test_bench_command_passes_generation_and_provenance(tmp_path: Path) -> None:
     assert "deployment_id=dep-1" in command
 
 
+def test_dspark_arms_get_their_checkpoint_digest(tmp_path: Path) -> None:
+    from apertus_bench.eagle import checkpoint_manifest_sha256
+    from apertus_bench.node_sweep import hash_drafters
+
+    drafter = tmp_path / "dspark"
+    drafter.mkdir()
+    (drafter / "config.json").write_text("{}")
+    (drafter / "model.safetensors").write_bytes(b"weights")
+    arms = [
+        {"name": "plain", "method": "baseline"},
+        {"name": "dspark-k3", "method": "dspark", "drafter": str(drafter), "k": 3},
+        {"name": "pd-dspark", "method": "pd", "serve_method": "dspark", "drafter": str(drafter),
+         "k": 3},
+    ]  # fmt: skip
+    plan = build_plan(_spec(arms=arms), check_heads=False)
+    hash_drafters(plan)
+    digest = checkpoint_manifest_sha256(drafter, [drafter / "model.safetensors"])
+    plain, dspark, pd = plan.arms
+    assert "checkpoint_sha256" not in plain.metadata
+    assert dspark.metadata["checkpoint_sha256"] == digest
+    assert pd.metadata["checkpoint_sha256"] == digest
+    command = bench_command(dspark, plan.loadtests[0], tmp_path / "out", "dep")
+    assert f"checkpoint_sha256={digest}" in command
+
+
 def test_probe_runs_a_single_cell(tmp_path: Path) -> None:
     plan = build_plan(_spec(probe=True), check_heads=False)
     assert plan.probe is not None

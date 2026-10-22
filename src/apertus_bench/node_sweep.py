@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import functools
 import json
 import os
 import re
@@ -188,6 +189,24 @@ def _eagle_metadata(head: Path, stage: str, served_model: str, tp: int) -> dict[
         "target_revision": str((report.get("provenance") or {}).get("revision")),
         "target_tensor_parallel_size": str(tp),
     }
+
+
+@functools.cache
+def _dspark_sha256(drafter: str) -> str:
+    """Digest of a DSpark checkpoint, defined as for EAGLE heads (config.json and weights)."""
+    from apertus_bench.eagle import checkpoint_manifest_sha256
+
+    path = Path(drafter)
+    return checkpoint_manifest_sha256(path, sorted(path.glob("*.safetensors")))
+
+
+def hash_drafters(plan: Plan) -> None:
+    """Add checkpoint_sha256 to the provenance of every DSpark arm (EAGLE arms get it
+    from the head check). Done in the job: the weights are GBs, not login-node work."""
+    for arm in plan.arms:
+        drafter = arm.metadata.get("dspark_checkpoint")
+        if drafter:
+            arm.metadata["checkpoint_sha256"] = _dspark_sha256(drafter)
 
 
 def _serve_argv(
@@ -767,6 +786,7 @@ def main(argv: list[str] | None = None) -> None:
             )
         return
     plan = build_plan(spec)
+    hash_drafters(plan)
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "spec.yaml").write_text(args.spec.read_text())
     results = asyncio.run(run_plan(plan, args.output))
