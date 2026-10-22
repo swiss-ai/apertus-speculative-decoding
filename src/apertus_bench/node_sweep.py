@@ -10,6 +10,8 @@ profile); `{arm_dir}` and `{repo}` in its argv are filled in, as in the
 environment of any arm (`env`). A `pd` arm is a
 disaggregated deployment: prefill and decode instances on their own GPUs,
 connected by NIXL, behind apertus_bench.pd_proxy, which the load test drives.
+A serving arm with a `profile` block runs under Nsight Systems, with capture
+windows inside chosen load levels (apertus_bench.profiling).
 
     python3 -m apertus_bench.node_sweep plan SPEC        (print the expanded arms)
     python3 -m apertus_bench.node_sweep run SPEC --output DIR
@@ -22,9 +24,11 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import dataclasses
 import json
 import os
 import re
+import shutil
 import signal
 import sys
 import time
@@ -34,6 +38,9 @@ from typing import Any
 
 import httpx
 import yaml
+
+from apertus_bench import profiling
+from apertus_bench.profiling import ProfileSpec
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HF_MODELS_ROOT = Path("/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai")
@@ -120,6 +127,7 @@ class Arm:
     kind: str = "serve"
     servers: list[Server] = field(default_factory=list)
     pythonpath: list[str] = field(default_factory=list)
+    profile: ProfileSpec | None = None
 
     @property
     def port(self) -> int:
@@ -410,6 +418,14 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
             str(key): str(value).replace("{repo}", str(REPO_ROOT))
             for key, value in (raw.get("env") or {}).items()
         }
+        try:
+            profile = profiling.parse_profile(raw.get("profile"), name)
+        except (TypeError, ValueError) as error:
+            raise SpecError(str(error)) from error
+        if profile is not None and method not in SERVER_METHODS:
+            raise SpecError(f"arm {name}: profile applies to serving arms only")
+        if profile is not None:
+            env = {**profiling.server_env(profile), **env}
         if method == "command":
             command = raw.get("command")
             if not command or not isinstance(command, list):
@@ -443,10 +459,15 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
             continue
         engine = {**common_engine, **(raw.get("engine") or {})}
         serve_argv, tp, dp, speculative = _serve_argv(raw, served_model, target_model, engine)
+        if profile is not None:
+            serve_argv += profiling.server_args(profile)
         gpus = int(raw.get("gpus", tp * dp))
         if gpus < tp * dp or gpus > node_gpus:
             raise SpecError(f"arm {name}: needs {tp * dp} GPUs, given {gpus} of {node_gpus}")
         bench, metadata = _bench(raw, engine, speculative, tp, stage, served_base, check_heads)
+        if profile is not None:
+            # Tags every cell of the arm: profiled numbers are not headline numbers.
+            metadata["profile"] = json.dumps(dataclasses.asdict(profile), sort_keys=True)
         arms.append(
             Arm(
                 name=name,
@@ -458,8 +479,17 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
                 env=env,
                 metadata=metadata,
                 pythonpath=pythonpath,
+                profile=profile,
             )
         )
+    if profile_levels_missing := [
+        (arm.name, level)
+        for arm in arms
+        if arm.profile is not None and arm.profile.levels is not None
+        for level in arm.profile.levels
+        if not any(level in test.concurrencies for test in loadtests)
+    ]:
+        raise SpecError(f"profile levels not in any load test: {profile_levels_missing}")
     if not arms:
         raise SpecError("spec has no arms")
     return Plan(
@@ -488,6 +518,8 @@ def bench_command(arm: Arm, test: Loadtest, output: Path, deployment_id: str) ->
         base += ["--concurrencies", *[str(c) for c in test.concurrencies]]
         base += ["--requests", str(test.min_requests)]
         base += ["--requests-per-slot", str(test.requests_per_slot), "--metrics-interval", "1"]
+        if arm.profile is not None:
+            base += profiling.bench_args(arm.profile, test.label, test.concurrencies)
     if test.max_tokens:
         base += ["--max-tokens", str(test.max_tokens)]
     for key, value in test.generation.items():
@@ -620,6 +652,7 @@ async def run_arm(
         _write_status(status_path, status)
         return status
     env["PYTHONPATH"] = _pythonpath(arm.pythonpath)
+    nsys_dir = arm_dir / "nsys"
     processes: list[asyncio.subprocess.Process] = []
     logs = []
     try:
@@ -658,10 +691,16 @@ async def run_arm(
         else:
             log = (arm_dir / "replica.out").open("wb")
             logs.append(log)
+            serve = [*arm.serve_argv, "--port", str(arm.port)]
+            if arm.profile is not None:
+                nsys_dir.mkdir(parents=True, exist_ok=True)
+                await _nsys_environment(arm.profile.nsys, arm_dir / "nsys-env.txt", env)
+                serve = profiling.nsys_argv(arm.profile, serve, nsys_dir / arm.name)
+                status["profile"] = {"argv": serve, "nsys_dir": str(nsys_dir)}
+                _write_status(status_path, status)
             processes.append(
                 await asyncio.create_subprocess_exec(
-                    *arm.serve_argv, "--port", str(arm.port),
-                    stdout=log, stderr=asyncio.subprocess.STDOUT, env=env,
+                    *serve, stdout=log, stderr=asyncio.subprocess.STDOUT, env=env,
                     start_new_session=True,
                 )
             )  # fmt: skip
@@ -689,6 +728,17 @@ async def run_arm(
         status["status"] = (
             "ok" if all(t["exit_code"] == 0 for t in status["tests"].values()) else "test_failed"
         )
+        if arm.profile is not None:
+            # nsys writes each report after its window closes; stopping the
+            # server before then loses the last one.
+            expected = profiling.expected_windows(
+                arm.profile, [(test.label, test.concurrencies) for test in plan.loadtests]
+            )
+            found = await profiling.wait_for_reports(
+                nsys_dir, expected, arm.profile.report_timeout_s
+            )
+            status["profile"]["expected_reports"] = expected
+            status["profile"]["reports_before_stop"] = len(found)
     except Exception as error:  # noqa: BLE001 - recorded, the other arms go on
         status["status"] = "failed"
         status["error"] = f"{type(error).__name__}: {error}"
@@ -697,6 +747,8 @@ async def run_arm(
             await _stop(process)
         for log in logs:
             log.close()
+        if arm.profile is not None and profiling.reports(nsys_dir):
+            await _export_profile(arm, arm_dir, plan, status)
         status["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         excerpt = []
         for replica in sorted(arm_dir.glob("replica*.out")):
@@ -706,6 +758,63 @@ async def run_arm(
             (arm_dir / "engine-excerpt.txt").write_text("\n".join(excerpt) + "\n")
         _write_status(status_path, status)
     return status
+
+
+async def _nsys_environment(nsys: str, path: Path, env: dict[str, str]) -> None:
+    """What the arm's GPUs allow, before its server starts: ``nsys --version``,
+    ``nsys status --environment``, a 2-second GPU-metrics sample, and whether
+    ``ncu`` may read performance counters (ERR_NVGPUCTRPERM if not)."""
+    scratch = path.parent / "nsys-env"
+    scratch.mkdir(exist_ok=True)
+    checks = [
+        [nsys, "--version"],
+        [nsys, "status", "--environment"],
+        [
+            nsys, "profile", "--trace", "none", "--sample", "none", "--cpuctxsw", "none",
+            "--gpu-metrics-devices", "cuda-visible", "--duration", "2", "--force-overwrite",
+            "true", "--output", str(scratch / "gpu-metrics-check"), "sleep", "3",
+        ],
+    ]  # fmt: skip
+    if shutil.which("ncu"):
+        checks.append(
+            [
+                "ncu", "--metrics", "sm__throughput.avg.pct_of_peak_sustained_elapsed",
+                "--launch-count", "1", sys.executable, "-c",
+                "import torch; torch.ones(1, device='cuda').sum().item()",
+            ]
+        )  # fmt: skip
+    with path.open("wb") as handle:
+        for argv in checks:
+            handle.write(("$ " + " ".join(argv) + "\n").encode())
+            handle.flush()
+            process = await asyncio.create_subprocess_exec(
+                *argv, stdout=handle, stderr=asyncio.subprocess.STDOUT, env=env
+            )
+            try:
+                code = await asyncio.wait_for(process.wait(), 180)
+            except TimeoutError:
+                process.kill()
+                code = await process.wait()
+            handle.write(f"# exit {code}\n".encode())
+
+
+async def _export_profile(arm: Arm, arm_dir: Path, plan: Plan, status: dict[str, Any]) -> None:
+    """nsys stats CSVs and the report manifest of a profiled arm (never fatal)."""
+    assert arm.profile is not None
+    try:
+        found = await profiling.wait_for_reports(arm_dir / "nsys", 0, 120)
+        windows = profiling.collect_windows(
+            arm_dir, [(t.label, t.workload, t.concurrencies) for t in plan.loadtests]
+        )
+        manifest = await profiling.export_reports(
+            arm.profile, found, arm_dir / "nsys-stats", windows
+        )
+        status.setdefault("profile", {})["reports"] = [
+            {"report": entry["report"], "stats_exit_code": entry["stats_exit_code"]}
+            for entry in manifest["reports"]
+        ]
+    except Exception as error:  # noqa: BLE001 - the measurements stand without it
+        status.setdefault("profile", {})["export_error"] = f"{type(error).__name__}: {error}"
 
 
 async def run_plan(plan: Plan, output: Path) -> list[dict[str, Any]]:
@@ -745,12 +854,20 @@ def main(argv: list[str] | None = None) -> None:
     plan_cmd = sub.add_parser("plan", help="print the expanded arms of a spec")
     plan_cmd.add_argument("spec", type=Path)
     plan_cmd.add_argument("--no-check-heads", action="store_true")
+    profiled_cmd = sub.add_parser(
+        "profiled", help="print how many arms of a spec run under a profiler"
+    )
+    profiled_cmd.add_argument("spec", type=Path)
     run_cmd = sub.add_parser("run", help="run a spec on this node")
     run_cmd.add_argument("spec", type=Path)
     run_cmd.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
 
     spec = yaml.safe_load(args.spec.read_text())
+    if args.command == "profiled":
+        plan = build_plan(spec, check_heads=False)
+        print(sum(arm.profile is not None for arm in plan.arms))
+        return
     if args.command == "plan":
         plan = build_plan(spec, check_heads=not args.no_check_heads)
         for arm in plan.arms:
@@ -762,6 +879,7 @@ def main(argv: list[str] | None = None) -> None:
                         "gpus": arm.gpus,
                         "serve": arm.serve_argv,
                         "servers": servers,
+                        "profile": dataclasses.asdict(arm.profile) if arm.profile else None,
                     }
                 )
             )
