@@ -1,0 +1,16 @@
+{
+  "file": "workloads/8b/opb-heldout-think.jsonl",
+  "sha256": "06cbc23c595a57214b1b7ae9af0c647d52ace63f475d4fde3fff7f5634f5b8b5",
+  "rows": 128,
+  "source": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-on/heldout.jsonl",
+  "command": "python3 tools/make-opb-workload.py HELDOUT workloads/8b/opb-heldout-think.jsonl --thinking --max-tokens-cap 2048",
+  "selection": "every 390th of the first 50,000 held-out rows of Yu's thinking-on split (val_ids), one per primary_id; earlier answers' reasoning removed",
+  "chat_template_kwargs": {
+    "enable_thinking": true
+  },
+  "counts": {
+    "opb-think": 128
+  },
+  "max_tokens_median": 974.0,
+  "max_tokens_max": 2048
+}
