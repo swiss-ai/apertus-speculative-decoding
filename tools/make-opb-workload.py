@@ -26,6 +26,13 @@ REASONING = re.compile(r"<\|inner_prefix\|>.*?<\|inner_suffix\|>", re.S)
 
 def to_prompt(row: dict, thinking: bool = False, cap: int = 1024) -> dict | None:
     turns = [(role, text) for role, text in TURN.findall(row["text"])]
+    # An answer cut at the generation cap has no end tag; its prompt still counts.
+    if (
+        turns
+        and turns[-1][0] == "user"
+        and "<|assistant_start|>" in row["text"].rsplit("<|user_end|>", 1)[-1]
+    ):
+        turns.append(("assistant", ""))
     if len(turns) < 2 or turns[-1][0] != "assistant":
         return None
     messages = [{"role": role, "content": REASONING.sub("", text)} for role, text in turns[:-1]]

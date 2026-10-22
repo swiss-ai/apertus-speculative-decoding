@@ -20,6 +20,14 @@ def _row(answer_tokens: int) -> dict:
     return {"primary_id": "opb-0000300", "text": text, "metadata": {"usage": usage}}
 
 
+def test_answer_cut_at_the_generation_cap_keeps_its_prompt() -> None:
+    row = _row(8192)
+    row["text"] = row["text"].removesuffix("6<|assistant_end|>")
+    prompt = make_opb_workload.to_prompt(row, thinking=True, cap=2048)
+    assert prompt["max_tokens"] == 2048
+    assert prompt["messages"][-1] == {"role": "user", "content": "And 3+3?"}
+
+
 def test_thinking_off_prompt_is_unchanged() -> None:
     prompt = make_opb_workload.to_prompt(_row(3000))
     assert prompt["id"] == "opb-opb-0000300"
