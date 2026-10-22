@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# Submit DSpark 70B data preparation or training on Clariden (login node only submits).
+# Submit DSpark data preparation or training on Clariden (login node only submits).
 #   MODE=prepare IN=... OUT=... ./methods/dspark/train/submit-train.sh   # or FULL=1
 #   MODE=train RUN_ID=opb-thinkoff DATA=... [NODES=2] [CHAIN=12] ./methods/dspark/train/submit-train.sh
+# STAGE=70b (default) is the 70B drafter. STAGE=8b is Yu's 8B setup (target
+# layers 1/8/15/22/29, one 1-GPU extraction server per trainer rank, no FSDP,
+# his dataloader depth and checkpoint interval); MODE=prepare there builds the
+# dataset from his corpus and checks his held-out split (CHECK_SPLIT=1).
+# NUM_LAYERS and FROM_PRETRAINED shape the drafter (docs/small-drafter.md).
 # MODE=train queues CHAIN jobs of TIME each, every one after the previous ends
 # (afterany), all on the same RUN_ID: each resumes from the run's checkpoints.
 # Pilot knobs passed through to train-node.sh: MAX_STEPS, CHECK_ROWS, GRAD_CKPT,
@@ -13,13 +18,31 @@ REPO_ROOT="$(cd "${TRAIN_DIR}/../../.." && pwd)"
 cd "${REPO_ROOT}"
 
 MODE="${MODE:?MODE=prepare or train}"
+STAGE="${STAGE:-70b}"
+case "${STAGE}" in
+  70b) ;;
+  8b)
+    export DSPARK_DIR="${DSPARK_DIR:-/iopsstor/scratch/cscs/${USER}/apertus-dspark8b}"
+    # The 8B target of the contract (targets/8b/contract.json, revision
+    # a411d838 as Yu's snapshot) and Yu's settings (git show
+    # origin/DSpark_Apertus_1.5_8B:methods/dspark/jobs/apertus_opb_train_v3.sh,
+    # and the e10 checkpoint's train_command.txt).
+    export TARGET_MODEL="${TARGET_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B}"
+    export LAYERS="${LAYERS:-1 8 15 22 29}"
+    export EXTRACT_PER_RANK="${EXTRACT_PER_RANK:-1}" FSDP="${FSDP:-0}" EXTRACT_MEM="${EXTRACT_MEM:-0.85}"
+    export WORKERS="${WORKERS:-8}" PREFETCH="${PREFETCH:-4}" CKPT_FREQ="${CKPT_FREQ:-0.0625}"
+    export CHECK_SPLIT="${CHECK_SPLIT:-1}"
+    export IN="${IN:-/capstor/store/cscs/swissai/infra01/speculative-decoding/dspark-opb-thinking-off/open-perfectblend_apertus15-8b_thinking-off_seed0.jsonl}"
+    ;;
+  *) echo "STAGE must be 70b or 8b" >&2; exit 2 ;;
+esac
 ACCOUNT="${DSPARK_ACCOUNT:-infra01}"
 PARTITION="${DSPARK_PARTITION:-normal}"
 DSPARK_DIR="${DSPARK_DIR:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b}"
 EXCLUDE="${DSPARK_EXCLUDE:-nid007129,nid007593,nid007611}"
 ENV_SOURCE="${DSPARK_ENV_SOURCE:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
 IMAGE="$(sed -n 's|^ *image *= *"\(/[^"]*\)".*|\1|p' "${ENV_SOURCE}" | head -1 | sed "s|{arch}|arm64|")"
-LOG_ROOT="${REPO_ROOT}/results/70b/dspark/logs"
+LOG_ROOT="${REPO_ROOT}/results/${STAGE}/dspark/logs"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "${LOG_ROOT}"
 
@@ -34,7 +57,8 @@ sed -i "s|^workdir = \".*\"|workdir = \"${REPO_ROOT}\"|" "${SML_ENVIRONMENT}"
 pass_env() {
   local v
   for v in DSPARK_DIR RUN_ID DATA EPOCHS MAX_STEPS CHECK_ROWS GRAD_CKPT WORKERS PREFETCH SEQ ANCHORS LR CKPT_FREQ \
-           EXTRACT_MEM EXTRACT_EAGER IN OUT FULL ALLOW_MISSING; do
+           EXTRACT_MEM EXTRACT_EAGER IN OUT FULL ALLOW_MISSING TARGET_MODEL LAYERS SPECULATORS NUM_LAYERS FSDP \
+           FROM_PRETRAINED EXTRACT_PER_RANK EXTRACT_GPUS TRAIN_GPUS CHECK_SPLIT SIDE_DEPS; do
     if [ -n "${!v:-}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -42,7 +66,7 @@ pass_env() {
 case "${MODE}" in
   prepare)
     NODES=1
-    NAME=dspark-70b-prepare
+    NAME=dspark-${STAGE}-prepare
     TIME="${TIME:-04:00:00}"
     CMD="srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/prepare.sh"
     CHAIN=1
@@ -50,7 +74,7 @@ case "${MODE}" in
   train)
     : "${RUN_ID:?set RUN_ID}" "${DATA:?set DATA (prepared dataset directory)}"
     NODES="${NODES:-2}"
-    NAME="dspark-70b-${RUN_ID}"
+    NAME="dspark-${STAGE}-${RUN_ID}"
     TIME="${TIME:-12:00:00}"
     # The trainer saves and exits at a step boundary STOP_MARGIN seconds before
     # the time limit (speculators-deadline-stop.patch); a save took up to 27 min.
