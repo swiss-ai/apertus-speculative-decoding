@@ -1,0 +1,30 @@
+{
+ "file": "workloads/8b/mixed.jsonl",
+ "sha256": "217053e602fa1d542677fe3a240b901d1cf4bf677e61c5b2c003e000c784ca89",
+ "rows": 576,
+ "builder": "tools/make-mixed-workload.py",
+ "seed": 0,
+ "arena_hard": 128,
+ "counts": {
+  "summarization": 128,
+  "chat": 128,
+  "arena-hard": 128,
+  "opb": 128,
+  "probe-math": 32,
+  "probe-code": 32
+ },
+ "max_tokens_max": {
+  "summarization": 512,
+  "chat": 256,
+  "arena-hard": 1024,
+  "opb": 1024,
+  "probe-math": 384,
+  "probe-code": 384
+ },
+ "sources_sha256": {
+  "opb-heldout.jsonl": "186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b",
+  "eagle-8b-test.jsonl": "70812a8c52f7f619ecc9e6afc9d7e31938b88a97caf324d4be7987c4459f830f",
+  "arena-hard.jsonl": "2c9e8ac253ccee20fef2258e9d4724dc1aabce75d8abd8a9b8c63398c334d6c0",
+  "probe-speculator-benchmarks.jsonl": "8a42d20bc7062ae82f1a8247c9f1425069b7573c2c138351023b04119a80b7dc"
+ }
+}
