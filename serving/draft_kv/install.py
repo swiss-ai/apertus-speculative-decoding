@@ -68,7 +68,8 @@ TRANSFORMS = {
         (
             "    # [num_reqs, max_num_logprobs + 1]\n",
             "    # Drafter-only physical page ownership after bootstrap compression.\n"
-            "    apertus_draft_kv_releases: dict[str, list[int]] | None = None\n\n"
+            "    apertus_draft_kv_releases: dict[str, list[int]] | None = None\n"
+            "    apertus_draft_kv_trace: dict[str, object] | None = None\n\n"
             "    # [num_reqs, max_num_logprobs + 1]\n",
         ),
     ],
@@ -122,7 +123,7 @@ def build(source_root: Path, output_root: Path, patch_output: Path | None = None
     helpers = output_root / "vllm/apertus_draft_kv"
     helpers.mkdir(parents=True, exist_ok=True)
     (helpers / "__init__.py").write_text('"""Apertus drafter KV experiment overlay."""\n')
-    for name in ("integration.py", "attention.py", "policy.py"):
+    for name in ("integration.py", "attention.py", "policy.py", "graphs.py"):
         source = Path(__file__).parent / name
         shutil.copy2(source, helpers / name)
         manifest["helper_files"][name] = hashlib.sha256(source.read_bytes()).hexdigest()

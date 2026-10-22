@@ -1,8 +1,8 @@
 """Pinned vLLM DSpark integration for physically bounded drafter pages.
 
 Only the drafter is intercepted. Target attention and rejection sampling retain
-vLLM's implementation. The first version deliberately uses eager draft dispatch;
-the target's compilation and CUDA graphs are unaffected.
+vLLM's implementation. Query graphs are opt-in and use native capture shapes;
+context/page bookkeeping remains eager. Target compilation/graphs are unaffected.
 """
 
 from __future__ import annotations
@@ -21,9 +21,9 @@ from vllm.v1.core.single_type_kv_cache_manager import SlidingWindowManager
 from vllm.v1.kv_cache_interface import SlidingWindowSpec
 from vllm.v1.kv_cache_spec_registry import KVCacheSpecRegistry
 
-PAGE: tl.constexpr = 16
-HORIZON: tl.constexpr = 2048
-MAX_PAGES: tl.constexpr = 129
+PAGE = 16
+HORIZON = 2048
+MAX_PAGES = 129
 _CURRENT = None
 
 
@@ -168,6 +168,9 @@ def _prepare_pages(
     table_stride: tl.constexpr,
     C: tl.constexpr,
     V: tl.constexpr,
+    PAGE: tl.constexpr = 16,
+    HORIZON: tl.constexpr = 2048,
+    MAX_PAGES: tl.constexpr = 129,
 ):
     r = tl.program_id(0)
     state = tl.load(idx_ptr + r)
@@ -224,6 +227,9 @@ def _context_slots(
     table_ptr,
     table_stride: tl.constexpr,
     B: tl.constexpr,
+    PAGE: tl.constexpr = 16,
+    HORIZON: tl.constexpr = 2048,
+    MAX_PAGES: tl.constexpr = 129,
 ):
     r, block = tl.program_id(0), tl.program_id(1)
     state = tl.load(idx_ptr + r)
@@ -256,6 +262,8 @@ def _finish_pages(
     RECENT: tl.constexpr,
     FULL: tl.constexpr,
     IMPORTANCE: tl.constexpr,
+    PAGE: tl.constexpr = 16,
+    MAX_PAGES: tl.constexpr = 129,
 ):
     r = tl.program_id(0)
     state = tl.load(idx_ptr + r)
@@ -311,6 +319,8 @@ class SparseDraftRuntime:
         self.steps = 0
         self.active = None
         self.workspace = None
+        self.query_graphs = None
+        self.worker_trace = None
 
     def remove_request(self, req_id):
         state = self.registered.pop(req_id, None)
@@ -380,6 +390,7 @@ class SparseDraftRuntime:
     ):
         global _CURRENT
         s = self.owner
+        self.worker_trace = None
         n = input_batch.num_reqs
         tokens = input_batch.num_tokens
         for req_id, state in zip(input_batch.req_ids, input_batch.idx_mapping_np, strict=True):
@@ -431,6 +442,9 @@ class SparseDraftRuntime:
             table.stride(0),
             C=max_pages,
             V=256,
+            PAGE=PAGE,
+            HORIZON=HORIZON,
+            MAX_PAGES=MAX_PAGES,
             debug=True,
         )
         # Populate the original query/sample buffers, but use dummy slot output:
@@ -475,6 +489,9 @@ class SparseDraftRuntime:
             table,
             table.stride(0),
             B=256,
+            PAGE=PAGE,
+            HORIZON=HORIZON,
+            MAX_PAGES=MAX_PAGES,
         )
         if timing is not None:
             timing[1].record()
@@ -500,14 +517,16 @@ class SparseDraftRuntime:
             s._prepare_eplb_forward(query_count)
             from vllm.config.compilation import CUDAGraphMode
 
-            s._generate_draft(
-                n,
-                query_count,
-                None,
-                None,
-                num_tokens_across_dp,
-                cudagraph_runtime_mode=CUDAGraphMode.NONE,
-            )
+            replayed = self.query_graphs is not None and self.query_graphs.run(self.active, n)
+            if not replayed:
+                s._generate_draft(
+                    n,
+                    query_count,
+                    None,
+                    None,
+                    num_tokens_across_dp,
+                    cudagraph_runtime_mode=CUDAGraphMode.NONE,
+                )
         finally:
             _CURRENT = None
             self.active = None
@@ -531,13 +550,18 @@ class SparseDraftRuntime:
             RECENT=self.recent,
             FULL=self.policy == "full",
             IMPORTANCE=self.policy == "importance",
+            PAGE=PAGE,
+            MAX_PAGES=MAX_PAGES,
         )
         if timing is not None:
             timing[3].record()
         for i, (req_id, state) in enumerate(
             zip(input_batch.req_ids, input_batch.idx_mapping_np, strict=True)
         ):
-            if req_id in self.compressed or not is_final[i] or self.policy == "full":
+            if req_id in self.compressed or not is_final[i]:
+                continue
+            if self.policy == "full":
+                self.compressed.add(req_id)
                 continue
             state = int(state)
             count = int(bt.num_blocks.np[self.gid, state])
@@ -571,7 +595,9 @@ class SparseDraftRuntime:
                         "budget_tokens": self.budget,
                         "horizon_tokens": HORIZON,
                         "recent_tokens": self.recent,
-                        "drafter_cuda_graphs": False,
+                        "drafter_cuda_graphs": (
+                            self.query_graphs is not None and bool(self.query_graphs.manager.graphs)
+                        ),
                         "target_attention_unchanged": True,
                     }
                 ),
@@ -596,39 +622,52 @@ class SparseDraftRuntime:
         metadata = self.tags.numel() * 16
         if self.workspace is not None:
             metadata += (self.workspace.page_lse.numel() + self.workspace.anchor_lse.numel()) * 4
-        trace_record(
-            {
-                "event": "step",
-                "step": self.steps,
-                "request_ids": input_batch.req_ids,
-                "policy": self.policy,
-                "budget_tokens": self.budget,
-                "native_sequence_lengths": ends.cpu().tolist(),
-                "draft_context_pages": counts,
-                "draft_allocated_pages": owned,
-                "draft_metadata_bytes": metadata,
-                "draft_context_live_bytes": sum(counts) * PAGE * 2 * 8 * 128 * 2 * 5,
-                "draft_query_scratch_bytes": len(indices)
-                * self.owner.num_query_per_req
-                * 2
-                * 8
-                * 128
-                * 2
-                * 5,
-                "bootstrap_active_requests": sum(
-                    r not in self.compressed for r in input_batch.req_ids
-                ),
-                "bootstrap_peak_pages_per_request": MAX_PAGES,
-                "selection_ms": None,
-                "selection_state_ms": state_selection_ms,
-                "selection_ms_note": (
-                    "state mapping/pruning measured; "
-                    "importance score kernel included in drafter forward"
-                ),
-                "drafter_cuda_graphs": False,
-                "target_attention_unchanged": True,
-            }
-        )
+        record = {
+            "event": "step",
+            "step": self.steps,
+            "request_ids": input_batch.req_ids,
+            "policy": self.policy,
+            "budget_tokens": self.budget,
+            "native_sequence_lengths": ends.cpu().tolist(),
+            "draft_context_pages": counts,
+            "draft_allocated_pages": owned,
+            "draft_metadata_bytes": metadata,
+            "draft_context_live_bytes": sum(counts) * PAGE * 2 * 8 * 128 * 2 * 5,
+            "draft_context_projection_scratch_bytes": (
+                input_batch.num_tokens * 2 * 8 * 128 * 2 * 5
+            ),
+            "draft_query_scratch_bytes": len(indices)
+            * self.owner.num_query_per_req
+            * 2
+            * 8
+            * 128
+            * 2
+            * 5,
+            "bootstrap_active_requests": sum(r not in self.compressed for r in input_batch.req_ids),
+            "bootstrap_peak_pages_per_request": MAX_PAGES,
+            "selection_ms": None,
+            "selection_state_ms": state_selection_ms,
+            "selection_ms_note": (
+                "state mapping/pruning measured; "
+                "importance score kernel included in drafter forward"
+            ),
+            "drafter_cuda_graphs": False,
+            "target_attention_unchanged": True,
+        }
+        if self.query_graphs is not None:
+            record.update(
+                {
+                    "drafter_cuda_graphs": self.query_graphs.last_replayed,
+                    "drafter_graphs_captured": len(self.query_graphs.manager.graphs),
+                    "drafter_graph_replays": self.query_graphs.replay_count,
+                    "drafter_eager_fallbacks": self.query_graphs.fallback_count,
+                    "drafter_graph_padded_requests": self.query_graphs.last_padded_requests,
+                    "draft_graph_metadata_bytes": self.query_graphs.metadata_bytes,
+                }
+            )
+            record["draft_metadata_bytes"] += self.query_graphs.metadata_bytes
+        trace_record(record)
+        self.worker_trace = record
 
 
 def sparse_layer_attention(layer, q, k, v, positions):
@@ -667,6 +706,7 @@ def install_speculator_hooks(namespace):
     cls = namespace["DFlashSpeculator"]
     original = cls.propose
     original_graphs = cls.init_cudagraph_manager
+    original_capture = cls.capture
 
     @functools.wraps(original)
     def propose(self, *args, **kwargs):
@@ -687,8 +727,22 @@ def install_speculator_hooks(namespace):
             mode = CUDAGraphMode.NONE
         return original_graphs(self, mode)
 
+    @functools.wraps(original_capture)
+    def capture(self, attn_states=None):
+        if not enabled() or os.environ.get("VLLM_APERTUS_DRAFT_KV_GRAPHS", "0") != "1":
+            return original_capture(self, attn_states)
+        from .graphs import SparseQueryGraphs
+
+        if not hasattr(self, "_apertus_sparse_runtime"):
+            self._apertus_sparse_runtime = SparseDraftRuntime(self)
+        runtime = self._apertus_sparse_runtime
+        runtime.query_graphs = SparseQueryGraphs(runtime)
+        runtime.query_graphs.capture()
+        return None
+
     cls.propose = propose
     cls.init_cudagraph_manager = init_graphs
+    cls.capture = capture
 
 
 def notify_request_removed(speculator, req_id):
@@ -702,6 +756,17 @@ def attach_release_events(speculator, output):
     if runtime is not None and runtime.releases:
         output.apertus_draft_kv_releases = runtime.releases
         runtime.releases = {}
+    worker_trace = (
+        runtime.worker_trace
+        if runtime is not None
+        else getattr(speculator, "_apertus_worker_trace", None)
+    )
+    if worker_trace is not None:
+        output.apertus_draft_kv_trace = worker_trace
+    if runtime is not None:
+        runtime.worker_trace = None
+    else:
+        speculator._apertus_worker_trace = None
 
 
 def apply_release_events(kv_cache_manager, output):
@@ -733,6 +798,7 @@ def trace_record(record):
 def trace_native(speculator, batch, rejected):
     step = getattr(speculator, "_apertus_trace_step", 0) + 1
     speculator._apertus_trace_step = step
+    speculator._apertus_worker_trace = None
     if not trace_due(step):
         return
     rejection = rejected.cpu().tolist()
@@ -741,31 +807,45 @@ def trace_native(speculator, batch, rejected):
         positions[int(batch.query_start_loc_np[i + 1]) - rejection[i] - 1] + 1
         for i in range(batch.num_reqs)
     ]
-    trace_record(
-        {
-            "event": "step",
-            "step": step,
-            "request_ids": batch.req_ids,
-            "policy": "off",
-            "budget_tokens": HORIZON,
-            "native_sequence_lengths": ends,
-            "draft_context_projection_scratch_bytes": batch.num_tokens * 2 * 8 * 128 * 2 * 5,
-            "draft_query_scratch_bytes": (
-                batch.num_reqs * speculator.num_query_per_req * 2 * 8 * 128 * 2 * 5
-            ),
-            "draft_metadata_bytes": 0,
-            "bootstrap_active_requests": 0,
-            "selection_ms": 0.0,
-            "drafter_cuda_graphs": True,
-            "target_attention_unchanged": True,
-        }
-    )
+    manager = speculator.query_cudagraph_manager
+    graph_mode = False
+    if manager is not None:
+        from vllm.config.compilation import CUDAGraphMode
+
+        desc = manager.dispatch(
+            batch.num_reqs,
+            batch.num_reqs * speculator.num_query_per_req,
+            speculator.num_query_per_req,
+            0,
+        )
+        graph_mode = desc.cg_mode == CUDAGraphMode.FULL
+    record = {
+        "event": "step",
+        "step": step,
+        "request_ids": batch.req_ids,
+        "policy": "off",
+        "budget_tokens": HORIZON,
+        "native_sequence_lengths": ends,
+        "draft_context_projection_scratch_bytes": batch.num_tokens * 2 * 8 * 128 * 2 * 5,
+        "draft_query_scratch_bytes": (
+            batch.num_reqs * speculator.num_query_per_req * 2 * 8 * 128 * 2 * 5
+        ),
+        "draft_metadata_bytes": 0,
+        "bootstrap_active_requests": 0,
+        "selection_ms": 0.0,
+        "drafter_cuda_graphs": graph_mode,
+        "drafter_graphs_captured": len(manager.graphs) if manager is not None else 0,
+        "target_attention_unchanged": True,
+    }
+    trace_record(record)
+    speculator._apertus_worker_trace = record
 
 
 def trace_allocations(cache_manager, output):
     step = getattr(cache_manager, "_apertus_trace_step", 0) + 1
     cache_manager._apertus_trace_step = step
-    if not trace_due(step):
+    worker_snapshot = getattr(output, "apertus_draft_kv_trace", None)
+    if not trace_due(step) and worker_snapshot is None:
         return
     groups = cache_manager.coordinator.kv_cache_config.kv_cache_groups
     managers = cache_manager.coordinator.single_type_managers
@@ -806,6 +886,7 @@ def trace_allocations(cache_manager, output):
             "step": step,
             "request_ids": all_requests,
             "scheduled_request_ids": output.req_ids,
+            "worker_snapshot": worker_snapshot,
             "policy": "off" if settings()[0] == "native" else settings()[0],
             "budget_tokens": settings()[1],
             "draft_allocated_pages_total": draft_pages,
@@ -828,11 +909,21 @@ def sparse_draft_config(config):
     from vllm.config import replace
     from vllm.config.compilation import CompilationMode, CUDAGraphMode
 
-    return replace(
-        config,
-        compilation_config=replace(
-            config.compilation_config,
-            mode=CompilationMode.NONE,
-            cudagraph_mode=CUDAGraphMode.NONE,
-        ),
+    original = config.compilation_config
+    draft_compilation = replace(
+        original, mode=CompilationMode.NONE, cudagraph_mode=CUDAGraphMode.NONE
     )
+    # vLLM's replace intentionally reconstructs only init=True fields. The
+    # static forward registry is init=False, so it otherwise becomes an empty
+    # dictionary. Attention layers registered while loading the drafter must
+    # remain visible to the owner's profiling and forward-context lookup.
+    # Share these registries by identity, as native DSpark loading does.
+    draft_compilation.static_forward_context = original.static_forward_context
+    draft_compilation.static_all_moe_layers = original.static_all_moe_layers
+    draft_config = replace(config, compilation_config=draft_compilation)
+    if (
+        draft_config.compilation_config.static_forward_context
+        is not original.static_forward_context
+    ):
+        raise RuntimeError("sparse draft config lost the shared attention registry")
+    return draft_config

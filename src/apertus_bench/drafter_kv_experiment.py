@@ -395,7 +395,7 @@ def _policy_env(policy: str) -> dict[str, str]:
         raise ValueError(f"unsupported cache policy: {policy}")
     kind, size = match.groups()
     return {"VLLM_APERTUS_DRAFT_KV_POLICY": kind, "VLLM_APERTUS_DRAFT_KV_BUDGET": size,
-            "VLLM_APERTUS_DRAFT_KV_RECENT": "128"}
+            "VLLM_APERTUS_DRAFT_KV_RECENT": "128", "VLLM_APERTUS_DRAFT_KV_GRAPHS": "1"}
 
 
 def generate_specs(
@@ -535,7 +535,10 @@ def prepare_submission(campaign: Path, allocation: str, spec_path: Path, repo: P
             raise ValueError("spec phase differs from budget reservation")
         if item["state"] != "reserved" or item["submission_attempted"]:
             raise ValueError("allocation is not unsubmitted")
-    generation_path = campaign / "specs" / item["phase"] / "generation.json"
+    spec_root = (campaign / "specs" / item["phase"]).resolve()
+    if not spec_path.resolve().is_relative_to(spec_root):
+        raise ValueError("spec must belong to the reserved campaign phase")
+    generation_path = spec_path.resolve().parent / "generation.json"
     generation = json.loads(generation_path.read_text())
     expected_spec = next((p for p in generation["specs"]
                           if Path(p["path"]).resolve() == spec_path.resolve()), None)
@@ -576,12 +579,16 @@ def submit(campaign: Path, allocation: str, spec_path: Path, repo: Path) -> dict
         "SBATCH_COMMENT": item["job_comment"], "SBATCH_NO_REQUEUE": "1",
         "SWEEP_DRAFT_KV": "1",
         "VLLM_PATCH_DIR": str(output.parent / "vllm-overlay"),
+        "SWEEP_DRAFT_KV_PREFLIGHT": "1" if item["phase"] == "preflight" else "0",
+        "SWEEP_JOB_COMMENT": item["job_comment"], "SWEEP_NO_REQUEUE": "1",
     }
     exclusive_json(output.parent / "submit-command.json", {
         "argv": command, "SWEEP_OUTPUT": str(output), "SWEEP_TIME": walltime,
         "SBATCH_COMMENT": item["job_comment"],
         "SWEEP_DRAFT_KV": "1", "SBATCH_NO_REQUEUE": "1",
         "VLLM_PATCH_DIR": environment["VLLM_PATCH_DIR"],
+        "SWEEP_DRAFT_KV_PREFLIGHT": environment["SWEEP_DRAFT_KV_PREFLIGHT"],
+        "SWEEP_JOB_COMMENT": environment["SWEEP_JOB_COMMENT"], "SWEEP_NO_REQUEUE": "1",
         "SWEEP_PATCHES": environment.get("SWEEP_PATCHES", ""),
         "IMAGE": environment.get("IMAGE"), "ENV_SOURCE": environment.get("ENV_SOURCE"),
     })

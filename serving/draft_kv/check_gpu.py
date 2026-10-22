@@ -10,7 +10,10 @@ import argparse
 import importlib
 import json
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+from types import MethodType, SimpleNamespace
+from unittest.mock import patch
 
 import torch
 
@@ -233,6 +236,58 @@ def check_graph_replay():
     return {"cuda_graph_replay": "passed", "layers": 5}
 
 
+def check_draft_config():
+    """Keep shared layer registries while disabling compilation only for draft."""
+    integration = importlib.import_module("vllm.apertus_draft_kv.integration")
+    from vllm.config.compilation import CompilationConfig, CompilationMode, CUDAGraphMode
+
+    @dataclass
+    class ConfigHolder:
+        compilation_config: object = None
+
+    target = CompilationConfig(
+        mode=CompilationMode.VLLM_COMPILE,
+        cudagraph_mode=CUDAGraphMode.FULL_AND_PIECEWISE,
+    )
+    target_layer, draft_layer = object(), object()
+    forward_registry = {"model.layers.0.self_attn.attn": target_layer}
+    moe_registry = ["target.moe"]
+    target.static_forward_context = forward_registry
+    target.static_all_moe_layers = moe_registry
+    config = ConfigHolder(target)
+    with patch.dict(
+        "os.environ",
+        {
+            "VLLM_APERTUS_DRAFT_KV_POLICY": "importance",
+            "VLLM_APERTUS_DRAFT_KV_BUDGET": "512",
+            "VLLM_APERTUS_DRAFT_KV_RECENT": "128",
+        },
+    ):
+        draft_config = integration.sparse_draft_config(config)
+    draft = draft_config.compilation_config
+    assert draft_config is not config and draft is not target
+    assert draft.mode == CompilationMode.NONE and draft.cudagraph_mode == CUDAGraphMode.NONE
+    assert target.mode == CompilationMode.VLLM_COMPILE
+    assert target.cudagraph_mode == CUDAGraphMode.FULL_AND_PIECEWISE
+    assert draft.static_forward_context is forward_registry
+    assert draft.static_all_moe_layers is moe_registry
+    assert draft.static_forward_context["model.layers.0.self_attn.attn"] is target_layer
+    # Registrations happen after the config copy, while loading the drafter.
+    draft.static_forward_context["model.layers.32.self_attn.attn"] = draft_layer
+    draft.static_all_moe_layers.append("draft.moe")
+    assert target.static_forward_context["model.layers.32.self_attn.attn"] is draft_layer
+    assert target.static_all_moe_layers == ["target.moe", "draft.moe"]
+    with patch.dict(
+        "os.environ",
+        {
+            "VLLM_APERTUS_DRAFT_KV_POLICY": "native",
+            "VLLM_APERTUS_DRAFT_KV_BUDGET": "2048",
+        },
+    ):
+        assert integration.sparse_draft_config(config) is config
+    return {"draft_config_registry": "passed", "target_compilation_unchanged": True}
+
+
 def check_state_kernels(policy):
     """Compare installed GPU tag/recycle/selection kernels with the CPU policy."""
     integration = importlib.import_module("vllm.apertus_draft_kv.integration")
@@ -280,6 +335,9 @@ def check_state_kernels(policy):
             table.stride(0),
             C=capacity,
             V=256,
+            PAGE=16,
+            HORIZON=2048,
+            MAX_PAGES=129,
         )
         context_slots, context_positions = torch.empty_like(positions), torch.empty_like(positions)
         integration._context_slots[(2, (max(map(len, rows)) + 255) // 256)](
@@ -295,6 +353,9 @@ def check_state_kernels(policy):
             table,
             table.stride(0),
             B=256,
+            PAGE=16,
+            HORIZON=2048,
+            MAX_PAGES=129,
         )
         torch.testing.assert_close(context_positions, positions)
         ends_host = ends.cpu().tolist()
@@ -357,6 +418,8 @@ def check_state_kernels(policy):
             RECENT=128,
             FULL=policy == "full",
             IMPORTANCE=policy == "importance",
+            PAGE=16,
+            MAX_PAGES=129,
         )
         state_tags = tags.cpu().tolist()
         for request, state in enumerate(states_host):
@@ -410,6 +473,249 @@ def check_state_kernels(policy):
     return {"state_kernels": "passed", "policy": policy, "capacity": capacity}
 
 
+def check_graph_helper():
+    """Test actual graph-helper metadata and sampling without model weights.
+
+    A bounded two-shape capture manager replaces distributed setup. The real
+    graph helper, runtime adapter, attention kernels and Gumbel sampler remain
+    unchanged, including five-layer importance accumulation and request padding.
+    """
+    graphs_module = importlib.import_module("vllm.apertus_draft_kv.graphs")
+    integration = importlib.import_module("vllm.apertus_draft_kv.integration")
+    from vllm.config.compilation import CUDAGraphMode
+    from vllm.v1.worker.gpu.cudagraph_utils import BatchExecutionDescriptor
+    from vllm.v1.worker.gpu.sample.gumbel import gumbel_sample
+
+    class BoundedManager:
+        def __init__(self, config, device, mode, decode_query_len):
+            self.graphs, self.query_len = {}, decode_query_len
+
+        def needs_capture(self):
+            return True
+
+        def capture(self, create_forward, description):
+            for requests in (4, 2):
+                desc = BatchExecutionDescriptor(
+                    cg_mode=CUDAGraphMode.FULL,
+                    num_tokens=requests * self.query_len,
+                    num_reqs=requests,
+                    uniform_token_count=self.query_len,
+                )
+                warmup, _ = create_forward(desc, True)
+                warmup(CUDAGraphMode.NONE)
+                torch.cuda.synchronize()
+                forward, _ = create_forward(desc, False)
+                graph = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(graph):
+                    forward(CUDAGraphMode.NONE)
+                self.graphs[desc] = graph
+
+        def dispatch(self, num_reqs, num_tokens, uniform_token_count, num_active_loras):
+            return next(
+                desc
+                for desc in sorted(self.graphs, key=lambda d: d.num_reqs)
+                if desc.num_reqs >= num_reqs
+            )
+
+        def run_fullgraph(self, desc):
+            self.graphs[desc].replay()
+
+    torch.manual_seed(8171)
+    device = torch.device("cuda")
+    query_len, heads, kv_heads, dim, slots = 8, 8, 2, 64, 33
+    q = torch.randn((32, heads, dim), device=device, dtype=torch.bfloat16)
+    k = torch.randn((32, kv_heads, dim), device=device, dtype=torch.bfloat16)
+    v = torch.randn_like(k)
+    cache = torch.randn((128, 2, 16, kv_heads, dim), device=device, dtype=q.dtype)
+    sink = torch.linspace(-0.5, 1.5, heads, device=device)
+    layers = [
+        SimpleNamespace(
+            num_heads=heads,
+            num_kv_heads=kv_heads,
+            head_dim=dim,
+            scaling=dim**-0.5,
+            causal=False,
+            attention_sink_bias=sink,
+            attn=SimpleNamespace(kv_cache=cache),
+        )
+        for _ in range(5)
+    ]
+    compilation = SimpleNamespace(cudagraph_mode=CUDAGraphMode.FULL)
+    owner = SimpleNamespace(
+        max_num_reqs=4,
+        num_query_per_req=query_len,
+        vllm_config=SimpleNamespace(compilation_config=compilation),
+        model=SimpleNamespace(
+            model=SimpleNamespace(layers=[SimpleNamespace(self_attn=layer) for layer in layers])
+        ),
+        input_buffers=SimpleNamespace(
+            input_ids=torch.empty(32, device=device, dtype=torch.int64),
+            positions=torch.empty(32, device=device, dtype=torch.int64),
+            query_start_loc=torch.empty(5, device=device, dtype=torch.int32),
+        ),
+        sample_indices=torch.empty(32, device=device, dtype=torch.int64),
+        sample_pos=torch.empty(32, device=device, dtype=torch.int64),
+        sample_idx_mapping=torch.empty(32, device=device, dtype=torch.int32),
+        temperature=torch.zeros(4, device=device),
+        seeds=torch.full((4,), 719, device=device, dtype=torch.int64),
+    )
+    outputs = torch.empty((5, 32, heads, dim), device=device, dtype=q.dtype)
+    processed = torch.full((4, query_len, 32), 31337.0, device=device)
+    sampled = torch.empty((4, query_len), device=device, dtype=torch.int64)
+    columns = torch.arange(32, device=device, dtype=torch.int32) % query_len
+    held_active = {"sentinel": True}
+    runtime = SimpleNamespace(
+        owner=owner,
+        device=device,
+        policy="importance",
+        budget=512,
+        active=held_active,
+        workspace=None,
+        steps=17,
+        registered={"held": 2},
+        compressed={"held"},
+        releases={"held": [7]},
+    )
+    runtime.attention = MethodType(integration.SparseDraftRuntime.attention, runtime)
+
+    def generate(self, requests, tokens, *args, **kwargs):
+        for layer_index, layer in enumerate(layers):
+            result = integration.sparse_layer_attention(
+                layer,
+                q[:tokens],
+                k[:tokens],
+                v[:tokens],
+                owner.input_buffers.positions[:tokens],
+            ).view(tokens, heads, dim)
+            outputs[layer_index, :tokens].copy_(result)
+        count = requests * query_len
+        logits = result[owner.sample_indices[:count], 0, :32].float()
+        sampled[:requests].copy_(
+            gumbel_sample(
+                logits,
+                owner.sample_idx_mapping[:count],
+                owner.temperature,
+                owner.seeds,
+                owner.sample_pos[:count],
+                apply_temperature=True,
+                output_processed_logits=processed,
+                output_processed_logits_col=columns[:count],
+            ).view(requests, query_len)
+        )
+
+    owner._generate_draft = MethodType(generate, owner)
+    old_current = integration._CURRENT
+    with patch.object(graphs_module, "CudaGraphManager", BoundedManager):
+        graph_helper = graphs_module.SparseQueryGraphs(runtime)
+        graph_helper.capture()
+    assert integration._CURRENT is old_current
+    assert runtime.active is held_active and runtime.workspace is None
+    assert runtime.steps == 17 and runtime.registered == {"held": 2}
+    assert runtime.compressed == {"held"} and runtime.releases == {"held": [7]}
+    assert compilation.cudagraph_mode == CUDAGraphMode.FULL
+    assert (processed == 31337).all(), "capture wrote through dummy state mappings"
+    tracked = (
+        graph_helper.ids,
+        graph_helper.tags,
+        graph_helper.scores,
+        graph_helper.ends,
+        graph_helper.workspace.page_lse,
+        graph_helper.workspace.anchor_lse,
+    )
+    pointers = tuple(t.data_ptr() for t in tracked)
+    ids = torch.arange(3 * slots, device=device, dtype=torch.int32).view(3, slots)
+    ends = torch.tensor([4101, 6203, 10007], device=device, dtype=torch.int64)
+    tags = ends[:, None] // 16 * 16 - torch.arange(slots, device=device)[None, :] * 16
+    scores = torch.empty((3, slots), device=device)
+    request_states = [2, 0, 3]
+    for iteration, requests in enumerate((3, 1, 3)):
+        if iteration == 2:
+            tags[:, 0].fill_(-1)
+            ids[:, 1].copy_(ids[:, 2])
+            q.mul_(0.8)
+        count = requests * query_len
+        positions = (ends[:requests, None] + torch.arange(query_len, device=device)).flatten()
+        starts = torch.arange(requests + 1, device=device, dtype=torch.int32) * query_len
+        owner.input_buffers.positions[:count].copy_(positions)
+        owner.input_buffers.input_ids[:count].fill_(1)
+        owner.input_buffers.query_start_loc[: requests + 1].copy_(starts)
+        owner.sample_indices.zero_()
+        owner.sample_indices[:count].copy_(torch.arange(count, device=device))
+        owner.sample_pos.zero_()
+        owner.sample_pos[:count].copy_(positions + 1)
+        owner.sample_idx_mapping.fill_(-1)
+        owner.sample_idx_mapping[:count].copy_(
+            torch.tensor(
+                request_states[:requests], device=device, dtype=torch.int32
+            ).repeat_interleave(query_len)
+        )
+        owner.temperature.fill_(1.0)
+        processed.fill_(31337)
+        scores.copy_(torch.arange(3 * slots, device=device).view(3, slots) * 0.001)
+        initial_scores = scores[:requests].clone()
+        active = {
+            "ids": ids[:requests],
+            "tags": tags[:requests],
+            "scores": scores[:requests],
+            "ends": ends[:requests],
+            "query_starts": starts,
+            "anchors": torch.arange(requests, device=device) * query_len,
+        }
+        assert graph_helper.run(active, requests), "eligible batch did not replay"
+        torch.cuda.synchronize()
+        expected, mass = reference_attention(
+            q[:count],
+            k[:count],
+            v[:count],
+            cache,
+            ids[:requests],
+            tags[:requests],
+            ends[:requests],
+            starts,
+            positions,
+            active["anchors"],
+            window_size=2048,
+            causal=False,
+            sinks=sink,
+        )
+        for layer_output in outputs[:, :count]:
+            torch.testing.assert_close(layer_output.float(), expected, rtol=0.015, atol=0.025)
+        torch.testing.assert_close(
+            scores[:requests], initial_scores + 5 * mass, rtol=0.003, atol=0.003
+        )
+        padded = graph_helper.last_padded_requests
+        assert padded == (4 if requests == 3 else 2)
+        assert torch.isfinite(outputs[:, : padded * query_len]).all(), "padding became nonfinite"
+        assert torch.count_nonzero(graph_helper.scores[requests:padded]) == 0
+        for request, state in enumerate(request_states[:requests]):
+            expected_logits = expected[request * query_len : (request + 1) * query_len, 0, :32]
+            torch.testing.assert_close(processed[state], expected_logits, rtol=0.015, atol=0.025)
+        for state in set(range(4)) - set(request_states[:requests]):
+            assert (processed[state] == 31337).all(), "padding wrote inactive processed logits"
+    assert len(graph_helper.manager.graphs) == 2 and graph_helper.replay_count == 3
+    oversized = dict(active, ids=torch.empty((3, 129), device=device, dtype=torch.int32))
+    assert not graph_helper.run(oversized, 3), "bootstrap unexpectedly created another graph"
+    assert graph_helper.fallback_count == 1 and len(graph_helper.manager.graphs) == 2
+    assert pointers == tuple(
+        t.data_ptr()
+        for t in (
+            graph_helper.ids,
+            graph_helper.tags,
+            graph_helper.scores,
+            graph_helper.ends,
+            graph_helper.workspace.page_lse,
+            graph_helper.workspace.anchor_lse,
+        )
+    )
+    return {
+        "graph_helper": "passed",
+        "captured_shapes": [2, 4],
+        "replays": 3,
+        "bootstrap_fallbacks": 1,
+        "layers": 5,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke", action="store_true", help="one bf16 case plus graph replay")
@@ -418,9 +724,17 @@ def main():
         action="store_true",
         help="also test installed vLLM overlay state kernels against CPU policy",
     )
+    parser.add_argument(
+        "--graph-helper-check",
+        action="store_true",
+        help="test installed graph helper with synthetic five-layer attention and sampling",
+    )
     args = parser.parse_args()
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required; no CPU skip is counted as validation")
+    config_report = check_draft_config() if args.state_check else None
+    if config_report:
+        print(json.dumps(config_report), flush=True)
     reports = []
     configurations = [(torch.bfloat16, 32, False, True, 2048, 16)]
     if not args.smoke:
@@ -441,12 +755,15 @@ def main():
         print(json.dumps(report), flush=True)
     reports.append(check_graph_replay())
     graph_report = reports[-1]
-    state_reports = []
+    state_reports = [config_report] if config_report else []
     if args.state_check:
         for policy in ("importance", "recent", "full"):
             report = check_state_kernels(policy)
             state_reports.append(report)
             print(json.dumps(report), flush=True)
+    graph_helper_report = check_graph_helper() if args.graph_helper_check else None
+    if graph_helper_report:
+        print(json.dumps(graph_helper_report), flush=True)
     print(
         json.dumps(
             {
@@ -455,6 +772,7 @@ def main():
                 "cases": len(configurations),
                 "graph": graph_report,
                 "state": state_reports,
+                "graph_helper": graph_helper_report,
             }
         ),
         flush=True,

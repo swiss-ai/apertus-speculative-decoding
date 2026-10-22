@@ -73,6 +73,15 @@ SAMPLER=\$!
 # The image's PYTHONPATH puts /workspace/vllm (where the patch overlays are
 # mounted) ahead of the installed copy: extend it inside the container, never
 # replace it, or vLLM runs unpatched.
+if [ "${SWEEP_DRAFT_KV_PREFLIGHT:-0}" = "1" ]; then
+  srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
+    env PYTHONNOUSERSITE=1 python3 "${REPO_ROOT}/serving/draft_kv/check_gpu.py" \
+      --smoke --state-check --graph-helper-check > "${OUT}/state-kernels.log" 2>&1 || {
+        status=\$?
+        kill \${SAMPLER} 2> /dev/null || true
+        exit \${status}
+      }
+fi
 srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
   env PYTHONNOUSERSITE=1 SWEEP_CACHE_ROOT="${CACHE_ROOT}" bash -c \
   'export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
@@ -85,6 +94,13 @@ if [ "${VALIDATE_ONLY:-0}" = "1" ]; then
   echo "validate_only=1; job script in ${OUT}/job.sh"
   exit 0
 fi
-JOB="$(sbatch --parsable "${OUT}/job.sh")"
+SUBMIT_ARGS=()
+if [ -n "${SWEEP_JOB_COMMENT:-}" ]; then
+  SUBMIT_ARGS+=(--comment "${SWEEP_JOB_COMMENT}")
+fi
+if [ "${SWEEP_NO_REQUEUE:-0}" = "1" ]; then
+  SUBMIT_ARGS+=(--no-requeue)
+fi
+JOB="$(sbatch --parsable "${SUBMIT_ARGS[@]}" "${OUT}/job.sh")"
 echo "job=${JOB}" > "${OUT}/job.txt"
 echo "job=${JOB} output=${OUT}"

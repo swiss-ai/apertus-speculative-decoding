@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -198,7 +199,7 @@ def test_builder_writes_immutable_analyzer_inputs_from_captures_and_traces(tmp_p
     assert policy["correctness_controls_passed"]
     assert policy["memory"]["physical_eviction_verified"]
     assert policy["memory"]["draft_storage_ratio"] < 0.55
-    assert all(__import__("pathlib").Path(p).is_file() for p in policy["artifact_paths"])
+    assert all(Path(p).is_file() for p in policy["artifact_paths"])
     assert not report["policies"]["importance1024"]["correctness_controls_passed"]
     with pytest.raises(FileExistsError):
         evidence_module.build_evidence(campaign, "screen", output)

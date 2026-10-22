@@ -73,12 +73,13 @@
          prompt_logprobs_dict = model_runner_output.prompt_logprobs_dict
 --- a/workspace/vllm/vllm/v1/outputs.py
 +++ b/workspace/vllm/vllm/v1/outputs.py
-@@ -243,6 +243,9 @@
+@@ -243,6 +243,10 @@
      # each request due to speculative/jump decoding.
      sampled_token_ids: list[list[int]] = field(default_factory=list)
  
 +    # Drafter-only physical page ownership after bootstrap compression.
 +    apertus_draft_kv_releases: dict[str, list[int]] | None = None
++    apertus_draft_kv_trace: dict[str, object] | None = None
 +
      # [num_reqs, max_num_logprobs + 1]
      # [num_reqs, max_num_logprobs + 1]

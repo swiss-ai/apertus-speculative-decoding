@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("campaign", type=Path)
     parser.add_argument("--inventory", type=Path, required=True)
+    parser.add_argument("--graphs", action="store_true")
     args = parser.parse_args()
     campaign = args.campaign.resolve()
     inventory = args.inventory.resolve()
@@ -25,9 +26,7 @@ def main():
     source = inputs["corpora"]["correctness.jsonl"]["path"]
     env = {"VLLM_DRAFT_KV_TRACE": "{arm_dir}/draft-kv.jsonl",
            "VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS": source}
-    arms = [{"name": "state-kernels", "method": "command", "gpus": 1,
-             "command": ["python3", "{repo}/serving/draft_kv/check_gpu.py",
-                         "--smoke", "--state-check"]}]
+    arms = []
     for name, policy, budget in [
         ("native-a", "native", 2048), ("native-b", "native", 2048),
         ("full-custom", "full", 2048), ("importance512", "importance", 512),
@@ -35,7 +34,8 @@ def main():
         arms.append({
             "name": name, "method": "dspark", "drafter": inputs["head_path"], "k": 7,
             "env": {**env, "VLLM_APERTUS_DRAFT_KV_POLICY": policy,
-                    "VLLM_APERTUS_DRAFT_KV_BUDGET": str(budget)},
+                    "VLLM_APERTUS_DRAFT_KV_BUDGET": str(budget),
+                    "VLLM_APERTUS_DRAFT_KV_GRAPHS": "1" if args.graphs else "0"},
             "metadata": {"kv_policy": name, "kv_phase": "preflight",
                          "checkpoint_sha256": inputs["checkpoint_sha256"],
                          "target_revision": inputs["target_contract"]["target"]["identity"]
@@ -58,6 +58,8 @@ def main():
     }
     build_plan(spec, check_heads=False)
     directory = campaign / "specs/preflight"
+    if args.graphs:
+        directory = directory / "graphs"
     directory.mkdir(parents=True, exist_ok=False)
     # Predeclared identical retry specs preserve failed-run artifacts and commands.
     specs = []
@@ -70,6 +72,7 @@ def main():
         "phase": "preflight", "generated_at": now(), "inventory": str(inventory),
         "inventory_sha256": digest(inventory), "specs": specs,
         "purpose": "installed allocator/state correctness and full-coverage backend control",
+        "custom_query_graphs": args.graphs,
     })
     print(json.dumps(specs, indent=2))
 
