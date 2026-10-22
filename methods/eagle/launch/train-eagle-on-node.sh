@@ -61,6 +61,14 @@ mods["python"] = sys.version.split()[0]
 print(json.dumps({"environment": mods}))
 PY
 
-"${PYTHON}" -m apertus_eagle.pipeline --config "${EAGLE_TRAIN_CONFIG}" \
-  ${EAGLE_STEPS:+--steps "${EAGLE_STEPS}"} ${EAGLE_RUN_ID:+--run-id "${EAGLE_RUN_ID}"}
+# Several space-separated configs run in turn; a failed one does not stop the
+# rest, and the job fails if any did.
+failed=0
+for config in ${EAGLE_TRAIN_CONFIG}; do
+  log "pipeline config=${config}"
+  "${PYTHON}" -m apertus_eagle.pipeline --config "${config}" \
+    ${EAGLE_STEPS:+--steps "${EAGLE_STEPS}"} ${EAGLE_RUN_ID:+--run-id "${EAGLE_RUN_ID}"} \
+    || { rc=$?; failed=${rc}; log "pipeline failed rc=${rc} config=${config}"; }
+done
 log "pipeline finished"
+exit "${failed}"

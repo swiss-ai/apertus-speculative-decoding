@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Submit one EAGLE pipeline job on Clariden (normal partition by default).
 #   EAGLE_TRAIN_CONFIG=methods/eagle/configs/8b/train-e31-overfit.yaml ./methods/eagle/launch/submit-eagle-train.sh
+# Several space-separated configs run one after another in the same job (short
+# fine-tunes share one queue wait); the first names the job and its logs.
 # The config names the target contract, draft config, data and output roots.
 # Never uses the debug partition while a diagnostics replica holds debug-qos.
 set -euo pipefail
@@ -11,11 +13,15 @@ SERVING_DIR="${REPO_ROOT}/serving"
 cd "${REPO_ROOT}"
 
 : "${EAGLE_TRAIN_CONFIG:?set EAGLE_TRAIN_CONFIG (e.g. methods/eagle/configs/8b/train-e31-overfit.yaml)}"
-if [ ! -f "${EAGLE_TRAIN_CONFIG}" ]; then
-  echo "config not found: ${EAGLE_TRAIN_CONFIG}" >&2
-  exit 2
-fi
-CONFIG_ABS="$(cd "$(dirname "${EAGLE_TRAIN_CONFIG}")" && pwd)/$(basename "${EAGLE_TRAIN_CONFIG}")"
+CONFIGS_ABS=()
+for config in ${EAGLE_TRAIN_CONFIG}; do
+  if [ ! -f "${config}" ]; then
+    echo "config not found: ${config}" >&2
+    exit 2
+  fi
+  CONFIGS_ABS+=("$(cd "$(dirname "${config}")" && pwd)/$(basename "${config}")")
+done
+CONFIG_ABS="${CONFIGS_ABS[0]}"
 ENV_SOURCE="${EAGLE_ENV_SOURCE:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
 PARTITION="${EAGLE_TRAIN_PARTITION:-normal}"
 ACCOUNT="${EAGLE_TRAIN_ACCOUNT:-infra01}"
@@ -66,7 +72,7 @@ mkdir -p "${LOG_ROOT}"
 SBATCH_FILE="${LOG_ROOT}/submit-${RUN_NAME:-eagle}-$(date -u +%Y%m%dT%H%M%SZ).sbatch"
 
 cat <<INFO
-config=${CONFIG_ABS}
+config=${CONFIGS_ABS[*]}
 stage=${STAGE}
 run_name=${RUN_NAME}
 steps=${STEPS:-all}
@@ -102,7 +108,7 @@ ${DEPENDENCY:+#SBATCH --dependency=${DEPENDENCY}}
 
 set -euo pipefail
 export I_AM_ON_AN_ALLOCATED_GPU_JOB=1
-export EAGLE_TRAIN_CONFIG=${CONFIG_ABS}
+export EAGLE_TRAIN_CONFIG="${CONFIGS_ABS[*]}"
 export EAGLE_CUDA_DEVICES=${CUDA_DEVICES}
 export EAGLE_STEPS=${STEPS}
 export EAGLE_RUN_ID=${RUN_ID}

@@ -292,16 +292,23 @@ def main(argv: list[str] | None = None) -> None:
             gates_failed = True
             log("train gates not all met; exporting for inspection only")
 
-    if "export" in steps:
+    if "export" in steps and (head_dir / "export-report.json").is_file():
+        log("skip export: head exported in an earlier job", head=str(head_dir))
+    elif "export" in steps:
+        # export.checkpoint: which checkpoint becomes the head (default best on
+        # eval_data; a fixed-budget fine-tune exports final).
         run_module(
             "apertus_eagle.export_head",
             *common,
             "--run-dir",
             str(run_dir),
+            "--checkpoint",
+            str((cfg.get("export") or {}).get("checkpoint", "best")),
             "--output",
             str(head_dir),
             *(["--drop-embed-tokens"] if share_embedding else []),
         )
+    if "export" in steps:
         target = results / "heads" / head_name
         target.mkdir(parents=True, exist_ok=True)
         for name in ("config.json", "export-report.json"):
