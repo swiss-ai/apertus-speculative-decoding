@@ -1,0 +1,19 @@
+# dp4 split for the debug partition (1.5 h limit), part a: each part has its own plain arm.
+# debug, SWEEP_TIME 01:30:00.
+name: dp4-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-contaminated
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+arms:
+  - {name: plain-dp4, method: baseline, engine: {data_parallel_size: 4}}
+  - {name: dspark-off-k3-dp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3, engine: {data_parallel_size: 4}}
+  - {name: dspark-off-k5-dp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 5, engine: {data_parallel_size: 4}}
