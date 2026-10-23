@@ -1,0 +1,50 @@
+loadtest summarization concurrency=1 requests=2
+loadtest summarization concurrency=8 requests=8
+{
+  "workload": "summarization",
+  "variant": "full-custom",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 2,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 207.86407527293096,
+      "ttft_p50_ms": 114.38879900379106,
+      "ttft_p95_ms": 130.71711471420713,
+      "tpot_p50_ms": 3.9468072086671646,
+      "tpot_p95_ms": 4.569148686856552,
+      "e2e_p95_ms": 710.9989979449892,
+      "kv_cache_usage_mean": 0.0039652859059636225,
+      "kv_cache_usage_max": 0.007930571811927245,
+      "kv_cache_tokens_peak": 3147,
+      "kv_cache_size_tokens": 396763,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.75531914893617,
+      "acceptance_rate": 0.2507598784194529
+    },
+    {
+      "concurrency": 8,
+      "requests": 8,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 701.3381956770573,
+      "ttft_p50_ms": 594.1250614996534,
+      "ttft_p95_ms": 825.4120943165617,
+      "tpot_p50_ms": 6.097540582711698,
+      "tpot_p95_ms": 9.103338010439566,
+      "e2e_p95_ms": 1452.3791227780748,
+      "kv_cache_usage_mean": 0.03661823060892405,
+      "kv_cache_usage_max": 0.0732364612178481,
+      "kv_cache_tokens_peak": 29058,
+      "kv_cache_size_tokens": 396763,
+      "running_max": 8.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.8209366391184574,
+      "acceptance_rate": 0.26013380558835103
+    }
+  ]
+}

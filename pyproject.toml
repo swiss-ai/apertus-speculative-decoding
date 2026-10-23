@@ -34,12 +34,14 @@ packages = ["src/apertus_bench"]
 addopts = "-q"
 testpaths = ["tests"]
 asyncio_mode = "auto"
-pythonpath = ["methods/eagle"]
+pythonpath = ["methods/eagle", "serving"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["scratch"]
+# Results include immutable third-party source snapshots and executed scripts.
+# Lint maintained code, without rewriting the artifacts used for completed runs.
+extend-exclude = ["scratch", "results"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

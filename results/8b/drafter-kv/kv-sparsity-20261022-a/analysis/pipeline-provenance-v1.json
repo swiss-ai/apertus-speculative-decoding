@@ -1,0 +1,87 @@
+{
+  "created_at": "2026-10-22T23:42:13.038805+00:00",
+  "environment": {
+    "PYTHONPATH": "/home/projects/apertus-speculative-decoding-kv-sparsity/src",
+    "APERTUS_DRAFT_KV_SOURCE_ROOT": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity",
+    "APERTUS_DRAFT_KV_ARTIFACT_ROOT": "/home/projects/apertus-speculative-decoding-kv-sparsity"
+  },
+  "analysis_git_revision": "27c3879b19f76e7029755150e3663d9e6c1f5297",
+  "python": "3.13.15 (main, Sep  1 2026, 14:18:08) [Clang 22.1.3 ]",
+  "pyyaml_version": "6.0.3",
+  "sources": [
+    {
+      "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/ledger.json",
+      "sha256": "da123871e74be538984d7350de29d2a16054732ce69e3829ed4a8df991b10f50"
+    },
+    {
+      "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/experiments/drafter-kv/design.yaml",
+      "sha256": "bffa56b1b4fa21549d4379c3c18e18340cd635a38d79ef3f3e72a05a0ef9b9eb"
+    },
+    {
+      "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/src/apertus_bench/drafter_kv_evidence.py",
+      "sha256": "e27bcd9e528d1ead5c555711787e04742321dd4ed26efe32281b83daa57a0b8d"
+    },
+    {
+      "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/src/apertus_bench/drafter_kv_experiment.py",
+      "sha256": "1d1273f76eee7fd2d3e571e515f74736a1195635239b2b30dd413c2026541783"
+    },
+    {
+      "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/build_screen_report.py",
+      "sha256": "eb7c116d9127350dcf95e15ab60a874a2bd5b8542dda3271a1a2b7b7710f0f80"
+    },
+    {
+      "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/run-analysis-v1.py",
+      "sha256": "fa820999b8feefbd10d3997fe1b95c97262685fc4a686a05c90b89c7574f6a78"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/tmp/apertus-kv-tests/bin/python",
+        "-m",
+        "apertus_bench.drafter_kv_evidence",
+        "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a",
+        "--phase",
+        "screen",
+        "--output",
+        "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1"
+      ],
+      "cwd": "/home/projects/apertus-speculative-decoding-kv-sparsity",
+      "log": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/pipeline-step-1.log",
+      "started_at": "2026-10-22T23:42:13.054233+00:00",
+      "exit_code": 0,
+      "ended_at": "2026-10-22T23:42:23.317816+00:00"
+    },
+    {
+      "argv": [
+        "/tmp/apertus-kv-tests/bin/python",
+        "-m",
+        "apertus_bench.drafter_kv_experiment",
+        "analyze",
+        "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a",
+        "--phase",
+        "screen",
+        "--evidence",
+        "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/evidence.json",
+        "--output",
+        "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-gate-v1.json"
+      ],
+      "cwd": "/home/projects/apertus-speculative-decoding-kv-sparsity",
+      "log": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/pipeline-step-2.log",
+      "started_at": "2026-10-22T23:42:23.317844+00:00",
+      "exit_code": 0,
+      "ended_at": "2026-10-22T23:42:26.088740+00:00"
+    },
+    {
+      "argv": [
+        "/tmp/apertus-kv-tests/bin/python",
+        "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/build_screen_report.py"
+      ],
+      "cwd": "/home/projects/apertus-speculative-decoding-kv-sparsity",
+      "log": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/pipeline-step-3.log",
+      "started_at": "2026-10-22T23:42:26.088767+00:00",
+      "exit_code": 0,
+      "ended_at": "2026-10-22T23:42:27.420264+00:00"
+    }
+  ]
+}

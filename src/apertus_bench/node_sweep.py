@@ -35,6 +35,10 @@ from typing import Any
 import httpx
 import yaml
 
+from apertus_bench.client import StreamingChatClient
+from apertus_bench.correctness import capture_greedy_outputs
+from apertus_bench.workloads import load_prompts
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HF_MODELS_ROOT = Path("/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai")
 # Mirrors serving/stage-defaults.sh, so a sweep arm is served like a launcher arm.
@@ -248,6 +252,14 @@ def _bench(
         ]  # fmt: skip
         if check_heads:
             metadata.update(_eagle_metadata(Path(raw["drafter"]), stage, served_base, tp))
+    # Experiment-specific non-secret provenance (e.g. frozen head/corpus
+    # identities) travels into each immutable measurement cell.
+    for key, value in (raw.get("metadata") or {}).items():
+        if not isinstance(key, str) or value is None or not str(value):
+            raise SpecError("arm metadata needs non-empty string keys and values")
+        if key in metadata and str(value) != metadata[key]:
+            raise SpecError(f"arm metadata cannot replace generated field {key!r}")
+        metadata[key] = str(value)
     return bench, metadata
 
 
@@ -571,6 +583,30 @@ def arm_env(arm: Arm, arm_dir: Path) -> dict[str, str]:
     return {key: value.replace("{arm_dir}", str(arm_dir)) for key, value in arm.env.items()}
 
 
+async def capture_drafter_kv_controls(
+    arm: Arm, arm_dir: Path, environment: dict[str, str]
+) -> None:
+    """Opt-in paired captures before benchmark counters/timings begin."""
+    workloads = environment.get("VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS")
+    if not workloads:
+        return
+    prompts = load_prompts(Path(workloads))
+    if not prompts:
+        raise ValueError("drafter KV correctness corpus is empty")
+    async with StreamingChatClient(
+        f"http://127.0.0.1:{arm.port}", arm.served_model, None, timeout_seconds=600.0
+    ) as client:
+        for number in (1, 2):
+            path = arm_dir / "correctness" / f"capture-{number}.json"
+            if path.exists():
+                raise FileExistsError(f"refusing to overwrite correctness capture: {path}")
+            report = await capture_greedy_outputs(
+                client, prompts, path, max_tokens=128, seed=1,
+            )
+            if not all(case["measurement"]["success"] for case in report["cases"]):
+                raise RuntimeError(f"failed request in correctness capture: {path}")
+
+
 async def run_arm(
     arm: Arm, gpu_ids: list[int], plan: Plan, output: Path, deployment_prefix: str
 ) -> dict[str, Any]:
@@ -669,6 +705,7 @@ async def run_arm(
             await _wait_ready(arm.name, arm.port, arm.served_model, processes, 2400), 1
         )
         _write_status(status_path, status)
+        await capture_drafter_kv_controls(arm, arm_dir, env)
         tests = ([plan.probe] if plan.probe else []) + plan.loadtests
         for test in tests:
             target = arm_dir / test.label

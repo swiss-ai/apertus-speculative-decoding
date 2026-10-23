@@ -1,0 +1,77 @@
+{
+  "timestamp": "2026-10-22T17:03:10.202871+00:00",
+  "job_id": "3723627",
+  "node": "nid006269",
+  "node_list": "nid006269",
+  "packages": {
+    "torch": "2.11.0+cu130",
+    "triton": "3.6.0",
+    "vllm": "0.23.1rc1.dev1029+ga601a9d99.precompiled",
+    "flash-attn": null,
+    "numpy": "2.3.5"
+  },
+  "expected_revision": "a601a9d998ddeb488f0c17e8512874b116aa7658",
+  "source": {
+    "vllm/model_executor/models/qwen3_dflash.py": {
+      "path": "/workspace/vllm/vllm/model_executor/models/qwen3_dflash.py",
+      "sha256": "39fe03fb88e765df334feaac52f53e2ae71245a5eac6425ead9b17bbce42047d",
+      "expected_sha256": "39fe03fb88e765df334feaac52f53e2ae71245a5eac6425ead9b17bbce42047d",
+      "matches_pin": true
+    },
+    "vllm/v1/worker/gpu/spec_decode/dflash/speculator.py": {
+      "path": "/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dflash/speculator.py",
+      "sha256": "64eee3c3e8ffd89aa7088354e62d40cba60f6216b57a3782c6b2deb3bd33f09f",
+      "expected_sha256": "64eee3c3e8ffd89aa7088354e62d40cba60f6216b57a3782c6b2deb3bd33f09f",
+      "matches_pin": true
+    },
+    "vllm/v1/core/single_type_kv_cache_manager.py": {
+      "path": "/workspace/vllm/vllm/v1/core/single_type_kv_cache_manager.py",
+      "sha256": "3431270752851fd0445c94ef9b515485efc398a9da28fdee112b39b30230c685",
+      "expected_sha256": "3431270752851fd0445c94ef9b515485efc398a9da28fdee112b39b30230c685",
+      "matches_pin": true
+    },
+    "vllm/v1/kv_cache_spec_registry.py": {
+      "path": "/workspace/vllm/vllm/v1/kv_cache_spec_registry.py",
+      "sha256": "16b3f6458538910f72cdac48554c20432c7ac0e5122e91c8a6219a1ec25f44fe",
+      "expected_sha256": "16b3f6458538910f72cdac48554c20432c7ac0e5122e91c8a6219a1ec25f44fe",
+      "matches_pin": true
+    },
+    "vllm/v1/outputs.py": {
+      "path": "/workspace/vllm/vllm/v1/outputs.py",
+      "sha256": "1e87bf44162452c1908d3a5003685937dbdc56f5634e35e11ed7b6a5322a1c15",
+      "expected_sha256": "1e87bf44162452c1908d3a5003685937dbdc56f5634e35e11ed7b6a5322a1c15",
+      "matches_pin": true
+    }
+  },
+  "git": {
+    "argv": [
+      "git",
+      "-C",
+      "/workspace/vllm",
+      "rev-parse",
+      "HEAD"
+    ],
+    "returncode": 0,
+    "stdout": "a601a9d998ddeb488f0c17e8512874b116aa7658\n",
+    "stderr": ""
+  },
+  "gpu": {
+    "argv": [
+      "nvidia-smi",
+      "--query-gpu=index,name,uuid,memory.total,driver_version",
+      "--format=csv,noheader"
+    ],
+    "returncode": 0,
+    "stdout": "0, NVIDIA GH200 120GB, GPU-bbe215cd-afd0-c0ab-7c54-64a0aff24fd7, 97871 MiB, 595.91.07\n1, NVIDIA GH200 120GB, GPU-a1085a5b-7319-aede-a0fd-55825f5f550a, 97871 MiB, 595.91.07\n2, NVIDIA GH200 120GB, GPU-48bfd69e-90da-4c5a-e93c-da8f1b283837, 97871 MiB, 595.91.07\n3, NVIDIA GH200 120GB, GPU-17947bdb-3308-40c4-780a-c17c5f552f12, 97871 MiB, 595.91.07\n",
+    "stderr": ""
+  },
+  "gpu_check": {
+    "argv": [
+      "/opt/venv/bin/python3",
+      "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py"
+    ],
+    "returncode": 0,
+    "stdout": "{\"dtype\": \"torch.float16\", \"slots\": 32, \"page_size\": 16, \"causal\": false, \"sinks\": false, \"window\": 2048, \"max_output_error\": 0.0001119077205657959, \"max_mass_error\": 4.76837158203125e-07}\n{\"dtype\": \"torch.float16\", \"slots\": 32, \"page_size\": 16, \"causal\": false, \"sinks\": true, \"window\": 2048, \"max_output_error\": 0.0001500844955444336, \"max_mass_error\": 3.5762786865234375e-07}\n{\"dtype\": \"torch.float16\", \"slots\": 32, \"page_size\": 16, \"causal\": true, \"sinks\": true, \"window\": 2048, \"max_output_error\": 0.0001500844955444336, \"max_mass_error\": 5.960464477539062e-07}\n{\"dtype\": \"torch.float16\", \"slots\": 64, \"page_size\": 16, \"causal\": false, \"sinks\": false, \"window\": 2048, \"max_output_error\": 8.657574653625488e-05, \"max_mass_error\": 5.364418029785156e-07}\n{\"dtype\": \"torch.float16\", \"slots\": 64, \"page_size\": 16, \"causal\": false, \"sinks\": true, \"window\": 2048, \"max_output_error\": 9.760260581970215e-05, \"max_mass_error\": 4.76837158203125e-07}\n{\"dtype\": \"torch.float16\", \"slots\": 64, \"page_size\": 16, \"causal\": true, \"sinks\": true, \"window\": 2048, \"max_output_error\": 8.559226989746094e-05, \"max_mass_error\": 4.172325134277344e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 32, \"page_size\": 16, \"causal\": false, \"sinks\": false, \"window\": 2048, \"max_output_error\": 0.000841289758682251, \"max_mass_error\": 8.344650268554688e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 32, \"page_size\": 16, \"causal\": false, \"sinks\": true, \"window\": 2048, \"max_output_error\": 0.0009500384330749512, \"max_mass_error\": 4.76837158203125e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 32, \"page_size\": 16, \"causal\": true, \"sinks\": true, \"window\": 2048, \"max_output_error\": 0.0010627508163452148, \"max_mass_error\": 4.76837158203125e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 64, \"page_size\": 16, \"causal\": false, \"sinks\": false, \"window\": 2048, \"max_output_error\": 0.0006740689277648926, \"max_mass_error\": 2.980232238769531e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 64, \"page_size\": 16, \"causal\": false, \"sinks\": true, \"window\": 2048, \"max_output_error\": 0.0006453543901443481, \"max_mass_error\": 3.5762786865234375e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 64, \"page_size\": 16, \"causal\": true, \"sinks\": true, \"window\": 2048, \"max_output_error\": 0.0006453543901443481, \"max_mass_error\": 2.384185791015625e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 32, \"page_size\": 16, \"causal\": false, \"sinks\": true, \"window\": null, \"max_output_error\": 0.0010057389736175537, \"max_mass_error\": 8.344650268554688e-07}\n{\"dtype\": \"torch.bfloat16\", \"slots\": 32, \"page_size\": 16, \"causal\": true, \"sinks\": false, \"window\": 1, \"max_output_error\": 0.0, \"max_mass_error\": 0.0}\n{\"dtype\": \"torch.float16\", \"slots\": 16, \"page_size\": 32, \"causal\": false, \"sinks\": true, \"window\": 2048, \"max_output_error\": 0.00013500452041625977, \"max_mass_error\": 1.1920928955078125e-06}\n{\"status\": \"passed\", \"device\": \"NVIDIA GH200 120GB\", \"cases\": 15, \"graph\": {\"cuda_graph_replay\": \"passed\", \"layers\": 5}}\n",
+    "stderr": ""
+  }
+}

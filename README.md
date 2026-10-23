@@ -14,6 +14,12 @@ fallback for a demonstrated 3.1-specific issue. Stage A (8B) is implemented: tra
 A 3× decode speedup is a stretch target. Each target needs its own trained head; the public
 Apertus-8B-Instruct-2509 head is not a substitute for either Apertus 1.5 target.
 
+The completed [8B drafter KV sparsity study](docs/drafter-kv-sparsity.md) reduced
+physical drafter storage but failed the throughput and acceptance gates. Its
+opt-in serving overlay is in `serving/draft_kv/`, its campaign tools are in
+`experiments/drafter-kv-8b/`, and raw measurements and provenance are under
+`results/8b/drafter-kv/`.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.
@@ -66,12 +72,13 @@ against a plain baseline launched the same way. Each method names its target exp
 ```text
 src/apertus_bench/   benchmark client, correctness gate, analysis, EAGLE head validation
 serving/             plain-target launcher, environment resolution, vLLM overlay patches
+└── draft_kv/        opt-in DSpark sparse-cache runtime, installer and GPU checks
 methods/
 ├── draft_model/     8B draft, 70B target
 ├── ngram/           prompt lookup
 └── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
 targets/<stage>/     target contracts (architecture, aux layers, hashes) and environment locks
-experiments/         one-off campaigns: smoke-70b, round-cost-70b
+experiments/         one-off campaigns: smoke-70b, round-cost-70b, system-8b, drafter-kv-8b
 workloads/           corpora; workloads/<stage>/ holds manifests (restricted text stays on the cluster)
 results/<stage>/     raw cells and reports, by target (8b, 70b) and then method
 ```

@@ -11,6 +11,10 @@ set -euo pipefail
 
 SERVING_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${SERVING_DIR}/.." && pwd)"
+if [ "${SWEEP_DRAFT_KV_PREFLIGHT:-0}" = "1" ] && [ "${SWEEP_DRAFT_KV:-0}" != "1" ]; then
+  echo "SWEEP_DRAFT_KV_PREFLIGHT=1 requires SWEEP_DRAFT_KV=1" >&2
+  exit 2
+fi
 SPEC="${1:?usage: node-sweep.sh SPEC.yaml}"
 SPEC="$(cd "$(dirname "${SPEC}")" && pwd)/$(basename "${SPEC}")"
 STAGE="$(sed -n 's/^stage: *//p' "${SPEC}" | head -1)"
@@ -44,12 +48,24 @@ PYTHONPATH="${REPO_ROOT}/src" python3 -m apertus_bench.node_sweep plan "${SPEC}"
 mkdir -p "${OUT}"
 if [ "${VALIDATE_ONLY:-0}" != "1" ]; then
   EXTRA_MOUNTS="$("${SERVING_DIR}/patch-vllm.sh" "${IMAGE}" "${PATCHES[@]}")"
+  if [ "${SWEEP_DRAFT_KV:-0}" = "1" ]; then
+    EXTRA_MOUNTS="$(bash "${SERVING_DIR}/draft_kv/prepare-overlay.sh" \
+      "${IMAGE}" "${VLLM_PATCH_DIR}" "${OUT}" "${EXTRA_MOUNTS}")"
+  fi
   export EXTRA_MOUNTS
 fi
 SML_ENVIRONMENT="$("${SERVING_DIR}/resolve-env.sh" "${ENV_SOURCE}")"
 CACHE_ROOT="/iopsstor/scratch/cscs/${USER}/apertus-loadtest/vllm-cache/sweep-${NAME}-${STAMP}"
 printf '%s\n' "${PATCHES[@]}" > "${OUT}/patches.txt"
 cp "${SML_ENVIRONMENT}" "${OUT}/environment.toml"
+if [ "${SWEEP_DRAFT_KV:-0}" = "1" ] && [ "${VALIDATE_ONLY:-0}" != "1" ]; then
+  # Parse the actual CSCS environment before reserving a compute node. This
+  # catches plugin serialization limits that a TOML parser alone cannot detect.
+  srun --test-only --nodes=1 --ntasks=1 --time=00:01:00 \
+    --account="${ACCOUNT}" --partition="${PARTITION}" \
+    --environment="${SML_ENVIRONMENT}" /bin/true \
+    > "${OUT}/environment-validation.log" 2>&1
+fi
 
 cat > "${OUT}/job.sh" <<EOF
 #!/bin/bash
@@ -69,9 +85,18 @@ SAMPLER=\$!
 # The image's PYTHONPATH puts /workspace/vllm (where the patch overlays are
 # mounted) ahead of the installed copy: extend it inside the container, never
 # replace it, or vLLM runs unpatched.
+if [ "${SWEEP_DRAFT_KV_PREFLIGHT:-0}" = "1" ]; then
+  srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
+    env PYTHONNOUSERSITE=1 python3 "${REPO_ROOT}/serving/draft_kv/check_gpu.py" \
+      --smoke --state-check --graph-helper-check > "${OUT}/state-kernels.log" 2>&1 || {
+        status=\$?
+        kill \${SAMPLER} 2> /dev/null || true
+        exit \${status}
+      }
+fi
 srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
   env PYTHONNOUSERSITE=1 SWEEP_CACHE_ROOT="${CACHE_ROOT}" bash -c \
-  'export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
+  'if [ "${SWEEP_DRAFT_KV:-0}" = "1" ]; then cd "${REPO_ROOT}"; fi; export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
   || status=\$?
 kill \${SAMPLER} 2> /dev/null || true
 exit \${status:-0}
@@ -81,6 +106,13 @@ if [ "${VALIDATE_ONLY:-0}" = "1" ]; then
   echo "validate_only=1; job script in ${OUT}/job.sh"
   exit 0
 fi
-JOB="$(sbatch --parsable "${OUT}/job.sh")"
+SUBMIT_ARGS=()
+if [ -n "${SWEEP_JOB_COMMENT:-}" ]; then
+  SUBMIT_ARGS+=(--comment "${SWEEP_JOB_COMMENT}")
+fi
+if [ "${SWEEP_NO_REQUEUE:-0}" = "1" ]; then
+  SUBMIT_ARGS+=(--no-requeue)
+fi
+JOB="$(sbatch --parsable "${SUBMIT_ARGS[@]}" "${OUT}/job.sh")"
 echo "job=${JOB}" > "${OUT}/job.txt"
 echo "job=${JOB} output=${OUT}"
