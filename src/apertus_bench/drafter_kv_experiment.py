@@ -115,8 +115,10 @@ def ledger(campaign: Path):
         fcntl.flock(handle, fcntl.LOCK_EX)
         path = campaign / "ledger.json"
         data = json.loads(path.read_text())
+        original = copy.deepcopy(data)
         yield data
-        _atomic_json(path, data)
+        if data != original:
+            _atomic_json(path, data)
 
 
 def _name(value: str) -> str:
@@ -279,6 +281,9 @@ def release_unsubmitted(campaign: Path, allocation: str) -> dict[str, Any]:
         item = data["allocations"][allocation]
         if item["submission_attempted"] or item.get("job_id") or item["state"] != "reserved":
             raise ValueError("cannot prove no sbatch submission; keep reservation and reconcile")
+        if item.get("replacement_for") is not None:
+            raise ValueError(
+                "cannot release a replacement reservation and strand its attempt chain")
         item["state"] = "released_before_submit"
         item["released_at"] = now()
     return item
@@ -630,7 +635,20 @@ def prepare_submission(campaign: Path, allocation: str, spec_path: Path, repo: P
         "SWEEP_DRAFT_KV": "1",
     }
     path = campaign / "allocations" / allocation / "launch-provenance.json"
-    exclusive_json(path, provenance)
+    if path.exists():
+        try:
+            prepared = json.loads(path.read_text())
+        except (OSError, ValueError) as error:
+            raise ValueError(f"cannot read existing submission preparation: {path}") from error
+        # A reviewed preparation retains its original creation time. Every
+        # launch input must still match before submit may consume it.
+        if (not isinstance(prepared, dict) or not isinstance(prepared.get("created_at"), str)
+                or not prepared["created_at"]
+                or {k: v for k, v in prepared.items() if k != "created_at"}
+                != {k: v for k, v in provenance.items() if k != "created_at"}):
+            raise ValueError("existing submission preparation differs from current launch inputs")
+    else:
+        exclusive_json(path, provenance)
     return path
 
 

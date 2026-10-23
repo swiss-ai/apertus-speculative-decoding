@@ -62,7 +62,7 @@ def main() -> int:
                         "--format=csv,noheader"]),
     }
     if args.gpu_check:
-        check = Path(__file__).with_name("check_gpu.py")
+        check = Path(__file__).resolve().parents[2] / "serving/draft_kv/check_gpu.py"
         report["gpu_check"] = command([os.sys.executable, str(check)])
     (args.output / "audit.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))

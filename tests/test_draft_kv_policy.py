@@ -1,17 +1,7 @@
 from __future__ import annotations
 
-import importlib.util
-import sys
-from pathlib import Path
-
 import pytest
-
-SOURCE = Path(__file__).resolve().parents[1] / "serving/draft_kv/policy.py"
-SPEC = importlib.util.spec_from_file_location("draft_kv_policy", SOURCE)
-assert SPEC is not None and SPEC.loader is not None
-policy = importlib.util.module_from_spec(SPEC)
-sys.modules[SPEC.name] = policy
-SPEC.loader.exec_module(policy)
+from draft_kv import policy
 
 
 def test_importance_preserves_old_important_pages_and_unaligned_recent_boundary():

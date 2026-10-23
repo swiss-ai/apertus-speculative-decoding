@@ -11,6 +11,10 @@ set -euo pipefail
 
 SERVING_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${SERVING_DIR}/.." && pwd)"
+if [ "${SWEEP_DRAFT_KV_PREFLIGHT:-0}" = "1" ] && [ "${SWEEP_DRAFT_KV:-0}" != "1" ]; then
+  echo "SWEEP_DRAFT_KV_PREFLIGHT=1 requires SWEEP_DRAFT_KV=1" >&2
+  exit 2
+fi
 SPEC="${1:?usage: node-sweep.sh SPEC.yaml}"
 SPEC="$(cd "$(dirname "${SPEC}")" && pwd)/$(basename "${SPEC}")"
 STAGE="$(sed -n 's/^stage: *//p' "${SPEC}" | head -1)"

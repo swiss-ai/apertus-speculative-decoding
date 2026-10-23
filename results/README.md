@@ -21,6 +21,14 @@ and both control kinds are specified in `../docs/protocol.md`.
 
 ## Recorded runs
 
+- `8b/drafter-kv/kv-sparsity-20261022-a/`: two independent DSpark thinking-off
+  screening repeats with physical KV-page eviction. The 512-token importance
+  policy reduced accounted drafter storage by 69%, but throughput and
+  summarization acceptance regressed. Its `README.md` links the frozen gates,
+  raw cells, calibrated controls, allocation traces, failed-attempt history and
+  reproducibility artifacts. Confirmation and other-head evaluations stopped
+  at the negative screen.
+
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
   n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every
   arm. Its `README.md` carries the provenance, the headline comparison, and the deviations.

@@ -19,4 +19,4 @@ git diff HEAD --binary > "${OUT}/code.patch"
 scontrol show job "${SLURM_JOB_ID}" > "${OUT}/slurm-job.txt"
 
 srun --nodes=1 --ntasks=1 --environment="${ENVIRONMENT}" \
-  bash "${REPO}/serving/draft_kv/preflight-on-node.sh" "${REPO}" "${CAMPAIGN}" "${OUT}"
+  bash "${REPO}/experiments/drafter-kv-8b/preflight-on-node.sh" "${REPO}" "${CAMPAIGN}" "${OUT}"

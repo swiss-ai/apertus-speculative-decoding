@@ -21,6 +21,8 @@ from vllm.v1.core.single_type_kv_cache_manager import SlidingWindowManager
 from vllm.v1.kv_cache_interface import SlidingWindowSpec
 from vllm.v1.kv_cache_spec_registry import KVCacheSpecRegistry
 
+from .tracing import first_completed_prompt_requests, trace_due
+
 PAGE = 16
 HORIZON = 2048
 MAX_PAGES = 129
@@ -784,35 +786,6 @@ def apply_release_events(kv_cache_manager, output):
             for req_id, keep_ids in releases.items():
                 manager.compress(req_id, keep_ids)
     trace_allocations(kv_cache_manager, output)
-
-
-def trace_due(step):
-    return bool(os.environ.get("VLLM_DRAFT_KV_TRACE")) and (step == 1 or step % 64 == 0)
-
-
-def first_completed_prompt_requests(speculator, batch):
-    """Trace completed prefills once per resident request, independent of step cadence.
-
-    Host-side prefill progress is already available; no GPU work is needed to
-    decide whether to sample. Request removal clears the IDs for reuse/resume.
-    """
-    if not os.environ.get("VLLM_DRAFT_KV_TRACE"):
-        return []
-    completed = getattr(speculator, "_apertus_trace_completed_requests", None)
-    if completed is None:
-        completed = speculator._apertus_trace_completed_requests = set()
-    first = []
-    for req_id, computed, scheduled, prompt_length in zip(
-        batch.req_ids,
-        batch.num_computed_prefill_tokens_np,
-        batch.num_scheduled_tokens,
-        batch.prefill_len_np,
-        strict=True,
-    ):
-        if int(computed) + int(scheduled) >= int(prompt_length) and req_id not in completed:
-            first.append(req_id)
-            completed.add(req_id)
-    return first
 
 
 def trace_record(record):

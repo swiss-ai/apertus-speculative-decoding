@@ -11,6 +11,14 @@ failed the expansion gates: physical drafter storage falls, but throughput,
 latency, and summarization acceptance regress. The experiment stopped before
 confirmation or evaluation of the other heads, after 3.61 allocated GPU-hours.
 
+Maintained campaign launchers and the fixed design live in
+[`experiments/drafter-kv-8b/`](../experiments/drafter-kv-8b/README.md).
+[`serving/draft_kv/`](../serving/draft_kv/README.md) contains the opt-in runtime
+and overlay installer; controller and evidence analysis use the shared
+`src/apertus_bench/` package. The results tree preserves executed scripts and
+source snapshots byte-for-byte, so recorded launch paths refer to each run's
+original Git revision. No further experimental runs are planned.
+
 ## Evidence and policy
 
 The [action-items canvas](https://swissai-initiative.slack.com/docs/T0627JS49GT/F0C6431UBTP)

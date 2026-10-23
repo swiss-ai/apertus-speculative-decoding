@@ -122,8 +122,8 @@ def build(source_root: Path, output_root: Path, patch_output: Path | None = None
         )
     helpers = output_root / "vllm/apertus_draft_kv"
     helpers.mkdir(parents=True, exist_ok=True)
-    (helpers / "__init__.py").write_text('"""Apertus drafter KV experiment overlay."""\n')
-    for name in ("integration.py", "attention.py", "policy.py", "graphs.py"):
+    for name in ("__init__.py", "integration.py", "attention.py", "policy.py", "graphs.py",
+                 "tracing.py"):
         source = Path(__file__).parent / name
         shutil.copy2(source, helpers / name)
         manifest["helper_files"][name] = hashlib.sha256(source.read_bytes()).hexdigest()

@@ -372,8 +372,9 @@ def check_draft_config():
 def check_state_kernels(policy):
     """Compare installed GPU tag/recycle/selection kernels with the CPU policy."""
     integration = importlib.import_module("vllm.apertus_draft_kv.integration")
-    from draft_kv.policy import PolicyConfig, select_pages
     from vllm.v1.worker.gpu.buffer_utils import UvaBackedTensor
+
+    from draft_kv.policy import PolicyConfig, select_pages
 
     device = torch.device("cuda")
     page_size, max_pages, horizon = 16, 129, 2048

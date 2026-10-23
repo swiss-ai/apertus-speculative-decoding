@@ -15,7 +15,7 @@ for head in off on eagle; do
     --repo "${REPO}" --head "${head}" --output "${OUT}/${head}-inputs.json" \
     --hash-weights "${image_args[@]}" > "${OUT}/${head}-freeze.log"
 done
-python3 "${REPO}/serving/draft_kv/preflight.py" \
+python3 "${REPO}/experiments/drafter-kv-8b/preflight.py" \
   --output "${OUT}/source-audit" \
   --source-manifest "${REPO}/serving/draft_kv/pinned-source.json" \
   --gpu-check > "${OUT}/audit.log" 2>&1

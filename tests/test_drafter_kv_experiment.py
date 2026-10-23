@@ -167,6 +167,42 @@ def test_only_provably_unsubmitted_reservation_may_be_released(campaign):
     assert kv.budget(status(campaign))["committed_gpu_hours"] == 0
 
 
+def test_releasing_replacement_is_rejected_without_changing_budget_or_chain(campaign):
+    kv.reserve(campaign, "screen", "screen-01", 1200)
+    terminal(campaign, "screen-01", "FAILED", 600)
+    kv.reserve(campaign, "screen", "screen-01-retry", 1200, replacement_for="screen-01")
+    before = (campaign / "ledger.json").read_bytes()
+    charged = kv.budget(status(campaign))
+    with pytest.raises(ValueError, match="cannot release a replacement reservation"):
+        kv.release_unsubmitted(campaign, "screen-01-retry")
+    assert (campaign / "ledger.json").read_bytes() == before
+    assert kv.budget(status(campaign)) == charged
+    active, history = kv.phase_attempts(status(campaign), "screen")
+    assert [a["allocation"] for a in active] == ["screen-01-retry"]
+    assert history[0]["superseded_by"] == "screen-01-retry"
+
+
+def test_status_preserves_existing_ledger_bytes_and_mtime(campaign, capsys):
+    ledger_path = campaign / "ledger.json"
+    # Collected ledgers need not use the controller's formatting.
+    ledger_path.write_text(json.dumps(status(campaign), separators=(",", ":")))
+    before = ledger_path.read_bytes(), ledger_path.stat().st_mtime_ns
+    kv.main(["status", str(campaign)])
+    result = json.loads(capsys.readouterr().out)
+    assert result["campaign_id"] == "test-kv"
+    assert (ledger_path.read_bytes(), ledger_path.stat().st_mtime_ns) == before
+
+
+def test_read_only_analysis_preserves_existing_ledger_bytes_and_mtime(campaign, tmp_path):
+    ledger_path = campaign / "ledger.json"
+    ledger_path.write_text(json.dumps(status(campaign), separators=(",", ":")))
+    before = ledger_path.read_bytes(), ledger_path.stat().st_mtime_ns
+    evidence = tmp_path / "empty-evidence.json"
+    evidence.write_text('{"policies":{}}')
+    kv.analyze(campaign, "screen", evidence, tmp_path / "analysis.json")
+    assert (ledger_path.read_bytes(), ledger_path.stat().st_mtime_ns) == before
+
+
 def test_sacct_steps_are_not_additional_allocations_and_pending_not_free(campaign, monkeypatch):
     kv.reserve(campaign, "preflight", "finished", 1200)
     kv.reserve(campaign, "preflight", "pending", 1200)
@@ -315,6 +351,54 @@ def test_unknown_submit_outcome_retains_pending_budget(campaign, tmp_path, monke
     state = status(campaign)
     assert state["allocations"]["screen-01"]["state"] == "submission_unknown"
     assert kv.budget(state)["committed_gpu_hours"] == 6
+
+
+def test_prepare_then_submit_reuses_validated_provenance_without_rewriting(
+    campaign, tmp_path, monkeypatch,
+):
+    paths = kv.generate_specs(campaign, "screen", inventory(tmp_path))
+    kv.reserve(campaign, "screen", "screen-01", 1200)
+    monkeypatch.setattr(kv, "_git", lambda *args: "fixed-source-identity")
+    monkeypatch.setattr(kv, "now", lambda: "2026-10-23T01:00:00+00:00")
+    prepared = kv.prepare_submission(campaign, "screen-01", paths[0], tmp_path)
+    before = prepared.read_bytes(), prepared.stat().st_mtime_ns
+    monkeypatch.setattr(kv, "now", lambda: "2026-10-23T02:00:00+00:00")
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        return SimpleNamespace(stdout="job=123 output=/reserved/results\n", stderr="", returncode=0)
+
+    monkeypatch.setattr(kv.subprocess, "run", run)
+    result = kv.submit(campaign, "screen-01", paths[0], tmp_path)
+    assert result["job_id"] == "123"
+    assert len(calls) == 1
+    assert (prepared.read_bytes(), prepared.stat().st_mtime_ns) == before
+    assert json.loads(prepared.read_text())["created_at"] == "2026-10-23T01:00:00+00:00"
+
+
+@pytest.mark.parametrize("change", ["stored-provenance", "source-revision"])
+def test_submit_refuses_changed_preparation_without_launching_or_rewriting(
+    campaign, tmp_path, monkeypatch, change,
+):
+    paths = kv.generate_specs(campaign, "screen", inventory(tmp_path))
+    kv.reserve(campaign, "screen", "screen-01", 1200)
+    monkeypatch.setattr(kv, "_git", lambda *args: "fixed-source-identity")
+    prepared = kv.prepare_submission(campaign, "screen-01", paths[0], tmp_path)
+    if change == "stored-provenance":
+        data = json.loads(prepared.read_text())
+        data["spec_sha256"] = "different-specification"
+        prepared.write_text(json.dumps(data))
+    else:
+        monkeypatch.setattr(kv, "_git", lambda *args: "different-source-identity")
+    before = prepared.read_bytes(), prepared.stat().st_mtime_ns
+    calls = []
+    monkeypatch.setattr(kv.subprocess, "run", lambda *args, **kwargs: calls.append(args))
+    with pytest.raises(ValueError, match="preparation differs"):
+        kv.submit(campaign, "screen-01", paths[0], tmp_path)
+    assert calls == []
+    assert (prepared.read_bytes(), prepared.stat().st_mtime_ns) == before
+    assert not status(campaign)["allocations"]["screen-01"]["submission_attempted"]
 
 
 def test_freeze_preserves_exact_provenance_and_compute_hashes(campaign, tmp_path, monkeypatch):

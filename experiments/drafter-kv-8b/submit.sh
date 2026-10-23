@@ -3,7 +3,7 @@
 # Reserve first using apertus_bench.drafter_kv_experiment reserve. Unknown sbatch
 # outcomes retain the reservation; use the recorded comment to reconcile them.
 set -euo pipefail
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 if [ "$#" != 3 ]; then
   echo "usage: $0 CAMPAIGN ALLOCATION GENERATED_SPEC.yaml" >&2
   exit 2
