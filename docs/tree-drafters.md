@@ -87,5 +87,7 @@ _Pending._
 
 | Job | What | Output (cluster) |
 | --- | --- | --- |
-| 3722023 | validation: greedy captures (128 opb-heldout + 128 chat), candidates for 4 + 4 sequences x 120 anchors | `spec-exp-data/tree-drafters/runs/validate-20261022T1440Z` |
-| 3722336 | full run: captures, candidates for all 256 sequences, replay | `spec-exp-data/tree-drafters/runs/full-20261022T1530Z` |
+| 3722023 | validation (failed in 43 s: no target contract selected; fixed in 3f3f734) | `spec-exp-data/tree-drafters/runs/validate-20261022T1440Z` |
+| 3722336 | full run, cancelled before start (same failure) | `spec-exp-data/tree-drafters/runs/full-20261022T1530Z` |
+| 3730086 | validation: greedy captures (128 opb-heldout + 128 chat), candidates for 4 + 4 sequences x 120 anchors | `spec-exp-data/tree-drafters/runs/validate-20261023T1400Z` |
+| 3730087 | full run: captures, candidates for all 256 sequences, replay | `spec-exp-data/tree-drafters/runs/full-20261023T1400Z` |
