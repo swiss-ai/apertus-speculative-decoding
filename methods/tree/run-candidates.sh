@@ -15,6 +15,8 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "${REPO_ROOT}"
 export PYTHONPATH="${REPO_ROOT}/methods/tree:${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src"
 export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+# verify_offline and candidates.py read the target from the 8B contract.
+export APERTUS_EAGLE_CONTRACT="${APERTUS_EAGLE_CONTRACT:-${REPO_ROOT}/targets/8b/contract.json}"
 export HF_HOME="${HF_HOME:-/iopsstor/scratch/cscs/${USER}/hf_home}"
 export VLLM_CACHE_ROOT=/tmp/tree-cache/vllm TRITON_CACHE_DIR=/tmp/tree-cache/triton
 export TORCHINDUCTOR_CACHE_DIR=/tmp/tree-cache/inductor XDG_CACHE_HOME=/tmp/tree-cache/xdg
@@ -50,6 +52,11 @@ git diff HEAD > "${RUN_DIR}/logs/uncommitted-${SLURM_JOB_ID:-local}.patch" || tr
 if [ -n "${TREE_IMAGE:-}" ] && [ ! -s "${RUN_DIR}/logs/image.sha256" ]; then
   (sha256sum "${TREE_IMAGE}" > "${RUN_DIR}/logs/image.sha256.tmp" && mv "${RUN_DIR}/logs/image.sha256.tmp" "${RUN_DIR}/logs/image.sha256") &
 fi
+
+# Does the image's vLLM have token-tree verification? (evidence for the design step)
+python3 -c "import os, vllm; print(vllm.__version__, os.path.dirname(vllm.__file__))" > "${RUN_DIR}/logs/vllm-tree-grep.txt" 2>&1 || true
+VLLM_DIR="$(python3 -c "import os, vllm; print(os.path.dirname(vllm.__file__))" 2>/dev/null || true)"
+[ -n "${VLLM_DIR}" ] && grep -rlE "speculative_token_tree|TreeAttention|tree_attn" "${VLLM_DIR}" >> "${RUN_DIR}/logs/vllm-tree-grep.txt" 2>/dev/null || true
 
 if [[ " ${STAGES} " == *" capture "* ]]; then
   stamp "stage 1: plain greedy captures"
