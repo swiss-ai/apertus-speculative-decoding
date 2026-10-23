@@ -1,6 +1,6 @@
-# tp4 split for the debug partition (1.5 h limit), part c: each part has its own plain arm.
-# debug, SWEEP_TIME 01:30:00.
-name: tp4-c
+# tp4 split for the debug partition (1.5 h limit), part c1: plain plus one drafter arm,
+# since three TP4 arms ran past 1.5 h (tp4-a, job 3728421). debug, SWEEP_TIME 01:30:00.
+name: tp4-c1
 stage: 8b
 engine: {max_num_batched_tokens: 16384, max_num_seqs: 1024}
 loadtests:
@@ -16,4 +16,3 @@ loadtests:
 arms:
   - {name: plain-tp4, method: baseline, tensor_parallel_size: 4}
   - {name: eagle-k5-tp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 5, tensor_parallel_size: 4}
-  - {name: eagle-k7-tp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 7, tensor_parallel_size: 4}
