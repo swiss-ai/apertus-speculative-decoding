@@ -2,7 +2,8 @@
 # DSpark 70B training smoke on one Beverin node: the Clariden train-node.sh
 # (TP2 extraction server on GPUs 0,1, two FSDP trainer ranks on GPUs 2,3) in the
 # ROCm vLLM image, MAX_STEPS steps on the prepared 70B corpus.
-#   [MAX_STEPS=30 SEQ=4096 ANCHORS=256] sbatch methods/dspark/beverin/train-smoke.sbatch
+#   [MAX_STEPS=30 SEQ=4096 ANCHORS=256 RUNS=1] sbatch methods/dspark/beverin/train-smoke.sbatch
+# RUNS=2 starts train-node.sh again on the same RUN_ID to check the resume.
 #SBATCH -A infra01 -p mi300 -N 1 --gpus-per-node=4 -t 01:30:00 --job-name=bev-train-smoke
 #SBATCH -o /iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/%x-%j.out
 set -euo pipefail
@@ -24,4 +25,7 @@ srun --environment="${EDF}" --export=ALL bash -c '
   . "${REPO_ROOT}/methods/dspark/beverin/env.sh"
   ( while sleep 60; do echo "$(date -u +%FT%TZ) $(free -g | awk "/Mem:/ {print \"used_gb=\" \$3 \" avail_gb=\" \$7}")"; done ) \
     > "${WORK}/logs/mem-${SLURM_JOB_ID}.log" &
-  bash "${REPO_ROOT}/methods/dspark/train/train-node.sh"'
+  for i in $(seq 1 "${RUNS:-1}"); do
+    echo "=== train-node.sh run ${i}"
+    bash "${REPO_ROOT}/methods/dspark/train/train-node.sh" || exit
+  done'
