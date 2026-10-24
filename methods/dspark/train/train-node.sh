@@ -65,7 +65,8 @@ mon=$!
 # methods/dspark/beverin/apertus15_run.py registers the Apertus 1.5 config).
 # EXTRACT_FLAGS (set, even empty, replaces them): the Swiss AI fork's flags.
 CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 ${PY_PRELUDE:-} scripts/launch_vllm.py train "${TARGET_MODEL}" \
-  --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" -- \
+  --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" \
+  --provenance-dir "${LOG}/vllm-provenance-${JOB}-node${NODE_RANK}" -- \
   --tensor-parallel-size "${EXTRACT_TP}" "${eager[@]}" --trust-remote-code \
   ${EXTRACT_FLAGS---skip-mm-profiling --compilation-config.pass_config.fuse_allreduce_rms false --renderer-num-workers 1 --mm-processor-cache-gb 0} \
   --port "${PORT}" \
