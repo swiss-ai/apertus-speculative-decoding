@@ -15,6 +15,7 @@ if ! wait_health "${PORT}" "${server}" 3000; then
   echo "SERVER_FAILED"; grep -nE "Error|error:|Traceback" "${LOG}" | tail -20; tail -40 "${LOG}"; exit 1
 fi
 echo "server up after $(( $(date +%s) - t0 )) s"
+free -g | head -2; amd-smi metric -m --csv 2> /dev/null | head -6 || true
 grep -E "Loading weights took|Model loading took|KV cache|GPU KV cache size|Maximum concurrency|init engine|graph" "${LOG}" | tail -8
 python3 "${REPO_ROOT}/methods/dspark/beverin/generate_smoke.py" --port "${PORT}"
 echo "serve smoke done"

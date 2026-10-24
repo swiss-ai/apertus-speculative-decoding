@@ -31,6 +31,7 @@ if ! wait_health "${PORT}" "${server}" 3000; then
   stamp "EXTRACTION_SERVER_FAILED"; grep -nE "Error|error:|Traceback" "${RUN}/extract.log" | tail -20; tail -30 "${RUN}/extract.log"; exit 1
 fi
 stamp "extraction server up after $(( $(date +%s) - t0 )) s"
+free -g | head -2; amd-smi metric -m --csv 2> /dev/null | head -6 || true
 t1=$(date +%s)
 python3 "${REPO_ROOT}/methods/dspark/train/check_hidden_states.py" \
   --endpoint "http://localhost:${PORT}/v1" --target "${TARGET_MODEL}" --rows "${CHECK_ROWS}" \
