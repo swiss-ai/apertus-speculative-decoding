@@ -64,22 +64,26 @@ mon=$!
 # PY_PRELUDE: a runner that sets up the interpreter first (Beverin:
 # methods/dspark/beverin/apertus15_run.py registers the Apertus 1.5 config).
 # EXTRACT_FLAGS (set, even empty, replaces them): the Swiss AI fork's flags.
-CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 ${PY_PRELUDE:-} scripts/launch_vllm.py train "${TARGET_MODEL}" \
-  --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" \
-  --provenance-dir "${LOG}/vllm-provenance-${JOB}-node${NODE_RANK}" -- \
-  --tensor-parallel-size "${EXTRACT_TP}" "${eager[@]}" --trust-remote-code \
-  ${EXTRACT_FLAGS---skip-mm-profiling --compilation-config.pass_config.fuse_allreduce_rms false --renderer-num-workers 1 --mm-processor-cache-gb 0} \
-  --port "${PORT}" \
-  --gpu-memory-utilization "${EXTRACT_MEM:-0.92}" --max-model-len 8192 \
-  > "${LOG}/extract-${JOB}-node${NODE_RANK}.log" 2>&1 &
-server=$!
-trap 'kill ${smi} ${mon} 2> /dev/null || true; stop_server ${server}' EXIT
-if ! wait_health "${PORT}" "${server}" 2400; then
-  stamp "EXTRACTION_SERVER_FAILED"
-  grep -E "Error|Traceback" "${LOG}/extract-${JOB}-node${NODE_RANK}.log" | tail -5
-  exit 1
-fi
-stamp "extraction server up on ${PORT}"
+start_server() {
+  CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 ${PY_PRELUDE:-} scripts/launch_vllm.py train "${TARGET_MODEL}" \
+    --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" \
+    --provenance-dir "${LOG}/vllm-provenance-${JOB}-node${NODE_RANK}" -- \
+    --tensor-parallel-size "${EXTRACT_TP}" "${eager[@]}" --trust-remote-code \
+    ${EXTRACT_FLAGS---skip-mm-profiling --compilation-config.pass_config.fuse_allreduce_rms false --renderer-num-workers 1 --mm-processor-cache-gb 0} \
+    --port "${PORT}" \
+    --gpu-memory-utilization "${EXTRACT_MEM:-0.92}" --max-model-len 8192 \
+    >> "${LOG}/extract-${JOB}-node${NODE_RANK}.log" 2>&1 &
+  server=$!
+  if ! wait_health "${PORT}" "${server}" 2400; then
+    stamp "EXTRACTION_SERVER_FAILED"
+    grep -E "Error|Traceback" "${LOG}/extract-${JOB}-node${NODE_RANK}.log" | tail -5
+    return 1
+  fi
+  stamp "extraction server up on ${PORT}"
+}
+server=""
+trap 'kill ${smi} ${mon} 2> /dev/null || true; [ -n "${server}" ] && stop_server ${server}' EXIT
+start_server || exit 1
 
 if [ -n "${CHECK_ROWS:-}" ]; then
   python3 "${REPO_ROOT}/methods/dspark/train/check_hidden_states.py" \
@@ -111,11 +115,11 @@ stamp "all ${NODES} extraction servers up"
 # four jobs (3691347-50). When the rank-0 log shows no new event for longer than
 # its phase allows, dump every trainer process's stacks (SIGUSR1, see
 # speculators-stack-dump.patch) and stop torchrun, so the next job resumes.
-stall_monitor() {
-  local last="" changed now event limit
+stall_monitor() {  # TAG: the attempt's log tag
+  local tag="$1" last="" changed now event limit
   changed=$(date +%s)
   while sleep 60; do
-    event="$(cat "${LOG}"/train-"${JOB}"-node*.log 2> /dev/null | grep -aoE \
+    event="$(cat "${LOG}"/train-"${tag}"-node*.log 2> /dev/null | grep -aoE \
       "global_step=[0-9]+|Saving checkpoint|Checkpoint saved|Validation epoch [0-9]+/[0-9]+ (started|completed)|Training epoch [0-9]+/[0-9]+ started" \
       | tail -1 || true)"
     now=$(date +%s)
@@ -135,30 +139,55 @@ stall_monitor() {
     fi
   done
 }
-stall_monitor &
-monitor=$!
-
 extra=()
 [ "${GRAD_CKPT:-0}" = 1 ] && extra+=(--gradient-checkpointing)
 [ -n "${MAX_STEPS:-}" ] && extra+=(--max-steps "${MAX_STEPS}")
-t0=$(date +%s)
-stamp "torchrun start"
-rc=0
-CUDA_VISIBLE_DEVICES="${TRAIN_GPUS}" DSPARK_PORT="${PORT}" torchrun --nnodes "${NODES}" \
-  --nproc_per_node "${RANKS_PER_NODE}" --node_rank "${NODE_RANK}" --rdzv_backend c10d \
-  --rdzv_endpoint "${HEAD_NODE}:29500" --rdzv_id "${JOB}" \
-  --rdzv_conf join_timeout=1800,read_timeout=600 --no-python \
-  bash "${REPO_ROOT}/methods/dspark/train/rank-wrapper.sh" \
-  --verifier-name-or-path "${TARGET_MODEL}" --data-path "${DATA}" \
-  --hidden-states-backend file --hidden-states-path "${HS}" --on-missing generate --on-generate delete \
-  --target-layer-ids ${LAYERS} --speculator-type dspark --num-layers 5 --block-size 8 \
-  --markov-rank 256 --enable-confidence-head --confidence-head-with-markov \
-  --loss-fn '{"ce":0.1,"tv":0.9}' --loss-implementation eager --optimizer muon --lr "${LR}" \
-  --epochs "${EPOCHS}" --total-seq-len "${SEQ}" --max-anchors "${ANCHORS}" \
-  --num-workers "${WORKERS}" --prefetch-factor "${PREFETCH}" --checkpoint-freq "${CKPT_FREQ}" \
-  --fsdp-shard "${extra[@]}" --save-path "${CKPT}" \
-  > "${LOG}/train-${JOB}-node${NODE_RANK}.log" 2>&1 || rc=$?
-kill "${monitor}" 2> /dev/null || true
-stamp "torchrun rc=${rc} wall=$(( $(date +%s) - t0 ))s; checkpoints: $(ls "${CKPT}" 2> /dev/null | tail -3 | tr '\n' ' ')"
-grep -oE "val/eal_epoch=[0-9.]+" "${LOG}/train-${JOB}-node${NODE_RANK}.log" | tail -3 | paste -sd" " || true
+
+# Keep the allocation on failure (Yu's advice): a 4- or 16-node job waits a day
+# or more in the queue, so a failed torchrun (stall, NCCL error, crash) is
+# retried here with the extraction servers kept up; every node retries, and a
+# new rendezvous id joins them again. Stops on success (done, or the deadline
+# stop), when under 30 min remain before DSPARK_STOP_AT, or after MAX_ATTEMPTS.
+# A node failure (Slurm NODE_FAIL) still ends the job.
+rc=1
+for attempt in $(seq 1 "${MAX_ATTEMPTS:-10}"); do
+  tag="${JOB}"
+  [ "${attempt}" -gt 1 ] && tag="${JOB}.a${attempt}"
+  if ! curl -sf "localhost:${PORT}/health" > /dev/null; then
+    stamp "extraction server down; restarting it"
+    stop_server "${server}" || true
+    start_server || { rc=1; break; }
+  fi
+  rm -rf "${HS:?}"/*
+  stall_monitor "${tag}" &
+  monitor=$!
+  t0=$(date +%s)
+  stamp "torchrun start (attempt ${attempt})"
+  rc=0
+  CUDA_VISIBLE_DEVICES="${TRAIN_GPUS}" DSPARK_PORT="${PORT}" torchrun --nnodes "${NODES}" \
+    --nproc_per_node "${RANKS_PER_NODE}" --node_rank "${NODE_RANK}" --rdzv_backend c10d \
+    --rdzv_endpoint "${HEAD_NODE}:29500" --rdzv_id "${JOB}-a${attempt}" \
+    --rdzv_conf join_timeout=1800,read_timeout=600 --no-python \
+    bash "${REPO_ROOT}/methods/dspark/train/rank-wrapper.sh" \
+    --verifier-name-or-path "${TARGET_MODEL}" --data-path "${DATA}" \
+    --hidden-states-backend file --hidden-states-path "${HS}" --on-missing generate --on-generate delete \
+    --target-layer-ids ${LAYERS} --speculator-type dspark --num-layers 5 --block-size 8 \
+    --markov-rank 256 --enable-confidence-head --confidence-head-with-markov \
+    --loss-fn '{"ce":0.1,"tv":0.9}' --loss-implementation eager --optimizer muon --lr "${LR}" \
+    --epochs "${EPOCHS}" --total-seq-len "${SEQ}" --max-anchors "${ANCHORS}" \
+    --num-workers "${WORKERS}" --prefetch-factor "${PREFETCH}" --checkpoint-freq "${CKPT_FREQ}" \
+    --fsdp-shard "${extra[@]}" --save-path "${CKPT}" \
+    > "${LOG}/train-${tag}-node${NODE_RANK}.log" 2>&1 || rc=$?
+  kill "${monitor}" 2> /dev/null || true
+  stamp "torchrun rc=${rc} (attempt ${attempt}) wall=$(( $(date +%s) - t0 ))s; checkpoints: $(ls "${CKPT}" 2> /dev/null | tail -3 | tr '\n' ' ')"
+  grep -oE "val/eal_epoch=[0-9.]+" "${LOG}/train-${tag}-node${NODE_RANK}.log" | tail -3 | paste -sd" " || true
+  [ "${rc}" = 0 ] && break
+  left=$(( ${DSPARK_STOP_AT:-$(( $(date +%s) + 86400 ))} - $(date +%s) ))
+  if [ "${left}" -lt 1800 ]; then
+    stamp "no time for another attempt (${left}s before the deadline stop)"
+    break
+  fi
+  stamp "RETRY: attempt ${attempt} failed; retrying in this allocation"
+  sleep 30
+done
 exit "${rc}"
