@@ -14,7 +14,7 @@ export RUN_ID="${RUN_ID:-train-smoke-${SLURM_JOB_ID}}"
 export DATA="${DATA:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b/data}"
 export HEAD_NODE=$(scontrol show hostnames "${SLURM_JOB_NODELIST}" | head -1)
 export MAX_STEPS="${MAX_STEPS:-30}" SEQ="${SEQ:-4096}" ANCHORS="${ANCHORS:-256}" CKPT_FREQ="${CKPT_FREQ:-1}"
-export EXTRACT_MEM="${EXTRACT_MEM:-0.75}" EXTRACT_FLAGS="${EXTRACT_FLAGS-}"
+export EXTRACT_MEM="${EXTRACT_MEM:-0.75}" EXTRACT_FLAGS="${EXTRACT_FLAGS---no-enable-chunked-prefill}"
 export PY_PRELUDE="${REPO_ROOT}/methods/dspark/beverin/apertus15_run.py"
 export PYTHONPATH="${REPO_ROOT}/methods/dspark/beverin"
 export DSPARK_STOP_AT=$(( $(date +%s) + 5400 - 900 ))
