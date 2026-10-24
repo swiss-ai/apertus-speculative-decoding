@@ -69,30 +69,54 @@ def test_step_waste_splits_verify_and_draft(tmp_path: Path) -> None:
 
 def test_dspark_component_fit_and_depth_extrapolation() -> None:
     truth = wr.DSparkComponents(
-        layers=5, fc_ms_per_token=1e-4, context_kv_ms_per_token_layer=2e-5,
-        backbone_ms_per_token_layer=1.4e-3, lm_head_ms_per_row=1.8e-3,
-        markov_ms_per_request_slot=1e-3, markov_ms_per_slot=0.02,
+        layers=5, layer_fixed_ms=0.2, head_fixed_ms=0.35, fc_fixed_ms=0.04,
+        fc_ms_per_token=2.6e-4, context_kv_fixed_ms_layer=0.01,
+        context_kv_ms_per_token_layer=5e-5, backbone_ms_per_token_layer=1.3e-3,
+        attention_ms_per_token_context_layer=1e-7, lm_head_ms_per_row=1.5e-3,
+        markov_ms_per_slot=0.02,
     )  # fmt: skip
     samples = []
-    for requests, k in ((128, 7), (256, 7), (256, 3)):
-        parts = truth.draft_ms(requests, k)
-        samples.append(
-            {
-                "requests": requests, "k": k, "target_tokens": requests * (1 + k),
-                "draft:fc": parts["fc"], "draft:context_kv": parts["context_kv"],
-                "draft:backbone": parts["backbone"], "draft:lm_head": parts["lm_head"],
-                "draft:markov": parts["markov"],
-            }
-        )  # fmt: skip
+    for requests, k, context in ((1, 1, 800), (8, 3, 800), (32, 7, 800), (64, 5, 2800),
+                                 (16, 7, 2800), (128, 7, 800), (256, 3, 2800)):  # fmt: skip
+        parts = truth.draft_ms(requests, k, context_tokens=context)
+        sample = {
+            "requests": requests, "k": k, "target_tokens": requests * (1 + k),
+            "context_tokens": context, "draft:fc": parts["fc"],
+            "draft:context_kv": parts["context_kv"],
+        }  # fmt: skip
+        block = parts["fixed"] + parts["backbone"] + parts["lm_head"] + parts["markov"]
+        if requests * k > 512:  # eager: components visible
+            sample.update({"draft:backbone": parts["backbone"] + parts["fixed"] * 0.8,
+                           "draft:lm_head": parts["lm_head"] + parts["fixed"] * 0.2,
+                           "draft:markov": parts["markov"]})  # fmt: skip
+        else:
+            sample["draft:graph"] = block
+        sample["draft:propose"] = block + parts["fc"] + parts["context_kv"]
+        samples.append(sample)
     fit = wr.fit_dspark_components(samples)
-    for requests, k in ((64, 5), (200, 2)):
-        assert fit.draft_ms(requests, k)["total"] == pytest.approx(
-            truth.draft_ms(requests, k)["total"], rel=1e-6
+    for requests, k, context in ((48, 5, 800), (200, 2, 2800)):
+        assert fit.draft_ms(requests, k, context_tokens=context)["total"] == pytest.approx(
+            truth.draft_ms(requests, k, context_tokens=context)["total"], rel=0.02
         )
     one = fit.draft_ms(128, 7, layers=1)
     five = fit.draft_ms(128, 7)
     assert one["backbone"] == pytest.approx(five["backbone"] / 5)
     assert one["lm_head"] == pytest.approx(five["lm_head"])
+
+
+def test_eagle_pass_fit() -> None:
+    truth = wr.EaglePassCost(0.5, 3.6e-3, 8e-4, 0.53, 4.1e-3)
+    samples = []
+    for requests, k in ((1, 3), (8, 7), (64, 3), (128, 7), (256, 1)):
+        tokens = requests * (1 + k)
+        sample = {"requests": requests, "target_tokens": tokens,
+                  "draft:pass0": truth.pass0_ms(requests, tokens)}  # fmt: skip
+        if k > 1:
+            sample["draft:pass"] = truth.pass_ms(requests)
+        samples.append(sample)
+    fit = wr.fit_eagle_passes(samples)
+    assert fit.pass_ms(100) == pytest.approx(truth.pass_ms(100))
+    assert fit.draft_ms(32, 5) == pytest.approx(truth.draft_ms(32, 5))
 
 
 TRACE_HEAD = (

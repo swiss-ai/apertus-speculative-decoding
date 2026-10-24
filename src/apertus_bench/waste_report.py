@@ -42,9 +42,10 @@ from __future__ import annotations
 import argparse
 import bisect
 import csv
+import gzip
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -265,90 +266,205 @@ def oracle_verify(
     return {"fixed_ms": fixed, "oracle_ms": oracle, "speedup": fixed / oracle}
 
 
-# --- per-component drafter model -------------------------------------------
+# --- per-component drafter models ------------------------------------------
+
+
+def least_squares(rows: list[list[float]], ys: list[float]) -> list[float]:
+    """Coefficients c minimising |X c - y|^2 (normal equations, small X)."""
+    n = len(rows[0])
+    a = [[sum(r[i] * r[j] for r in rows) for j in range(n)] for i in range(n)]
+    v = [sum(r[i] * y for r, y in zip(rows, ys, strict=True)) for i in range(n)]
+    for col in range(n):  # Gauss-Jordan with partial pivoting
+        pivot = max(range(col, n), key=lambda r: abs(a[r][col]))
+        a[col], a[pivot], v[col], v[pivot] = a[pivot], a[col], v[pivot], v[col]
+        if abs(a[col][col]) < 1e-30:
+            raise ValueError("singular fit: the samples do not vary in every regressor")
+        for r in range(n):
+            if r != col:
+                f = a[r][col] / a[col][col]
+                a[r] = [x - f * y for x, y in zip(a[r], a[col], strict=True)]
+                v[r] -= f * v[col]
+    return [v[i] / a[i][i] for i in range(n)]
+
+
+def _fit_line(points: list[tuple[float, float]]) -> tuple[float, float]:
+    """Least squares y = a + b x; (0, y/x) through the origin with one x value."""
+    if not points:
+        return 0.0, 0.0
+    if len({x for x, _ in points}) == 1:
+        x, y = points[0]
+        return 0.0, (y / x if x else 0.0)
+    a, b = least_squares([[1.0, x] for x, _ in points], [y for _, y in points])
+    return a, b
 
 
 @dataclass
 class DSparkComponents:
-    """DSpark draft step as components, each linear in its token count:
-    ``fc`` and ``context_kv`` over the target's step tokens (context KV of
-    every layer), ``backbone`` over the query block (requests x k) per layer,
-    ``lm_head`` over requests x k rows of the draft vocabulary, ``markov``
-    k sequential embed/bias passes over the requests."""
+    """DSpark draft step as components (ms), for depth extrapolation.
 
-    layers: int
-    fixed_ms: float = 0.0
+    - ``fc``: combine of the target's aux hidden states, over the step's
+      target tokens (eager, outside the graph);
+    - ``context_kv``: context K/V projection of every layer over the target
+      tokens (eager, per layer);
+    - ``backbone``: the query block (requests x k tokens) through each layer,
+      plus its attention over the cached context (capped at the drafter's
+      sliding window) per layer;
+    - ``lm_head``: the draft-vocabulary head over requests x k rows;
+    - ``markov``: k sequential embed/bias passes;
+    - ``fixed``: the batch-independent floor of the draft graph (weight reads,
+      launches), split between the layers and the head by parameter count.
+    """
+
+    layers: int = 5
+    window: int = 2048
+    layer_fixed_ms: float = 0.0
+    head_fixed_ms: float = 0.0
+    fc_fixed_ms: float = 0.0
     fc_ms_per_token: float = 0.0
+    context_kv_fixed_ms_layer: float = 0.0
     context_kv_ms_per_token_layer: float = 0.0
     backbone_ms_per_token_layer: float = 0.0
+    attention_ms_per_token_context_layer: float = 0.0
     lm_head_ms_per_row: float = 0.0
-    markov_ms_per_request_slot: float = 0.0
     markov_ms_per_slot: float = 0.0
+    # Extra time of a step that runs the query block eagerly (no CUDA graph:
+    # more than max_cudagraph_capture_size query tokens); not in draft_ms.
+    eager_offset_ms: float = 0.0
+    propose_overhead_ms: float = 0.0
+    layer_params: float = 306e6
+    head_params: float = 4096 * 131072
     source: str = ""
 
-    def draft_ms(self, requests: float, k: int, target_tokens: float | None = None,
-                 layers: int | None = None) -> dict[str, float]:  # fmt: skip
-        """Components of one draft step (``layers`` extrapolates the depth)."""
+    def draft_ms(
+        self, requests: float, k: int, target_tokens: float | None = None,
+        layers: int | None = None, context_tokens: float = 0.0,
+    ) -> dict[str, float]:  # fmt: skip
+        """Components of one draft step; ``layers`` extrapolates the depth,
+        ``context_tokens`` is the mean cached context per request."""
         n = self.layers if layers is None else layers
         target = requests * (1 + k) if target_tokens is None else target_tokens
+        query = requests * k
         parts = {
-            "fixed": self.fixed_ms,
-            "fc": self.fc_ms_per_token * target,
-            "context_kv": self.context_kv_ms_per_token_layer * target * n,
-            "backbone": self.backbone_ms_per_token_layer * requests * k * n,
-            "lm_head": self.lm_head_ms_per_row * requests * k,
-            "markov": (self.markov_ms_per_request_slot * requests + self.markov_ms_per_slot) * k,
-        }
+            "fixed": n * self.layer_fixed_ms + self.head_fixed_ms,
+            "fc": self.fc_fixed_ms + self.fc_ms_per_token * target,
+            "context_kv": n * (self.context_kv_fixed_ms_layer
+                               + self.context_kv_ms_per_token_layer * target),
+            "backbone": n * query * (self.backbone_ms_per_token_layer
+                                     + self.attention_ms_per_token_context_layer
+                                     * min(context_tokens, self.window)),
+            "lm_head": self.lm_head_ms_per_row * query,
+            "markov": self.markov_ms_per_slot * k,
+            "overhead": self.propose_overhead_ms,
+        }  # fmt: skip
         parts["total"] = sum(parts.values())
         return parts
 
 
-def _fit_line(points: list[tuple[float, float]]) -> tuple[float, float]:
-    """Least squares y = a + b x; (0, y/x) through the origin with one point."""
-    if not points:
-        return 0.0, 0.0
-    if len(points) == 1 or len({x for x, _ in points}) == 1:
-        x, y = points[0]
-        return 0.0, (y / x if x else 0.0)
-    n = len(points)
-    mx = sum(x for x, _ in points) / n
-    my = sum(y for _, y in points) / n
-    b = sum((x - mx) * (y - my) for x, y in points) / sum((x - mx) ** 2 for x, _ in points)
-    return my - b * mx, b
+def fit_dspark_components(
+    samples: list[dict[str, float]], layers: int = 5, window: int = 2048
+) -> DSparkComponents:
+    """Fit the components to measured draft steps.
 
-
-def fit_dspark_components(samples: list[dict[str, float]], layers: int = 5) -> DSparkComponents:
-    """Fit per-component costs to measured draft steps.
-
-    Each sample: ``requests``, ``k``, ``target_tokens`` (per step) and the mean
-    projected ms per step of ``draft:fc``, ``draft:context_kv``,
-    ``draft:backbone``, ``draft:lm_head``, ``draft:markov`` (summed over the
-    step's k calls); samples without a component (graph mode) are skipped
-    for it."""
-
-    def points(key: str, x: Any) -> list[tuple[float, float]]:
-        return [(x(s), s[key]) for s in samples if s.get(key) is not None and x(s) > 0]
-
-    _, fc = _fit_line(points("draft:fc", lambda s: s["target_tokens"]))
-    _, ctx = _fit_line(points("draft:context_kv", lambda s: s["target_tokens"] * layers))
-    _, backbone = _fit_line(points("draft:backbone", lambda s: s["requests"] * s["k"] * layers))
-    _, head = _fit_line(points("draft:lm_head", lambda s: s["requests"] * s["k"]))
-    markov_points = [
-        (s["requests"], s["draft:markov"] / s["k"])
-        for s in samples
-        if s.get("draft:markov") is not None and s["k"]
-    ]
-    markov_fixed, markov_req = _fit_line(markov_points)
-    return DSparkComponents(
-        layers=layers,
-        fc_ms_per_token=fc,
-        context_kv_ms_per_token_layer=ctx,
-        backbone_ms_per_token_layer=backbone,
-        lm_head_ms_per_row=head,
-        markov_ms_per_request_slot=markov_req,
-        markov_ms_per_slot=max(markov_fixed, 0.0),
-        source=f"{len(samples)} profiled windows",
+    Each sample has ``requests``, ``k``, ``target_tokens`` and
+    ``context_tokens`` (per step / per request), the mean projected ms per
+    step of ``draft:fc`` and ``draft:context_kv`` (always eager), and the
+    query-block time: ``draft:graph`` in graph mode, or ``draft:backbone`` +
+    ``draft:lm_head`` + ``draft:markov`` when the step ran eagerly (large
+    batches). The query-block time is fitted as
+    ``F + a (B k) + c k + d (B k min(ctx, window))``; ``a`` is split between
+    the backbone layers and the head by their ratio in the eager windows."""
+    fc0, fc = _fit_line([(s["target_tokens"], s["draft:fc"]) for s in samples])
+    ctx0, ctx = _fit_line([(s["target_tokens"], s["draft:context_kv"]) for s in samples])
+    rows, ys = [], []
+    for s in samples:
+        eager_step = bool(s.get("draft:backbone"))
+        if eager_step:
+            y = s["draft:backbone"] + s.get("draft:lm_head", 0.0) + s.get("draft:markov", 0.0)
+        elif s.get("draft:graph"):
+            y = s["draft:graph"]
+        else:
+            continue
+        query = s["requests"] * s["k"]
+        context = min(s.get("context_tokens") or 0.0, window)
+        # Weighted by 1/y: relative errors, so the small batches (where the
+        # floor and the per-slot latency show) count as much as the large.
+        row = [1.0, query, s["k"], query * context, float(eager_step)]
+        rows.append([x / y for x in row])
+        ys.append(1.0)
+    if not any(row[4] for row in rows):
+        rows = [row[:4] for row in rows]
+    coefficients = least_squares(rows, ys)
+    floor, per_query, per_slot, attention = coefficients[:4]
+    eager_offset = coefficients[4] if len(coefficients) > 4 else 0.0
+    eager = [s for s in samples if s.get("draft:backbone") and s.get("draft:lm_head")]
+    head_share = (
+        sum(s["draft:lm_head"] for s in eager)
+        / sum(s["draft:lm_head"] + s["draft:backbone"] for s in eager)
+        if eager
+        else 0.2
     )
+    model = DSparkComponents(layers=layers, window=window)
+    total_params = layers * model.layer_params + model.head_params
+    model.layer_fixed_ms = floor * model.layer_params / total_params
+    model.head_fixed_ms = floor * model.head_params / total_params
+    model.fc_fixed_ms, model.fc_ms_per_token = fc0, fc
+    model.context_kv_fixed_ms_layer = ctx0 / layers
+    model.context_kv_ms_per_token_layer = ctx / layers
+    model.lm_head_ms_per_row = per_query * head_share
+    model.backbone_ms_per_token_layer = per_query * (1 - head_share) / layers
+    model.attention_ms_per_token_context_layer = attention / layers
+    # Per-slot latency of the Markov loop; clamped, a small negative fit is noise.
+    model.markov_ms_per_slot = max(per_slot, 0.0)
+    model.eager_offset_ms = eager_offset
+    # propose() also prepares inputs and attention metadata around the graph.
+    overheads = [
+        s["draft:propose"] - s["draft:graph"] - s["draft:fc"] - s["draft:context_kv"]
+        for s in samples
+        if s.get("draft:graph") and s.get("draft:propose")
+    ]
+    model.propose_overhead_ms = sum(overheads) / len(overheads) if overheads else 0.0
+    model.source = f"{len(rows)} windows ({len(eager)} eager), head share {head_share:.2f}"
+    return model
+
+
+@dataclass
+class EaglePassCost:
+    """EAGLE draft step: the first pass runs the drafter over the step's target
+    tokens (draft prefill), each later pass over one token per request."""
+
+    pass0_fixed_ms: float = 0.0
+    pass0_ms_per_request: float = 0.0
+    pass0_ms_per_target_token: float = 0.0
+    pass_fixed_ms: float = 0.0
+    pass_ms_per_request: float = 0.0
+    source: str = ""
+
+    def pass0_ms(self, requests: float, target_tokens: float) -> float:
+        return (self.pass0_fixed_ms + self.pass0_ms_per_request * requests
+                + self.pass0_ms_per_target_token * target_tokens)  # fmt: skip
+
+    def pass_ms(self, requests: float) -> float:
+        return self.pass_fixed_ms + self.pass_ms_per_request * requests
+
+    def draft_ms(self, requests: float, k: int, target_tokens: float | None = None) -> float:
+        target = requests * (1 + k) if target_tokens is None else target_tokens
+        return self.pass0_ms(requests, target) + (k - 1) * self.pass_ms(requests)
+
+
+def fit_eagle_passes(samples: list[dict[str, float]]) -> EaglePassCost:
+    """Fit from per-window means: ``requests``, ``target_tokens``,
+    ``draft:pass0`` and (k > 1) ``draft:pass``."""
+    first = [s for s in samples if s.get("draft:pass0")]
+    later = [s for s in samples if s.get("draft:pass")]
+    p0 = least_squares(
+        [[1.0, s["requests"], s["target_tokens"]] for s in first], [s["draft:pass0"] for s in first]
+    )
+    p = _fit_line([(s["requests"], s["draft:pass"]) for s in later])
+    return EaglePassCost(
+        pass0_fixed_ms=p0[0], pass0_ms_per_request=p0[1], pass0_ms_per_target_token=p0[2],
+        pass_fixed_ms=p[0], pass_ms_per_request=p[1],
+        source=f"{len(first)} windows (pass0), {len(later)} windows (later passes)",
+    )  # fmt: skip
 
 
 # --- measured windows ------------------------------------------------------
@@ -358,8 +474,18 @@ ATTENTION_KERNEL = re.compile(r"flash|attn|attention|paged|reshape_and_cache", r
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    """A CSV, or its ``.gz`` (committed records gzip the per-range traces)."""
+    if not path.exists() and path.with_name(path.name + ".gz").exists():
+        path = path.with_name(path.name + ".gz")
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt", newline="") as handle:
+            return list(csv.DictReader(handle))
     with path.open(newline="") as handle:
         return list(csv.DictReader(handle))
+
+
+def _has_csv(path: Path) -> bool:
+    return path.exists() or path.with_name(path.name + ".gz").exists()
 
 
 def _range_name(raw: str) -> str:
@@ -379,7 +505,7 @@ def nvtx_steps(trace_csv: Path) -> list[dict[str, Any]]:
         root_row = by_id.get(root)
         if root_row is None or _range_name(root_row["Name"]) != "engine:step":
             continue
-        step = steps.setdefault(root, {"ranges": {}})
+        step = steps.setdefault(root, {"ranges": {}, "counts": {}})
         duration = float(row["Projected Duration (ns)"] or 0) / 1e6
         if name == "engine:step":
             step["step_ms"] = duration
@@ -392,6 +518,7 @@ def nvtx_steps(trace_csv: Path) -> list[dict[str, Any]]:
                         decode_tokens=gen_tokens, decode_reqs=gen_reqs)  # fmt: skip
             continue
         step["ranges"][name] = step["ranges"].get(name, 0.0) + duration
+        step["counts"][name] = step["counts"].get(name, 0) + 1
     return [s for s in steps.values() if "step_ms" in s]
 
 
@@ -419,9 +546,11 @@ def decompose_window(
     """Measured GPU-time split of one capture window.
 
     Target time of mixed steps is split into prefill and verify by token
-    share; verify into useful and rejected with the window's rejected drafts
-    x the marginal verify cost at the window's mean decode step (cost table)
-    or, without a table, the average per-token verify cost; drafting into
+    share. Verify is split into useful and rejected step by step: the step's
+    rejected tokens (its decode tokens x the window's rejected share of decode
+    tokens) x the marginal cost per token at the step's total size (cost
+    table) or, without a table, the step's average cost per token, capped at
+    the step's verify share. Drafting is split into
     slots accepted and not by the accepted share of drafted tokens (DSpark
     ``draft:fc``/``draft:context_kv`` stay a fixed per-step part)."""
     steps = nvtx_steps(stats_dir / f"{stem}_nvtx_gpu_proj_trace.csv")
@@ -438,6 +567,9 @@ def decompose_window(
     }
     decode_tokens = prefill_tokens = 0.0
     decode_step_tokens: list[float] = []
+    total_decode = sum(step.get("decode_tokens", 0) for step in steps)
+    rejected_share = min(rejected / total_decode, 1.0) if total_decode else 0.0
+    rejected_verify = 0.0
     for step in steps:
         ranges = step["ranges"]
         target = sum(v for k, v in ranges.items() if k.startswith("target:execute"))
@@ -446,6 +578,10 @@ def decompose_window(
         totals["step"] += step["step_ms"]
         totals["prefill"] += target * share
         totals["verify"] += target * (1 - share)
+        if d_tok:
+            size = p_tok + d_tok
+            per_token = model.marginal_verify_ms(size) if model is not None else target / size
+            rejected_verify += min(rejected_share * d_tok * per_token, target * (1 - share))
         fixed = ranges.get("draft:fc", 0.0) + ranges.get("draft:context_kv", 0.0)
         totals["draft_fixed"] += fixed
         totals["draft_slots"] += max(ranges.get("draft:propose", 0.0) - fixed, 0.0)
@@ -458,11 +594,7 @@ def decompose_window(
     totals["other"] = max(totals["step"] - accounted, 0.0)
 
     mean_decode = sum(decode_step_tokens) / len(decode_step_tokens) if decode_step_tokens else 0
-    if model is not None and mean_decode:
-        per_token = model.marginal_verify_ms(mean_decode)
-    else:
-        per_token = totals["verify"] / decode_tokens if decode_tokens else 0.0
-    rejected_verify = min(rejected * per_token, totals["verify"])
+    per_token = rejected_verify / rejected if rejected else 0.0
     accepted_share = accepted / draft_tokens if draft_tokens else 0.0
     window_ms = 1000.0 * float(window.get("window_s") or 0)
     kernels = {}
@@ -495,6 +627,10 @@ def decompose_window(
         "decode_tokens": decode_tokens,
         "mean_decode_step_tokens": mean_decode,
         "rejected_tokens": rejected,
+        "truncated": bool(window.get("truncated")),
+        # A window that saw no prompt tokens caught only the level's drain.
+        "steady": not window.get("truncated")
+        or bool(counters.get("prompt_tokens") or prefill_tokens),
         "acceptance_length": spec.get("mean_acceptance_length"),
         "marginal_verify_ms_per_token": per_token,
         "parts_ms": parts,
@@ -539,18 +675,76 @@ def dspark_samples(stats_dir: Path, stem: str, k: int) -> dict[str, float] | Non
 
 
 def eagle_pass_ms(stats_dir: Path, stem: str) -> dict[str, float] | None:
-    """Mean projected ms of the first and of each later EAGLE pass in decode steps."""
+    """Mean projected ms of the first and of each later EAGLE pass, over the
+    window's decode-only steps (in mixed steps the first pass also covers the
+    prompt tokens)."""
     steps = [s for s in nvtx_steps(stats_dir / f"{stem}_nvtx_gpu_proj_trace.csv")
-             if not s.get("prefill_tokens")]  # fmt: skip
+             if not s.get("prefill_tokens") and s["ranges"].get("draft:pass0")]  # fmt: skip
     if not steps:
         return None
-    rows = read_csv(stats_dir / f"{stem}_nvtx_gpu_proj_sum.csv")
-    counts = {_range_name(r["Range"]): float(r["Range Instances"]) for r in rows}
-    totals = {_range_name(r["Range"]): float(r["Total Proj Time (ns)"]) / 1e6 for r in rows}
-    out = {"requests": sum(s.get("decode_reqs", 0) for s in steps) / len(steps)}
-    for key in ("draft:pass0", "draft:pass"):
-        if counts.get(key):
-            out[key] = totals[key] / counts[key]
+    out = {
+        "requests": sum(s.get("decode_reqs", 0) for s in steps) / len(steps),
+        "target_tokens": sum(s.get("decode_tokens", 0) for s in steps) / len(steps),
+        "draft:pass0": sum(s["ranges"]["draft:pass0"] for s in steps) / len(steps),
+    }
+    later = [s for s in steps if s["counts"].get("draft:pass")]
+    if later:
+        out["draft:pass"] = sum(
+            s["ranges"]["draft:pass"] / s["counts"]["draft:pass"] for s in later
+        ) / len(later)
+    return out
+
+
+def mean_context(arm_dir: Path, label: str | None, concurrency: int | None) -> float | None:
+    """Mean cached tokens per running request in a cell: its prompt plus half
+    its completion, averaged over the cell's requests."""
+    if label is None or concurrency is None:
+        return None
+    for path in (arm_dir / label).glob(f"*/c{concurrency}/summary.json"):
+        summary = json.loads(path.read_text())
+        requests = summary["requests"]["successful"] or 1
+        tokens = summary["tokens"]
+        return (tokens["prompt"] + tokens["completion"] / 2) / requests
+    return None
+
+
+def drafter_samples(sweeps: list[Path]) -> dict[str, list[dict[str, Any]]]:
+    """Per-window drafter samples of every profiled DSpark and EAGLE arm
+    (arm names ``dspark-…-k{K}`` / ``eagle-…-k{K}``); drain-only windows
+    are left out."""
+    out: dict[str, list[dict[str, Any]]] = {"dspark": [], "eagle": []}
+    for sweep in sweeps:
+        for manifest_path in sorted(sweep.glob("*/nsys-stats/manifest.json")):
+            stats_dir = manifest_path.parent
+            arm = stats_dir.parent.name
+            kind = (
+                "dspark"
+                if arm.startswith("dspark")
+                else "eagle"
+                if arm.startswith("eagle")
+                else None
+            )
+            match = re.search(r"-k(\d+)$", arm)
+            if kind is None or match is None:
+                continue
+            for entry in json.loads(manifest_path.read_text())["reports"]:
+                window = entry.get("window") or {}
+                counters = window.get("counters") or {}
+                if window.get("truncated") and not counters.get("prompt_tokens"):
+                    continue
+                stem = Path(entry["report"]).name.removesuffix(".nsys-rep")
+                if kind == "dspark":
+                    sample = dspark_samples(stats_dir, stem, int(match.group(1)))
+                else:
+                    sample = eagle_pass_ms(stats_dir, stem)
+                if sample:
+                    sample["context_tokens"] = mean_context(
+                        stats_dir.parent, window.get("loadtest"), window.get("concurrency")
+                    )
+                    sample.update(arm=arm, sweep=sweep.name, k=int(match.group(1)),
+                                  loadtest=window.get("loadtest"),
+                                  concurrency=window.get("concurrency"))  # fmt: skip
+                    out[kind].append(sample)
     return out
 
 
@@ -705,7 +899,7 @@ def decompose_sweeps(sweeps: list[Path], model: CostModel | None) -> list[dict[s
             for entry in manifest["reports"]:
                 window = entry.get("window") or {}
                 stem = Path(entry["report"]).name.removesuffix(".nsys-rep")
-                if not (stats_dir / f"{stem}_nvtx_gpu_proj_trace.csv").exists():
+                if not _has_csv(stats_dir / f"{stem}_nvtx_gpu_proj_trace.csv"):
                     continue
                 row = decompose_window(stats_dir, stem, window, model)
                 row.update(
@@ -714,6 +908,36 @@ def decompose_sweeps(sweeps: list[Path], model: CostModel | None) -> list[dict[s
                 )  # fmt: skip
                 rows.append(row)
     return rows
+
+
+def fit_drafters(sweeps: list[Path]) -> dict[str, Any]:
+    """Fitted DSpark components and EAGLE pass costs, with the samples and
+    each sample's prediction (relative error) for checking."""
+    samples = drafter_samples(sweeps)
+    report: dict[str, Any] = {"sweeps": [sweep.name for sweep in sweeps]}
+    if samples["dspark"]:
+        dspark = fit_dspark_components(samples["dspark"])
+        for sample in samples["dspark"]:
+            parts = dspark.draft_ms(
+                sample["requests"], sample["k"], sample["target_tokens"],
+                context_tokens=sample.get("context_tokens") or 0.0,
+            )  # fmt: skip
+            predicted = parts["total"] + (
+                dspark.eager_offset_ms if sample.get("draft:backbone") else 0
+            )
+            sample["predicted_propose_ms"] = predicted
+            sample["relative_error"] = predicted / sample["draft:propose"] - 1
+        report["dspark"] = {"model": asdict(dspark), "samples": samples["dspark"]}
+    if samples["eagle"]:
+        eagle = fit_eagle_passes(samples["eagle"])
+        for sample in samples["eagle"]:
+            sample["predicted_pass0_ms"] = eagle.pass0_ms(
+                sample["requests"], sample["target_tokens"]
+            )
+            if sample.get("draft:pass"):
+                sample["predicted_pass_ms"] = eagle.pass_ms(sample["requests"])
+        report["eagle"] = {"model": asdict(eagle), "samples": samples["eagle"]}
+    return report
 
 
 def _fmt(value: Any, spec: str = "{:.1%}") -> str:
@@ -751,6 +975,9 @@ def main(argv: list[str] | None = None) -> None:
     decompose.add_argument("sweeps", type=Path, nargs="+")
     decompose.add_argument("--cost-table", type=Path)
     decompose.add_argument("--json", type=Path)
+    fit = sub.add_parser("fit", help="fit DSpark component and EAGLE pass costs")
+    fit.add_argument("sweeps", type=Path, nargs="+")
+    fit.add_argument("--json", type=Path)
     marginal = sub.add_parser("marginal", help="the marginal rule per draft slot")
     marginal.add_argument("--cost-table", type=Path, required=True)
     marginal.add_argument("--summary", type=Path, required=True)
@@ -772,6 +999,12 @@ def main(argv: list[str] | None = None) -> None:
                   f"{_fmt(r['gpu_seconds_per_million_tokens'], '{:,.0f}')} | "
                   f"{_fmt(r['watts'], '{:.0f}')} | {_fmt(r['joules_per_token'], '{:.3f}')} | "
                   f"{_fmt(r['acceptance_length'], '{:.2f}')} |")  # fmt: skip
+    elif args.command == "fit":
+        report = fit_drafters(args.sweeps)
+        text = json.dumps(report, indent=2) + "\n"
+        if args.json:
+            args.json.write_text(text)
+        print(text, end="")
     elif args.command == "decompose":
         model = CostModel.from_cost_table(args.cost_table) if args.cost_table else None
         rows = decompose_sweeps(args.sweeps, model)
@@ -790,11 +1023,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
-
-
-__all__ = [
-    "CostModel", "DSparkComponents", "acceptance", "accepted_per_step",
-    "best_k_ceilings", "cell_costs", "decompose_window", "fit_dspark_components",
-    "marginal_rule", "oracle_verify", "predicted_speedup", "saturation", "step_waste",
-    "verify_saturation_tokens",
-]  # fmt: skip
