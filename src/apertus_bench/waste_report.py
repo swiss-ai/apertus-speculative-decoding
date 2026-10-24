@@ -644,6 +644,16 @@ def decompose_window(
         ),  # fmt: skip
         "gpu_metrics": gpu_metrics(stats_dir, stem),
     }
+    # Yu's framing: of the work speculation adds (verifying the drafted tokens
+    # and drafting), how much is wasted? Drafted-token verify is priced like
+    # the rejected part (same marginal cost per token).
+    drafted_verify = rejected_verify * draft_tokens / rejected if rejected else 0.0
+    speculative = drafted_verify + totals["draft_slots"] + totals["draft_fixed"]
+    result["speculative_ms"] = speculative
+    result["speculative_fraction"] = speculative / total if total else None
+    result["speculative_wasted_share"] = (
+        (rejected_verify + parts["draft_wasted_ms"]) / speculative if speculative else None
+    )
     if out_tokens and span:
         # GPU-ms per output token, using the token rate inside the window.
         rate = out_tokens / (float(window.get("open_s") or window.get("window_s") or 1) * 1000)
@@ -940,6 +950,34 @@ def fit_drafters(sweeps: list[Path]) -> dict[str, Any]:
     return report
 
 
+TENSOR = "Tensor Active [Throughput %]"
+SM = "SMs Active [Throughput %]"
+DRAM = "DRAM Read Bandwidth [Throughput %]"
+
+
+def saturation_rows(rows: list[dict[str, Any]], threshold: float = 0.9) -> list[dict[str, Any]]:
+    """Per arm and load test: GPU metrics by level and the saturation
+    concurrency C* (first level whose tensor-pipe activity reaches
+    ``threshold`` of the arm's maximum over the levels)."""
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for row in rows:
+        if row.get("steady", True) and row.get("gpu_metrics"):
+            groups.setdefault((row["arm"], row.get("loadtest") or ""), []).append(row)
+    out = []
+    for (arm, test), members in sorted(groups.items()):
+        levels = [
+            {"concurrency": r["concurrency"], "tensor": r["gpu_metrics"].get(TENSOR),
+             "sm": r["gpu_metrics"].get(SM), "dram": r["gpu_metrics"].get(DRAM)}
+            for r in sorted(members, key=lambda r: r["concurrency"])
+        ]  # fmt: skip
+        out.append(
+            {"arm": arm, "loadtest": test, "levels": levels,
+             "c_star_tensor": saturation(levels, "tensor", threshold),
+             "c_star_sm": saturation(levels, "sm", threshold)}
+        )  # fmt: skip
+    return out
+
+
 def _fmt(value: Any, spec: str = "{:.1%}") -> str:
     return "-" if value is None else spec.format(value)
 
@@ -1008,9 +1046,20 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == "decompose":
         model = CostModel.from_cost_table(args.cost_table) if args.cost_table else None
         rows = decompose_sweeps(args.sweeps, model)
+        saturated = saturation_rows(rows)
         if args.json:
-            args.json.write_text(json.dumps(rows, indent=2) + "\n")
-        print(decomposition_table(rows))
+            args.json.write_text(
+                json.dumps({"windows": rows, "saturation": saturated}, indent=2) + "\n"
+            )
+        print(decomposition_table([r for r in rows if r.get("steady", True)]))
+        print()
+        print("| arm | load | tensor active % by C | C* (tensor) | C* (SM) |")
+        print("| --- | --- | --- | --- | --- |")
+        for row in saturated:
+            levels = ", ".join(f"{lv['concurrency']}: {_fmt(lv['tensor'], '{:.0f}')}"
+                               for lv in row["levels"])  # fmt: skip
+            print(f"| {row['arm']} | {row['loadtest']} | {levels} | {row['c_star_tensor']} | "
+                  f"{row['c_star_sm']} |")  # fmt: skip
     else:
         model = CostModel.from_cost_table(args.cost_table)
         summary = json.loads(args.summary.read_text())
