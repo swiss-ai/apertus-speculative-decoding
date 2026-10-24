@@ -88,6 +88,13 @@ def export(
         "checkpoint_step": checkpoint_state.get("step"),
         "eval_at_checkpoint": checkpoint_state.get("eval"),
         "train_summary_gates": (train_summary or {}).get("gates"),
+        # A fine-tune names the checkpoint it continued (model.init_from).
+        "init_from": {
+            key: (provenance.get("init_from") or {}).get(key) for key in ("path", "draft_sha256")
+        }
+        | {"step": ((provenance.get("init_from") or {}).get("state") or {}).get("step")}
+        if provenance.get("init_from")
+        else None,
     }
     config["apertus_training"]["embedding"] = (
         "not exported; vLLM shares the target input embedding (all input ids)"
