@@ -156,4 +156,5 @@ PENDING.
 | 3721372 | trace smoke (debug): 64/16/16 rows per domain, 16 generations per file | ok |
 | 3722013 | pools (8,192 + 256 per domain, 128 multilingual test) and traces, Apertus sampling | pending |
 | 3722022 | live swap smoke, e10 → e3 → e10, chat C=32 and summarization C=64 | ok (above) |
-| 3725574 | fine-tune smoke: 4 steps from e10 on the smoke traces (`adapt-smoke.yaml`) | pending |
+| 3725574 | fine-tune smoke: 4 steps from e10 on the smoke traces (`adapt-smoke.yaml`) | failed after 50 s: submitted without `EAGLE_CUDA_DEVICES=0,1,2,3`, so ranks 1-3 had no GPU (the submitter now refuses this, a2dbf52) |
+| 3737459 | fine-tune smoke, resubmitted with 4 GPUs | pending |
