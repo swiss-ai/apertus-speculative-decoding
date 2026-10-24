@@ -107,9 +107,9 @@ at 512, 34.4 at 1,024, 63.3 at 2,048, the same within 2% in all four arms.
 
 Mean GPU time per decode step of each NVTX range (`nvtx_gpu_proj_trace`,
 decode-only steps of each 15 s window), with the draft run eagerly so that
-its components are separate ranges (`eager_draft`; eager is 15% slower
-than the graphed cost table at 256 requests, so ratios rather than
-timings). Script `methods/dspark/scheduler/depth_profile.py`, output
+its components are separate ranges (`eager_draft`; at 256 requests and
+k=4 the eager step is 14% above the cost table for 5 layers and 7% below it
+for 1 layer, so ratios rather than timings). Script `methods/dspark/scheduler/depth_profile.py`, output
 `results/8b/small-drafter/depth-profile-phase-a.json`. At C=64 the 5-layer
 windows have few decode-only steps (27-28 requests on average), so compare
 the C=256 rows.
