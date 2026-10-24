@@ -173,6 +173,19 @@ def test_submit_requires_an_explicit_training_config(tmp_path: Path) -> None:
     assert "EAGLE_TRAIN_CONFIG" in result.stderr
 
 
+def test_submit_refuses_more_ranks_than_visible_gpus(tmp_path: Path) -> None:
+    env = {k: v for k, v in os.environ.items() if k != "EAGLE_CUDA_DEVICES"}
+    config = REPO / "methods/eagle/configs/8b/adapt/adapt-smoke.yaml"
+    result = subprocess.run(
+        ["bash", str(REPO / "methods/eagle/launch/submit-eagle-train.sh")],
+        capture_output=True,
+        text=True,
+        env={**env, "EAGLE_TRAIN_CONFIG": str(config), "EAGLE_SUBMIT_DRY_RUN": "1"},
+    )
+    assert result.returncode == 2
+    assert "data_parallel 4 needs EAGLE_CUDA_DEVICES" in result.stderr
+
+
 @pytest.mark.parametrize("name", ["train-e31-overfit.yaml", "train-e31.yaml"])
 def test_8b_training_configs_name_the_8b_contract_and_head(name: str) -> None:
     import yaml

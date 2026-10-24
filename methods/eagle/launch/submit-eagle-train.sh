@@ -22,6 +22,16 @@ for config in ${EAGLE_TRAIN_CONFIG}; do
   CONFIGS_ABS+=("$(cd "$(dirname "${config}")" && pwd)/$(basename "${config}")")
 done
 CONFIG_ABS="${CONFIGS_ABS[0]}"
+# Each data-parallel rank needs its own visible GPU: training.data_parallel 4 with
+# the default EAGLE_CUDA_DEVICES=0 fails at set_device (job 3725574).
+visible="$(echo "${EAGLE_CUDA_DEVICES:-0}" | tr ',' '\n' | grep -c .)"
+for config in "${CONFIGS_ABS[@]}"; do
+  ranks="$(sed -n 's/^ *data_parallel: *\([0-9]*\).*/\1/p' "${config}" | head -1)"
+  if [ "${ranks:-1}" -gt "${visible}" ]; then
+    echo "${config}: data_parallel ${ranks} needs EAGLE_CUDA_DEVICES with ${ranks} GPUs (have ${visible})" >&2
+    exit 2
+  fi
+done
 ENV_SOURCE="${EAGLE_ENV_SOURCE:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
 PARTITION="${EAGLE_TRAIN_PARTITION:-normal}"
 ACCOUNT="${EAGLE_TRAIN_ACCOUNT:-infra01}"
