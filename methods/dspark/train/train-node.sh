@@ -132,7 +132,8 @@ stall_monitor() {  # TAG: the attempt's log tag
     esac
     if (( now - changed > limit )); then
       stamp "STALL: no event since '${last}' for $(( (now - changed) / 60 )) min; dumping stacks, stopping"
-      pkill -USR1 -f "python3 -m speculators.train" || true
+      # "-m speculators.train" also matches ranks started through PY_PRELUDE.
+      pkill -USR1 -f -- "-m speculators.train" || true
       sleep 60
       pkill -TERM -f "torchrun --nnodes" || true
       return
@@ -153,7 +154,7 @@ rc=1
 for attempt in $(seq 1 "${MAX_ATTEMPTS:-10}"); do
   tag="${JOB}"
   [ "${attempt}" -gt 1 ] && tag="${JOB}.a${attempt}"
-  if ! curl -sf "localhost:${PORT}/health" > /dev/null; then
+  if ! health "${PORT}"; then
     stamp "extraction server down; restarting it"
     stop_server "${server}" || true
     start_server || { rc=1; break; }
