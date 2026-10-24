@@ -5,14 +5,15 @@
 #SBATCH -A infra01 -p mi300 -N 1 -t 01:00:00 --job-name=bev-import
 #SBATCH -o /iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/%x-%j.out
 set -euo pipefail
-TAG="${1:-rocm7.14.1_cdna_ubuntu24.04_py3.14_pytorch_2.11_vllm_0.23.0}"
+# REPO/TAG, e.g. vllm/vllm-openai-rocm:v0.31.0 (default: AMD's rocm/vllm 0.23).
+TAG="${1:-rocm/vllm:rocm7.14.1_cdna_ubuntu24.04_py3.14_pytorch_2.11_vllm_0.23.0}"
 OUT="${2:-/capstor/scratch/cscs/${USER}/container-images/rocm-vllm-0.23.0-cdna.sqsh}"
 EDF="${EDF:-${SLURM_SUBMIT_DIR}/methods/dspark/beverin/env-vllm023.toml}"
 echo "job ${SLURM_JOB_ID} node $(hostname) tag ${TAG}"
 echo "amdgpu driver: $(cat /sys/module/amdgpu/version 2>/dev/null || modinfo -F version amdgpu 2>/dev/null)"
 if [ ! -f "${OUT}" ]; then
   t0=$(date +%s)
-  enroot import -o "${OUT}.part" "docker://rocm/vllm:${TAG}"
+  enroot import -o "${OUT}.part" "docker://${TAG}"
   mv "${OUT}.part" "${OUT}"
   echo "import took $(( $(date +%s) - t0 )) s"
 fi

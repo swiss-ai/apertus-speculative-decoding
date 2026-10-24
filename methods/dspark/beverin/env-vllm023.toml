@@ -7,6 +7,8 @@ workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility"
 
 [env]
 PYTHONNOUSERSITE = "1"
+# CSCS vLLM/SGLang-on-AMD tutorial: works around a hang at RCCL init.
+HWLOC_COMPONENTS = "-gl"
 
 [annotations]
 # RCCL over Slingshot: Beverin's hook defaults to the netstack artifact
