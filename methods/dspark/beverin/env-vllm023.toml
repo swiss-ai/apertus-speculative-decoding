@@ -1,0 +1,15 @@
+# Beverin (MI300A, ROCm) container for the DSpark 70B extraction feasibility
+# check: AMD's public vLLM 0.23.0 ROCm image (the Swiss AI fork on Clariden is
+# 0.23.1rc1 + Apertus 1.5), imported by import-image.sh.
+image = "/capstor/scratch/cscs/faruk_zahiragic/container-images/rocm-vllm-0.23.0-cdna.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users"]
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility"
+
+[env]
+PYTHONNOUSERSITE = "1"
+
+[annotations]
+# RCCL over Slingshot: Beverin's hook defaults to the netstack artifact
+# gpu_rocm7-cxi_13.1.0-ofi_2.6.0-aws_1.20.0 (/etc/enroot/hooks.d/90-aws-ofi-nccl.sh).
+com.hooks.aws_ofi_nccl.enabled = "true"
+com.hooks.aws_ofi_nccl.variant = "rocm6"
