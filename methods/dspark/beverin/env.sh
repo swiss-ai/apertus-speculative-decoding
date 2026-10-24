@@ -5,6 +5,11 @@ TARGET_MODEL="${TARGET_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/mode
 # present, speculators + its side deps built for this image's Python.
 export PYTHONPATH="${REPO_ROOT}/methods/dspark/beverin${EXTRA_PYTHONPATH:+:${EXTRA_PYTHONPATH}}${PYTHONPATH:+:${PYTHONPATH}}"
 export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+# Slurm sets ROCR_VISIBLE_DEVICES=0,1,2,3; with CUDA_VISIBLE_DEVICES=2,3 on top,
+# ROCm torch counts 4 devices but creates 2, and the trainer's manual_seed_all
+# fails (job 693749). The scripts select GPUs with CUDA_VISIBLE_DEVICES alone
+# (CSCS's vLLM-on-AMD tutorial likewise unsets ROCR_VISIBLE_DEVICES).
+unset ROCR_VISIBLE_DEVICES
 export HF_HOME="${WORK}/hf_home" HF_HUB_OFFLINE=1
 # JIT caches node-local, as on Clariden (/tmp is RAM-backed tmpfs on MI300A,
 # i.e. it shares the 4x128 GB HBM with the GPUs; keep it small).
