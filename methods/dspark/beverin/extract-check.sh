@@ -7,8 +7,10 @@
 # positions it computed, so prefix-cache hits gave truncated states (693726).
 set -euo pipefail
 WORK="${WORK:-/iopsstor/scratch/cscs/${USER}/beverin-feasibility}"
-export DSPARK_DIR="${WORK}" SPECULATORS="${SPECULATORS:-${WORK}/speculators}"
-. "${REPO_ROOT}/methods/dspark/train/common.sh"   # SIDE_DEPS=${WORK}/pydeps, caches
+# Side deps per Python version (rocm/vllm 0.23: 3.14; vllm-openai-rocm 0.31: 3.12).
+export DSPARK_DIR="${WORK}/py$(python3 -c 'import sys; print("%d%d" % sys.version_info[:2])')"
+export SPECULATORS="${SPECULATORS:-${WORK}/speculators}"
+. "${REPO_ROOT}/methods/dspark/train/common.sh"   # SIDE_DEPS=${DSPARK_DIR}/pydeps, caches
 . "${REPO_ROOT}/methods/dspark/beverin/env.sh"
 LAYERS="${LAYERS:-1 20 39 58 77}"
 EXTRACT_GPUS="${EXTRACT_GPUS:-0,1}"
