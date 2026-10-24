@@ -89,5 +89,7 @@ _Pending._
 | --- | --- | --- |
 | 3722023 | validation (failed in 43 s: no target contract selected; fixed in 3f3f734) | `spec-exp-data/tree-drafters/runs/validate-20261022T1440Z` |
 | 3722336 | full run, cancelled before start (same failure) | `spec-exp-data/tree-drafters/runs/full-20261022T1530Z` |
-| 3730086 | validation: greedy captures (128 opb-heldout + 128 chat), candidates for 4 + 4 sequences x 120 anchors | `spec-exp-data/tree-drafters/runs/validate-20261023T1400Z` |
-| 3730087 | full run: captures, candidates for all 256 sequences, replay | `spec-exp-data/tree-drafters/runs/full-20261023T1400Z` |
+| 3730086 | validation: greedy captures done (128 opb-heldout: 49,557 tokens; 128 chat: 37,543); candidates failed (teacher load needs accelerate; fixed in c04554d) | `spec-exp-data/tree-drafters/runs/validate-20261023T1400Z` |
+| 3730087 | full run, failed the same way | `spec-exp-data/tree-drafters/runs/full-20261023T1400Z` |
+| 3737472 | validation: candidates for 4 + 4 sequences x 120 anchors, replay (captures copied from 3730086) | `spec-exp-data/tree-drafters/runs/validate-20261024T1000Z` |
+| 3737473 | full run, after 3737472 succeeds: candidates for all 256 sequences, replay (captures from 3730086) | `spec-exp-data/tree-drafters/runs/full-20261024T1000Z` |
