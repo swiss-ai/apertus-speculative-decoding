@@ -22,8 +22,9 @@ class Apertus1p5TextForCausalLM(ApertusForCausalLM):
         if getattr(ApertusForCausalLM, "hf_to_vllm_mapper", None) is not None
         else _mapper
     )
-    # Only the language-model shards; the tokenizer towers are separate files.
-    allow_patterns_overrides = ["model-apertus-model-*.safetensors"]
+    # No allow_patterns_overrides for the language-model shards (the fork's):
+    # vLLM 0.31 then refuses an index that names the tower files (job 693753).
+    # The towers are 1.2 GB of 144.6; load_weights drops their tensors.
 
     def __init__(self, *, vllm_config: VllmConfig, prefix: str = "") -> None:
         super().__init__(vllm_config=vllm_config, prefix=prefix)
