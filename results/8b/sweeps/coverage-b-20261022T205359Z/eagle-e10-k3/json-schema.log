@@ -1,0 +1,28 @@
+loadtest json-schema concurrency=1 requests=64
+{
+  "workload": "json-schema",
+  "variant": "eagle-e10-k3",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 428.0291840589224,
+      "ttft_p50_ms": 26.303846563678235,
+      "ttft_p95_ms": 27.10930543835275,
+      "tpot_p50_ms": 1.9943829249905414,
+      "tpot_p95_ms": 2.201881176628592,
+      "e2e_p95_ms": 302.66507266205736,
+      "kv_cache_usage_mean": 0.0007222058317352767,
+      "kv_cache_usage_max": 0.0012538722525445856,
+      "kv_cache_tokens_peak": 544,
+      "kv_cache_size_tokens": 433872,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.6944024205748867,
+      "acceptance_rate": 0.8981341401916288
+    }
+  ]
+}
