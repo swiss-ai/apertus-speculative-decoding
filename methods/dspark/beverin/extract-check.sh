@@ -3,7 +3,8 @@
 # on Beverin -- speculators' launch_vllm.py train, TP2 on GPUs 0,1, file backend
 # to node-local /tmp -- then check_hidden_states.py on GPU 2. Stock vLLM 0.23's
 # ExampleHiddenStatesConnector refuses chunked prefill (job 693719); the Swiss
-# AI fork's newer connector accepts it.
+# AI fork's newer connector accepts it. That old connector also writes only the
+# positions it computed, so prefix-cache hits gave truncated states (693726).
 set -euo pipefail
 WORK="${WORK:-/iopsstor/scratch/cscs/${USER}/beverin-feasibility}"
 export DSPARK_DIR="${WORK}" SPECULATORS="${SPECULATORS:-${WORK}/speculators}"
@@ -26,7 +27,7 @@ CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 "${REPO_ROOT}/methods/dspa
   --provenance-dir "${RUN}" -- \
   --tensor-parallel-size "${EXTRACT_TP}" --enforce-eager --trust-remote-code \
   --port "${PORT}" --gpu-memory-utilization "${EXTRACT_MEM:-0.80}" --max-model-len 8192 \
-  ${EXTRACT_ARGS---no-enable-chunked-prefill} > "${RUN}/extract.log" 2>&1 &
+  ${EXTRACT_ARGS---no-enable-chunked-prefill --no-enable-prefix-caching} > "${RUN}/extract.log" 2>&1 &
 server=$!
 trap 'kill -TERM -- -${server} 2> /dev/null || true; sleep 5; kill -KILL -- -${server} 2> /dev/null || true' EXIT
 if ! wait_health "${PORT}" "${server}" 3000; then
