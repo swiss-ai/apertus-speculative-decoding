@@ -8,10 +8,12 @@ export REPO_ROOT="${SLURM_SUBMIT_DIR}"
 EDF="${EDF:-${REPO_ROOT}/methods/dspark/beverin/env-vllm023.toml}"
 export HEAD_NODE=$(scontrol show hostnames "${SLURM_JOB_NODELIST}" | head -1)
 export NCCL_DEBUG=INFO NCCL_DEBUG_SUBSYS=INIT,NET
+LOG="${SLURM_SUBMIT_DIR%/repo}/logs/rccl-${SLURM_JOB_ID}.log"
 echo "job ${SLURM_JOB_ID} nodes ${SLURM_JOB_NODELIST}"
 srun --environment="${EDF}" --export=ALL bash -c '
   env | grep -E "^(NCCL|FI_)" | sort | sed "s/^/[env] /" | head -40
   torchrun --nnodes "${SLURM_JOB_NUM_NODES}" --nproc_per_node 4 --node_rank "${SLURM_NODEID}" \
     --rdzv_backend c10d --rdzv_endpoint "${HEAD_NODE}:29500" --rdzv_id "${SLURM_JOB_ID}" \
-    "${REPO_ROOT}/methods/dspark/beverin/rccl_bench.py"' 2>&1 \
-  | grep -vE "NCCL INFO (Channel|Connected|comm 0x|.*Trees|.*P2P)" | head -400
+    "${REPO_ROOT}/methods/dspark/beverin/rccl_bench.py"' > "${LOG}" 2>&1 || echo "srun rc=$?"
+# Full NCCL log in ${LOG}; the plugin, transport and results here.
+grep -E "busbw|correct|Selected provider|Using network|NCCL_P2P|Error|Traceback" "${LOG}" | sort -u | head -60 || true
