@@ -7,7 +7,7 @@
 DSPARK_DIR="${DSPARK_DIR:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b}"
 TARGET_MODEL="${TARGET_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B}"
 SPECULATORS="${SPECULATORS:-${REPO_ROOT}/scratch/speculators}"
-SIDE_DEPS="${DSPARK_DIR}/pydeps"
+SIDE_DEPS="${SIDE_DEPS:-${DSPARK_DIR}/pydeps}"
 OPB_REPO="mlabonne/open-perfectblend"
 OPB_REVISION="af60f3c18201652a83a93f46fcfee1b646ba3df7"
 # Yu's 8B corpus: its row order and val_ids.txt define the held-out split.
