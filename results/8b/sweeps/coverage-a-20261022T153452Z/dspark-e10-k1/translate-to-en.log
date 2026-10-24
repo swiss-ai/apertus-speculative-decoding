@@ -1,0 +1,28 @@
+loadtest translate-to-en concurrency=1 requests=64
+{
+  "workload": "translate-to-en",
+  "variant": "dspark-e10-k1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 236.49931218350793,
+      "ttft_p50_ms": 26.68747949792305,
+      "ttft_p95_ms": 27.405277052457677,
+      "tpot_p50_ms": 3.9866269691176095,
+      "tpot_p95_ms": 4.180794624094533,
+      "e2e_p95_ms": 692.8900637543846,
+      "kv_cache_usage_mean": 0.0007633180669720003,
+      "kv_cache_usage_max": 0.001306640533855985,
+      "kv_cache_tokens_peak": 448,
+      "kv_cache_size_tokens": 342845,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.8519803411390576,
+      "acceptance_rate": 0.8519803411390575
+    }
+  ]
+}

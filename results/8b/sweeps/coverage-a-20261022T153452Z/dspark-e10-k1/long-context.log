@@ -1,0 +1,28 @@
+loadtest long-context concurrency=1 requests=64
+{
+  "workload": "long-context",
+  "variant": "dspark-e10-k1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 143.74435455271686,
+      "ttft_p50_ms": 482.41172149937483,
+      "ttft_p95_ms": 736.6860794525564,
+      "tpot_p50_ms": 4.610138475438516,
+      "tpot_p95_ms": 5.036630160498918,
+      "e2e_p95_ms": 2904.926383752172,
+      "kv_cache_usage_mean": 0.028047346854481348,
+      "kv_cache_usage_max": 0.05020066265341361,
+      "kv_cache_tokens_peak": 17211,
+      "kv_cache_size_tokens": 342845,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.7235195458650496,
+      "acceptance_rate": 0.7235195458650496
+    }
+  ]
+}

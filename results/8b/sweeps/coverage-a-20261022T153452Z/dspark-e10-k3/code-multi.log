@@ -1,0 +1,28 @@
+loadtest code-multi concurrency=1 requests=64
+{
+  "workload": "code-multi",
+  "variant": "dspark-e10-k3",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 442.99639674455693,
+      "ttft_p50_ms": 26.481803997739917,
+      "ttft_p95_ms": 27.307023150933674,
+      "tpot_p50_ms": 2.130470074989239,
+      "tpot_p95_ms": 2.3895439326165198,
+      "e2e_p95_ms": 1122.0529508482284,
+      "kv_cache_usage_mean": 0.0009197396724903162,
+      "kv_cache_usage_max": 0.0026137079648083095,
+      "kv_cache_tokens_peak": 896,
+      "kv_cache_size_tokens": 342789,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.5032618825722275,
+      "acceptance_rate": 0.8344206275240758
+    }
+  ]
+}

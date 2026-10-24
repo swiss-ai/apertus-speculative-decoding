@@ -1,0 +1,28 @@
+loadtest lang-jpn concurrency=1 requests=64
+{
+  "workload": "lang-jpn",
+  "variant": "dspark-e10-k3",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 216.90650368578264,
+      "ttft_p50_ms": 25.86322699789889,
+      "ttft_p95_ms": 26.887998647725908,
+      "tpot_p50_ms": 4.637622677710038,
+      "tpot_p95_ms": 5.046873540610349,
+      "e2e_p95_ms": 2419.0937853516516,
+      "kv_cache_usage_mean": 0.0008032159028065316,
+      "kv_cache_usage_max": 0.0018202609040629536,
+      "kv_cache_tokens_peak": 624,
+      "kv_cache_size_tokens": 342789,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.6639676113360324,
+      "acceptance_rate": 0.2213225371120108
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+loadtest lang-spa concurrency=1 requests=64
+{
+  "workload": "lang-spa",
+  "variant": "dspark-e10-k1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 199.56201447443812,
+      "ttft_p50_ms": 25.930200499715284,
+      "ttft_p95_ms": 27.36444534675684,
+      "tpot_p50_ms": 4.779417318476709,
+      "tpot_p95_ms": 5.073157081421774,
+      "e2e_p95_ms": 2450.8245731507486,
+      "kv_cache_usage_mean": 0.0006711630473272964,
+      "kv_cache_usage_max": 0.0017266321340240198,
+      "kv_cache_tokens_peak": 592,
+      "kv_cache_size_tokens": 342845,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.546646897810219,
+      "acceptance_rate": 0.546646897810219
+    }
+  ]
+}

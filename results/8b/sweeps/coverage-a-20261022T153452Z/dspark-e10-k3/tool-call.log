@@ -1,0 +1,50 @@
+loadtest tool-call concurrency=1 requests=64
+loadtest tool-call concurrency=128 requests=128
+{
+  "workload": "tool-call",
+  "variant": "dspark-e10-k3",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 348.8390326429612,
+      "ttft_p50_ms": 41.8420909991255,
+      "ttft_p95_ms": 118.67242685257222,
+      "tpot_p50_ms": 2.652037977572182,
+      "tpot_p95_ms": 4.259940180928948,
+      "e2e_p95_ms": 1493.8835850007308,
+      "kv_cache_usage_mean": 0.004638581530019309,
+      "kv_cache_usage_max": 0.010314811789689848,
+      "kv_cache_tokens_peak": 3536,
+      "kv_cache_size_tokens": 342789,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.896921017402945,
+      "acceptance_rate": 0.6323070058009818
+    },
+    {
+      "concurrency": 128,
+      "requests": 128,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 3363.2766500337984,
+      "ttft_p50_ms": 4067.473979997885,
+      "ttft_p95_ms": 7872.771479348376,
+      "tpot_p50_ms": 20.31902206947654,
+      "tpot_p95_ms": 123.99224451584698,
+      "e2e_p95_ms": 11590.70633284864,
+      "kv_cache_usage_mean": 0.37390609320669294,
+      "kv_cache_usage_max": 0.7346269631980584,
+      "kv_cache_tokens_peak": 251822,
+      "kv_cache_size_tokens": 342789,
+      "running_max": 126.0,
+      "waiting_max": 91.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.8987925356750823,
+      "acceptance_rate": 0.6329308452250274
+    }
+  ]
+}
