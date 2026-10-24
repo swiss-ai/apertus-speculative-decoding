@@ -1,0 +1,47 @@
+$ /iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys --version
+NVIDIA Nsight Systems version 2025.6.3.541-256337736014v0
+# exit 0
+$ /iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys status --environment
+General Check
+- Timestamp counter supported: Yes
+
+CPU Profiling Environment Check
+- Root privilege: disabled
+- Linux Kernel Paranoid Level: 0
+- Linux Distribution: Ubuntu
+- Linux Kernel Version (6.4.0-150600.23.125-64kb): OK
+- Linux perf_event_open syscall available: OK
+- Sampling trigger event available: OK
+- Intel(c) Last Branch Record support: Not Available
+- CPU Profiling Environment (process-tree): OK
+- CPU Profiling Environment (system-wide): OK
+
+See the product documentation at https://docs.nvidia.com/nsight-systems for more information,
+including information on how to set the Linux Kernel Paranoid Level.
+# exit 0
+$ /iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys profile --trace none --sample none --cpuctxsw none --gpu-metrics-devices cuda-visible --duration 2 --force-overwrite true --output /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys-env/gpu-metrics-check sleep 3
+WARNING: GPU initialization took too long. Please run the NVIDIA persistence daemon.
+For more information, visit the following page:
+https://docs.nvidia.com/deploy/driver-persistence/index.html#persistence-daemon
+
+GPU 1: General Metrics for NVIDIA GH100
+Collecting data...
+Generating '/tmp/nsys-report-2a20.qdstrm'
+[1/1] [0%                          ] gpu-metrics-check.nsys-rep[1/1] [0%                          ] gpu-metrics-check.nsys-rep[1/1] [11%                         ] gpu-metrics-check.nsys-rep[1/1] [===23%                      ] gpu-metrics-check.nsys-rep[1/1] [====28%                     ] gpu-metrics-check.nsys-rep[1/1] [======35%                   ] gpu-metrics-check.nsys-rep[1/1] [=========43%                ] gpu-metrics-check.nsys-rep[1/1] [============57%             ] gpu-metrics-check.nsys-rep[1/1] [================71%         ] gpu-metrics-check.nsys-rep[1/1] [========================100%] gpu-metrics-check.nsys-rep[1/1] [========================100%] gpu-metrics-check.nsys-rep
+Generated:
+	/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys-env/gpu-metrics-check.nsys-rep
+# exit 143
+$ ncu --metrics sm__throughput.avg.pct_of_peak_sustained_elapsed --launch-count 1 /opt/venv/bin/python3 -c import torch; torch.ones(1, device='cuda').sum().item()
+==PROF== Connected to process 139821 (/usr/bin/python3.12)
+==PROF== Profiling "vectorized_elementwise_kernel" - 0 (1/1): 0%....50%....100% - 9 passes
+==PROF== Disconnected from process 139821
+[139821] python3.12@127.0.0.1
+  void vectorized_elementwise_kernel<4, FillFunctor<float>, array<char *, 1>>(int, T2, T3) (1, 1, 1)x(128, 1, 1), Context 1, Stream 7, Device 0, CC 9.0
+    Section: Command line profiler metrics
+    ------------------------------------------------ ----------- ------------
+    Metric Name                                      Metric Unit Metric Value
+    ------------------------------------------------ ----------- ------------
+    sm__throughput.avg.pct_of_peak_sustained_elapsed           %         0.01
+    ------------------------------------------------ ----------- ------------
+
+# exit 0
