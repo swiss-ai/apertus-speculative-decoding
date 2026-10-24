@@ -68,7 +68,10 @@ check_side_deps() {
 wait_health() {
   local i
   for i in $(seq 1 $(( $3 / 10 ))); do
-    curl -sf "localhost:$1/health" > /dev/null && return 0
+    # curl does not load in the Beverin ROCm image (libldap_r missing): Python.
+    { curl -sf "localhost:$1/health" > /dev/null 2>&1 \
+      || python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:$1/health', timeout=5)" 2> /dev/null; } \
+      && return 0
     kill -0 "$2" 2> /dev/null || return 1
     sleep 10
   done
@@ -87,6 +90,7 @@ stop_server() {
   done
   kill -KILL -- "-$1" 2> /dev/null || true
   for i in $(seq 1 30); do
+    command -v nvidia-smi > /dev/null || return 0
     [ "$(nvidia-smi --query-compute-apps=pid --format=csv,noheader | wc -l)" = 0 ] && return 0
     sleep 2
   done

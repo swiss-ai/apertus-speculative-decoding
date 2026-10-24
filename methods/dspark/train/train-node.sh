@@ -52,17 +52,23 @@ check_side_deps
 cd "${SPECULATORS}"
 
 stamp "node ${NODE_RANK}/${NODES} head=${HEAD_NODE} run=${RUN_ID} data=${DATA} extract=${EXTRACT_GPUS} (TP${EXTRACT_TP}) train=${TRAIN_GPUS} rdzv_threshold=${FI_CXI_RDZV_THRESHOLD:-default} dtensor_allgather=${DSPARK_DTENSOR_ALLGATHER}"
-nvidia-smi --query-gpu=timestamp,index,utilization.gpu,memory.used --format=csv,noheader -l 60 \
-  > "${LOG}/gpu-${JOB}-node${NODE_RANK}.csv" 2> /dev/null &
+if command -v nvidia-smi > /dev/null; then
+  nvidia-smi --query-gpu=timestamp,index,utilization.gpu,memory.used --format=csv,noheader -l 60
+else  # ROCm (Beverin)
+  while sleep 60; do echo "$(date -u +%FT%TZ) $(amd-smi metric -u -m --csv 2> /dev/null | tail -n +2 | tr '\n' ' ')"; done
+fi > "${LOG}/gpu-${JOB}-node${NODE_RANK}.csv" 2> /dev/null &
 smi=$!
 ( while sleep 300; do echo "$(date -u +%FT%TZ) $(free -g | awk '/Mem:/ {print "used_gb=" $3}') tmp=$(du -sh ${HS} 2> /dev/null | cut -f1)"; done ) \
   > "${LOG}/host-${JOB}-node${NODE_RANK}.log" &
 mon=$!
-CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 scripts/launch_vllm.py train "${TARGET_MODEL}" \
+# PY_PRELUDE: a runner that sets up the interpreter first (Beverin:
+# methods/dspark/beverin/apertus15_run.py registers the Apertus 1.5 config).
+# EXTRACT_FLAGS (set, even empty, replaces them): the Swiss AI fork's flags.
+CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 ${PY_PRELUDE:-} scripts/launch_vllm.py train "${TARGET_MODEL}" \
   --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" -- \
-  --tensor-parallel-size "${EXTRACT_TP}" "${eager[@]}" --trust-remote-code --skip-mm-profiling \
-  --compilation-config.pass_config.fuse_allreduce_rms false \
-  --renderer-num-workers 1 --mm-processor-cache-gb 0 --port "${PORT}" \
+  --tensor-parallel-size "${EXTRACT_TP}" "${eager[@]}" --trust-remote-code \
+  ${EXTRACT_FLAGS---skip-mm-profiling --compilation-config.pass_config.fuse_allreduce_rms false --renderer-num-workers 1 --mm-processor-cache-gb 0} \
+  --port "${PORT}" \
   --gpu-memory-utilization "${EXTRACT_MEM:-0.92}" --max-model-len 8192 \
   > "${LOG}/extract-${JOB}-node${NODE_RANK}.log" 2>&1 &
 server=$!
