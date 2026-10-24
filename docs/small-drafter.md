@@ -9,8 +9,8 @@ on the same data, is the existing 1-layer reference
 ([system-optimizations-8b.md](system-optimizations-8b.md), "EAGLE at
 epoch 10").
 
-Status 2026-10-23: phase A (cost and ceiling, no training) done; phase C cut
-to two short training runs (decision below), both queued.
+Status 2026-10-24: phase A (cost, Nsight split and ceiling, no training)
+done; phase C cut to two short training runs (decision below), both queued.
 
 ## Summary
 
@@ -18,18 +18,21 @@ to two short training runs (decision below), both queued.
 | --- | --- |
 | does the fork serve a 1-3 layer DSpark drafter? | Not as shipped: it sizes `fc` by the drafter's layer count instead of its 5 target layers. Fixed by the opt-in overlay `serving/patches/vllm-apertus-dspark-num-layers.patch`; all depths then serve. |
 | what does a layer cost? | At 256 requests the draft step falls from 10.5 ms (5 layers) to 7.8 / 6.3 / 5.1 ms (3/2/1) at k=4, and from 17.0 to 12.7 / 10.2 / 8.1 ms at k=7: 1.35-2.2 ms per layer. About 3.7-5.9 ms (fc, LM head over 131k tokens, Markov loop) does not shrink with depth. At low load the step is mostly fixed overhead (1 request, k=7: 2.0 ms for 5 layers, 1.1 for 1). |
+| where the draft step goes (Nsight, eager draft) | At 256 requests and k=4 the 5-layer step is backbone 8.2 ms, LM head 1.9, Markov loop 0.2, fc and context K/V 0.8; the 1-layer step is backbone 1.5, LM head 1.7, Markov 0.2, fc and context K/V 0.4. A layer costs about 1.7 ms at k=4 and 2.5 ms at k=7; the LM head over the 131k-token vocabulary (1.7-3.3 ms) stays whatever the depth, and a 1-layer drafter spends more on it than on its layer. The Markov loop is negligible. |
 | KV pool | 343k tokens (5 layers), 389k (3), 417k (2), 434k (1). At C=256 on the held-out prompts no arm is KV-bound (all run 256 requests), so the extra capacity does not raise throughput here. |
 | ceiling: an N-layer drafter at the 5-layer acceptance, against DSpark e10's best k | 1 layer: +5.9% at C=64, +5.1% at C=128, +5.5% at C=256. 2 layers: +3.9-4.5%. 3 layers: +2.3-2.7%. |
 | break-even acceptance | 92-93% of the 5-layer acceptance for 1 layer (C=256: 3.49 at k=4 vs 3.78), 94% for 2 layers, 96-97% for 3 layers. |
 | untrained truncations (first N layers of e10) | 2.19 / 1.53 / 1.29 accepted tokens at k=7 for 3/2/1 layers vs 4.77: useless untrained, the warm start for training. |
 | gate G3 (>= 5% over DSpark e10's best fixed k at some C >= 128, same job) | Reachable only by a 1-layer drafter that keeps more than 99% of the 5-layer acceptance (throughput scales about linearly with acceptance: +5.5% at 100% leaves +5% at 99.5%); see the decision below. Training results pending. |
 
-Cross-check with the waste-profiling cost model (`apertus_bench.waste_report`,
-decode steps only, no prefill): a 1-layer drafter at equal acceptance is
-+9-12% faster per decode step at C=64-256. That is the ceiling for
-decode-dominated traffic; the held-out prompts (about 563 prompt and 480
-output tokens) spend about 35-40 us of prefill per output token (fitted
-below), which brings it to the 5-6% above.
+In the waste-profiling cost model (`apertus_bench.waste_report`, decode
+steps only, no prefill) the ceiling of a 1-layer drafter is +8.9-9.8% at
+C=64-256 (2 layers +6.7-7.5%, 3 layers +4.0-4.6%), with the best length
+shifted to k=2-3. That is the ceiling for decode-dominated traffic; the
+held-out prompts (about 563 prompt and 480 output tokens) spend about
+35-40 us of prefill per output token (fitted below), which brings it to the
+5-6% above. The break-even acceptance comes out the same in both models:
+91-92% of the 5-layer acceptance for 1 layer, 93-94% for 2, 96% for 3.
 
 ## Method
 
@@ -100,6 +103,37 @@ jobs.
 Verify (target forward, same tables): 5.9 ms at 32 tokens, 10.9 at 256, 19.4
 at 512, 34.4 at 1,024, 63.3 at 2,048, the same within 2% in all four arms.
 
+### Where the draft step goes (small-trunc-nsys, Nsight Systems)
+
+Mean GPU time per decode step of each NVTX range (`nvtx_gpu_proj_trace`,
+decode-only steps of each 15 s window), with the draft run eagerly so that
+its components are separate ranges (`eager_draft`; eager is 15% slower
+than the graphed cost table at 256 requests, so ratios rather than
+timings). Script `methods/dspark/scheduler/depth_profile.py`, output
+`results/8b/small-drafter/depth-profile-phase-a.json`. At C=64 the 5-layer
+windows have few decode-only steps (27-28 requests on average), so compare
+the C=256 rows.
+
+| layers | k | C | decode reqs | propose | backbone | LM head | Markov | fc | context K/V |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 5 | 4 | 1 | 1 | 3.15 | 1.35 | 0.30 | 0.10 | 0.05 | 0.06 |
+| 1 | 4 | 1 | 1 | 1.05 | 0.23 | 0.30 | 0.10 | 0.05 | 0.03 |
+| 5 | 4 | 256 | 254 | 11.99 | 8.19 | 1.86 | 0.22 | 0.37 | 0.41 |
+| 1 | 4 | 256 | 255 | 4.74 | 1.49 | 1.73 | 0.21 | 0.35 | 0.09 |
+| 5 | 7 | 1 | 1 | 4.66 | 1.76 | 0.30 | 0.17 | 0.06 | 0.06 |
+| 1 | 7 | 1 | 1 | 1.76 | 0.25 | 0.29 | 0.17 | 0.06 | 0.03 |
+| 5 | 7 | 256 | 253 | 18.75 | 12.34 | 3.22 | 0.40 | 0.60 | 0.61 |
+| 1 | 7 | 256 | 255 | 8.40 | 2.45 | 3.26 | 0.38 | 0.60 | 0.14 |
+
+(ms; `propose` is the whole draft step, the rest is sampling and launch
+gaps.) Removing four layers saves 6.7 ms of backbone at k=4 and 9.9 ms at
+k=7 at 256 requests; nothing else shrinks except the context K/V. Fitted
+on the 5-layer windows, waste_report's component model
+(`fit_dspark_components`) puts the backbone at 1.27 ms per layer at k=4 and
+256 requests, close to the cost tables' 1.35 ms per layer; it misses about
+1.4-1.9 ms of fixed per-step work, so it reads that much below the tables at
+every depth.
+
 ### Truncated drafters at k=7 (small-trunc-a, held-out prompts)
 
 | C | metric | 5 layers (e10) | 3 layers | 2 layers | 1 layer |
@@ -162,7 +196,7 @@ new decision.
 | `small-trunc-a-20261022T125905Z` | 3721350 | e10 and its 3/2/1-layer truncations at k=7, C=1/64/256 |
 | `small-trunc-cost-20261022T125907Z` | 3721351 | failed at container start (overlay mount list too long for pyxis); not recorded |
 | `small-trunc-cost-20261022T130123Z` | 3721367 | cost tables of the four depths (paper-scheduler profile; overlays at a short `VLLM_PATCH_DIR`) |
-| `small-trunc-nsys-20261022T161244Z` | 3722940 | Nsight split of the draft step, 5 vs 1 layer at k=4/7 (pending) |
+| `small-trunc-nsys-20261022T161244Z` | 3722940 | Nsight split of the draft step, 5 vs 1 layer at k=4/7, C=1/64/256, eager draft; reports (`.nsys-rep`) on the cluster under each arm's `nsys/` |
 | dataset prepare | 3721370 | 8B dataset, Yu's split verified |
 | `runs/depth-l5-scratch` | 3722176 | 5 layers from scratch, 6,200 steps (pending) |
 | `runs/depth-l1-warm` | 3722177 | 1 layer warm start, 6,200 steps (pending) |
