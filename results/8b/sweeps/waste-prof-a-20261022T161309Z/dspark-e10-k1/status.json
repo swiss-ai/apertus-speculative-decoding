@@ -1,0 +1,166 @@
+{
+  "arm": "dspark-e10-k1",
+  "deployment_id": "waste-prof-a-3722945-dspark-e10-k1",
+  "env": {
+    "VLLM_APERTUS_NVTX": "1"
+  },
+  "finished": "2026-10-24T09:38:32+0200",
+  "gpus": [
+    1
+  ],
+  "port": 8101,
+  "profile": {
+    "argv": [
+      "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+      "profile",
+      "--output",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1",
+      "--force-overwrite",
+      "true",
+      "--trace",
+      "cuda,nvtx,osrt",
+      "--cuda-graph-trace",
+      "node",
+      "--capture-range",
+      "cudaProfilerApi",
+      "--capture-range-end",
+      "repeat",
+      "--sample",
+      "none",
+      "--cpuctxsw",
+      "none",
+      "--gpu-metrics-devices",
+      "cuda-visible",
+      "--gpu-metrics-frequency",
+      "1000",
+      "vllm",
+      "serve",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-dspark-e10-k1",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--speculative-config",
+      "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 1}",
+      "--profiler-config.profiler",
+      "cuda",
+      "--port",
+      "8101"
+    ],
+    "expected_reports": 12,
+    "nsys_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys",
+    "reports": [
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.1.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.2.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.3.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.4.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.5.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.6.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.7.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.8.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.9.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.10.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.11.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-a-20261022T161309Z/dspark-e10-k1/nsys/dspark-e10-k1.12.nsys-rep",
+        "stats_exit_code": 0
+      }
+    ]
+  },
+  "ready_seconds": 230.3,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-dspark-e10-k1",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 1}",
+    "--profiler-config.profiler",
+    "cuda"
+  ],
+  "servers": [],
+  "started": "2026-10-24T09:15:56+0200",
+  "status": "ok",
+  "tests": {
+    "opb": {
+      "exit_code": 0
+    },
+    "summarization": {
+      "exit_code": 0
+    }
+  }
+}
