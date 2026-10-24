@@ -12,10 +12,11 @@ top-1 agreement vs 0.983). The unchanged Clariden `train-node.sh` also trained
 runs over Slingshot between nodes. Three things block a production run:
 
 1. **Memory.** On MI300A the four GPUs and the host share one ~501 GB pool per
-   node. The one-node smoke used 483 GB while training. Its epoch-end
-   checkpoint save, a full state dict gathered on rank 0's host, then
-   stalled at 499 GB. The planned 16-node layout should fit (estimate below),
-   but checkpoint saves and resumes there are unverified.
+   node. The one-node smokes used 430–483 GB while training. Rank 0 gathers
+   the full state dict on its host for an epoch-end checkpoint save. One save
+   succeeded (25 GB checkpoint, and a resume from it worked); two others
+   stalled or were OOM-killed. The planned 16-node layout should fit (estimate
+   below), but saves there are unverified.
 2. **Multi-node training is unverified.** Only the RCCL micro-benchmark ran
    across two nodes. Muon's sharded all-to-all at 32 ranks, which is what hung
    on Clariden, has not run on Beverin.
@@ -50,7 +51,8 @@ before useful work, and multi-node pilots will wait on that too.
 | 693756 | GPU-visibility test (srun) | `CUDA_VISIBLE_DEVICES=2,3` with Slurm's `ROCR_VISIBLE_DEVICES=0,1,2,3` → torch counts 4, creates 2 |
 | 693757 | **training smoke, vLLM 0.23 image** | **30 steps trained**; epoch-end save stalled at 499/501 GB, cancelled |
 | 693758 | **extraction + check, vLLM 0.31 image, Clariden settings** (chunked prefill and prefix caching on) | **HS_CHECK_OK, top-1 0.978 (578/591)** |
-| 693772 | training smoke, smaller (SEQ 2048, 128 anchors, EXTRACT_MEM 0.62), run twice for save + resume | see "Save and resume" |
+| 693772 | training smoke, smaller (SEQ 2048, 128 anchors, `EXTRACT_MEM` 0.62) | 8 steps, **checkpoint saved** (25.5 GB, ~1 min), then cancelled in the full validation pass |
+| 693792 | resume of 693772's run | **resumed** from the checkpoint (epoch 2, steps 8–11); the next epoch-end save was **OOM-killed** (Slurm: 1 oom_kill event) |
 
 Logs and run directories: `/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/`
 (`logs/`, `runs/extract-<job>/` with the launch_vllm.py provenance
@@ -186,9 +188,27 @@ the planned 16-node run; 2 ranks, so 2-way sharding):
   save (`get_model_state_dict(full_state_dict, cpu_offload)` on rank 0) then
   pushed the node to 499 GB with 1 GB available and stalled; cancelled.
 
-### Save and resume (job 693772)
+### Save and resume (jobs 693772, 693792)
 
-PENDING
+Same image and recipe, run smaller: SEQ 2048, 128 anchors, `EXTRACT_MEM` 0.62,
+`MAX_STEPS` 8 and then 12.
+
+- 693772: 8 steps (step ~4.5 s: fwd 0.65–0.75 s, bwd 0.35 s, Muon 3.3–4.0 s).
+  The epoch-end save wrote `model.safetensors` 12.95 GB and
+  `optimizer_state_dict.pt` 13.16 GB in ~1 min, the same 25 GB as Clariden's.
+  Node `used` peaked at ≥462 GB (60 s sampling). After `MAX_STEPS` the trainer
+  starts a full validation pass over the 175k held-out rows; I cancelled
+  it there.
+- 693792, same `RUN_ID`: "Found checkpoint … Resuming training on epoch 1",
+  then steps 8–11 (the first step took 108 s, warm-up). The next epoch-end save
+  was killed by the kernel OOM killer: rank 0 got SIGKILL, Slurm reported an
+  oom_kill event, and the memory log stalled for 2.5 min.
+
+Even at a quarter of the planned per-rank batch, the two trainer GPUs held
+88–95 GiB each. That is mostly the 2-way-sharded fp32 state (~75 GB
+unsharded) and the allocator cache, which on MI300A is node memory too. The
+extraction GPUs held 85–89 GiB at `EXTRACT_MEM` 0.62. Saves on one node
+therefore succeed or fail by a few GB.
 
 ## Memory budget for the planned 16-node layout (estimate, not measured)
 
@@ -200,12 +220,17 @@ allocations, `/tmp` (hidden-state files) and page cache all come from it.
 | extraction, 2 GPUs | 2 × 102 GiB at 0.75 | 2 × ~80 GiB at ~0.6 (67 GiB weights + KV and state buffers) |
 | trainer ranks, 2 GPUs | 2 × 91.5 GiB (2-way FSDP, half batch) | 2 × ~45 GiB (Clariden 16-node pilot: 44.8 GiB at 32-way FSDP, full batch) |
 | host processes | ~64 GB | ~64 GB + hidden-state files in `/tmp` |
-| node 0 during a save | ran out | + full model and optimizer state on rank 0's host (tens of GB; Clariden checkpoint 25 GB) |
+| node 0 during a save | 1 of 3 saves survived | + full model and optimizer state on rank 0's host (fp32 gather, then 25 GB bf16) |
 | total | 483–499 GB | ~330 GB + save peak |
 
 So the 16-node layout probably fits, and the 4-node layout (trainer GPUs
-82–97 GB on Clariden) probably does not. A 2-node pilot with a forced early
-checkpoint and a resume should confirm this before any chained run.
+82–97 GB on Clariden) probably does not. A 2-node pilot cannot settle this,
+because its 4-way sharding still holds ~19 GB of state per rank. Run the
+16-node pilot with an early forced checkpoint, a resume, and a 10 s memory
+log on node 0. Cheap mitigations if it is tight: a lower `EXTRACT_MEM`,
+`PYTORCH_HIP_ALLOC_CONF=expandable_segments:True` to keep the allocator
+cache from holding node memory, or sharded (DCP) checkpoints instead of
+the full state dict on rank 0.
 
 ## What the full port needs
 
@@ -217,8 +242,9 @@ checkpoint and a resume should confirm this before any chained run.
    fork model code is wanted, `dspark-upstream-adaptive`'s
    `vllm-apertus-mm-v0.31.patch` targets the same vLLM version, but needs the
    Swiss AI transformers fork.
-2. **Memory.** `EXTRACT_MEM` ~0.6 and a 2-node pilot with an early checkpoint
-   and a resume; watch `logs/mem-<job>.log`.
+2. **Memory.** `EXTRACT_MEM` ~0.6. Verify saves at 16 nodes, and add a
+   finer memory log (see the budget section). If needed, sharded
+   checkpoints (a speculators patch, ~half a day).
 3. **Multi-node.** `train-smoke.sbatch` is single-node; a Beverin
    `submit-train.sh` path (EDF, `PY_PRELUDE`, `EXTRACT_FLAGS`, unset
    `ROCR_VISIBLE_DEVICES`, 24 h limit instead of 12 h) is about half a day.
