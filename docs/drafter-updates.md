@@ -42,6 +42,26 @@ workloads. The Infomaniak set is "inherited from source dataset", the
 open-perfectblend regeneration. It is used here for a measurement and is not
 redistributed.
 
+Independent multilingual check. T6's coverage slices (workload-coverage
+branch, ba1533b; `docs/workload-coverage.md`) are the weakest serving
+workloads at DSpark k=7:
+
+- 1.55-1.73 accepted tokens per step: Arabic, Swahili, German, Romansh,
+  Hindi, Italian, Japanese;
+- 1.87-2.23: translation from English into de/fr/it/es, and French,
+  Chinese, Spanish, Yoruba, Amharic;
+- EAGLE on prompts over 8k tokens: 1.81, against 2.71 for DSpark.
+
+Their 1,344 prompts (restricted text, cluster only) are protected in the pool
+build (278078e), so no pool or dev row duplicates one. The multilingual head
+is confirmed on `lang-deu`, `lang-fra`, `lang-ita`, `lang-spa` and
+`translate-from-en`. These come from a different source than its
+Infomaniak training traces, which are translated open-perfectblend prompts.
+`multi-turn`, `code-multi` and `math-gsm8k` check for forgetting. The pools
+cover only fr/de/it/es. Arabic, Swahili, Romansh, Hindi and Japanese, and
+>8k-token prompts, would each need their own Apertus-answered pool: a
+follow-up, not part of this curve.
+
 ### Adaptation curve (step B)
 
 `train_rollout` gained `model.init_from`: it loads a trained draft's weights
