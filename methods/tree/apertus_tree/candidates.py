@@ -650,7 +650,7 @@ def main(argv: list[str] | None = None) -> None:
     started = time.time()
     contract = load_contract(args.contract)
     target_path = contract["source"]["authorized_checkpoint"]
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model, _loader = load_teacher(target_path)
     model.eval().requires_grad_(False)
     eagle_layers = aux_layer_ids(contract, "hf")

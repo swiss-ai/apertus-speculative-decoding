@@ -13,7 +13,10 @@ set -euo pipefail
 RUN_DIR="$1"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "${REPO_ROOT}"
-export PYTHONPATH="${REPO_ROOT}/methods/tree:${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src"
+# accelerate (needed by the teacher's device_map) is not in the serving image; the
+# EAGLE trainer's side packages provide it. Appended, so the image's own packages win.
+TREE_PYDEPS="${TREE_PYDEPS:-${REPO_ROOT}/scratch/pydeps}"
+export PYTHONPATH="${REPO_ROOT}/methods/tree:${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src:${TREE_PYDEPS}"
 export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
 # verify_offline and candidates.py read the target from the 8B contract.
 export APERTUS_EAGLE_CONTRACT="${APERTUS_EAGLE_CONTRACT:-${REPO_ROOT}/targets/8b/contract.json}"
