@@ -401,10 +401,12 @@ class CostModel:
     - DSpark: ``draft_ms_by_len[len]`` over the batch's requests (measured);
       tree expansions rank a 131k-row logit vector each (HBM-bound estimate);
     - EAGLE: ``eagle_pass_fixed_ms + eagle_ms_per_token * tokens`` per pass.
-      Not measured in isolation: 0.55 ms matches the C=1 gap between EAGLE e10
-      and DSpark e10 k=7 (step 9.9 vs 8.0 ms at equal acceptance, docs/
-      system-optimizations-8b.md); the per-token slope scales DSpark's measured
-      9.5 us/slot-token by the drafters' FLOPs (0.76B vs 2.1B params per token).
+      Fitted by the waste-profiling branch from Nsight windows of EAGLE e10
+      (origin/waste-profiling b27fd2fe, results/8b/waste/drafter-costs.json;
+      within 12% of 34 windows): later passes 0.529 ms + 4.10 us per request
+      (the first, 0.509 ms + 3.61 us/request + 0.82 us/target token, is folded
+      in). The fit saw one token per request per pass; tree passes charge the
+      per-request slope per forwarded node.
     """
 
     verify_tokens: list[float]
@@ -412,8 +414,8 @@ class CostModel:
     draft_reqs: list[float]
     draft_ms_by_len: dict[int, list[float]]
     kv_ms_per_token: float
-    eagle_pass_fixed_ms: float = 0.55
-    eagle_ms_per_token: float = 0.0035
+    eagle_pass_fixed_ms: float = 0.529
+    eagle_ms_per_token: float = 0.0041
     expansion_ms: float = 131072 * 2 * 4 / 3.5e12 * 1e3
     source: str = ""
 

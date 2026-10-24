@@ -173,7 +173,7 @@ def test_cost_model_interpolates_and_projects(tmp_path):
         "eagle_tokens_per_call": 4,
     }
     step = cost.step_ms(64, eagle)
-    assert step["eagle"] == pytest.approx(3 * 0.55 + 0.0035 * 32 * 4)
+    assert step["eagle"] == pytest.approx(3 * 0.529 + 0.0041 * 32 * 4)
 
 
 def test_analyze_end_to_end(tmp_path):
