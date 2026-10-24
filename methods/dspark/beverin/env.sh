@@ -14,10 +14,15 @@ export VLLM_CACHE_ROOT=/tmp/bev-cache/vllm TRITON_CACHE_DIR=/tmp/bev-cache/trito
   MIOPEN_CUSTOM_CACHE_DIR=/tmp/bev-cache/miopen
 export VLLM_ENGINE_READY_TIMEOUT_S=3600
 mkdir -p "${WORK}/logs" /tmp/bev-cache
+# curl in the ROCm image fails to load (libldap_r-2.4.so.2 missing; job 693716),
+# so probe the server with Python.
+health() {
+  python3 -c "import sys, urllib.request; urllib.request.urlopen('http://localhost:$1/health', timeout=5)" 2> /dev/null
+}
 wait_health() {
   local i
   for i in $(seq 1 $(( $3 / 10 ))); do
-    curl -sf "localhost:$1/health" > /dev/null && return 0
+    health "$1" && return 0
     kill -0 "$2" 2> /dev/null || return 1
     sleep 10
   done

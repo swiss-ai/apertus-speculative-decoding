@@ -18,8 +18,8 @@ mkdir -p "${RUN}" && rm -rf "${HS}" && mkdir -p "${HS}"
 check_side_deps
 stamp "extract TP${EXTRACT_TP} on ${EXTRACT_GPUS}, layers ${LAYERS}"
 t0=$(date +%s)
-CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 "${REPO_ROOT}/methods/dspark/beverin/run_launch_vllm.py" \
-  "${SPECULATORS}" train "${TARGET_MODEL}" \
+CUDA_VISIBLE_DEVICES="${EXTRACT_GPUS}" setsid python3 "${REPO_ROOT}/methods/dspark/beverin/apertus15_run.py" \
+  "${SPECULATORS}/scripts/launch_vllm.py" train "${TARGET_MODEL}" \
   --target-layer-ids ${LAYERS} --hidden-states-backend file --hidden-states-path "${HS}" \
   --provenance-dir "${RUN}" -- \
   --tensor-parallel-size "${EXTRACT_TP}" --enforce-eager --trust-remote-code \
