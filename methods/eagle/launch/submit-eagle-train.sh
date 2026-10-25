@@ -32,6 +32,8 @@ CHAIN="${EAGLE_CHAIN:-1}"
 # EAGLE_NODES=N trains on N nodes (training.data_parallel ranks per node): the
 # batch script runs outside the container and srun starts one container per node.
 NODES="${EAGLE_NODES:-1}"
+# EAGLE_RETRIES=N tries training up to N times inside one allocation (see train_once).
+RETRIES="${EAGLE_RETRIES:-3}"
 if [ "${CHAIN}" -gt 1 ] && [ -z "${RUN_ID}" ]; then RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"; fi
 # e.g. EAGLE_DEPENDENCY=afterok:3505554 so a stage starts only after its gate job passed.
 DEPENDENCY="${EAGLE_DEPENDENCY:-}"
@@ -120,6 +122,7 @@ export PYTHONNOUSERSITE=1
 export PYTHONUNBUFFERED=1
 # No percent-strftime in this body: pyxis --environment sbatch mangled one (job 3491998).
 echo "START \$(date -u -Iseconds) host=\$(hostname) job=\${SLURM_JOB_ID} nodes=${NODES}"
+train_once() {
 $(if [ "${NODES}" = 1 ]; then
   echo "bash ${REPO_ROOT}/methods/eagle/launch/train-eagle-on-node.sh"
 else
@@ -130,7 +133,24 @@ srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} \\
   bash ${REPO_ROOT}/methods/eagle/launch/train-eagle-on-node.sh
 MULTI
 fi)
-echo "END \$(date -u -Iseconds)"
+}
+# A crash (not 0 = done, not 4 = saved at the deadline) relaunches on the same nodes
+# from the last resume checkpoint instead of giving the allocation back to the queue.
+attempt=1
+while :; do
+  set +e; train_once; rc=\$?; set -e
+  if [ "\${rc}" = 0 ] || [ "\${rc}" = 4 ]; then break; fi
+  left=\$(( EAGLE_STOP_AT - \$(date +%s) ))
+  if [ "\${attempt}" -ge ${RETRIES} ] || [ "\${left}" -lt 1800 ]; then
+    echo "END \$(date -u -Iseconds) rc=\${rc} attempts=\${attempt}"
+    exit "\${rc}"
+  fi
+  echo "RETRY \$(date -u -Iseconds) rc=\${rc} attempt=\${attempt} left_s=\${left}"
+  attempt=\$(( attempt + 1 ))
+  sleep 30
+done
+echo "END \$(date -u -Iseconds) rc=\${rc}"
+exit "\${rc}"
 SBATCH
 
 bash -n "${SBATCH_FILE}"
