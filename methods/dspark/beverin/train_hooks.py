@@ -15,6 +15,13 @@ def install():
     import speculators.train.distributed as distributed
     from speculators.train.trainer import Trainer
 
+    blas_backend = os.environ.get("BEVERIN_BLAS_BACKEND")
+    if blas_backend:
+        # PyTorch keeps the CUDA API names on ROCm: cublas selects rocBLAS,
+        # whereas cublaslt selects hipBLASLt. The latter is very slow for
+        # gathered DTensor inputs in the v0.31 image on Beverin.
+        torch.backends.cuda.preferred_blas_library(blas_backend)
+
     reduce_dtype = os.environ.get("BEVERIN_REDUCE_DTYPE", "fp32")
     if reduce_dtype not in ("fp32", "bf16"):
         raise ValueError(f"Invalid BEVERIN_REDUCE_DTYPE: {reduce_dtype}")
@@ -97,4 +104,5 @@ def install():
         "segment_steps": segment_steps,
         "empty_cache_on_save": os.environ.get("BEVERIN_EMPTY_CACHE_ON_SAVE", "0"),
         "profile_steps": profile_steps,
+        "blas_backend": str(torch.backends.cuda.preferred_blas_library()),
     }), flush=True)
