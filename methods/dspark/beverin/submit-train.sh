@@ -37,7 +37,7 @@ pass_env() {
            LAYERS EXTRACT_MEM EXTRACT_FLAGS PY_PRELUDE MAX_STEPS MAX_ATTEMPTS WORKERS PREFETCH STALL_MINUTES \
            PYTORCH_HIP_ALLOC_CONF BEVERIN_REDUCE_DTYPE BEVERIN_SEGMENT_STEPS BEVERIN_PILOT_RESUME \
            BEVERIN_EMPTY_CACHE_ON_SAVE BEVERIN_PROFILE_STEPS BEVERIN_NCCL_PROTO \
-           BEVERIN_NCCL_MIN_NCHANNELS BEVERIN_NCCL_NCHANNELS_PER_NET_PEER NCCL_DEBUG NCCL_DEBUG_SUBSYS; do
+           BEVERIN_NCCL_MIN_NCHANNELS BEVERIN_NCCL_NCHANNELS_PER_NET_PEER NCCL_DEBUG NCCL_DEBUG_SUBSYS DATA_PROVENANCE; do
     if [ -n "${!v+x}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -72,6 +72,11 @@ scontrol show job "\${SLURM_JOB_ID}" > "\${BEVERIN_DEPLOYMENT}/slurm-job.txt"
 git -C "\${SPECULATORS}" rev-parse HEAD > "\${BEVERIN_DEPLOYMENT}/speculators-revision.txt"
 git -C "\${SPECULATORS}" diff HEAD > "\${BEVERIN_DEPLOYMENT}/speculators.patch"
 sha256sum "\${DATA}/state.json" "\${DATA}/dataset_info.json" > "\${BEVERIN_DEPLOYMENT}/dataset-metadata.sha256"
+if [ -n "\${DATA_PROVENANCE:-}" ]; then
+  cp -r "\${DATA_PROVENANCE}" "\${BEVERIN_DEPLOYMENT}/data-provenance"
+fi
+python3 "\${REPO_ROOT}/methods/dspark/beverin/audit_train.py" start \\
+  --work "\${WORK}" --run-id "\${RUN_ID}" --job-id "\${SLURM_JOB_ID}"
 sha256sum "$(sed -n 's|^image = "\(.*\)"|\1|p' "${EDF}")" > "\${BEVERIN_DEPLOYMENT}/container.sha256" &
 image_hash_pid=\$!
 # The trainer saves and exits STOP_MARGIN s before the time limit
@@ -82,6 +87,10 @@ rc=0
 srun --ntasks-per-node=1 --environment=${EDF} --export=ALL \\
   bash "\${REPO_ROOT}/methods/dspark/beverin/train-node.sh" || rc=\$?
 wait "\${image_hash_pid}"
+audit_rc=0
+python3 "\${REPO_ROOT}/methods/dspark/beverin/audit_train.py" finish \\
+  --work "\${WORK}" --run-id "\${RUN_ID}" --job-id "\${SLURM_JOB_ID}" --return-code "\${rc}" || audit_rc=\$?
+[ "\${rc}" != 0 ] || rc=\${audit_rc}
 echo "FINISH \$(date -u -Iseconds) rc=\${rc}"
 exit "\${rc}"
 SBATCH
