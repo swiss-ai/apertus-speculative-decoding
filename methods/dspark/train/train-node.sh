@@ -182,7 +182,14 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS:-10}"); do
   kill "${monitor}" 2> /dev/null || true
   stamp "torchrun rc=${rc} (attempt ${attempt}) wall=$(( $(date +%s) - t0 ))s; checkpoints: $(ls "${CKPT}" 2> /dev/null | tail -3 | tr '\n' ' ')"
   grep -oE "val/eal_epoch=[0-9.]+" "${LOG}/train-${tag}-node${NODE_RANK}.log" | tail -3 | paste -sd" " || true
-  [ "${rc}" = 0 ] && break
+  if [ "${rc}" = 0 ]; then
+    if [ "${BEVERIN_PILOT_RESUME:-0}" = 1 ] && [ "${attempt}" = 1 ]; then
+      stamp "PILOT_RESUME: restarting trainer with extraction server kept up"
+      cp "${CKPT}/0/training_state.json" "${LOG}/pilot-first-save-${JOB}.json"
+      continue
+    fi
+    break
+  fi
   left=$(( ${DSPARK_STOP_AT:-$(( $(date +%s) + 86400 ))} - $(date +%s) ))
   if [ "${left}" -lt 1800 ]; then
     stamp "no time for another attempt (${left}s before the deadline stop)"

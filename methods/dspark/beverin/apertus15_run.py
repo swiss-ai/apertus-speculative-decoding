@@ -17,6 +17,10 @@ import apertus15_text
 apertus15_text.register_config()
 if sys.argv[1] == "-m":
     module = sys.argv[2]
+    if module == "speculators.train":
+        from train_hooks import install
+
+        install()
     sys.argv = [module, *sys.argv[3:]]
     runpy.run_module(module, run_name="__main__", alter_sys=True)
 else:

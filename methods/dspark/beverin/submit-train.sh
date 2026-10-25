@@ -35,7 +35,9 @@ pass_env() {
   local v
   for v in DSPARK_DIR SPECULATORS SIDE_DEPS DATA RUN_ID SEQ ANCHORS LR EPOCHS CKPT_FREQ DSPARK_DTENSOR_ALLGATHER \
            LAYERS EXTRACT_MEM EXTRACT_FLAGS PY_PRELUDE MAX_STEPS MAX_ATTEMPTS WORKERS PREFETCH STALL_MINUTES \
-           PYTORCH_HIP_ALLOC_CONF; do
+           PYTORCH_HIP_ALLOC_CONF BEVERIN_REDUCE_DTYPE BEVERIN_SEGMENT_STEPS BEVERIN_PILOT_RESUME \
+           BEVERIN_EMPTY_CACHE_ON_SAVE BEVERIN_PROFILE_STEPS BEVERIN_NCCL_PROTO \
+           BEVERIN_NCCL_MIN_NCHANNELS BEVERIN_NCCL_NCHANNELS_PER_NET_PEER NCCL_DEBUG NCCL_DEBUG_SUBSYS; do
     if [ -n "${!v+x}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -60,16 +62,28 @@ export REPO_ROOT=${REPO_ROOT}
 $(pass_env)
 echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} edf=${EDF}"
 cat "\${REPO_ROOT}/REVISION" 2> /dev/null || true
-sha256sum "$(sed -n 's|^image = "\(.*\)"|\1|p' "${EDF}")" 2> /dev/null | cut -c1-64 | sed 's/^/image sha256 /' &
+export WORK=${WORK}
+export BEVERIN_DEPLOYMENT="\${WORK}/runs/\${RUN_ID}/deployments/\${SLURM_JOB_ID}"
+mkdir -p "\${BEVERIN_DEPLOYMENT}"
+cp "\$0" "\${BEVERIN_DEPLOYMENT}/launch.sbatch"
+cp "${EDF}" "\${BEVERIN_DEPLOYMENT}/environment.toml"
+cp "\${REPO_ROOT}/REVISION" "\${BEVERIN_DEPLOYMENT}/repo-revision.txt"
+scontrol show job "\${SLURM_JOB_ID}" > "\${BEVERIN_DEPLOYMENT}/slurm-job.txt"
+git -C "\${SPECULATORS}" rev-parse HEAD > "\${BEVERIN_DEPLOYMENT}/speculators-revision.txt"
+git -C "\${SPECULATORS}" diff HEAD > "\${BEVERIN_DEPLOYMENT}/speculators.patch"
+sha256sum "\${DATA}/state.json" "\${DATA}/dataset_info.json" > "\${BEVERIN_DEPLOYMENT}/dataset-metadata.sha256"
+sha256sum "$(sed -n 's|^image = "\(.*\)"|\1|p' "${EDF}")" > "\${BEVERIN_DEPLOYMENT}/container.sha256" &
+image_hash_pid=\$!
 # The trainer saves and exits STOP_MARGIN s before the time limit
 # (speculators-deadline-stop.patch).
 export DSPARK_STOP_AT=\$(( \$(date +%s) + ${LIMIT_S} - ${STOP_MARGIN:-2400} ))
 export HEAD_NODE=\$(scontrol show hostnames "\${SLURM_JOB_NODELIST}" | head -1)
-srun --ntasks-per-node=1 --environment=${EDF} --export=ALL bash -c '
-  . "\${REPO_ROOT}/methods/dspark/beverin/env.sh"
-  ( while sleep 10; do echo "\$(date -u +%FT%TZ) \$(free -g | awk "/Mem:/ {print \"used_gb=\" \\\$3 \" avail_gb=\" \\\$7}")"; done ) \\
-    > "\${WORK}/logs/mem-\${SLURM_JOB_ID}-node\${SLURM_NODEID}.log" &
-  exec bash "\${REPO_ROOT}/methods/dspark/train/train-node.sh"'
+rc=0
+srun --ntasks-per-node=1 --environment=${EDF} --export=ALL \\
+  bash "\${REPO_ROOT}/methods/dspark/beverin/train-node.sh" || rc=\$?
+wait "\${image_hash_pid}"
+echo "FINISH \$(date -u -Iseconds) rc=\${rc}"
+exit "\${rc}"
 SBATCH
 
 dep="${DEPENDENCY:-}"
