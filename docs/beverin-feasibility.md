@@ -4,7 +4,9 @@ Question: can the DSpark 70B training (online hidden-state extraction from
 Apertus-v1.5-70B + speculators trainer, `methods/dspark/train/`) run on CSCS
 Beverin's `mi300` partition instead of Clariden's saturated `normal` partition?
 
-**Verdict: feasible with work.** On one MI300A node the 70B served
+**Update 2026-10-25: the 16-node pilot trained and saved but ran at ~200 s per
+step against Clariden's 4.1 s, so the epoch run was not launched (see "16-node
+pilot").** Original verdict of the one-node check: **feasible with work.** On one MI300A node the 70B served
 correctly in a public ROCm vLLM image. The extraction server produced hidden
 states that pass `check_hidden_states.py` at Clariden's level (0.980 and 0.978
 top-1 agreement vs 0.983). The unchanged Clariden `train-node.sh` also trained
@@ -209,6 +211,69 @@ Even at a quarter of the planned per-rank batch, the two trainer GPUs held
 unsharded) and the allocator cache, which on MI300A is node memory too. The
 extraction GPUs held 85–89 GiB at `EXTRACT_MEM` 0.62. Saves on one node
 therefore succeed or fail by a few GB.
+
+## 16-node pilot (2026-10-25): runs, saves, but ~50× too slow
+
+Settings as Clariden's 16-node run (`opb-thinkoff-16n`): same data, 32 ranks
+(TP2 extraction on GPUs 0,1 and 2 trainer ranks on GPUs 2,3 per node), SEQ
+8192, 512 anchors, LR 6e-4, 10-epoch schedule, all-gather Muon
+(`DSPARK_DTENSOR_ALLGATHER=1`), layers `1 20 39 58 77`, speculators 7046ac6 +
+all five patches (rebuilt from `patches/`, identical to the Clariden copy).
+Image `vllm-openai-rocm-v0.31.0.sqsh` + `apertus15_text`, stock server flags,
+`EXTRACT_MEM` 0.62. Submitted by `methods/dspark/beverin/submit-train.sh`
+(run `opb-thinkoff-16n-beverin-pilot`, `CKPT_FREQ` 0.025, 2 h 45 min, deadline
+stop 40 min before the end).
+
+| | Beverin pilot 693916 | Clariden 16-node (all-gather) |
+|---|---|---|
+| all 16 extraction servers up | 27 min after start (concurrent loads from capstor; first node 10 min) | — |
+| step time, steady (steps 1–29) | **191–214 s** | 4.09 s |
+| forward / backward / optimizer | 0.9 s / 54–58 s / 136–151 s | 0.56 s / 0.81 s / 2.6 s |
+| steps in 1 h 47 min of training | 30 | — |
+| one epoch (~8,300 steps) | **~19 days** | ~9.5 h |
+| node memory while training | 360–372 GB of 501 | — |
+| deadline-stop save at step 30 | **OK**, ~1 min, 25.5 GB; peak 424 GB on node 0, ≤390 GB elsewhere (10 s sampling) | — |
+| hang / stall | none (rc 0, no STALL) | — |
+
+Trainer GPUs held 50–55 GiB and extraction GPUs ~85 GiB, close to the
+memory estimate below. Memory is not the problem at 16 nodes.
+
+The time goes to inter-node communication inside training, not compute:
+
+- 1 node, 2 ranks (693757): backward 0.56 s, Muon 3.4 s.
+- 2 nodes, 4 ranks, same settings (693946, all-gather Muon): backward 50 s,
+  Muon 130 s, 181 s per step. 693947 (all-to-all Muon) also took 75 s backward
+  and 132 s Muon on its first step. The slowdown does not grow with node count
+  (2 → 16) and does not depend on the Muon mode.
+- Microbenchmarks of the same collectives in the same image and layout (2
+  ranks per node on GPUs 2,3, bf16 and fp32) run at full speed. On 4 nodes
+  (693943, 693944) all-reduce, all-gather and reduce-scatter reach ~68 GB/s
+  and all-to-all ~20 GB/s. `FI_MR_CACHE_MONITOR=disabled` made no
+  difference.
+- With a fresh allocation per call (new buffer addresses), 512 MiB
+  reduce-scatter and all-gather drop to 6–9 GB/s (693957–693960; includes the
+  allocation itself). `OFI_NCCL_DISABLE_DMABUF=1`, `FI_MR_CACHE_MONITOR=disabled`
+  and `PYTORCH_HIP_ALLOC_CONF=expandable_segments:True` did not help. This
+  points at buffer registration with the network on MI300A, but it does not
+  explain a 100× gap, so the cause is still open.
+- SIGUSR1 stack dumps (speculators-stack-dump.patch) did not appear in the
+  trainer log when sent by hand, so the stacks are unknown.
+
+Not done: a resume within the 16-node allocation. At ~200 s per step it would
+not change the verdict, and the one-node resume (693792) worked. The epoch
+run (`opb-thinkoff-16n-beverin`) was **not launched**.
+
+Next steps, if Beverin is still wanted:
+1. Profile two nodes (torch profiler or `NCCL_DEBUG=INFO
+   NCCL_DEBUG_SUBSYS=NET,REG,COLL`, plus the aws-ofi MR-cache hit counts) to
+   see which collective is slow, and whether it is registration, a host
+   bounce, or proxy progress.
+2. Try FSDP2 without fp32 gradient reduction (bf16 reduce-scatter), RCCL
+   `NCCL_PROTO`/channel settings, and the netstack `host` source with the
+   `rocm6` plugin (`com.hooks.netstack.source = "host"`) instead of the
+   rocm7 artifact.
+3. Ask CSCS support: RCCL inside PyTorch FSDP across MI300A nodes, collectives
+   ~100× slower than rccl-tests-style loops.
 
 ## Memory budget for the planned 16-node layout (estimate, not measured)
 
