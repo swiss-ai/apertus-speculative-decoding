@@ -83,7 +83,14 @@ start_server() {
 }
 server=""
 trap 'kill ${smi} ${mon} 2> /dev/null || true; [ -n "${server}" ] && stop_server ${server}' EXIT
-start_server || exit 1
+server_ready=0
+for server_attempt in $(seq 1 "${EXTRACT_START_ATTEMPTS:-1}"); do
+  if start_server; then server_ready=1; break; fi
+  stop_server "${server}" || true
+  stamp "EXTRACTION_RETRY: attempt ${server_attempt} failed; keeping allocation"
+  sleep 30
+done
+[ "${server_ready}" = 1 ] || exit 1
 
 if [ -n "${CHECK_ROWS:-}" ]; then
   python3 "${REPO_ROOT}/methods/dspark/train/check_hidden_states.py" \
