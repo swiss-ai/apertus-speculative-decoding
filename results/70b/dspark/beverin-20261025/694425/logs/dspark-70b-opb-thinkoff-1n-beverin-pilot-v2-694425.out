@@ -1,0 +1,14 @@
+START 2026-10-25T12:16:45+00:00 job=694425 nodes=nid003034 edf=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-c977af19/methods/dspark/beverin/env-vllm031.toml
+c977af19
+=== [2026-10-25T12:17:39Z] nid003034 node 0/1 head=nid003034 run=opb-thinkoff-1n-beverin-pilot-v2 data=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/data extract=0,1 (TP2) train=2,3 rdzv_threshold=0 dtensor_allgather=1
+=== [2026-10-25T12:37:31Z] nid003034 extraction server up on 8001
+=== [2026-10-25T12:37:31Z] nid003034 all 1 extraction servers up
+=== [2026-10-25T12:37:31Z] nid003034 torchrun start (attempt 1)
+=== [2026-10-25T13:30:06Z] nid003034 torchrun rc=0 (attempt 1) wall=3155s; checkpoints: run.yaml speculators.patch train_command.txt 
+
+=== [2026-10-25T13:30:06Z] nid003034 PILOT_RESUME: restarting trainer with extraction server kept up
+=== [2026-10-25T13:30:07Z] nid003034 torchrun start (attempt 2)
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+[2026-10-25T14:46:47.013] error: *** STEP 694425.0 ON nid003034 CANCELLED AT 2026-10-25T14:46:47 DUE TO TIME LIMIT ***
+[2026-10-25T14:46:47.014] error: *** JOB 694425 ON nid003034 CANCELLED AT 2026-10-25T14:46:47 DUE TO TIME LIMIT ***
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-c977af19/methods/dspark/train/common.sh: line 91: /usr/bin/seq: Transport endpoint is not connected

@@ -1,0 +1,213 @@
+diff --git a/src/speculators/model.py b/src/speculators/model.py
+index e7d50ed..78b21d3 100644
+--- a/src/speculators/model.py
++++ b/src/speculators/model.py
+@@ -44,12 +44,16 @@ class DraftVocabMixin(nn.Module):
+         tl_config = config.transformer_layer_config
+         self.draft_vocab_size = config.draft_vocab_size
+         self.verifier_vocab_size = tl_config.vocab_size
++        # pruned output head support: heads and t2d follow the output vocab, embeddings keep the input vocab
++        self.verifier_output_vocab_size = (
++            getattr(tl_config, "output_vocab_size", None) or tl_config.vocab_size
++        )
+         self.hidden_size = tl_config.hidden_size
+-        self.use_draft_vocab = self.draft_vocab_size != self.verifier_vocab_size
++        self.use_draft_vocab = self.draft_vocab_size != self.verifier_output_vocab_size
+         t2d: torch.Tensor | None = None
+         d2t: torch.Tensor | None = None
+         if self.use_draft_vocab:
+-            t2d = torch.zeros((self.verifier_vocab_size,), dtype=torch.bool)
++            t2d = torch.zeros((self.verifier_output_vocab_size,), dtype=torch.bool)
+             d2t = torch.zeros((self.draft_vocab_size,), dtype=torch.long)
+         self.register_buffer("t2d", t2d)
+         self.register_buffer("d2t", d2t)
+@@ -101,10 +105,10 @@ class DraftVocabMixin(nn.Module):
+             # checkpoint that does not prune the vocabulary.
+             return
+ 
+-        if t2d.shape[0] != self.verifier_vocab_size:
++        if t2d.shape[0] != self.verifier_output_vocab_size:
+             raise ValueError(
+                 f"t2d.shape[0] ({t2d.shape[0]}) must match"
+-                f" verifier_vocab_size ({self.verifier_vocab_size})."
++                f" verifier_output_vocab_size ({self.verifier_output_vocab_size})."
+             )
+         if int(t2d.sum(dtype=torch.long).item()) != self.draft_vocab_size:
+             raise ValueError(
+diff --git a/src/speculators/train/__main__.py b/src/speculators/train/__main__.py
+index c3d2c23..254e9b5 100644
+--- a/src/speculators/train/__main__.py
++++ b/src/speculators/train/__main__.py
+@@ -1,7 +1,41 @@
+ """Enable ``torchrun -m speculators.train config.yaml``."""
+ 
++import faulthandler
++import os
++import signal
++
+ from speculators.train.cli import main
+ from speculators.train.config import TrainConfig
+ 
++
++def _shard_dim_alltoall_via_allgather() -> None:
++    """Redistribute DTensor shards with all-gather + chunk instead of all-to-all.
++
++    torch's own CPU fallback for shard_dim_alltoall, used here on GPUs: the same
++    result with a different collective. Opt-in (DSPARK_DTENSOR_ALLGATHER=1) for
++    when NCCL all-to-all hangs, as in Muon's FSDP Newton-Schulz on Alps.
++    """
++    import torch
++    import torch.distributed._functional_collectives as funcol
++    from torch.distributed.tensor import _collective_utils, placement_types
++
++    def shard_dim_alltoall(input, gather_dim, shard_dim, mesh, mesh_dim):
++        out = funcol.all_gather_tensor(input, gather_dim, (mesh, mesh_dim))
++        if isinstance(out, funcol.AsyncCollectiveTensor):
++            out = out.wait()
++        out = torch.chunk(out, mesh.size(mesh_dim), dim=shard_dim)[
++            mesh.get_local_rank(mesh_dim)
++        ]
++        return out.contiguous()
++
++    _collective_utils.shard_dim_alltoall = shard_dim_alltoall
++    placement_types.shard_dim_alltoall = shard_dim_alltoall
++
++
+ if __name__ == "__main__":
++    # SIGUSR1 prints every thread's stack to stderr; forked dataloader workers
++    # inherit it. Lets a stall monitor show where a hung rank waits.
++    faulthandler.register(signal.SIGUSR1, all_threads=True)
++    if os.environ.get("DSPARK_DTENSOR_ALLGATHER") == "1":
++        _shard_dim_alltoall_via_allgather()
+     main(TrainConfig.resolve())
+diff --git a/src/speculators/train/cli.py b/src/speculators/train/cli.py
+index 7d2472b..1dd7dfc 100644
+--- a/src/speculators/train/cli.py
++++ b/src/speculators/train/cli.py
+@@ -192,12 +192,16 @@ def create_transformer_layer_config(  # noqa: C901
+         max_position_embeddings=verifier_config.max_position_embeddings,
+         initializer_range=verifier_config.initializer_range,
+         rms_norm_eps=verifier_config.rms_norm_eps,
+-        head_dim=head_dim,
++        head_dim=resolved_head_dim,  # verifier configs without an explicit head_dim (Apertus)
+         tie_word_embeddings=False,
+         sliding_window=sliding_window,
+         use_sliding_window="sliding_attention" in layer_types,
+         layer_types=layer_types,
+     )
++    # pruned output head support: draft embedding keeps the input vocab, heads follow the output head
++    _ov = getattr(verifier_config, "output_vocab_size", None)
++    if _ov:
++        config.output_vocab_size = int(_ov)
+ 
+     # New rope parameters definition introduced in transformers 5.0
+     if version.parse(transformers.__version__) >= version.parse("5.0.0"):
+@@ -403,7 +407,7 @@ def parse_vocab_mappings(args: argparse.Namespace):
+                 )
+                 if hasattr(verifier_config, "text_config"):
+                     verifier_config = verifier_config.text_config
+-                result = None, None, verifier_config.vocab_size
++                result = None, None, (getattr(verifier_config, "output_vocab_size", None) or verifier_config.vocab_size)
+ 
+     if is_distributed():
+         payload = [result]
+diff --git a/src/speculators/train/distributed.py b/src/speculators/train/distributed.py
+index 7291bef..6796282 100644
+--- a/src/speculators/train/distributed.py
++++ b/src/speculators/train/distributed.py
+@@ -153,7 +153,7 @@ def maybe_setup_distributed(sp_size: int = 1) -> None:
+     if acc is None:
+         raise ValueError("No accelerator found")
+     backend = torch.distributed.get_default_backend_for_device(acc)
+-    dist.init_process_group(backend, device_id=local_rank)
++    dist.init_process_group(backend, device_id=local_rank, timeout=__import__("datetime").timedelta(minutes=float(__import__("os").environ.get("SPEC_PG_TIMEOUT_MIN", "60"))))  # patched: survive extraction-server stalls
+ 
+     _rank = dist.get_rank()
+     _world_size = dist.get_world_size()
+diff --git a/src/speculators/train/trainer.py b/src/speculators/train/trainer.py
+index 01ed9e5..21013c9 100644
+--- a/src/speculators/train/trainer.py
++++ b/src/speculators/train/trainer.py
+@@ -1,5 +1,7 @@
++import faulthandler
+ import json
+ import logging
++import os
+ import time
+ import warnings
+ from pathlib import Path
+@@ -577,6 +579,11 @@ class Trainer:
+                     extra={"step": self.global_step},
+                 )
+             self.global_step += 1
++            # Re-armed every step: if the next one does not finish in time, a C
++            # watchdog thread prints every thread's stack (where a stalled rank waits).
++            faulthandler.dump_traceback_later(
++                int(os.environ.get("DSPARK_STALL_DUMP_S", "600")), exit=False
++            )
+ 
+             if (
+                 self.config.max_steps is not None
+@@ -584,6 +591,18 @@ class Trainer:
+             ):
+                 break
+ 
++            if self._deadline_reached():
++                # Stop at a step boundary before the job's time limit and save a
++                # mid-epoch checkpoint the next job resumes from exactly.
++                root_logger.info(
++                    f"DSPARK_STOP_AT reached at epoch {epoch} step {local_step}: "
++                    "saving and exiting for the next job"
++                )
++                self.maybe_save_checkpoint(epoch, local_step=local_step)
++                if self.is_distributed:
++                    dist.barrier()
++                raise SystemExit(0)
++
+             if (
+                 step_interval is not None
+                 and not self.config.save_best
+@@ -654,7 +673,23 @@ class Trainer:
+ 
+         return val_metrics
+ 
++    def _deadline_reached(self) -> bool:
++        """True on every rank once rank 0's clock passes DSPARK_STOP_AT (unix s).
++
++        Checked every 10 steps; global_step is equal on all ranks, so all ranks
++        take part in the same all-reduce and stop at the same step.
++        """
++        stop_at = os.environ.get("DSPARK_STOP_AT")
++        if not stop_at or self.global_step % 10:
++            return False
++        late = float(self.rank == 0 and time.time() >= float(stop_at))
++        flag = torch.tensor([late], device=torch.cuda.current_device())
++        if self.is_distributed:
++            dist.all_reduce(flag, op=dist.ReduceOp.MAX)
++        return bool(flag.item())
++
+     def maybe_save_checkpoint(self, epoch: int | str, local_step: int = 0):
++        faulthandler.cancel_dump_traceback_later()  # saves may take long
+         if epoch != "interrupted" and (
+             self.config.save_best
+             or (
+@@ -732,6 +767,7 @@ class Trainer:
+                 root_logger.warning("No val loader, skipping validation epoch")
+             else:
+                 root_logger.info(f"Validation epoch {epoch + 1}/{n_epochs} started")
++                faulthandler.cancel_dump_traceback_later()
+                 val_metrics = self.val_epoch(epoch)
+                 root_logger.info(f"Validation epoch {epoch + 1}/{n_epochs} completed")
+ 
+diff --git a/src/speculators/train/vocab_mapping.py b/src/speculators/train/vocab_mapping.py
+index cf79271..c181e8d 100644
+--- a/src/speculators/train/vocab_mapping.py
++++ b/src/speculators/train/vocab_mapping.py
+@@ -122,4 +122,5 @@ def get_target_vocab_size(
+     if hasattr(config, "text_config"):
+         config = config.text_config
+ 
+-    return config.vocab_size
++    # pruned output head (Apertus 1.5: 266,752 input ids, 131,072 output rows)
++    return getattr(config, "output_vocab_size", None) or config.vocab_size
+\ No newline at end of file

@@ -275,6 +275,201 @@ Next steps, if Beverin is still wanted:
 3. Ask CSCS support: RCCL inside PyTorch FSDP across MI300A nodes, collectives
    ~100× slower than rccl-tests-style loops.
 
+## Handoff continuation (2026-10-25)
+
+User confirmed **LR 1.5e-4** for the one-node, 16,384-token step. No Clariden
+commands were run. Its jobs and checkouts were left untouched.
+
+### Outcome: production run started; rocBLAS fixes the slow training path
+
+The production pilot **694469** completed normally in 37 minutes, saving at
+step **20**, resuming exactly from 20, and saving again at **40**. Its
+38 steady samples (excluding the first step of each attempt) have median
+**12.45 s/step**. Backward is **0.674 s** and Muon/AdamW optimizer work
+**2.89 s**, compared with ~56 s and ~222 s in the one-node hipBLASLt run.
+Target-feature production now limits much of the step; median fetch is
+6.285 s with one worker and prefetch 1. These phase medians are not additive.
+
+The ten-second memory log's peak during the first save was **382 GiB** with
+at least **104 GiB available**, and during the resumed save **403 GiB** with
+at least **83 GiB available**. Across the entire pilot the sampled peak was
+**407 GiB**, minimum available **77 GiB**. These are the container's
+`free -g` fields, not a claim about unobserved sub-ten-second peaks.
+
+The ten-epoch run is **`opb-thinkoff-1n-beverin`**, LR **1.5e-4**, with seven
+24-hour continuations **694472–694478**. They were held until save/resume and
+memory checks passed, then released at 15:40 UTC on 2026-10-25. Job **694472**
+started on `nid002988`; its successors depend on the prior link finishing.
+Each link writes a progress/resume audit. This initial chain covers seven
+days, not the entire ten-epoch schedule. Further continuations use the same
+run ID and must depend on 694478 while this chain remains queued/running.
+The measured 141,472-step epoch at 12.45 s/step is approximately **20.4 days**
+before validation and restart overhead, rather than the initial eight-day
+estimate. The memory-safe worker/prefetch settings are retained.
+
+The matching two-node rocBLAS pilot **694470** also completed and saved.
+Its five steady samples have median **14.8 s/step**, versus **183 s** in the
+otherwise matching hipBLASLt baseline: backward **0.674 s**, optimizer
+**2.99 s**, and forward **9.27 s**. The CPU profiler serializes/times GPU
+work, and hidden-state production can be charged to different phase
+boundaries; the full-step median is the useful comparison. Node 0 and node 1
+each peaked at **364 GiB**, with **120 GiB** minimum available. **The large
+slowdown is removed; no training run above two nodes was launched.**
+
+The workaround is trainer-only:
+`BEVERIN_BLAS_BACKEND=cublas` calls
+`torch.backends.cuda.preferred_blas_library("cublas")` on ROCm, selecting
+rocBLAS instead of the image's default hipBLASLt. Extraction keeps the same
+v0.31 server and model path, including working chunked prefill/prefix
+caching. This changes the GEMM backend; it leaves the drafter recipe,
+precision policy, optimizer and dataset unchanged. Both the environment
+setting and runtime hook source are in the provenance.
+
+### Memory and one-node save/resume pilots
+
+The full-context pilot retains SEQ 8192, 512 anchors, the ten-epoch schedule,
+TP2 extraction on GPUs 0,1 and two FSDP trainer ranks on GPUs 2,3. Host
+memory mitigations: `WORKERS=1`, `PREFETCH=1` (previously 4/2), one API
+process and one renderer worker (rather than the launcher's automatic 9/2),
+and collection of Python garbage plus release of unused HIP allocator blocks
+before a checkpoint save. Model, loss, optimizer, context and batch are
+unchanged. A Beverin-only step-boundary hook forces an early mid-epoch save,
+then restarts torchrun **within the allocation with the extraction server
+kept up**. It preserves the ten-epoch LR schedule and avoids `MAX_STEPS`,
+which would enter a full validation pass.
+
+`EXTRACT_MEM=0.56` was too low: vLLM failed with "No available memory for the
+cache blocks" before training. Job 694384 failed this way; diagnostic jobs
+694385 and 694389 inherited the same setting and also failed before training.
+Queued jobs 694390–694393 were held and cancelled before allocation, then
+replaced. **0.62 is retained** for all replacement jobs. The initial launcher
+returned allocations on extraction startup failure; the updated Beverin
+wrapper retries startup up to three times in the allocation. Trainer retries
+continue to preserve the extraction servers as before.
+
+| Job | Run / image | Result |
+|---|---|---|
+| 694384 | `opb-thinkoff-1n-beverin-pilot`, v0.31, extraction memory 0.56 | no KV-cache space; no training |
+| 694425 | `opb-thinkoff-1n-beverin-pilot-v2`, v0.31 | ~279 s/step; saved at 10 and logged resume; reached 90-minute limit |
+| 694435 | `opb-thinkoff-1n-beverin-pilot-v023`, v0.23 | saved at 20, resumed to 40; 11.35 s/step combined steady median; peak 430 GiB, minimum available 71 GiB |
+| 694469 | `opb-thinkoff-1n-beverin`, v0.31 + rocBLAS | save/resume passed; 12.45 s/step; production checkpoint at 40 |
+
+**The previous one-node / multi-node comparison was confounded by the
+image.** The 4.6 s reference used vLLM 0.23 / torch 2.11, whereas the slow
+multi-node pilot used vLLM 0.31 / torch 2.13. The current v0.31 one-node
+measurement has backward ~56 s and optimizer ~222 s. This substantially
+changes the diagnosis: crossing the node boundary is not necessary for the
+slowdown. Memory during that run is around 399 GiB, so it is not at the
+physical limit.
+
+### Two-node profiling and isolated fixes
+
+All replacement diagnostic runs use SEQ 8192, 512 anchors per rank, the same
+0.62 extraction memory and 1/1 workers/prefetch, six training steps, and
+separate run/checkpoint directories. They have 90-minute limits and
+`--nice=10000`; the one-node pilot was allocated first. The matrix launcher
+supports bounded lanes (default two). Six lanes were used with the observed
+spare capacity; every training trial still uses only two nodes. The MR test
+replaced the failed host-netstack trial's slot, with its original baseline
+completion dependency removed and recorded in `logs/schedule-change-694432.txt`.
+No larger training allocation was launched.
+
+Steady timings below exclude the first compiling step; each median has five
+samples. The baseline additionally captured three CPU torch-profiler steps.
+All tests record `NCCL_DEBUG=INFO NCCL_DEBUG_SUBSYS=INIT,NET,REG,COLL`.
+Overrides are applied **after** the enroot hook, which otherwise overwrites
+several of these settings.
+
+| Job | Change from baseline | Median step / backward / optimizer (s) |
+|---|---|---|
+| 694426 | v0.31 baseline + CPU profiler | **183 / 51.8 / 128** |
+| 694427 | FSDP `MixedPrecisionPolicy(reduce_dtype=torch.bfloat16)` | **193 / 55.3 / 136** |
+| 694428 | `NCCL_PROTO=Simple` | **178 / 51.5 / 123** |
+| 694429 | `NCCL_MIN_NCHANNELS=16` | **179 / 51.9 / 127** |
+| 694430 | `NCCL_NCHANNELS_PER_NET_PEER=8` | **181 / 50.3 / 130** |
+| 694431 | host netstack, rocm6 plugin | fails before serving: injected `libselinux.so.1` requires GLIBC_2.38; image libc lacks it |
+| 694432 | `FI_MR_CACHE_MONITOR=disabled`, applied inside container | **175 / 48.3 / 126** |
+| 694436 | v0.23 / torch 2.11, otherwise matching settings | **16.1 / 0.822 / 3.16**; saved at 6 |
+| 694440 | isolated 1- and 2-node sharded-matmul comparison, both images | completed; see below |
+| 694470 | v0.31 + trainer rocBLAS, two profiled steps | **14.8 / 0.674 / 2.99**; saved at 6 |
+
+The baseline CPU profiler attributes 51.55% of self CPU time to `aten::addmm`
+and 46.50% to `aten::mm`: together 533.6 s across three profiled steps. The
+corresponding average CPU total durations are ~248 and 250 ms per call.
+In contrast, `_c10d_functional::wait_tensor` totals 71.9 ms over 1,881 calls,
+and `FSDP::post_backward_reduce (layers.4)` totals 327 ms over three calls.
+These are CPU timings, **not direct GPU network-kernel timings**: they point
+toward the sharded-matmul path but do not by themselves locate the native
+cause. Full Chrome traces for all four ranks and the tables are preserved.
+
+A small exploratory GEMM probe in v0.31 found ordinary 1024-square GPU
+matmuls fast with either BLAS preference. A same-node DTensor probe found
+replicated matmuls fast and sharded matmuls slow; because it shared an
+allocation with training, job 694440 repeats this on isolated GPUs with
+Python profiling. These probes do not contribute to the training medians.
+
+Job **694440** reproduced this on isolated GPUs. Each rank has a 1024×1024
+local BF16 tensor; global sharded size scales with world size. Warmed medians
+omit iteration 0 and aggregate all ranks:
+
+| Image / backend | One-node sharded matmul | Two-node sharded matmul |
+|---|---|---|
+| v0.31 default hipBLASLt | **478 ms** | **516 ms** |
+| v0.23 default | **1.28 ms** | **4.81 ms** |
+| v0.31 forced rocBLAS | **0.402 ms** | validated by full training in 694470 |
+
+Plain matmuls were ~0.05 ms and replicated DTensor matmuls ~0.1 ms in both
+images. Python profiling attributes the slow sharded call to the native ATen
+operation. Switching BLAS preference in the same image removes the delay.
+This isolates a hipBLASLt-dependent slow path; its native cause and the role
+of operand shape/stride or gathered-buffer properties remain for CSCS/AMD
+support. It is not established as a PyTorch-only regression, since the images
+also have different ROCm versions.
+
+The requested minimum of 16 channels in 694429 left the actual collective
+channel count at 36, as in the baseline. The per-peer trial 694430 did change
+that effective setting from four to eight. All runs used the AWS Libfabric
+plugin with provider cxi; no host/TCP fallback was identified.
+
+**Correction to the earlier MR-cache conclusions:** the raw logs for jobs
+693944 and 693959 still show `FI_MR_CACHE_MONITOR=userfaultfd`, despite the
+intended disabled setting. The container hook overrode it, so those jobs
+were not valid disabled-monitor controls. Job 694432 is the actual test;
+it still does not restore useful training speed.
+
+### Provenance and chain checks
+
+Source snapshots are new directories under `beverin-feasibility/`:
+`repo-d31c7d63/` (initial jobs), `repo-6e2d7693/` (cancelled matrix),
+`repo-c977af19/` (replacement matrix), and `repo-786ebde3/` (older-image
+pilots and save timestamps), and `repo-ada15200/` (rocBLAS pilots and the
+production chain). The old `repo/` and completed raw results remain
+intact. The new `speculators-7046ac6-provenance/` retains its `.git` directory
+at `7046ac63fac4eeb218dc2e92a385c7d1ec8c4e00` plus all five original patches,
+so the built-in writers record its SHA and diff instead of "unknown".
+
+Each job records launch script, EDF, revisions, Speculators patch, Slurm
+job/node identities, image hash and resolved non-secret network environment
+under `runs/<run>/deployments/<job>/`. vLLM provenance stays under
+`runs/<run>/logs/vllm-provenance-<job>-node<N>/`; resolved training config
+and provenance stay with the checkpoints and are copied per deployment.
+Ten-second memory logs use `free -g`, so the inherited `*_gb` columns are
+actually GiB. Each new chain link audits checkpoint files, saved-step
+advancement and the expected logged resume, writing `job-audit.json`.
+
+- v0.31 sqsh SHA-256:
+  `b58797bb6a430d7587f1c10ec24ac71f198bd8d590bde98dbbe68d7744a9816f`.
+- v0.23 sqsh SHA-256:
+  `75f5553dbe4b4a8bc431bfd3fe78b38ebf9724d09dfc0a2a4e7c85b0f84868df`.
+- Regenerated corpus SHA-256:
+  `91b9f8f8dd28b790357919ec884c8dbfa9579d67200611a525b915dd174bd7fd`.
+- SHA-256 of the prepared-dataset content-hash manifest (all 75 Arrow shards,
+  JSON metadata, token frequencies and held-out IDs):
+  `dbf6b72a266bf6e808b893a2fdc8e9ae344d7128092880afd6e934380a617ee4`.
+- Canonical raw logs, profiles, configurations and provenance:
+  [`results/70b/dspark/beverin-20261025/`](../results/70b/dspark/beverin-20261025/).
+- [CSCS support draft](beverin-support-ticket.md), not sent.
+
 ## Memory budget for the planned 16-node layout (estimate, not measured)
 
 MI300A has no separate host memory: `free` shows ~501 GB, and GPU

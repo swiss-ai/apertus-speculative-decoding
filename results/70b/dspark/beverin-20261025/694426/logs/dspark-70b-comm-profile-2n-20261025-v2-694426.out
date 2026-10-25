@@ -1,0 +1,16 @@
+START 2026-10-25T12:16:45+00:00 job=694426 nodes=nid[002504,002506] edf=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-c977af19/methods/dspark/beverin/env-vllm031.toml
+c977af19
+=== [2026-10-25T12:17:40Z] nid002504 node 0/2 head=nid002504 run=comm-profile-2n-20261025-v2 data=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/data extract=0,1 (TP2) train=2,3 rdzv_threshold=0 dtensor_allgather=1
+=== [2026-10-25T12:17:41Z] nid002506 node 1/2 head=nid002504 run=comm-profile-2n-20261025-v2 data=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/data extract=0,1 (TP2) train=2,3 rdzv_threshold=0 dtensor_allgather=1
+=== [2026-10-25T12:32:21Z] nid002506 extraction server up on 8001
+=== [2026-10-25T12:40:13Z] nid002504 extraction server up on 8001
+=== [2026-10-25T12:40:14Z] nid002504 all 2 extraction servers up
+=== [2026-10-25T12:40:14Z] nid002504 torchrun start (attempt 1)
+=== [2026-10-25T12:40:22Z] nid002506 all 2 extraction servers up
+=== [2026-10-25T12:40:22Z] nid002506 torchrun start (attempt 1)
+=== [2026-10-25T13:04:22Z] nid002504 torchrun rc=0 (attempt 1) wall=1448s; checkpoints: run.yaml speculators.patch train_command.txt 
+
+=== [2026-10-25T13:04:22Z] nid002506 torchrun rc=0 (attempt 1) wall=1440s; checkpoints: run.yaml speculators.patch train_command.txt 
+
+BEVERIN_AUDIT {"job_id": "694426", "initial_step": 0, "final_step": 6, "status": "ok", "errors": []}
+FINISH 2026-10-25T13:04:37+00:00 rc=0

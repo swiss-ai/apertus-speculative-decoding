@@ -5,6 +5,8 @@ Compatible with the Beverin login node's Python 3.6. Raw logs remain intact.
 Timing summaries omit each torchrun attempt's first (compiling) step.
 """
 import argparse
+import calendar
+import datetime
 import json
 import re
 import statistics
@@ -14,8 +16,13 @@ from pathlib import Path
 def summarize(work, run_id, job_id):
     run = work / "runs" / run_id
     attempts = []
+    saves = {}
     for log in sorted((run / "logs").glob("train-{}*-node0.log".format(job_id))):
         content = log.read_text(errors="replace")
+        for event, payload in re.findall(r"BEVERIN_SAVE_(START|END) (\{[^{}\n]*\})", content):
+            data = json.loads(payload)
+            save = saves.setdefault(str(data["global_step"]), {"START": [], "END": []})
+            save[event].append(data["unix_s"])
         steps = []
         for match in re.finditer(
             r"profile/fetch_ms=.*?global_step=\d+", content, re.DOTALL
@@ -49,6 +56,22 @@ def summarize(work, run_id, job_id):
                 "min_available_gib": min(int(s[2]) for s in samples),
                 "samples": len(samples),
             }
+            windows = []
+            for step, events in sorted(saves.items(), key=lambda item: int(item[0])):
+                if not events["START"] or not events["END"]:
+                    continue
+                start, end = min(events["START"]), max(events["END"])
+                during = [s for s in samples if start <= calendar.timegm(
+                    datetime.datetime.strptime(s[0], "%Y-%m-%dT%H:%M:%SZ").timetuple()
+                ) <= end]
+                if during:
+                    windows.append({
+                        "global_step": int(step), "start_unix_s": start, "end_unix_s": end,
+                        "peak_used_gib": max(int(s[1]) for s in during),
+                        "min_available_gib": min(int(s[2]) for s in during),
+                        "samples": len(during),
+                    })
+            memory[log.name]["save_windows"] = windows
     return {"run_id": run_id, "job_id": job_id, "attempts": attempts, "memory": memory}
 
 

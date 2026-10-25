@@ -1,0 +1,9 @@
+# Timestamp: 2026-10-25T12:40:41.965570+00:00
+# Git SHA: 7046ac63fac4eeb218dc2e92a385c7d1ec8c4e00
+# World size: 4
+# speculators: 0.9.0.dev36
+# vllm: 0.31.0+rocm723
+# transformers: 5.17.0
+# torch: 2.13.0+git733fca1
+# compressed-tensors: 0.17.0
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/__main__.py --verifier-name-or-path /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B --data-path /iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/data --hidden-states-backend file --hidden-states-path /tmp/hidden_states --on-missing generate --on-generate delete --target-layer-ids 1 20 39 58 77 --speculator-type dspark --num-layers 5 --block-size 8 --markov-rank 256 --enable-confidence-head --confidence-head-with-markov --loss-fn '{"ce":0.1,"tv":0.9}' --loss-implementation eager --optimizer muon --lr 1.5e-4 --epochs 10 --total-seq-len 8192 --max-anchors 512 --num-workers 1 --prefetch-factor 1 --checkpoint-freq 0.015625 --fsdp-shard --save-path /iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/comm-profile-2n-20261025-v2/checkpoints --vllm-endpoint http://localhost:8001/v1

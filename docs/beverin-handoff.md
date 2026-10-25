@@ -4,6 +4,11 @@ Read this first, then `docs/beverin-feasibility.md` (same branch) for every
 Beverin job and measurement, and `docs/dspark-70b-plan.md` for the Clariden
 side. This file says what was done, where things are, and what to do next.
 
+**Current status:** the one-node run is active as `opb-thinkoff-1n-beverin`
+with daily jobs 694472–694478. The rocBLAS workaround removed the severe
+slowdown. See the continuation outcome below and the new section of
+`docs/beverin-feasibility.md` for measured speed, memory and all job IDs.
+
 ## Goal and recipe
 
 Train a DSpark speculative-decoding drafter for Apertus-v1.5-70B the way Yu
@@ -90,3 +95,30 @@ When a fix brings multi-node step time near the 1-node rate, report to the user 
 ## Report back to the user
 
 After Task 1's first job: step time, memory peak during the save, and whether resume works. For Task 2: findings per suggestion. Keep `docs/beverin-feasibility.md` updated (new sections), and record every job id.
+
+## Continuation outcome (2026-10-25)
+
+Tasks 1 and 2 were carried out on this branch; Clariden was untouched. Read
+the new continuation section in `docs/beverin-feasibility.md` before using
+the earlier estimates above. The large slowdown also occurred on one node
+in v0.31, and a trainer-only rocBLAS preference fixed it.
+
+- Production run: `opb-thinkoff-1n-beverin`, LR 1.5e-4, full SEQ 8192 /
+  512 anchors, ten-epoch schedule. Pilot 694469 saved at 20, resumed and saved
+  at 40. Steady median 12.45 s/step; resumed save peak 403 GiB; whole-pilot
+  peak 407 GiB, minimum available 77 GiB (10 s samples).
+- Daily chain: 694472–694478, released after the pilot checks. Initial
+  coverage is seven days. Continue from the same run ID after this chain;
+  do not launch an overlapping writer to its checkpoints.
+- Runtime source: `beverin-feasibility/repo-ada15200/`; Speculators with git
+  provenance: `speculators-7046ac6-provenance/`. Retain
+  `BEVERIN_BLAS_BACKEND=cublas`, `EXTRACT_MEM=0.62`, API/renderer counts 1/1,
+  `WORKERS=1 PREFETCH=1`, `BEVERIN_EMPTY_CACHE_ON_SAVE=1`, and checkpoint
+  frequency 0.015625. The long continuations have no pilot step limit.
+- Two-node fix validation: 694470, 14.8 s/step versus baseline 183 s; saved
+  normally. No larger training allocation was launched. The CSCS support
+  draft is `docs/beverin-support-ticket.md`; it was not sent. Raw results
+  and provenance are under `results/70b/dspark/beverin-20261025/`.
+- Current measured one-node rate implies roughly 20.4 days/epoch, excluding
+  validation and restarts. Hidden-state production with the memory-safe
+  worker settings is now a substantial part of the step.
