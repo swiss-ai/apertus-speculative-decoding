@@ -47,6 +47,29 @@ for dname in os.environ.get("BENCH_DTYPES", "bf16").split(","):
         bench("all_to_all", lambda: dist.all_to_all_single(y, x), x.nbytes, (world - 1) / world)
         bench("all_gather", lambda: dist.all_gather_into_tensor(g, x), g.nbytes, (world - 1) / world)
         bench("red_scat", lambda: dist.reduce_scatter_tensor(r, x), x.nbytes, (world - 1) / world)
+# Training-like buffers: a fresh allocation for every call (new addresses, so
+# the network plugin's registration cache misses), as FSDP and Muon produce.
+if os.environ.get("BENCH_FRESH", "0") == "1":
+    for mib in (64, 512):
+        n = mib * 2**20 // 4
+        n -= n % world
+
+        def fresh_rs():
+            torch.cuda.empty_cache()
+            x = torch.ones(n, dtype=torch.float32, device=dev)
+            r = torch.empty(n // world, dtype=torch.float32, device=dev)
+            dist.reduce_scatter_tensor(r, x)
+
+        def fresh_ag():
+            torch.cuda.empty_cache()
+            x = torch.ones(n // world, dtype=torch.float32, device=dev)
+            g = torch.empty(n, dtype=torch.float32, device=dev)
+            dist.all_gather_into_tensor(g, x)
+
+        if rank == 0:
+            print("-- fresh buffers, fp32", flush=True)
+        bench("fresh_rs", fresh_rs, n * 4, (world - 1) / world, iters=5)
+        bench("fresh_ag", fresh_ag, n * 4, (world - 1) / world, iters=5)
 # Correctness of one all-to-all: rank r sends value r to everyone.
 x = torch.full((world * 4,), float(rank), device=dev)
 y = torch.empty_like(x)
