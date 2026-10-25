@@ -6,6 +6,7 @@ uses the existing deadline save path, keeping the ten-epoch LR schedule.
 import gc
 import json
 import os
+import time
 from pathlib import Path
 
 
@@ -42,10 +43,17 @@ def install():
         original_save = Trainer.maybe_save_checkpoint
 
         def save(self, *args, **kwargs):
+            print("BEVERIN_SAVE_START " + json.dumps({
+                "unix_s": time.time(), "global_step": self.global_step,
+            }), flush=True)
             gc.collect()
             torch.cuda.synchronize()
             torch.cuda.empty_cache()
-            return original_save(self, *args, **kwargs)
+            result = original_save(self, *args, **kwargs)
+            print("BEVERIN_SAVE_END " + json.dumps({
+                "unix_s": time.time(), "global_step": self.global_step,
+            }), flush=True)
+            return result
 
         Trainer.maybe_save_checkpoint = save
 

@@ -14,6 +14,7 @@ export BEVERIN_SEGMENT_STEPS=6 BEVERIN_EMPTY_CACHE_ON_SAVE=1
 export NCCL_DEBUG=INFO NCCL_DEBUG_SUBSYS=INIT,NET,REG,COLL
 export SBATCH_EXTRA=--nice=10000
 manifest="${WORK}/logs/${PREFIX}-jobs.tsv"
+mkdir -p "${WORK}/logs"
 printf 'variant\tjob_id\tdependency\trun_id\n' > "${manifest}"
 
 submit() {
