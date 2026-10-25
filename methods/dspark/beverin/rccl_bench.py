@@ -31,14 +31,22 @@ def bench(name, fn, nbytes, factor, iters=20):
               flush=True)
 
 
-for mib in (8, 64, 512):
-    n = mib * 2**20 // 2
-    x = torch.ones(n, dtype=torch.bfloat16, device=dev)
-    y = torch.empty_like(x)
-    g = torch.empty(n * world, dtype=torch.bfloat16, device=dev)
-    bench("all_reduce", lambda: dist.all_reduce(x), x.nbytes, 2 * (world - 1) / world)
-    bench("all_to_all", lambda: dist.all_to_all_single(y, x), x.nbytes, (world - 1) / world)
-    bench("all_gather", lambda: dist.all_gather_into_tensor(g, x), g.nbytes, (world - 1) / world)
+DTYPES = {"bf16": torch.bfloat16, "fp32": torch.float32}
+for dname in os.environ.get("BENCH_DTYPES", "bf16").split(","):
+    dt = DTYPES[dname]
+    for mib in (8, 64, 512):
+        n = mib * 2**20 // dt.itemsize
+        n -= n % world
+        x = torch.ones(n, dtype=dt, device=dev)
+        y = torch.empty_like(x)
+        g = torch.empty(n * world, dtype=dt, device=dev)
+        r = torch.empty(n // world, dtype=dt, device=dev)
+        if rank == 0:
+            print(f"-- {dname}", flush=True)
+        bench("all_reduce", lambda: dist.all_reduce(x), x.nbytes, 2 * (world - 1) / world)
+        bench("all_to_all", lambda: dist.all_to_all_single(y, x), x.nbytes, (world - 1) / world)
+        bench("all_gather", lambda: dist.all_gather_into_tensor(g, x), g.nbytes, (world - 1) / world)
+        bench("red_scat", lambda: dist.reduce_scatter_tensor(r, x), x.nbytes, (world - 1) / world)
 # Correctness of one all-to-all: rank r sends value r to everyone.
 x = torch.full((world * 4,), float(rank), device=dev)
 y = torch.empty_like(x)
