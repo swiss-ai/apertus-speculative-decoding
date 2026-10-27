@@ -1,0 +1,82 @@
+{
+  "arm": "dspark-on-k5",
+  "deployment_id": "topk-think-3721145-dspark-on-k5",
+  "env": {},
+  "finished": "2026-10-25T01:52:11+0200",
+  "gpus": [
+    2
+  ],
+  "port": 8102,
+  "ready_seconds": 220.6,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-dspark-on-k5",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final\", \"num_speculative_tokens\": 5}"
+  ],
+  "servers": [],
+  "started": "2026-10-25T00:08:50+0200",
+  "status": "ok",
+  "tests": {
+    "arena-hard-clean-think-default": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-think-greedy": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-think-t1-k20": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-think-t1-k5": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-think-t1-k50": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-think-t1-kall": {
+      "exit_code": 0
+    },
+    "opb-think-default": {
+      "exit_code": 0
+    },
+    "opb-think-greedy": {
+      "exit_code": 0
+    },
+    "opb-think-t1-k20": {
+      "exit_code": 0
+    },
+    "opb-think-t1-k5": {
+      "exit_code": 0
+    },
+    "opb-think-t1-k50": {
+      "exit_code": 0
+    },
+    "opb-think-t1-kall": {
+      "exit_code": 0
+    }
+  }
+}

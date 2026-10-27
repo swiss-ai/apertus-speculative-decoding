@@ -1,0 +1,58 @@
+Apertus 1.5 serves Apertus1p5ForConditionalGeneration, whose
+get_language_model() returns the inner ApertusModel (an EagleModelMixin
+with .layers). The pinned SupportsEagle3 helpers always dereference
+.parent.model, which is correct for LlamaForCausalLM but AttributeErrors
+on this wrapper before auxiliary hidden states can be configured.
+
+Walk the mixin itself when get_language_model() already returned it.
+Do not change get_language_model(): other multimodal code expects the
+inner transformer.
+
+--- a/workspace/vllm/vllm/model_executor/models/interfaces.py
++++ b/workspace/vllm/vllm/model_executor/models/interfaces.py
+@@ -1417,13 +1417,17 @@
+             parent_ref = self.get_language_model()
+         elif hasattr(self, "language_model"):
+             parent_ref = self.language_model
+-        assert hasattr(parent_ref, "model"), (
+-            "Model instance must have 'model' attribute to set number of layers"
+-        )
+-        assert isinstance(parent_ref.model, EagleModelMixin), (
++        if isinstance(parent_ref, EagleModelMixin):
++            transformer = parent_ref
++        else:
++            assert hasattr(parent_ref, "model"), (
++                "Model instance must have 'model' attribute to set number of layers"
++            )
++            transformer = parent_ref.model
++        assert isinstance(transformer, EagleModelMixin), (
+             "Model instance must inherit from EagleModelMixin to set auxiliary layers"
+         )
+-        parent_ref.model._set_aux_hidden_state_layers(layers)
++        transformer._set_aux_hidden_state_layers(layers)
+ 
+     def get_eagle3_default_aux_hidden_state_layers(self) -> tuple[int, ...]:
+         """
+@@ -1440,13 +1444,17 @@
+             parent_ref = self.get_language_model()
+         elif hasattr(self, "language_model"):
+             parent_ref = self.language_model
+-        assert hasattr(parent_ref, "model"), (
+-            "Model instance must have 'model' attribute to get number of layers"
+-        )
+-        assert hasattr(parent_ref.model, "layers"), (
++        if isinstance(parent_ref, EagleModelMixin):
++            transformer = parent_ref
++        else:
++            assert hasattr(parent_ref, "model"), (
++                "Model instance must have 'model' attribute to get number of layers"
++            )
++            transformer = parent_ref.model
++        assert hasattr(transformer, "layers"), (
+             "Model instance must have 'layers' attribute to get number of layers"
+         )
+-        num_layers = len(parent_ref.model.layers)
++        num_layers = len(transformer.layers)
+         return (2, num_layers // 2, num_layers - 3)
+ 
+ 

@@ -1,0 +1,21 @@
+Apertus 1.5's get_language_model() returns the inner ApertusModel, which has
+.layers but no .model. Model runner v2's DSpark loader dereferences
+target_language_model.model, the same failure as the EAGLE loader
+(vllm-apertus-eagle-mrv2-inner.patch). The colleague's DSpark serving
+applies the same fix (methods/dspark/jobs/fork_patch.sh on the
+DSpark_Apertus_1.5_8B branch).
+
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py
+@@ -43,7 +43,10 @@
+         if hasattr(target_model, "get_language_model")
+         else target_model
+     )
+-    target_inner = target_language_model.model
++    # Apertus1p5ForConditionalGeneration.get_language_model() returns the
++    # inner ApertusModel (an EagleModelMixin with .layers), not a wrapper
++    # with .model. Use it directly in that case.
++    target_inner = getattr(target_language_model, "model", target_language_model)
+     draft_inner = draft_model.model
+ 
+     target_embed = getattr(target_inner, "embed_tokens", None)

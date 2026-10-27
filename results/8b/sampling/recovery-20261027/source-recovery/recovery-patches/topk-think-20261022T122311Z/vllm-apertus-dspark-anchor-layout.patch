@@ -1,0 +1,26 @@
+The pinned fork translates every speculators DSpark checkpoint with
+dspark_bonus_anchor=True (a 1+N block whose anchor is a bonus token), but
+speculators trains DSpark with sample_from_anchor=True by default (the anchor
+is the first of N slots). Every draft slot is then off by one: the
+colleague's Magpie drafter served at 1.96 accepted tokens per round instead
+of 4.98 without this fix (docs/CONFIG_DSpark_Apertus_1.5_8B.md, section 2).
+Follow the checkpoint's sample_from_anchor instead.
+
+--- a/workspace/vllm/vllm/transformers_utils/configs/speculators/algos.py
++++ b/workspace/vllm/vllm/transformers_utils/configs/speculators/algos.py
+@@ -148,8 +148,13 @@
+         target_layer_ids (DSpark's i-1 layer semantics).
+     """
+     pre_trained_config["architectures"] = ["Qwen3DSparkModel"]
+-    # Speculators DSpark uses the 1+N fill-in block (anchor is a bonus token).
+-    pre_trained_config["dspark_bonus_anchor"] = True
++    # speculators trains DSpark with sample_from_anchor=True by default: the
++    # anchor is the first of N block slots, not a bonus token before them.
++    # Follow the checkpoint instead of assuming the 1+N layout.
++    sample_from_anchor = config_dict.get("sample_from_anchor")
++    if sample_from_anchor is None:
++        sample_from_anchor = True
++    pre_trained_config["dspark_bonus_anchor"] = not bool(sample_from_anchor)
+ 
+     aux_layer_ids = config_dict["aux_hidden_state_layer_ids"]
+     pre_trained_config["eagle_aux_hidden_state_layer_ids"] = aux_layer_ids

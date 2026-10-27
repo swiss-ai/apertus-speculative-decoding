@@ -1,0 +1,23 @@
+Apertus 1.5's get_language_model() returns the inner ApertusModel, which has
+.layers but no .model. Model runner v2's load_eagle_model dereferenced
+target_language_model.model and the EAGLE engine failed to start:
+
+    AttributeError: 'ApertusModel' object has no attribute 'model'
+      vllm/v1/worker/gpu/spec_decode/eagle/utils.py:52
+
+Job 3509367 (2026-09-24). Same shape as vllm-apertus-eagle3-aux-layers.patch.
+
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/eagle/utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/eagle/utils.py
+@@ -49,7 +49,10 @@
+         if hasattr(target_model, "get_language_model")
+         else target_model
+     )
+-    target_inner = target_language_model.model
++    # Apertus1p5ForConditionalGeneration.get_language_model() returns the
++    # inner ApertusModel (an EagleModelMixin with .layers), not a wrapper
++    # with .model. Use it directly in that case.
++    target_inner = getattr(target_language_model, "model", target_language_model)
+     draft_inner = eagle_model.model
+ 
+     # Skip embedding sharing under PP — each rank owns its own embedding.
