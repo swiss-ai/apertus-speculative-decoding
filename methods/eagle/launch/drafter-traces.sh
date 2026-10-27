@@ -34,6 +34,39 @@ mkdir -p "${POOLS}" "${TRACES}" "${HF_HOME}" "${XDG_CACHE_HOME}"
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 log "job=${SLURM_JOB_ID} host=$(hostname) revision=$(git -C "${REPO_ROOT}" rev-parse HEAD) domains=${DOMAINS}"
 
+# Hash the image on the allocated compute node, and keep the actual source and
+# environment with each independently launched generation deployment.
+python3 - "${REPO_ROOT}" "${DATA_ROOT}" <<'PY'
+import hashlib, json, os, platform, shutil, subprocess, sys, tomllib
+from pathlib import Path
+repo, data = map(Path, sys.argv[1:])
+out = data / "deployments" / os.environ["SLURM_JOB_ID"]
+out.mkdir(parents=True, exist_ok=False)
+source = repo / "methods/eagle/configs/train-env.toml"
+image = Path(tomllib.loads(source.read_text())["image"].replace("{arch}", "arm64"))
+digest = hashlib.sha256()
+with image.open("rb") as handle:
+    for block in iter(lambda: handle.read(8 * 1024 * 1024), b""):
+        digest.update(block)
+(out / "image.sha256").write_text(f"{digest.hexdigest()}  {image}\n")
+shutil.copy2(source, out / "environment-source.toml")
+shutil.copy2(repo / "targets/8b/contract.json", out / "target-contract.json")
+for name, argv in {
+    "git-revision.txt": ["git", "-C", str(repo), "rev-parse", "HEAD"],
+    "checkout.patch": ["git", "-C", str(repo), "diff", "HEAD", "--binary"],
+}.items():
+    (out / name).write_bytes(subprocess.check_output(argv))
+relevant = ["SLURM_JOB_ID", "SLURM_JOB_NODELIST", "SLURMD_NODENAME", "PYTHONPATH",
+            "CUDA_VISIBLE_DEVICES", "HF_HOME", "VLLM_CACHE_ROOT", "TRITON_CACHE_DIR",
+            "TORCHINDUCTOR_CACHE_DIR", "DRAFTER_DOMAINS", "DRAFTER_POOL_ARGS", "DRAFTER_GEN_ARGS"]
+(out / "runtime.json").write_text(json.dumps({
+    "python": sys.version, "machine": platform.machine(),
+    "environment": {key: os.environ[key] for key in relevant if key in os.environ},
+    "script": str(repo / "methods/eagle/launch/drafter-traces.sh"),
+    "script_sha256": hashlib.sha256((repo / "methods/eagle/launch/drafter-traces.sh").read_bytes()).hexdigest(),
+}, indent=2) + "\n")
+PY
+
 # Prompts no pool or dev row may duplicate: the test and validation workloads,
 # and the workload-coverage slices (read-only evaluation sets of another branch).
 PROTECT=("${REPO_ROOT}/workloads/8b/eagle-8b-test.jsonl" "${REPO_ROOT}/workloads/8b/eagle-8b-validation.jsonl")
