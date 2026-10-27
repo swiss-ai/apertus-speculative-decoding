@@ -1,7 +1,8 @@
 # Draft CSCS support request — Beverin hipBLASLt sharded GEMM overhead
 
-**Draft only; not sent. The rocBLAS workaround passed full-context training
-and save/resume on one node (694469), and training/save on two nodes (694470).**
+**Draft only; not sent. Updated 2026-10-27: the rocBLAS workaround also
+passed full-context training and save/resume on 16 nodes (697549) and
+32 nodes (697813). The underlying hipBLASLt-path cause remains unresolved.**
 
 Subject: Beverin MI300A: ~500 ms sharded GEMM dispatch in ROCm vLLM 0.31
 image; forcing rocBLAS restores sub-millisecond small-matmul latency
@@ -65,7 +66,15 @@ saved at step 20, resumed to 40, and saved again: median 12.45 s/step across
 was 407 GiB, with 77 GiB minimum available; the resumed save peaked at
 403 GiB. Job 694470 ran six steps on two nodes and saved: median 14.8 s/step,
 backward 0.674 s, optimizer 2.99 s. Feature production now limits much of the
-step. No allocation above two nodes was launched for this continuation.
+step.
+
+Follow-up unprofiled, full-context pilots on 2026-10-27 validated the same
+workaround on **16 nodes (697549)** and **32 nodes (697813)**. Both saved at
+step 100, resumed exactly at 100, and saved again at 200. Mean steady step
+times were **18.04 s** (197 samples) and **19.71 s** (195 samples), respectively.
+All nodes confirmed the rocBLAS preference. These results establish a
+practical workaround at scale, while the native cause of the default-path
+slowdown is still unknown.
 
 Other controlled two-node trials (five steady samples after warm-up):
 
@@ -109,7 +118,9 @@ Environment and artifacts:
   `ada15200`; `methods/dspark/beverin/dtensor_probe.py` is the small reproducer.
   `BEVERIN_BLAS_BACKEND=cublas` selects rocBLAS in the trainer prelude.
 - Repository artifacts:
-  [`results/70b/dspark/beverin-20261025/`](../results/70b/dspark/beverin-20261025/).
+  [`results/70b/dspark/beverin-20261025/`](../results/70b/dspark/beverin-20261025/)
+  and [`results/70b/dspark/beverin-scaling-20261027/`](../results/70b/dspark/beverin-scaling-20261027/),
+  including raw logs, configuration/provenance records and SHA-256 manifests.
 
 Could you advise whether this hipBLASLt behavior for sharded/gathered inputs
 is known, and recommend a compatible ROCm/PyTorch image or library fix?
