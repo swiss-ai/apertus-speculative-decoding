@@ -1,0 +1,205 @@
+{
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "contract": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/targets/8b/contract.json",
+  "config": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/methods/eagle/configs/8b/adapt/adapt-smoke.yaml",
+  "config_sha256": "9f6f7a82e6467972db010503cd4c1ae75726cf5b084949a1a08cdce5893c25a9",
+  "resolved_config": {
+    "pipeline": "rollout",
+    "stage": "8b",
+    "model": {
+      "contract": "targets/8b/contract.json",
+      "algorithm": "eagle31",
+      "draft_model_config": "methods/eagle/configs/8b/draft-e31-config.json",
+      "freeze_lm_head": true,
+      "share_target_embedding": true,
+      "init_from": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-opb-thinkoff-stage1/checkpoints/best"
+    },
+    "dataset": {
+      "features": "online",
+      "data_root": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces",
+      "train_data": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat/pool.jsonl",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/multilingual/pool.jsonl"
+      ],
+      "eval_data": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat/dev.jsonl"
+      ],
+      "extra_eval": [
+        {
+          "name": "opb",
+          "data": [
+            "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/heldout.jsonl"
+          ],
+          "limit": 16
+        }
+      ],
+      "max_seq_length": 8192,
+      "teacher_batch_tokens": 32768
+    },
+    "training": {
+      "attention_backend": "sdpa",
+      "loss_type": "forward_kl",
+      "ttt_length": 7,
+      "micro_batch_size": 1,
+      "rows_per_step": 8,
+      "data_parallel": 4,
+      "micro_batch_tokens": 8192,
+      "gradient_checkpointing": "adaptive",
+      "checkpoint_free_width": 4096,
+      "checkpoint_free_tokens": 8192,
+      "learning_rate": 3e-05,
+      "warmup_ratio": 0.25,
+      "max_grad_norm": 0.5,
+      "weight_decay": 0.0,
+      "lr_decay_style": "constant",
+      "min_lr": 0.0,
+      "lr_total_steps": 4,
+      "num_train_steps": 4,
+      "num_epochs": 1000,
+      "eval_interval": 2,
+      "save_interval": 0,
+      "resume_interval": 2,
+      "stop_after_evals_without_improvement": 0,
+      "stop_margin_s": 120,
+      "seed": 1
+    },
+    "export": {
+      "checkpoint": "final"
+    },
+    "output_root": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/runs",
+    "head_root": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/heads",
+    "run_name": "adapt-smoke"
+  },
+  "draft_config": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/methods/eagle/configs/8b/draft-e31-config.json",
+  "algorithm": "eagle31",
+  "objective": {
+    "implementation": "torchspec.models.eagle3.Eagle3Model",
+    "ttt_length": 7,
+    "loss_type": "forward_kl",
+    "position_weights": [
+      1.0,
+      0.8,
+      0.6400000000000001,
+      0.5120000000000001,
+      0.4096000000000001,
+      0.3276800000000001,
+      0.2621440000000001
+    ],
+    "target": "compute_lazy_target_padded(target lm_head)"
+  },
+  "effective_batch": {
+    "micro_batch_size": 1,
+    "draft_accumulation_steps": 2,
+    "data_parallel_ranks": 4,
+    "sequences_per_optimizer_step": 8,
+    "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp x accumulation"
+  },
+  "optimizer": {
+    "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
+    "lr": 3e-05,
+    "warmup_ratio": 0.25,
+    "max_grad_norm": 0.5,
+    "weight_decay": 0.0,
+    "decay_style": "constant",
+    "min_lr": 0.0,
+    "lr_total_steps": 4,
+    "adamw_betas_eps": "torch defaults (0.9, 0.999), 1e-8"
+  },
+  "freeze": {
+    "embedding": true,
+    "lm_head": true
+  },
+  "parameter_counts": {
+    "trainable": 293629952,
+    "frozen": 1073741824,
+    "by_module": {
+      "embed_tokens": 536870912,
+      "midlayer": 243281920,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "norm": 4096,
+      "lm_head": 536870912
+    }
+  },
+  "caches": {
+    "train": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat",
+      "mode": "online",
+      "corpus_sha256": "93a186d6abb96929af63c82ae89bd61a09d57e3bec07fcdb68c971c7267938b6",
+      "files": {
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat/pool.jsonl": "b422c23dab988c7b1ec7c0a1c729dd249cfa18ad6c176c4f463d84a5a41ad89c",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/multilingual/pool.jsonl": "4cd4626f05d1958606155f07f1c0ce2cd332bbd3b7663809fc35b9909fe504e0"
+      },
+      "samples": 32
+    },
+    "eval": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat",
+      "mode": "online",
+      "corpus_sha256": "17c31475581a425fce757dc45807e2441ad4352c6350b1e87b610a2b22c6ee24",
+      "files": {
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat/dev.jsonl": "43106bbc03bfbee4f98ee9ddf9817b0f492a4a3f5eccfafcbe2ec60cb522aa83"
+      },
+      "samples": 16
+    },
+    "extra_eval:opb": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off",
+      "mode": "online",
+      "corpus_sha256": "80f3ca7580d3d722c149ad66aee8ee73fdf2ae3f25ef7f79f8f421e64aaed538",
+      "files": {
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/heldout.jsonl": "259ea9c868ff23c796273de9974e346782b283b9a174ede555fb4364821814ab"
+      },
+      "samples": 16
+    }
+  },
+  "init_from": {
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-opb-thinkoff-stage1/checkpoints/best",
+    "draft_sha256": "b298db09f2c469f96b892755f9f5916b9dfa64ce5a6869c7512530f61d7253ac",
+    "state": {
+      "step": 251955,
+      "eval": {
+        "avg_loss": 0.6473199112347383,
+        "avg_acc": 0.8502487596274312,
+        "simulated_acc_len": 3.9875324252894413,
+        "acc": [
+          0.8774456869308946,
+          0.8609327665320843,
+          0.8526587906331036,
+          0.8466767483660586,
+          0.8422009757517701,
+          0.8381245392096539,
+          0.8337018099684536
+        ],
+        "ploss": [
+          0.5629538262388669,
+          0.6269061139901169,
+          0.6602886614529416,
+          0.6856067902473733,
+          0.705484207691159,
+          0.7229872551690787,
+          0.7395420086639933
+        ],
+        "tokens": 999157.0
+      }
+    },
+    "tensors": 17,
+    "frozen_checked": [
+      "embed_tokens.weight",
+      "lm_head.weight"
+    ],
+    "optimizer": "fresh (init_from loads draft weights only)"
+  },
+  "torchspec_root": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/scratch/TorchSpec",
+  "torchspec_revision": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+  "harness_revision": "585545ca10065c20bf1687a176dea98af7c1e50a",
+  "torch": "2.11.0+cu130",
+  "device": "NVIDIA GH200 120GB",
+  "slurm_job_id": "3737459"
+}

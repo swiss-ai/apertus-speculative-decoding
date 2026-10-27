@@ -9,8 +9,24 @@ updated drafter weights without a restart.
 
 ## Summary
 
-PENDING: summary table (domain, traces, steps, simulated acceptance gain on
-the domain, OPB forgetting, serving acceptance at k=7, swap pause).
+Recovery status, 27 October 2026: **no domain-adaptation serving verdict yet**.
+The four-step fine-tune smoke trained and exported correctly; its original
+scientific loss-improvement gate remains failed. Full trace generation failed
+before generation and is now resubmitted in a fresh recovery directory.
+
+| Part | Evidence | Verdict / next step |
+| --- | --- | --- |
+| Fine-tune/export infrastructure | job 3737459: 4 real optimizer steps, export tensors/logits equal on reload | Infrastructure passes; this tiny smoke establishes no adaptation benefit |
+| Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
+| Domain pools and traces | 3722013 failed on duplicate source-ID tuple ordering; replacement 3769227 queued | Duplicate-ID handling and source-shard attribution fixed; regenerate in a fresh directory |
+| Adaptation curves / serving | 19 original finite 384-step configurations, then selected paired serving checks | Await traces; no implementation recommendation before substantial repeatable serving gain |
+| Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
+
+The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
+are retained. Recovery uses a lightweight detached controller on the cluster,
+not local Claude watchers. Its receipts and next action are at
+`spec-exp-data/drafter-updates/recovery-20261027/receipts/campaign.json`.
+It submits one owned training job at a time and cannot create new variants.
 
 ## Method
 
@@ -54,7 +70,7 @@ workloads at DSpark k=7:
 
 Their 1,344 prompts (restricted text, cluster only) are protected in the pool
 build (278078e), so no pool or dev row duplicates one. The multilingual head
-is confirmed on `lang-deu`, `lang-fra`, `lang-ita`, `lang-spa` and
+will be confirmed on `lang-deu`, `lang-fra`, `lang-ita`, `lang-spa` and
 `translate-from-en`. These come from a different source than its
 Infomaniak training traces, which are translated open-perfectblend prompts.
 `multi-turn`, `code-multi` and `math-gsm8k` check for forgetting. The pools
@@ -166,7 +182,28 @@ closed-loop sampled load, swap at 180 s. Record:
 
 ## Design note: when and where to update
 
-PENDING.
+A production update cadence is not established yet. It must follow the measured
+adaptation curve, forgetting on OPB and held-out serving confirmation; a four-step
+smoke or the successful weight-swap prototype cannot determine it. Train on a
+separate node from serving, then canary a same-architecture head and retain the
+previous head for rollback. Use per-domain acceptance measurements and explicit
+task labels to identify a weak domain. This study uses existing dataset prompts
+and target-generated stand-in traces; live production prompt/completion capture
+is outside its scope.
+
+The recovery controller keeps the original 19 configurations (500/2k/8k traces,
+with/without 20% OPB replay, plus the existing high-LR summarization arm), with
+384 optimizer steps each. It records every scientific gate even when an
+infrastructure-complete run fails one. After the curves finish, review dev
+acceptance and OPB forgetting to select 2–3 heads for the original within-job,
+GPU-swapped serving comparisons at k=3/7 and C=1/64/256. No additional architecture,
+language, context-length or adapter experiments are authorized by this recovery.
+
+Runtime isolation matters: the original remote `scratch` symlink pointed into
+the ongoing EAGLE checkout. Recovery clones the TorchSpec code and copies the
+mutable Python dependencies into its own runtime directory; remaining input
+symlinks are read-only. This prevents the training bootstrap from changing
+another run's patched source or wandb stub.
 
 ## Runs
 
@@ -174,7 +211,22 @@ PENDING.
 | --- | --- | --- |
 | 3721346 | trace smoke (debug) | failed: no pyarrow in the image (fixed in a33ee4f) |
 | 3721372 | trace smoke (debug): 64/16/16 rows per domain, 16 generations per file | ok |
-| 3722013 | pools (8,192 + 256 per domain, 128 multilingual test) and traces, Apertus sampling | pending |
+| 3722013 | pools (8,192 + 256 per domain, 128 multilingual test) and traces, Apertus sampling | failed before generation: equal source-ID/rank tuples compared dictionary payloads in the summarization selector |
 | 3722022 | live swap smoke, e10 → e3 → e10, chat C=32 and summarization C=64 | ok (above) |
 | 3725574 | fine-tune smoke: 4 steps from e10 on the smoke traces (`adapt-smoke.yaml`) | failed after 50 s: submitted without `EAGLE_CUDA_DEVICES=0,1,2,3`, so ranks 1-3 had no GPU (the submitter now refuses this, a2dbf52) |
-| 3737459 | fine-tune smoke, resubmitted with 4 GPUs | pending |
+| 3737459 | fine-tune smoke, resubmitted with 4 GPUs | 4 steps and export/reload pass; exit 3 solely because the four-step training-loss gate failed; original scientific result preserved |
+| 3769227 | fresh full pools/traces after deterministic duplicate-ID fix | queued, normal partition; `recovery-20261027/data` |
+
+Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
+rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,
+prepares nested input subsets, renders immutable copies of the original configs
+under the recovery root, then runs chat/summarization/multilingual batches through
+the existing EAGLE submitter. It stops on infrastructure failure and after at most
+three attempts per batch, records full original scientific gates, and finishes
+with `adaptation-matrix-v1.json` awaiting serving selection. The controller uses
+an exclusive file lock and a cluster receipt; restarting it resumes owned work.
+
+Results/root:
+`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261027`.
+Controller: `receipts/start-controller.sh`; log: `receipts/controller.log`.
+No previous raw run, trained head, generated corpus or comparison is overwritten.
