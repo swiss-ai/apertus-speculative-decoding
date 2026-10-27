@@ -1,13 +1,60 @@
 import json
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from apertus_eagle.build_adaptation_pools import (
     Guard,
+    RankedCandidates,
     language_quotas,
     read_json_rows,
     sharegpt_messages,
 )
+
+
+def test_duplicate_source_ids_do_not_compare_dictionary_payloads() -> None:
+    candidates = RankedCandidates(3)
+    candidates.add(10, {"id": "duplicate", "text": "first shard version"})
+    candidates.add(10, {"id": "duplicate", "text": "second shard version"})
+    candidates.add(2, {"id": "better", "text": "low rank"})
+    candidates.add(1, {"id": "best", "text": "lowest rank"})
+    # Bounded selection must survive equal ranks/IDs during both heap insertion
+    # and final sorting, retain the best ranks, and be deterministic.
+    assert [row["id"] for row in candidates.rows()] == ["best", "better", "duplicate"]
+    assert candidates.rows()[-1]["text"] == "second shard version"
+    with pytest.raises(ValueError, match="positive"):
+        RankedCandidates(0)
+
+
+def test_summary_candidates_keep_the_actual_source_shard(tmp_path, monkeypatch) -> None:
+    from apertus_eagle import build_adaptation_pools as pools
+
+    for i in range(6):
+        (tmp_path / f"{i}.parquet").touch()
+
+    class ParquetFile:
+        def __init__(self, path):
+            self.path = path
+
+        def iter_batches(self, **_kwargs):
+            doc = {
+                "id": "repeated-id",
+                "text": self.path.name,
+                "token_count": 2500,
+                "is_truncated": False,
+                "fw_edu_scores": [3.0],
+            }
+            yield SimpleNamespace(to_pylist=lambda: [doc])
+
+    parquet = SimpleNamespace(ParquetFile=ParquetFile)
+    monkeypatch.setitem(sys.modules, "pyarrow", SimpleNamespace(parquet=parquet))
+    monkeypatch.setitem(sys.modules, "pyarrow.parquet", parquet)
+    monkeypatch.setattr(pools, "FINEPDFS", {"eng": tmp_path})
+    monkeypatch.setattr(pools, "SUMMARY_SHARE", {"eng": 1.0})
+    result = pools.summarization_candidates(2, 2.0, 2)["eng"]
+    assert {row["source_file"] for row in result} == {"4.parquet", "5.parquet"}
+    assert all(row["source_file"] in row["messages"][0]["content"] for row in result)
 
 
 def _row(text: str) -> dict:

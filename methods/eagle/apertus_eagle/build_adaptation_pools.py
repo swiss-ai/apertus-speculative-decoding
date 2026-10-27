@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import heapq
 import json
 import os
 from collections.abc import Iterator
@@ -44,7 +45,6 @@ from apertus_eagle.build_workloads import (
     SUMMARY_INSTRUCTION,
     SUMMARY_SHARE,
     digest16,
-    keep_smallest,
 )
 from apertus_eagle.contract import REPO_ROOT
 
@@ -58,6 +58,33 @@ MAX_TOKENS = {"chat": 256, "summarization": 512, "multilingual": 256}
 
 def rank(key: str) -> int:
     return int(hashlib.sha256(f"{SEED}:{key}".encode()).hexdigest(), 16)
+
+
+class RankedCandidates:
+    """Keep the lowest ranks without ever ordering source dictionaries.
+
+    FinePDFs can repeat an ID within or across shards. A monotonic source
+    position breaks equal-rank/equal-ID ties reproducibly; later prompt
+    deduplication still decides whether repeated content is eligible.
+    """
+
+    def __init__(self, limit: int):
+        if limit < 1:
+            raise ValueError("candidate limit must be positive")
+        self.limit = limit
+        self.position = 0
+        self.heap: list[tuple[int, str, int, dict[str, Any]]] = []
+
+    def add(self, key: int, row: dict[str, Any]) -> None:
+        entry = (-key, str(row["id"]), self.position, row)
+        self.position += 1
+        if len(self.heap) < self.limit:
+            heapq.heappush(self.heap, entry)
+        elif entry[:3] > self.heap[0][:3]:
+            heapq.heapreplace(self.heap, entry)
+
+    def rows(self) -> list[dict[str, Any]]:
+        return [entry[3] for entry in sorted(self.heap, reverse=True)]
 
 
 def language_quotas(total: int, shares: dict[str, float]) -> dict[str, int]:
@@ -150,14 +177,14 @@ def chat_candidates(split_index: Path, limit: int) -> list[dict[str, Any]]:
     from apertus_eagle.parse_rendered import RenderParseError, mix_row_to_record
     from apertus_eagle.prepare_data import lookup_mix_text
 
-    heap: list = []
+    candidates = RankedCandidates(limit)
     domains = STRATA["chat"]["domains"]
     with split_index.open() as handle:
         for line in handle:
             row = json.loads(line)
             if row["split"] == "train" and row["domain"] in domains:
-                keep_smallest(heap, rank(f"chat:{row['id']}"), row, limit)
-    rows = [entry[2] for entry in sorted(heap, reverse=True)]
+                candidates.add(rank(f"chat:{row['id']}"), row)
+    rows = candidates.rows()
     texts = lookup_mix_text(MIX_PARQUET, {row["id"] for row in rows})
     out = []
     for row in rows:
@@ -194,7 +221,7 @@ def summarization_candidates(
         # (workload manifest): the other languages get twice the candidates.
         factor = 1 if language == "eng" else 2
         want = int(total * SUMMARY_SHARE[language] * oversample * factor)
-        heap: list = []
+        candidates = RankedCandidates(want)
         low, high = SOURCE_TOKEN_WINDOW[language]
         paths = sorted(root.glob("*.parquet"))[SUMMARY_FIRST_FILE : SUMMARY_FIRST_FILE + files]
         for path in paths:
@@ -206,19 +233,19 @@ def summarization_candidates(
                     scores = doc["fw_edu_scores"] or []
                     if not scores or sum(scores) / len(scores) < 2.5:
                         continue
-                    keep_smallest(heap, rank(f"summ:{doc['id']}"), doc, want)
+                    candidates.add(rank(f"summ:{doc['id']}"), {**doc, "source_file": path.name})
         by_language[language] = [
             {
                 "id": f"summarization-{language}-{digest16(doc['id'])}",
                 "source_id": doc["id"],
                 "source": f"finepdfs-edu/{language}",
-                "source_file": path.name,
+                "source_file": doc["source_file"],
                 "language": language,
                 "messages": [
                     {"role": "user", "content": f"{SUMMARY_INSTRUCTION[language]}\n\n{doc['text']}"}
                 ],
             }
-            for _key, _id, doc in sorted(heap, reverse=True)
+            for doc in candidates.rows()
         ]
     return by_language
 
@@ -231,19 +258,19 @@ def multilingual_candidates(
     Rows whose source id is in ``exclude_sources`` are skipped: the same
     source row translated into another language is not a new prompt.
     """
-    heaps: dict[str, list] = {lang: [] for lang in ML_LANGUAGES}
+    candidates = {lang: RankedCandidates(limit) for lang in ML_LANGUAGES}
     sources: set[str] = set()
     for position, row in enumerate(read_json_rows(path)):
         sources.add(str(row.get("id")))
         language = row.get("language")
-        if language not in heaps or str(row.get("id")) in (exclude_sources or ()):
+        if language not in candidates or str(row.get("id")) in (exclude_sources or ()):
             continue
         key = f"{row.get('id')}:{position}"
-        keep_smallest(heaps[language], rank(f"ml:{key}"), {**row, "id": key}, limit)
+        candidates[language].add(rank(f"ml:{key}"), {**row, "id": key})
     out = {}
-    for language, heap in heaps.items():
+    for language, candidate_pool in candidates.items():
         out[language] = []
-        for _key, _id, row in sorted(heap, reverse=True):
+        for row in candidate_pool.rows():
             messages = sharegpt_messages(row)
             if messages and messages[-1]["role"] == "user":
                 out[language].append(
