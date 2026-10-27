@@ -1,0 +1,39 @@
+# GPT-OSS native reasoning effort campaign
+
+The implementation is at source revision `f409b9dab1d776817dd283488db8c73e8927e690`.
+The [launch record](launch-record.json) preserves earlier integration failures and
+submission commands. The [post-preflight snapshot](post-preflight-status.json)
+records the successful preflight and subsequent queue state; it is a snapshot,
+not a live status page.
+
+Both plain and fixed-head DFlash deployments passed all 64 prompts at native
+low/medium/high effort: 192 render checks per deployment. Each also completed 12
+extra generation checks with analysis, a nonempty final answer and natural
+termination. DFlash verification counters were observed. This is compatibility
+validation, not an effort-comparison result. Local validation: 193 tests passed,
+Ruff and whitespace checks passed.
+
+The full remote campaign is at:
+
+`/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da`
+
+Preparation job `3768739` completed successfully. Phase 1 blocks 0 and 1 were
+submitted as `3768740` and `3768791` on debug with a 90-minute allocation each.
+Controller PID `133383` retries admission for block 2, preserving each submission
+attempt and job ID in the remote campaign. All blocks require a successful
+preparation dependency. A failed block prevents a proceed decision.
+
+Keep the remote source checkout at the recorded revision while these jobs are
+queued/running. Do not sync a new HEAD into this live campaign. Each block checks
+its immutable source/model/container/corpus identities.
+
+The remote campaign retains complete inputs (including the offline vocabulary),
+rendered token IDs, logs, source overlay, environment files and submission records.
+This local directory contains the input lock, frozen spec, runtime manifests,
+preflight outputs and serving provenance; the raw preflight logs are also copied
+locally. Model weights and compile caches remain on Clariden.
+
+Specialist training is conditional on a complete Phase 1 proceed decision and a
+compatible upstream GPT-OSS DFlash training/export recipe. The implementation
+provides the gated training handoff and validates/evaluates the four exported
+heads; it does not introduce a new training framework.

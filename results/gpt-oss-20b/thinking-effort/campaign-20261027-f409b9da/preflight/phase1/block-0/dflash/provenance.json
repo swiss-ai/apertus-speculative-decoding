@@ -1,0 +1,95 @@
+{
+  "block": 0,
+  "deployment_id": "preflight-phase1-b0-dflash",
+  "drafter": {
+    "manifest": {
+      "files": {
+        "config.json": {
+          "bytes": 1380,
+          "sha256": "96bd5b47bba49a6ad00547585bf5c343c0a2b46e9685c93f8a995fa84cec8fa9"
+        },
+        "dflash.py": {
+          "bytes": 12340,
+          "sha256": "17ab761ba665a41965b27bdc3a1c6795d1b07b285ec1f0789ad146f2ee9c1cc5"
+        },
+        "model.safetensors": {
+          "bytes": 1569547192,
+          "sha256": "66ae3e6e93575ff93f1ba9af4a940cc7bd1f8dde3f288fc01b5d30374b02ceb5"
+        },
+        "utils.py": {
+          "bytes": 5843,
+          "sha256": "aed1b2e31d676452dea6a56e79afe050d73cd8e86e729ff626ad2ffb571b3f9a"
+        }
+      },
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/models/gpt-oss-20b-DFlash-d53f655",
+      "revision": "d53f6551543204c859e8bbaaddbd15d11b447af9",
+      "sha256": "b04d92d5b1295231428128af83eb450a2594208334fe50520231e6ed3401073e"
+    },
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/models/gpt-oss-20b-DFlash-d53f655"
+  },
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "0",
+    "HF_HUB_OFFLINE": "1",
+    "TIKTOKEN_RS_CACHE_DIR": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/preflight/inputs/harmony-cache",
+    "VLLM_CACHE_ROOT": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/preflight/phase1/block-0/dflash/compile-cache"
+  },
+  "gpu_index": "0",
+  "gpus": "0, GPU-cc6f3268-4375-7bba-945e-01fac195ef17, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n1, GPU-28375a61-c107-aba6-c877-ae7e32830f04, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n2, GPU-344ac4d4-6455-ba9b-17a7-cfdd04f9adf3, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n3, GPU-e15b4834-564a-a5af-8728-af98725d788e, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n",
+  "harness_git_revision": "f409b9dab1d776817dd283488db8c73e8927e690",
+  "image": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_0.30.0-arm64.sqsh",
+  "image_sha256": "4d3ad14c5fc6dbbde3d0d1f1714b5ccceb62f60050e6359f452b84e7664e618a",
+  "input_lock": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/preflight/inputs/lock.json",
+  "launch_argv": [
+    "/opt/conda/bin/python3",
+    "-m",
+    "apertus_bench.effort_server",
+    "--fixed-date",
+    "2026-10-27",
+    "--provenance-file",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/preflight/phase1/block-0/dflash/harmony-overlay.json",
+    "--",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/openai/gpt-oss-20b",
+    "--served-model-name",
+    "gpt-oss-20b",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8180",
+    "--tensor-parallel-size",
+    "1",
+    "--max-model-len",
+    "65536",
+    "--max-num-seqs",
+    "1",
+    "--max-num-batched-tokens",
+    "32768",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--no-async-scheduling",
+    "--generation-config",
+    "vllm",
+    "--middleware",
+    "apertus_bench.effort_server.NativeRenderMiddleware",
+    "--speculative-config",
+    "{\"method\": \"dflash\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/models/gpt-oss-20b-DFlash-d53f655\", \"num_speculative_tokens\": 7}"
+  ],
+  "node": "nid007659",
+  "packages": {
+    "httpx": "0.28.1",
+    "huggingface-hub": "1.33.0",
+    "openai-harmony": "0.0.8",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "vllm": "0.30.0"
+  },
+  "phase": "phase1",
+  "python": "3.12.14",
+  "slurm_job_id": "3768739",
+  "slurm_node_id": "nid007659",
+  "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "target_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "target_sha256": "aa2967c3b5305107a6c95005a49eaa78914687f8023f5195ac535ead5fe83ba9",
+  "variant": "dflash"
+}
