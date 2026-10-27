@@ -29,6 +29,15 @@ bash serving/thinking-effort.sh --output "$RUN" --prepare --partition debug --ti
 bash serving/thinking-effort.sh --output "$RUN" --dependency PREPARE_JOB_ID
 ```
 
+If normal nodes are busy, `--partition debug --time 01:30:00` also applies to
+measurement blocks that fit the debug time limit. The debug QoS admits only two
+submitted jobs per user. Add `--supervise` to retry that admission limit; run the
+submitter under `nohup` for unattended submission. Accepted job IDs and every
+submission attempt are saved, and restarting the identical command reuses job
+IDs instead of submitting duplicates. A failed preparation dependency stops the
+submitter. The launcher selects the repository or existing cluster benchmark
+virtualenv; `EFFORT_PYTHON` can override the login-node Python explicitly.
+
 Without `--dependency`, the launcher requires a completed preparation/preflight
 in that campaign. `--blocks 0` selects one block; the default submits all three.
 `--validate-only` writes inspectable job/environment files without calling sbatch;
@@ -36,9 +45,10 @@ use a separate output directory for that dry run. It does not validate GPU suppo
 Failed attempts stay intact. A new attempt gets a new campaign directory.
 
 GPT-OSS uses vLLM's native Harmony renderer. The recorded
-`apertus_bench.effort_server` overlay pins only its system-message date. Prompt
-validation calls `/v1/chat/completions/render`, the same rendering path as live
-chat requests, and verifies the effort and context length for every prompt.
+`apertus_bench.effort_server` overlay pins its system-message date and adds a
+read-only validation endpoint through `NativeRenderMiddleware`. Prompt validation
+calls `/v1/chat/completions/render`, which invokes the running chat handler's
+native renderer, and verifies the effort and context length for every prompt.
 The normal `/tokenize` route is not used to infer GPT-OSS chat rendering.
 
 Both arms receive the same explicit sampling parameters, disabled prefix caching

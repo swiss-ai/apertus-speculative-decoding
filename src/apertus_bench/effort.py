@@ -274,6 +274,8 @@ def serve_command(spec: dict[str, Any], head: Path | None, *, provenance: Path) 
         "--no-async-scheduling",
         "--generation-config",
         "vllm",
+        "--middleware",
+        "apertus_bench.effort_server.NativeRenderMiddleware",
     ]
     if head is not None:
         command += [

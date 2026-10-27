@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import httpx
 import pytest
@@ -16,7 +17,8 @@ from apertus_bench.effort import (
     training_plan,
 )
 from apertus_bench.effort_report import IDENTITY, build_report
-from apertus_bench.effort_server import pin_harmony_date
+from apertus_bench.effort_server import pin_harmony_date, render_native_prompt
+from apertus_bench.effort_submit import submit_job, write_immutable
 from apertus_bench.workloads import Prompt
 
 
@@ -30,6 +32,48 @@ def test_native_harmony_date_overlay_preserves_explicit_dates_and_effort():
     assert module.get_system_message("low", "2026-01-01") == ("low", "2026-01-01")
 
 
+async def test_validation_uses_live_chat_renderer_and_rejects_unexpected_output():
+    renderer = SimpleNamespace(
+        render_chat=AsyncMock(return_value=([], [{"prompt_token_ids": [4, 5, 6]}]))
+    )
+    handler = SimpleNamespace(online_renderer=renderer)
+    request = object()
+    assert await render_native_prompt(handler, request) == {"token_ids": [4, 5, 6]}
+    renderer.render_chat.assert_awaited_once_with(request, skip_mm_cache=True)
+    renderer.render_chat.return_value = ([], [{"prompt": "wrong renderer"}])
+    with pytest.raises(ValueError, match="tokenized native prompt"):
+        await render_native_prompt(handler, request)
+
+
+def test_submission_retries_admission_limit_and_never_resubmits_accepted_job(tmp_path, monkeypatch):
+    import apertus_bench.effort_submit as module
+
+    responses = iter(
+        [
+            SimpleNamespace(returncode=1, stdout="", stderr="QOSMaxSubmitJobPerUserLimit"),
+            SimpleNamespace(returncode=0, stdout="12345;clariden\n", stderr=""),
+        ]
+    )
+    calls = []
+
+    def run(*args, **kwargs):
+        calls.append(args)
+        return next(responses)
+
+    monkeypatch.setattr(module.subprocess, "run", run)
+    monkeypatch.setattr(module.time, "sleep", lambda _: None)
+    args = SimpleNamespace(dependency=None, supervise=True, submission_timeout=60, retry_seconds=1)
+    record = {"campaign": "campaign", "directory": str(tmp_path)}
+    first = submit_job(["sbatch", "job.sh"], tmp_path, record, args)
+    assert first["job_id"] == "12345"
+    assert submit_job(["sbatch", "job.sh"], tmp_path, record, args) == first
+    assert len(calls) == 2
+    assert len((tmp_path / "submission-attempts.jsonl").read_text().splitlines()) == 2
+    write_immutable(tmp_path / "job.sh", "original")
+    with pytest.raises(ValueError, match="differs"):
+        write_immutable(tmp_path / "job.sh", "changed")
+
+
 def test_fixed_schedule_and_server_arguments(tmp_path):
     spec = read_spec(SPEC_PATH)
     assert schedule(0) == (["plain", "dflash"], ["low", "medium", "high"])
@@ -38,6 +82,7 @@ def test_fixed_schedule_and_server_arguments(tmp_path):
     draft = serve_command(spec, Path("/head"), provenance=tmp_path / "draft.json")
     assert "--speculative-config" not in plain
     assert "apertus_bench.effort_server" in plain
+    assert "apertus_bench.effort_server.NativeRenderMiddleware" in plain
     assert "--no-async-scheduling" in plain and "--no-async-scheduling" in draft
     assert json.loads(draft[draft.index("--speculative-config") + 1]) == {
         "method": "dflash",

@@ -3,14 +3,82 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import shlex
 import subprocess
+import time
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
 
 from apertus_bench.effort import REPO, SPEC_PATH, read_spec, write_json
+
+
+def write_immutable(path: Path, value: str) -> None:
+    if path.exists():
+        if path.read_text() != value:
+            raise ValueError(f"existing submission differs: {path}")
+    else:
+        with path.open("x") as sink:
+            sink.write(value)
+
+
+def dependency_failed(job_id: str) -> bool:
+    result = subprocess.run(
+        ["sacct", "-j", job_id, "--noheader", "--format=JobIDRaw,State", "-P"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    failures = {"FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED"}
+    return any(
+        row.split("|")[0] == job_id and row.split("|")[1].split()[0] in failures
+        for row in result.stdout.splitlines()
+        if "|" in row
+    )
+
+
+def submit_job(command, directory, record, args):
+    """Retry admission limits without resubmitting a job that Slurm accepted."""
+    with (directory / ".submit.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        job_file = directory / "job.json"
+        if job_file.exists():
+            return json.loads(job_file.read_text())
+        deadline = time.monotonic() + args.submission_timeout
+        while True:
+            if args.dependency and dependency_failed(args.dependency):
+                raise RuntimeError(f"preparation dependency {args.dependency} failed; stopping")
+            result = subprocess.run(command, capture_output=True, text=True)
+            with (directory / "submission-attempts.jsonl").open("a") as sink:
+                sink.write(
+                    json.dumps(
+                        {
+                            "timestamp": datetime.now(UTC).isoformat(),
+                            "argv": command,
+                            "returncode": result.returncode,
+                            "stdout": result.stdout,
+                            "stderr": result.stderr,
+                        }
+                    )
+                    + "\n"
+                )
+            if result.returncode == 0:
+                record = {**record, "job_id": result.stdout.strip().split(";")[0]}
+                if not record["job_id"].isdigit():
+                    raise RuntimeError("unrecognized sbatch response; inspect submission journal")
+                write_json(job_file, record)
+                print(json.dumps(record), flush=True)
+                return record
+            retryable = any(
+                reason in result.stderr
+                for reason in ("QOSMaxSubmitJobPerUserLimit", "AssocMaxSubmitJobLimit")
+            )
+            if not args.supervise or not retryable or time.monotonic() >= deadline:
+                raise RuntimeError(f"sbatch rejected submission: {result.stderr.strip()}")
+            print(f"Waiting for Slurm admission: {result.stderr.strip()}", flush=True)
+            time.sleep(args.retry_seconds)
 
 
 def container_command(argv: list[str], environment: Path) -> str:
@@ -81,9 +149,9 @@ def submit(args: argparse.Namespace) -> list[dict[str, str]]:
         if args.preflight_only and block is not None:
             name += "-preflight"
         directory = output / "submissions" / name
-        directory.mkdir(parents=True, exist_ok=False)
+        directory.mkdir(parents=True, exist_ok=True)
         environment = directory / "environment.toml"
-        environment.write_text(environment_source.read_text())
+        write_immutable(environment, environment_source.read_text())
         commands = []
         if args.prepare:
             commands.append(
@@ -145,7 +213,8 @@ def submit(args: argparse.Namespace) -> list[dict[str, str]]:
                     ]
                 )
         script = directory / "job.sh"
-        script.write_text(
+        write_immutable(
+            script,
             "\n".join(
                 [
                     "#!/usr/bin/env bash",
@@ -154,7 +223,7 @@ def submit(args: argparse.Namespace) -> list[dict[str, str]]:
                     *[container_command(command, environment) for command in commands],
                     "",
                 ]
-            )
+            ),
         )
         command = [
             "sbatch",
@@ -172,21 +241,24 @@ def submit(args: argparse.Namespace) -> list[dict[str, str]]:
             if not args.dependency.isdigit():
                 raise ValueError("dependency must be a Slurm job ID")
             command.append(f"--dependency=afterok:{args.dependency}")
+            command.append("--kill-on-invalid-dep=yes")
         command.append(str(script))
-        write_json(
+        write_immutable(
             directory / "submission.json",
-            {
-                "argv": command,
-                "container_commands": commands,
-                "environment_source": str(environment_source),
-                "spec": spec,
-            },
+            json.dumps(
+                {
+                    "argv": command,
+                    "container_commands": commands,
+                    "environment_source": str(environment_source),
+                    "spec": spec,
+                },
+                indent=2,
+            )
+            + "\n",
         )
         record = {"directory": str(directory), "campaign": str(output)}
         if not args.validate_only:
-            job = subprocess.run(command, capture_output=True, text=True, check=True).stdout.strip()
-            record["job_id"] = job.split(";")[0]
-            write_json(directory / "job.json", record)
+            record = submit_job(command, directory, record, args)
         else:
             record["status"] = "validated_not_submitted"
         submissions.append(record)
@@ -212,7 +284,14 @@ def main() -> None:
     parser.add_argument("--time", default="12:00:00")
     parser.add_argument("--account", default="infra01")
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument(
+        "--supervise", action="store_true", help="retry Slurm's per-user submission limit"
+    )
+    parser.add_argument("--retry-seconds", type=float, default=30)
+    parser.add_argument("--submission-timeout", type=float, default=86400)
     args = parser.parse_args()
+    if not 1 <= args.retry_seconds <= 60 or args.submission_timeout <= 0:
+        parser.error("retry interval must be 1–60 seconds and submission timeout positive")
     print(json.dumps(submit(args), indent=2))
 
 
