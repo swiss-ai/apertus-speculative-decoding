@@ -36,6 +36,10 @@ export CUDA_VISIBLE_DEVICES="${EAGLE_CUDA_DEVICES:-0}"
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 log "host=$(hostname) job=${SLURM_JOB_ID:-none} config=${EAGLE_TRAIN_CONFIG} steps=${EAGLE_STEPS:-all} cuda=${CUDA_VISIBLE_DEVICES}"
 nvidia-smi --query-gpu=index,name,memory.total,driver_version --format=csv || true
+if [ -n "${EAGLE_DEPLOYMENT_ROOT:-}" ]; then
+  "${PYTHON}" -m apertus_eagle.adaptation_provenance --repo "${REPO_ROOT}" \
+    --deployment "${EAGLE_DEPLOYMENT_ROOT}/${SLURM_JOB_ID}"
+fi
 if [ "${NODE_RANK}" = "0" ]; then
   setup_shared
   touch "${SETUP_DONE}"

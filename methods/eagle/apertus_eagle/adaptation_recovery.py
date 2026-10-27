@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -208,6 +209,13 @@ def main(argv: list[str] | None = None) -> None:
             if not remaining:
                 all_reports.update(reports)
                 break
+            if batch.get("last_terminal_state") in {"FAILED", "OUT_OF_MEMORY", "CANCELLED"}:
+                save(
+                    state="needs_repair",
+                    next_action=f"Inspect {domain} failure before resubmitting incomplete curves.",
+                    curves=reports,
+                )
+                return
             if batch.get("active_job"):
                 job = batch["active_job"]
             else:
@@ -225,6 +233,7 @@ def main(argv: list[str] | None = None) -> None:
                     "EAGLE_TRAIN_TIME": "08:00:00",
                     "EAGLE_STEPS": "train,export",
                     "EAGLE_RUN_ID": args.run_id,
+                    "EAGLE_DEPLOYMENT_ROOT": str(root / "training-deployments"),
                     "EAGLE_VLLM_PATCH_DIR": str(
                         root / "overlays" / f"{domain}-{len(batch['job_ids'])}"
                     ),
@@ -234,6 +243,31 @@ def main(argv: list[str] | None = None) -> None:
                 )
                 job = re.findall(r"Submitted batch job (\d+)", output)[-1]
                 (receipts / f"submit-{domain}-{job}.txt").write_text(output)
+                deployment = root / "training-deployments" / job
+                deployment.mkdir(parents=True, exist_ok=False)
+                launch = Path(re.search(r"^sbatch_file=(.+)$", output, re.MULTILINE)[1])
+                shutil.copy2(launch, deployment / "launch.sbatch")
+                environment = Path(re.search(r"^environment=(.+)$", output, re.MULTILINE)[1])
+                shutil.copy2(environment, deployment / "environment.toml")
+                (deployment / "submission-environment.json").write_text(
+                    json.dumps(
+                        {
+                            key: value
+                            for key, value in training_env.items()
+                            if key
+                            in {
+                                "EAGLE_TRAIN_CONFIG",
+                                "EAGLE_CUDA_DEVICES",
+                                "EAGLE_STEPS",
+                                "EAGLE_RUN_ID",
+                                "EAGLE_VLLM_PATCH_DIR",
+                                "EAGLE_DEPLOYMENT_ROOT",
+                            }
+                        },
+                        indent=2,
+                    )
+                    + "\n"
+                )
                 batch["job_ids"].append(job)
                 batch["active_job"] = job
                 state["job_ids"].append(job)
@@ -241,7 +275,7 @@ def main(argv: list[str] | None = None) -> None:
                     state="waiting",
                     next_action=f"Wait for {domain} curves; inspect artifacts and full gates.",
                 )
-            wait(job)
+            batch["last_terminal_state"] = wait(job)
             batch.pop("active_job", None)
             save(state="collecting")
     matrix = root / "adaptation-matrix-v1.json"
