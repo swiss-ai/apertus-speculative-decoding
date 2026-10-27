@@ -176,6 +176,40 @@ def test_cost_model_interpolates_and_projects(tmp_path):
     assert step["eagle"] == pytest.approx(3 * 0.529 + 0.0041 * 32 * 4)
 
 
+def test_noisy_tail_cannot_predict_negative_or_decreasing_verify_time():
+    # The real cost table ends at 65.996 -> 65.161 ms. Extending that last
+    # segment used to predict -18.339 ms for C=256 with a 32-node tree.
+    xs = [1024, 1536, 1600, 1664, 1728, 1792, 1856, 1920, 1984, 2048]
+    ys = [34.0, 56.0, 57.9574, 58.5141, 59.1114, 59.8672, 63.2742, 63.9793, 65.996, 65.161]
+    projected = [ts._interp(xs, ys, x) for x in [1024, 1984, 2048, 6272, 8448]]
+    assert projected == sorted(projected)
+    assert projected[2] == 65.996
+    assert projected[-1] > 200
+
+
+@pytest.mark.parametrize(
+    ("xs", "ys"),
+    [([1], [1]), ([1, 1], [1, 2]), ([1, 2], [1, -1]), ([1, 2], [1, math.nan])],
+)
+def test_latency_table_rejects_invalid_samples(xs, ys):
+    with pytest.raises(ValueError):
+        ts._interp(xs, ys, 3)
+
+
+def test_extrapolated_projection_is_explicit(tmp_path):
+    cost = ts.CostModel.from_table(cost_table(tmp_path))
+    summary = {
+        **ts.plain_summary(1000),
+        "accepted_per_step": 6.0,
+        "verified_per_step": 32.0,
+    }
+    projected = ts.project_summary(summary, ts.plain_summary(1000), cost, [1, 256])
+    assert projected["1"]["verify_extrapolated"] is False
+    assert projected["256"]["verify_extrapolated"] is True
+    assert projected["256"]["verified_tokens"] == 8448
+    assert projected["256"]["step_ms"]["verify"] > 0
+
+
 def test_analyze_end_to_end(tmp_path):
     path = tmp_path / "anchors.jsonl.gz"
     with gzip.open(path, "wt") as handle:
@@ -195,3 +229,31 @@ def test_analyze_end_to_end(tmp_path):
     assert chain["accepted_per_step"] == 3.0  # accepts 2 at a=0, then a=3
     assert rows[("all", "graft-all", 8)]["accepted_per_step"] == 4.0
     assert chain["projected"]["1"]["speedup_vs_plain"] > 1.0
+    assert report["sequences"] == {"all": 1, "w": 1}
+
+    original = json.dumps(report, sort_keys=True)
+    updated = ts.reproject(report, ts.CostModel.from_table(cost_table(tmp_path)), [1, 64])
+    assert json.dumps(report, sort_keys=True) == original
+    assert updated["reanalysis"]["acceptance_changed"] is False
+    for before, after in zip(report["rows"], updated["rows"], strict=True):
+        assert {k: v for k, v in before.items() if k != "projected"} == {
+            k: v for k, v in after.items() if k != "projected"
+        }
+        assert before["projected"] == after["projected"]
+
+
+def test_reanalysis_refuses_to_overwrite_existing_output(tmp_path):
+    output = tmp_path / "previous.json"
+    output.write_text("immutable earlier result")
+    with pytest.raises(SystemExit, match="2"):
+        ts.main(
+            [
+                "--reproject",
+                str(tmp_path / "source.json"),
+                "--cost-table",
+                str(cost_table(tmp_path)),
+                "--output",
+                str(output),
+            ]
+        )
+    assert output.read_text() == "immutable earlier result"

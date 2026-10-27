@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import bisect
 import gzip
+import hashlib
 import json
 import math
 from collections import defaultdict
@@ -381,15 +382,51 @@ def walk(anchors: dict[int, dict[str, Any]], policy: Policy, budget: int) -> Tot
 
 
 def _interp(xs: Sequence[float], ys: Sequence[float], x: float) -> float:
-    """Piecewise-linear interpolation, linear extrapolation past the last point."""
+    """Nondecreasing latency envelope; broad-tail extrapolation outside the table.
+
+    Adjacent timing samples can decrease through measurement noise. Extending
+    the last such segment made large tree batches have negative verify time.
+    Fit the upper half of the measured range instead, and explicitly mark these
+    unsupported-range projections in the report. This is still a model, not a
+    measurement of tree attention or of those larger batches.
+    """
+    ys = _latency_envelope(xs, ys)
+    if not math.isfinite(x) or x < 0:
+        raise ValueError("latency query must be finite and nonnegative")
     if x <= xs[0]:
         return ys[0]
     if x >= xs[-1]:
-        slope = (ys[-1] - ys[-2]) / (xs[-1] - xs[-2])
+        slope = _tail_slope(xs, ys)
         return ys[-1] + slope * (x - xs[-1])
     i = bisect.bisect_right(xs, x)
     x0, x1, y0, y1 = xs[i - 1], xs[i], ys[i - 1], ys[i]
     return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+
+
+def _latency_envelope(xs: Sequence[float], ys: Sequence[float]) -> list[float]:
+    if len(xs) != len(ys) or len(xs) < 2:
+        raise ValueError("latency table needs at least two matching samples")
+    if any(not math.isfinite(v) or v <= 0 for v in (*xs, *ys)):
+        raise ValueError("latency table values must be finite and positive")
+    if any(b <= a for a, b in zip(xs, xs[1:], strict=False)):
+        raise ValueError("latency table sizes must be strictly increasing")
+    result = []
+    high = 0.0
+    for y in ys:
+        high = max(high, y)
+        result.append(high)
+    return result
+
+
+def _tail_slope(xs: Sequence[float], ys: Sequence[float]) -> float:
+    start = min(bisect.bisect_left(xs, xs[-1] / 2), len(xs) - 2)
+    tx, ty = xs[start:], ys[start:]
+    mx, my = sum(tx) / len(tx), sum(ty) / len(ty)
+    return max(
+        0.0,
+        sum((x - mx) * (y - my) for x, y in zip(tx, ty, strict=True))
+        / sum((x - mx) ** 2 for x in tx),
+    )
 
 
 @dataclass
@@ -479,8 +516,25 @@ class CostModel:
 
     def throughput(self, concurrency: int, s: dict[str, Any]) -> dict[str, Any]:
         step = self.step_ms(concurrency, s)
+        if any(not math.isfinite(v) or v < 0 for v in step.values()) or step["total"] <= 0:
+            raise ValueError("projected step times must be finite and nonnegative")
         tok_s = concurrency * s["accepted_per_step"] / step["total"] * 1e3
         return {"tok_s": tok_s, "step_ms": step}
+
+    def description(self) -> dict[str, Any]:
+        envelope = _latency_envelope(self.verify_tokens, self.verify_ms)
+        return {
+            "source": self.source,
+            "eagle_pass_fixed_ms": self.eagle_pass_fixed_ms,
+            "eagle_ms_per_token": self.eagle_ms_per_token,
+            "expansion_ms": self.expansion_ms,
+            "kv_ms_per_token": self.kv_ms_per_token,
+            "latency_interpolation": "cumulative maximum envelope",
+            "latency_extrapolation": "nonnegative least-squares slope over upper half of range",
+            "verify_measured_tokens": [self.verify_tokens[0], self.verify_tokens[-1]],
+            "verify_tail_ms_per_token": _tail_slope(self.verify_tokens, envelope),
+            "claim_limit": "projected decode-only cost; no measured tree-serving speedup",
+        }
 
 
 def plain_summary(ctx_mean: float) -> dict[str, Any]:
@@ -512,6 +566,62 @@ def load_anchors(paths: Iterable[Path]) -> dict[tuple[str, str], dict[int, dict[
 def _evaluate(args: tuple[dict[int, dict[str, Any]], str, int]) -> Totals:
     anchors, name, budget = args
     return walk(anchors, POLICIES[name], budget)
+
+
+def project_summary(
+    summary: dict[str, Any], plain: dict[str, Any], cost: CostModel, concurrencies: Sequence[int]
+) -> dict[str, Any]:
+    projected = {}
+    for c in concurrencies:
+        base = cost.throughput(c, plain)
+        got = cost.throughput(c, summary)
+        tokens = c * (1.0 + summary["verified_per_step"])
+        projected[str(c)] = {
+            "tok_s": round(got["tok_s"], 1),
+            "speedup_vs_plain": round(got["tok_s"] / base["tok_s"], 4),
+            "step_ms": {k: round(v, 3) for k, v in got["step_ms"].items()},
+            "verified_tokens": round(tokens, 4),
+            "verify_extrapolated": tokens > cost.verify_tokens[-1],
+        }
+    return projected
+
+
+def reproject(
+    report: dict[str, Any], cost: CostModel, concurrencies: Sequence[int]
+) -> dict[str, Any]:
+    """Change only the cost projection; retain the original candidate replay.
+
+    Accepted tokens/step is recovered exactly from token and step counts. Other
+    original aggregate means have four decimal places, so their existing
+    rounding remains. No new generation, selection, or acceptance measurement
+    is implied by this much cheaper reanalysis.
+    """
+    workloads = sorted({row["workload"] for row in report["rows"]})
+    plain = {}
+    for wl in workloads:
+        ctx = [row["ctx_mean"] for row in report["rows"] if row["workload"] == wl]
+        plain[wl] = plain_summary(sum(ctx) / len(ctx))
+    rows = []
+    for row in report["rows"]:
+        summary = {**row, "accepted_per_step": row["tokens"] / max(row["steps"], 1)}
+        rows.append(
+            {
+                **row,
+                "projected": project_summary(summary, plain[row["workload"]], cost, concurrencies),
+            }
+        )
+    counts = {k: v for k, v in report["sequences"].items() if k != "all"}
+    return {
+        **report,
+        "cost_model": cost.description(),
+        "sequences": {"all": sum(counts.values()), **counts},
+        "rows": rows,
+        "reanalysis": {
+            "method": "cost reprojection of original replay aggregates",
+            "aggregate_mean_rounding": 0.0001,
+            "acceptance_changed": False,
+        },
+    }
 
 
 def analyze(
@@ -550,15 +660,7 @@ def analyze(
         plain[wl] = plain_summary(sum(ctx) / len(ctx))
     for (wl, name, budget), totals in sorted(grouped.items()):
         s = totals.summary()
-        projected = {}
-        for c in concurrencies:
-            base = cost.throughput(c, plain[wl])
-            got = cost.throughput(c, s)
-            projected[str(c)] = {
-                "tok_s": round(got["tok_s"], 1),
-                "speedup_vs_plain": round(got["tok_s"] / base["tok_s"], 4),
-                "step_ms": {k: round(v, 3) for k, v in got["step_ms"].items()},
-            }
+        projected = project_summary(s, plain[wl], cost, concurrencies)
         rows.append(
             {
                 "workload": wl,
@@ -570,21 +672,21 @@ def analyze(
             }
         )
     return {
-        "cost_model": {
-            "source": cost.source,
-            "eagle_pass_fixed_ms": cost.eagle_pass_fixed_ms,
-            "eagle_ms_per_token": cost.eagle_ms_per_token,
-            "expansion_ms": cost.expansion_ms,
-            "kv_ms_per_token": cost.kv_ms_per_token,
+        "cost_model": cost.description(),
+        "sequences": {
+            wl: len(sequences) if wl == "all" else sum(1 for k in sequences if k[0] == wl)
+            for wl in workloads
         },
-        "sequences": {wl: sum(1 for k in sequences if k[0] == wl) for wl in workloads},
         "rows": rows,
     }
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m apertus_bench.tree_sim")
-    parser.add_argument("candidates", type=Path, nargs="+", help="anchor JSONL(.gz) shards")
+    parser.add_argument("candidates", type=Path, nargs="*", help="anchor JSONL(.gz) shards")
+    parser.add_argument(
+        "--reproject", type=Path, help="existing replay report; change only cost model"
+    )
     parser.add_argument("--cost-table", type=Path, required=True)
     parser.add_argument("--policies", default=",".join(POLICIES))
     parser.add_argument("--budgets", default="1,2,3,4,5,6,7,8,10,12,16,24,32,48")
@@ -592,18 +694,34 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--processes", type=int, default=1)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
-    sequences = load_anchors(args.candidates)
-    report = analyze(
-        sequences,
-        [p for p in args.policies.split(",") if p],
-        [int(b) for b in args.budgets.split(",")],
-        CostModel.from_table(args.cost_table),
-        [int(c) for c in args.concurrency.split(",")],
-        processes=args.processes,
-    )
-    report["inputs"] = [str(p) for p in args.candidates]
+    if bool(args.candidates) == bool(args.reproject):
+        parser.error("provide either candidate shards or --reproject, exclusively")
+    if args.output.exists():
+        parser.error("output already exists; use a new analysis version")
+    cost = CostModel.from_table(args.cost_table)
+    concurrencies = [int(c) for c in args.concurrency.split(",")]
+    if args.reproject:
+        source = args.reproject.read_bytes()
+        report = reproject(json.loads(source), cost, concurrencies)
+        report["reanalysis"].update(
+            {
+                "source_report": str(args.reproject),
+                "source_sha256": hashlib.sha256(source).hexdigest(),
+            }
+        )
+    else:
+        report = analyze(
+            load_anchors(args.candidates),
+            [p for p in args.policies.split(",") if p],
+            [int(b) for b in args.budgets.split(",")],
+            cost,
+            concurrencies,
+            processes=args.processes,
+        )
+        report["inputs"] = [str(p) for p in args.candidates]
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=1) + "\n")
+    with args.output.open("x") as handle:
+        handle.write(json.dumps(report, indent=1) + "\n")
     print(json.dumps({"rows": len(report["rows"]), "sequences": report["sequences"]}))
 
 
