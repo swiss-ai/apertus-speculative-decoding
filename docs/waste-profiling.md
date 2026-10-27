@@ -5,9 +5,12 @@ drops; how much compute is wasted in that region (e.g. k=7 at C=128 accepting
 ~3.5 tokens), what does a token cost at high load, and how do both relate to
 the drafter's architecture? Rob suggested Nsight Systems for the measurements.
 
-Status 2026-10-24: profiled sweeps of every fixed-k arm done (waste-prof-a/b),
-analysis in `src/apertus_bench/waste_report.py`. The unprofiled summarization
-costs of DSpark k=1/3 and the paper scheduler are queued (waste-sum-a/b).
+Status 2026-10-27: complete. The final unprofiled summarization pair
+(waste-sum-a/b, jobs 3737492/3737493) finished on 25 Oct and is now recovered:
+48 cells, 17,408 successful requests, no failures or speculative-counter resets.
+The paired analysis and provenance limitations are in
+[`recovery-20261027`](../results/8b/waste/recovery-20261027/README.md).
+No new GPU runs were needed to close T1.
 
 ## Summary
 
@@ -16,7 +19,7 @@ costs of DSpark k=1/3 and the paper scheduler are queued (waste-sum-a/b).
 | where does saturation start? | Tensor-pipe activity reaches 90% of its plateau (65-75%) at **C\*~128** on the held-out prompts for every speculative arm (plain: C=256) and at **C\*~64** on summarization, where prefill is 60-75% of GPU time. The target verify step turns compute-bound (marginal cost per token within 80% of its ~30 us asymptote) from ~770 tokens per step: C~96 at k=7, C~190 at k=3. |
 | how much is wasted at k=7, C=128? | **DSpark e10: 22% of GPU time** (16% verifying rejected drafts, 6% drafting slots never accepted), **45% of the work speculation adds**. EAGLE e10: 22% and 46%. Yu's "half of the extra computation" holds at k=7 and C=64-128 (45-49%); at k=3 it is 24-26%, at k=1 11-13%. The rest of the step: prefill 29%, useful verify 36%, sampling 5%. At C=256 the waste drops to 12% of GPU time (prefill and the KV read grow). |
 | and out of distribution? | Summarization (accepted length ~2.2 at k=7): 17-19% of GPU time and **77% (DSpark) / 81% (EAGLE) of the speculative work** is wasted at C=128, but prefill (61-63%) dominates the step, so no k beats plain by much there. |
-| cost per token under load | GPU-seconds per 1M output tokens at C=128 / C=256: plain 153 / 128; DSpark e10 best k (k=3) 113 / 106, k=7 123 / 117; EAGLE e10 best k (k=3) 108 / 101, k=7 119 / 112; paper scheduler (cut + KV) 113-115 / 105-109. Summarization: plain 540 / 538, EAGLE e10 k=1-3 526-528, DSpark k=7 606, EAGLE k=7 599 (worse than plain). Energy ~0.054 J/token for the best k at C=256 against 0.066 for plain (module power, see caveats). |
+| cost per token under load | GPU-seconds per 1M output tokens at C=128 / C=256: plain 153 / 128; DSpark e10 best k (k=3) 113 / 106, k=7 123 / 117; EAGLE e10 best k (k=3) 108 / 101, k=7 119 / 112; paper scheduler (cut + KV) 113-115 / 105-109. Summarization, matched a/b pair: plain 537 / 537, DSpark k=1 540 / 534, k=3 545 / 544, scheduler 527 / 523; the scheduler is only 1.9% / 2.8% faster than plain. Legacy k=7 costs about 600 (worse than plain). No substantial high-load serving improvement is established. Energy ~0.054 J/token for the best k at C=256 against 0.066 for plain (module power, see caveats). |
 | which slots pay? | The marginal rule (slot j pays iff p_accept(j) x step time per emitted token > its draft + verify cost) keeps all 7 slots up to C=8, ~5 at C=32 and 3 at C=64-128, 2 at C=256; the measured best fixed k is 7, 7, 7, 5, 3, 3-4 at C=1-256. |
 | how much could be won back? | A load-dependent k (best fixed k per level) beats the single best fixed k by 4% geomean over C=1-256 (DSpark: +12% at C=1, +1-2% at C>=32). A per-request oracle that verifies exactly the accepted drafts (drafting unchanged) is 15-18% above the best fixed k at C=64-256 in decode-only steps, ~10-12% once prefill is counted. |
 | and the drafter's architecture? | Drafting is 12-15% of GPU time for DSpark at k=3-7 and C>=128, mostly the backbone (1.29 us per query token per layer; the 131k LM head is 19%). EAGLE costs 0.53 ms + 4.1 us/request per pass, so k=7 pays 7 passes: 2.0x DSpark's draft time at C=1 (3.7 vs 1.85 ms). Fewer DSpark layers at the same acceptance would add (model) +10% at C=128 for 1 layer, +6% for 2, +3% for 3; under load the verify of rejected tokens, not the drafter, is the larger waste. |
@@ -30,8 +33,11 @@ and the 128 summarization prompts at C=1, 8, 32, 64, 128, 256. One 10 s
 capture window per level, 8 s into its measured requests. Settings as in
 `docs/system-optimizations-8b.md` ("Setup"). Profiled throughput is not used:
 cost per token comes from the unprofiled records (k-grid-opb-a/b/e/f,
-kv-cost-a/b, k-grid-e10-a/b, calibrate, k-grid-a), all on the same image
-and settings.
+kv-cost-a/b, k-grid-e10-a/b, calibrate, k-grid-a), plus the final
+unprofiled waste-sum-a/b summarization pair. Close comparisons below use
+plain from the same job and show both allocations; other legacy arms remain
+cross-job context. Original raw metadata is unchanged, including its stale
+harness revision. Recovery-time source evidence is labelled separately.
 
 **Per-step split** (`waste_report decompose`, cost table from kv-cost-a's
 `dspark-e10-k7-paper-cut-kv` arm). Every engine step of a window (NVTX
@@ -62,9 +68,9 @@ slope comes from the cost table (`verify_saturation_tokens`).
 **Analytic model** (`CostModel`, `marginal_rule`, `predicted_speedup`,
 `oracle_verify`): decode-only steps from the cost table plus a KV read of
 3.6e-5 ms per cached token, opb acceptance per position from the cells, 800
-cached tokens per request. It ignores prefill, so it overstates the speedup
-under load (predicted DSpark k=5 at C=256: 1.08x; measured 1.18x in
-k-grid-opb-b, whose plain arm also prefills).
+cached tokens per request. It ignores prefill and is not an end-to-end throughput model: predicted
+DSpark k=5 at C=256 is 1.08x, versus 1.18x measured in k-grid-opb-b,
+whose plain arm also prefills.
 
 ## Results
 
@@ -126,19 +132,50 @@ records:
 
 | arm | opb C=1 | opb C=128 | opb C=256 | summ. C=128 | summ. C=256 |
 | --- | --- | --- | --- | --- | --- |
-| plain | 5,850 | 153 | 128 | 540 | 538 |
-| DSpark e10 k=1 | 4,015 | 129 | 114 | (waste-sum) | (waste-sum) |
-| DSpark e10 k=3 | 2,388 | 113 | 106 | (waste-sum) | (waste-sum) |
+| plain | 5,850 | 153 | 128 | 537 | 537 |
+| DSpark e10 k=1 | 4,015 | 129 | 114 | 540 | 534 |
+| DSpark e10 k=3 | 2,388 | 113 | 106 | 545 | 544 |
 | DSpark e10 k=5 | 1,904 | 114 | 108 | 564 | 563 |
 | DSpark e10 k=7 | 1,705 | 123 | 117 | 606 | 607 |
 | EAGLE e10 k=1 | 3,534 | 121 | 108 | 526 | 528 |
 | EAGLE e10 k=3 | 2,426 | 108 | 101 | 528 | 525 |
 | EAGLE e10 k=7 | 2,124 | 119 | 112 | 599 | 596 |
-| paper scheduler (cut + KV) | 1,750 | 113-115 | 105-109 | (waste-sum) | (waste-sum) |
+| paper scheduler (cut + KV) | 1,750 | 113-115 | 105-109 | 527 | 523 |
 
-All arms draw 450-540 W at every load, so J/token follows GPU-seconds:
-0.054 J/token for the best k at opb C=256, 0.066 for plain, 0.28-0.31 on
-summarization (`results/8b/waste/cost-per-token.md`).
+The new summarization entries are arithmetic means of two allocation-level
+costs, not pooled request estimates. Legacy EAGLE/k=5/k=7 entries are from
+other jobs and cannot establish a few-percent ordering against this pair.
+
+Matched output-throughput ratios versus plain in the same job (geometric
+mean of a/b; parentheses give the two-allocation range, not a confidence
+interval):
+
+| C | DSpark k=1 | DSpark k=3 | paper scheduler, cut + KV |
+| --- | --- | --- | --- |
+| 1 | 1.203 (1.197–1.210) | 1.474 (1.460–1.487) | 1.584 (1.548–1.620) |
+| 8 | 1.147 (1.147–1.147) | 1.300 (1.279–1.320) | 1.306 (1.303–1.309) |
+| 32 | 1.073 (1.066–1.080) | 1.133 (1.104–1.163) | 1.180 (1.170–1.190) |
+| 64 | 1.050 (1.049–1.051) | 1.069 (1.047–1.091) | 1.111 (1.108–1.113) |
+| 128 | 0.995 (0.982–1.009) | 0.987 (0.967–1.007) | 1.019 (1.014–1.024) |
+| 256 | 1.007 (1.005–1.008) | 0.988 (0.975–1.001) | 1.028 (1.027–1.028) |
+
+**Verdict:** retain short drafts where low/moderate-load gains already justify
+speculation. At C>=128 on this summarization workload, use plain serving
+unless a separately validated latency/capacity requirement changes the
+choice; a 1.9–2.8% scheduler gain does not justify another serving mechanism.
+At C=256, k=1 improves p95 request TPOT from 100 to 78 ms/token, but p95
+TTFT rises from 21.0 to 21.9 s while mean resident requests fall from 151
+to 116. That is a capacity/queueing trade, not a matched-throughput latency
+win. The scheduler's C=1 outputs are 9–18% longer than plain, so its extra
+throughput there does not establish an equivalent request-latency gain.
+
+Cell-mean module power is roughly 450–550 W. On OPB C=256 the best k
+uses about 0.054 J/token versus 0.066 for plain (legacy measurements).
+In the new summarization pair it is 0.293 plain, 0.280–0.283 for fixed k,
+and 0.273–0.275 for the scheduler. These nvidia-smi/module observations are
+not isolated GPU-energy measurements or a new deployment criterion.
+See the [paired absolute measurements](../results/8b/waste/recovery-20261027/analysis-v2/summary.json)
+and the earlier `results/8b/waste/cost-per-token.md` for the legacy records.
 
 ### The marginal rule and the best k
 
@@ -397,11 +434,15 @@ enough (tens of seconds) that a window is in steady state.
 | `results/8b/sweeps/nsys-smoke-20261022T142254Z` | 3722011 | harness smoke test (debug); reports on the cluster under each `*-nsys/nsys/` |
 | `results/8b/sweeps/waste-prof-a-20261022T161309Z` | 3722945 | profiled: plain, DSpark e10 k=1/3/7, opb + summarization, C=1-256 |
 | `results/8b/sweeps/waste-prof-b-20261022T161311Z` | 3722946 | profiled: DSpark e10 k=5, EAGLE e10 k=1/3/7 |
-| waste-sum-a / waste-sum-b (queued) | 3737492 / 3737493 | unprofiled summarization: plain, DSpark k=1/3, paper scheduler with cut + KV |
+| `results/8b/sweeps/waste-sum-a-20261024T133232Z`, `waste-sum-b-20261024T133235Z` | 3737492 / 3737493 | completed 25 Oct; recovered 27 Oct, unprofiled summarization: plain, DSpark k=1/3, paper scheduler with cut + KV; 48/48 cells valid |
 | k-grid-opb-a/b/e/f, kv-cost-a/b, k-grid-e10-a/b, calibrate, k-grid-a | earlier | unprofiled cost per token (reused) |
 
-Analysis outputs: `results/8b/waste/` (`decomposition.{json,md}`,
-`drafter-costs.json`, `cost-per-token.{json,md}`), from
+Legacy analysis outputs remain unchanged in `results/8b/waste/`
+(`decomposition.{json,md}`, `drafter-costs.json`, `cost-per-token.{json,md}`).
+The recovered pair is versioned separately in
+`results/8b/waste/recovery-20261027/analysis-v2/`; its validation verifies
+393 source/recovery files, request counts, matched workload/generation/order,
+arm statuses and monotone speculative counters. Earlier outputs come from
 `python -m apertus_bench.waste_report {decompose,fit,cost}` with the cost
 table `results/8b/sweeps/kv-cost-a-20261015T230650Z/dspark-e10-k7-paper-cut-kv/cost-table.json`
 (on `spec-exp-base`). Profiled reports (`.nsys-rep`, `.sqlite`) stay on the
