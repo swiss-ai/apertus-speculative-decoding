@@ -1,0 +1,5 @@
+# Timestamp: 2026-10-27T13:18:32.181694+00:00
+# Python: /usr/bin/python3
+# Git SHA: unknown
+# vllm: 0.31.0+rocm723
+/usr/bin/python3 -m vllm.entrypoints.cli.main serve /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B --speculative_config '{"method": "extract_hidden_states", "num_speculative_tokens": 1, "draft_model_config": {"hf_config": {"eagle_aux_hidden_state_layer_ids": [1, 20, 39, 58, 77, 80]}}}' --kv_transfer_config '{"kv_connector": "ExampleHiddenStatesConnector", "kv_role": "kv_producer", "kv_connector_extra_config": {"shared_storage_path": "/tmp/hidden_states"}}' --enable-scale-out --api-server-count 9 --renderer-num-workers 2 --tensor-parallel-size 2 --enforce-eager --trust-remote-code --api-server-count 1 --renderer-num-workers 1 --port 8001 --gpu-memory-utilization 0.62 --max-model-len 8192

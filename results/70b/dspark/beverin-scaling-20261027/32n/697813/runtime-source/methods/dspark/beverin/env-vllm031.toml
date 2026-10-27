@@ -1,0 +1,19 @@
+# Beverin (MI300A, ROCm) container: upstream vLLM v0.31.0 ROCm image
+# (vllm/vllm-openai-rocm, the image CSCS's vLLM-on-AMD tutorial uses), whose
+# hidden-states connector matches the Swiss AI fork's. Imported by import-image.sbatch.
+image = "/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm-v0.31.0.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users"]
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility"
+# The image's entrypoint is the vLLM server (as in the CSCS tutorial EDF).
+entrypoint = false
+
+[env]
+PYTHONNOUSERSITE = "1"
+# CSCS vLLM/SGLang-on-AMD tutorial: works around a hang at RCCL init.
+HWLOC_COMPONENTS = "-gl"
+
+[annotations]
+# RCCL over Slingshot: Beverin's hook defaults to the netstack artifact
+# gpu_rocm7-cxi_13.1.0-ofi_2.6.0-aws_1.20.0 (/etc/enroot/hooks.d/90-aws-ofi-nccl.sh).
+com.hooks.aws_ofi_nccl.enabled = "true"
+com.hooks.aws_ofi_nccl.variant = "rocm6"

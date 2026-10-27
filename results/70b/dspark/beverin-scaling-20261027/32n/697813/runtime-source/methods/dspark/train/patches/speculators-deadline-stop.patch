@@ -1,0 +1,52 @@
+diff --git a/src/speculators/train/trainer.py b/src/speculators/train/trainer.py
+index 01ed9e5..d105863 100644
+--- a/src/speculators/train/trainer.py
++++ b/src/speculators/train/trainer.py
+@@ -1,5 +1,6 @@
+ import json
+ import logging
++import os
+ import time
+ import warnings
+ from pathlib import Path
+@@ -584,6 +585,18 @@ class Trainer:
+             ):
+                 break
+ 
++            if self._deadline_reached():
++                # Stop at a step boundary before the job's time limit and save a
++                # mid-epoch checkpoint the next job resumes from exactly.
++                root_logger.info(
++                    f"DSPARK_STOP_AT reached at epoch {epoch} step {local_step}: "
++                    "saving and exiting for the next job"
++                )
++                self.maybe_save_checkpoint(epoch, local_step=local_step)
++                if self.is_distributed:
++                    dist.barrier()
++                raise SystemExit(0)
++
+             if (
+                 step_interval is not None
+                 and not self.config.save_best
+@@ -654,6 +667,21 @@ class Trainer:
+ 
+         return val_metrics
+ 
++    def _deadline_reached(self) -> bool:
++        """True on every rank once rank 0's clock passes DSPARK_STOP_AT (unix s).
++
++        Checked every 10 steps; global_step is equal on all ranks, so all ranks
++        take part in the same all-reduce and stop at the same step.
++        """
++        stop_at = os.environ.get("DSPARK_STOP_AT")
++        if not stop_at or self.global_step % 10:
++            return False
++        late = float(self.rank == 0 and time.time() >= float(stop_at))
++        flag = torch.tensor([late], device=torch.cuda.current_device())
++        if self.is_distributed:
++            dist.all_reduce(flag, op=dist.ReduceOp.MAX)
++        return bool(flag.item())
++
+     def maybe_save_checkpoint(self, epoch: int | str, local_step: int = 0):
+         if epoch != "interrupted" and (
+             self.config.save_best

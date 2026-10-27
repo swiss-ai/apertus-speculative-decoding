@@ -9,14 +9,17 @@ with daily jobs 694472–694478. The rocBLAS workaround removed the severe
 slowdown. See the continuation outcome below and the new section of
 `docs/beverin-feasibility.md` for measured speed, memory and all job IDs.
 
-**Scaling follow-up (2026-10-27):** 16-node job **697549** passed
-save100/resume100/save200. Its 197 steady samples measured **18.036 s mean /
-18.2 s median**, with **8,179 steps/epoch**: approximately **41 training
-hours/epoch**, plus saves/validation/startup. Whole-job peak 340 GiB,
-minimum available 144 GiB. The conditional 32-node comparison **697813** is
-running as `scaling-32n-20261027-rocblas` (submitted 13:17 UTC). Both use
-separate checkpoints; production `opb-thinkoff-1n-beverin` continues
-unchanged. Raw artifacts and verification:
+**Scaling follow-up (2026-10-27):** both pilots passed
+save100/resume100/save200 with the rocBLAS workaround. **16 nodes (697549):
+18.04 s mean, 8,179 steps/epoch, 40.98 training h/epoch. 32 nodes (697813):
+19.71 s mean, 4,077 steps/epoch, 22.32 training h/epoch.** Estimated regular
+saves add 1.31 / 1.51 h respectively. Peak memory was 340 / 342 GiB, with
+144 / 142 GiB minimum available. Recommendation: **32 nodes for faster
+turnaround** (44% shorter epoch including saves for 13% more node-hours).
+Its larger batch/LR still needs quality validation. No full multi-node
+production chain was launched. One-node production continues unchanged:
+job 694474 resumed from 11,840 and reached 11,953 at 15:15 UTC; four daily
+successors remain. Raw artifacts, hashes and checks:
 `results/70b/dspark/beverin-scaling-20261027/`.
 
 ## Goal and recipe

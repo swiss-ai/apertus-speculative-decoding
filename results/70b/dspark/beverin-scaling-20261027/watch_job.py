@@ -25,8 +25,13 @@ parser.add_argument('--once', action='store_true')
 args = parser.parse_args()
 run = args.work / 'runs' / args.run_id
 for iteration in range(240):
-    queue = subprocess.check_output(['squeue', '-h', '-j', args.job_id,
-                                     '-o', '%T|%M|%D'], universal_newlines=True).strip()
+    query = subprocess.Popen(['squeue', '-h', '-j', args.job_id, '-o', '%T|%M|%D'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             universal_newlines=True)
+    stdout, stderr = query.communicate()
+    if query.returncode and 'Invalid job id specified' not in stderr:
+        raise SystemExit(stderr)
+    queue = stdout.strip()
     logs = sorted((run/'logs').glob('train-{}*-node0.log'.format(args.job_id)),
                   key=lambda p: p.stat().st_mtime)
     current = logs[-1] if logs else None
