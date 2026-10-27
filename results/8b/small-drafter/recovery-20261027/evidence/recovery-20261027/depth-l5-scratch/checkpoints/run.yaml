@@ -1,0 +1,42 @@
+train:
+  speculator_type: dspark
+  verifier:
+    verifier_name_or_path: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+  draft:
+    num_layers: 5
+    target_layer_ids:
+    - 1
+    - 8
+    - 15
+    - 22
+    - 29
+  data:
+    data_path: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/data
+    hidden_states_backend: file
+    total_seq_len: 16384
+    num_workers: 8
+    prefetch_factor: 4
+    max_anchors: 1024
+  generation:
+    vllm_endpoint: http://localhost:8001/v1
+    on_missing: generate
+    on_generate: delete
+  loss:
+    loss_implementation: eager
+    loss_fn: '{"ce":0.1,"tv":0.9}'
+  optimizer:
+    optimizer: muon
+    lr: 0.0003
+  trainer:
+    epochs: 1
+    checkpoint_freq: 0.0625
+    save_path: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints
+    max_steps: 6200
+  dflash:
+    block_size: 8
+  dspark:
+    markov_rank: 256
+    enable_confidence_head: true
+    confidence_head_with_markov: true
+  backend:
+    hidden_states_path: /tmp/hidden_states

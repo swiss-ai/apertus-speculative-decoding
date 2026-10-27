@@ -9,8 +9,13 @@ on the same data, is the existing 1-layer reference
 ([system-optimizations-8b.md](system-optimizations-8b.md), "EAGLE at
 epoch 10").
 
-Status 2026-10-24: phase A (cost, Nsight split and ceiling, no training)
-done; phase C cut to two short training runs (decision below), both queued.
+Status 2026-10-27: phase A is complete. The five-layer 6,200-step control
+finished (3722176, validation EAL 4.630); the one-layer launch (3722177)
+failed before training on conflicting CLI flags. Fixed in `70710111` and
+requeued as **3769226** in a fresh run directory. The shallow-drafter
+comparison remains **incomplete**, with no serving recommendation. Recovered
+evidence and executable evaluation instructions are in
+[`results/8b/small-drafter/recovery-20261027/`](../results/8b/small-drafter/recovery-20261027/README.md).
 
 ## Summary
 
@@ -23,7 +28,7 @@ done; phase C cut to two short training runs (decision below), both queued.
 | ceiling: an N-layer drafter at the 5-layer acceptance, against DSpark e10's best k | 1 layer: +5.9% at C=64, +5.1% at C=128, +5.5% at C=256. 2 layers: +3.9-4.5%. 3 layers: +2.3-2.7%. |
 | break-even acceptance | 92-93% of the 5-layer acceptance for 1 layer (C=256: 3.49 at k=4 vs 3.78), 94% for 2 layers, 96-97% for 3 layers. |
 | untrained truncations (first N layers of e10) | 2.19 / 1.53 / 1.29 accepted tokens at k=7 for 3/2/1 layers vs 4.77: useless untrained, the warm start for training. |
-| gate G3 (>= 5% over DSpark e10's best fixed k at some C >= 128, same job) | Reachable only by a 1-layer drafter that keeps more than 99% of the 5-layer acceptance (throughput scales about linearly with acceptance: +5.5% at 100% leaves +5% at 99.5%); see the decision below. Training results pending. |
+| gate G3 (>= 5% over DSpark e10's best fixed k at some C >= 128, same job) | No verdict yet: the control trained, but the one-layer run failed before training and its replacement is queued. The projected ceiling remains about +5.5%; it is not a measured gain. |
 
 In the waste-profiling cost model (`apertus_bench.waste_report`, decode
 steps only, no prefill) the ceiling of a 1-layer drafter is +8.9-9.8% at
@@ -198,5 +203,6 @@ new decision.
 | `small-trunc-cost-20261022T130123Z` | 3721367 | cost tables of the four depths (paper-scheduler profile; overlays at a short `VLLM_PATCH_DIR`) |
 | `small-trunc-nsys-20261022T161244Z` | 3722940 | Nsight split of the draft step, 5 vs 1 layer at k=4/7, C=1/64/256, eager draft; reports (`.nsys-rep`) on the cluster under each arm's `nsys/` |
 | dataset prepare | 3721370 | 8B dataset, Yu's split verified |
-| `runs/depth-l5-scratch` | 3722176 | 5 layers from scratch, 6,200 steps (pending) |
-| `runs/depth-l1-warm` | 3722177 | 1 layer warm start, 6,200 steps (pending) |
+| `runs/depth-l5-scratch` | 3722176 | Completed 6,200 steps; validation EAL 4.630, accepted length 4.466. Training metrics, not serving acceptance. |
+| `runs/depth-l1-warm` | 3722177 | Failed before training: `--from-pretrained` conflicts with `--num-layers`; no checkpoint. |
+| `runs/depth-l1-warm-recovery-20261027` | 3769226 | Same one-layer initialization, data and 6,200-step schedule; fixed decoder-init flags; queued on normal, 2 nodes, 6 h. |

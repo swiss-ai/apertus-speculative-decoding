@@ -1,0 +1,20 @@
+START 2026-10-24T22:59:30+00:00 job=3722177 nodes=nid[006650,006652] git=50b77780
+=== [2026-10-24T23:00:08Z] nid006652 node 1/2 head=nid006650 run=depth-l1-warm data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/data target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=1 from=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1 extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-10-24T23:00:09Z] nid006650 node 0/2 head=nid006650 run=depth-l1-warm data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/data target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=1 from=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1 extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-10-24T23:04:08Z] nid006652 extraction server 0 up on 8001
+=== [2026-10-24T23:04:08Z] nid006652 extraction server 1 up on 8002
+=== [2026-10-24T23:04:40Z] nid006650 extraction server 0 up on 8001
+=== [2026-10-24T23:04:40Z] nid006650 extraction server 1 up on 8002
+=== [2026-10-24T23:04:40Z] nid006650 all 2 extraction servers up
+=== [2026-10-24T23:04:40Z] nid006650 torchrun start
+=== [2026-10-24T23:04:48Z] nid006652 all 2 extraction servers up
+=== [2026-10-24T23:04:48Z] nid006652 torchrun start
+=== [2026-10-24T23:05:00Z] nid006652 torchrun rc=1 wall=12s; checkpoints: 
+
+=== [2026-10-24T23:05:06Z] nid006650 torchrun rc=1 wall=26s; checkpoints: 
+
+srun: error: nid006652: task 1: Exited with exit code 1
+srun: Terminating StepId=3722177.0
+[2026-10-25T01:06:15.203] error: *** STEP 3722177.0 ON nid006650 CANCELLED AT 2026-10-25T01:06:15 DUE TO TASK FAILURE ***
+srun: error: nid006650: task 0: Terminated
+srun: Force Terminated StepId=3722177.0

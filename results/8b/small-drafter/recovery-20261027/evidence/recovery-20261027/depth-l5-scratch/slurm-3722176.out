@@ -1,0 +1,15 @@
+START 2026-10-24T22:45:24+00:00 job=3722176 nodes=nid[006030,006034] git=50b77780
+=== [2026-10-24T22:46:01Z] nid006030 node 0/2 head=nid006030 run=depth-l5-scratch data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/data target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=5 from=scratch extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-10-24T22:46:01Z] nid006034 node 1/2 head=nid006030 run=depth-l5-scratch data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/data target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=5 from=scratch extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-10-24T22:50:22Z] nid006034 extraction server 0 up on 8001
+=== [2026-10-24T22:50:22Z] nid006034 extraction server 1 up on 8002
+=== [2026-10-24T22:50:33Z] nid006030 extraction server 0 up on 8001
+=== [2026-10-24T22:52:43Z] nid006030 extraction server 1 up on 8002
+=== [2026-10-24T22:52:43Z] nid006030 all 2 extraction servers up
+=== [2026-10-24T22:52:43Z] nid006030 torchrun start
+=== [2026-10-24T22:52:43Z] nid006034 all 2 extraction servers up
+=== [2026-10-24T22:52:43Z] nid006034 torchrun start
+=== [2026-10-25T01:10:23Z] nid006034 torchrun rc=0 wall=8260s; checkpoints: run.yaml speculators.patch train_command.txt 
+=== [2026-10-25T01:10:23Z] nid006030 torchrun rc=0 wall=8260s; checkpoints: run.yaml speculators.patch train_command.txt 
+
+val/eal_epoch=4.630

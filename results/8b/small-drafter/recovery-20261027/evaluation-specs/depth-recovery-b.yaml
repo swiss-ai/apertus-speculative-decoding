@@ -1,0 +1,189 @@
+{
+  "stage": "8b",
+  "engine": {
+    "max_num_batched_tokens": 16384,
+    "max_num_seqs": 256
+  },
+  "probe": false,
+  "loadtests": [
+    {
+      "workload": "opb",
+      "workloads_file": "/users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        64,
+        128,
+        256
+      ]
+    }
+  ],
+  "name": "depth-recovery-b",
+  "arms": [
+    {
+      "name": "preflight",
+      "method": "command",
+      "gpus": 4,
+      "command": [
+        "python3",
+        "{repo}/methods/dspark/train/depth_recovery.py",
+        "preflight",
+        "--candidate",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+        "--control",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+        "--e10",
+        "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+        "--eagle",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+        "--workload",
+        "/users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl",
+        "--output",
+        "{arm_dir}/manifest.json"
+      ]
+    },
+    {
+      "name": "eagle-e10-k7",
+      "method": "eagle",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+      "k": 7
+    },
+    {
+      "name": "eagle-e10-k3",
+      "method": "eagle",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+      "k": 3
+    },
+    {
+      "name": "depth-l5-k7",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+      "k": 7
+    },
+    {
+      "name": "depth-l5-k6",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+      "k": 6
+    },
+    {
+      "name": "depth-l5-k5",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+      "k": 5
+    },
+    {
+      "name": "depth-l5-k4",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+      "k": 4
+    },
+    {
+      "name": "depth-l5-k3",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+      "k": 3
+    },
+    {
+      "name": "depth-l5-k2",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+      "k": 2
+    },
+    {
+      "name": "depth-l5-k1",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+      "k": 1
+    },
+    {
+      "name": "depth-l1-k7",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+      "k": 7
+    },
+    {
+      "name": "depth-l1-k6",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+      "k": 6
+    },
+    {
+      "name": "depth-l1-k5",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+      "k": 5
+    },
+    {
+      "name": "depth-l1-k4",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+      "k": 4
+    },
+    {
+      "name": "depth-l1-k3",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+      "k": 3
+    },
+    {
+      "name": "depth-l1-k2",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+      "k": 2
+    },
+    {
+      "name": "depth-l1-k1",
+      "method": "dspark",
+      "drafter": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end",
+      "k": 1
+    },
+    {
+      "name": "dspark-e10-k7",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 7
+    },
+    {
+      "name": "dspark-e10-k6",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 6
+    },
+    {
+      "name": "dspark-e10-k5",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 5
+    },
+    {
+      "name": "dspark-e10-k4",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 4
+    },
+    {
+      "name": "dspark-e10-k3",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 3
+    },
+    {
+      "name": "dspark-e10-k2",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 2
+    },
+    {
+      "name": "dspark-e10-k1",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 1
+    },
+    {
+      "name": "plain",
+      "method": "baseline"
+    }
+  ]
+}
