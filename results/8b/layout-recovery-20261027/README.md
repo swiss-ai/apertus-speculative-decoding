@@ -59,3 +59,15 @@ a final speedup verdict. The controller will register all further job IDs at
 the same durable state path. The local parent monitor reads that registry.
 The final pre-launch source check is explicitly suffixed `efad15a1`; earlier
 unsuffixed source-check artifacts record a superseded import check.
+
+A separate frozen CPU-only helper now fills the reporting joins and scope gaps:
+`review-helper-v1/README.md` gives exact collection and final-review commands;
+`review-helper-v1/manifest.sha256` pins the helper. It has five focused
+regression checks and does not import or modify active repository code. The
+historical-only final derived view is `historical-review-v2/`: all569 cells,
+363 comparisons and327 eligible screening pairs, with absolute numbers,
+exclusion reasons and explicit unestablished scientific gates. Resident-memory
+coverage is adequate for566 cells. The earlier v1 report preserves its exact
+prototype source rather than being overwritten. This postprocessing launches
+no new measurements. The latest read-only controller observation still shows
+3769354 pending and the remote source pin unchanged.

@@ -1,0 +1,43 @@
+# Preserved layout comparison review
+
+Campaign state: `historical_screening_only`. Scientific verdict remains pending.
+
+All absolute metrics and both P/D baselines are in `comparisons.csv`; raw scopes/engine capacities/hashes are in `review.json`.
+Effects of at least 10% are screening candidates only. Small gains never become implementation recommendations.
+
+| Run | Arm | Comparison | Eligible/seen | Speedup range | Losing cells >10% |
+|---|---|---|---:|---:|---:|
+|dp4-a-20261023T084033Z|dspark-off-k3-dp4|same_layout_speculation|21/21|1.17–2.42x|0|
+|dp4-a-20261023T084033Z|dspark-off-k5-dp4|same_layout_speculation|21/21|1.16–3.03x|0|
+|dp4-b-20261023T122249Z|dspark-off-k7-dp4|same_layout_speculation|21/21|1.09–3.35x|0|
+|dp4-b-20261023T122249Z|eagle-k3-dp4|same_layout_speculation|21/21|1.18–2.34x|0|
+|dp4-c-20261023T182609Z|eagle-k5-dp4|same_layout_speculation|21/21|1.16–2.66x|0|
+|dp4-c-20261023T182609Z|eagle-k7-dp4|same_layout_speculation|21/21|1.12–2.68x|0|
+|think-layouts-20261022T122305Z|dspark-on-k3-dp4|same_layout_speculation|21/21|1.43–2.63x|0|
+|think-layouts-20261022T122305Z|dspark-on-k3-tp4|layout_vs_plain_dp4|21/21|0.81–4.44x|4|
+|think-layouts-20261022T122305Z|dspark-on-k3-tp4|same_layout_speculation|21/21|1.03–2.29x|0|
+|think-layouts-20261022T122305Z|dspark-on-k7-dp4|same_layout_speculation|21/21|1.32–3.69x|0|
+|think-layouts-20261022T122305Z|dspark-on-k7-tp4|layout_vs_plain_dp4|0/6|unestablished|0|
+|think-layouts-20261022T122305Z|dspark-on-k7-tp4|same_layout_speculation|0/6|unestablished|0|
+|think-layouts-20261022T122305Z|plain-tp4|layout_vs_plain_dp4|21/21|0.37–1.97x|9|
+|tp4-a-20261023T093209Z|dspark-off-k3-tp4|same_layout_speculation|24/24|0.84–2.29x|1|
+|tp4-a-20261023T093209Z|dspark-off-k5-tp4|same_layout_speculation|0/17|unestablished|0|
+|tp4-a2-20261023T141405Z|dspark-off-k5-tp4|same_layout_speculation|24/24|0.62–2.88x|3|
+|tp4-b2-20261024T132206Z|eagle-k3-tp4|same_layout_speculation|24/24|0.74–2.04x|2|
+|tp4-c1-20261024T145347Z|eagle-k5-tp4|same_layout_speculation|24/24|0.65–2.40x|2|
+|tp4-c2-20261024T160931Z|eagle-k7-tp4|same_layout_speculation|0/7|unestablished|0|
+
+Original scientific gates/claim limits:
+
+- Screening data only: independent deployment confirmation repeats and confidence intervals are not established.
+- Calibrated per-layout correctness controls are not established by these load tests.
+- Fixed-concurrency tests do not establish an open-loop SLO knee or sustainable traffic capacity.
+- Load-generator capacity needs its own evidence; client success alone does not prove it.
+- Natural-EOS outputs can differ across deployments; compare completion volumes alongside throughput.
+- P/D load/acceptance counters cover only the first decode instance, not the whole node.
+- GPU resident memory includes preallocated KV pools; it is not the minimum memory required.
+
+Missing stage analyses: 0. A terminal Slurm state alone is not campaign completion.
+
+GPU-memory windows assume the CSV clock shares the arm-status UTC offset. Verify the reported coverage; missing fields stay unavailable.
+These are observed resident allocations, including preallocated KV pools. Negative deltas are savings only within the declared metric scope.
