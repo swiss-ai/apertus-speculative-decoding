@@ -122,14 +122,6 @@ def recovery_specs(site: Path) -> dict[str, dict[str, Any]]:
             "min_requests": 1024,
             "max_tokens": 128,
         },
-        {
-            **thinking["loadtests"][0],
-            "label": "opb-thinking-memory-stress",
-            "concurrencies": [1024],
-            "requests_per_slot": 1,
-            "min_requests": 1024,
-            "max_tokens": 128,
-        },
     ]
     preflight["arms"] = [
         {
@@ -147,8 +139,10 @@ def recovery_specs(site: Path) -> dict[str, dict[str, Any]]:
         },
         copy.deepcopy(off["arms"][0]),
         copy.deepcopy(eagle["arms"][1]),
-        copy.deepcopy(thinking["arms"][1]),
+        copy.deepcopy(off["arms"][1]),
     ]
+    # Keep the preflight matched thinking-off; the thinking-on paired retry
+    # validates its own original prompts instead of mixing mode/head controls.
     # k=3/5 were the original bounded finalists, selected from the single-GPU
     # grid. Retain both in TP2xDP2 because changing TP can shift the crossover.
     # P/D uses the original k=3 high-load setting, with no new k/model sweep.
@@ -471,7 +465,11 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
     }
     for stage, limit in STAGES:
         records = [r for r in state["stages"] if r["stage"] == stage]
-        if records and records[-1].get("gate", {}).get("passed"):
+        if (
+            records
+            and records[-1].get("state") == "measured"
+            and records[-1].get("gate", {}).get("passed")
+        ):
             continue
         record = records[-1] if records else None
         spec = specs[stage]
@@ -575,7 +573,13 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
             state["observed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             write_state(state_path, state)
             if observed["state"] in TERMINAL:
-                record["gate"] = cell_gate(Path(record["output"]), spec, stage)
+                try:
+                    record["gate"] = cell_gate(Path(record["output"]), spec, stage)
+                except (OSError, ValueError, KeyError) as exc:
+                    record["gate"] = {
+                        "passed": False,
+                        "error": f"Malformed/incomplete terminal artifacts: {exc}",
+                    }
                 record["state"] = (
                     "measured"
                     if observed["state"] == "COMPLETED" and record["gate"]["passed"]
