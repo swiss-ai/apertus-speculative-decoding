@@ -1,0 +1,14 @@
+# Same image and layout as env-vllm031.toml; isolate the host rocm6 plugin.
+image = "/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm-v0.31.0.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users"]
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility"
+entrypoint = false
+
+[env]
+PYTHONNOUSERSITE = "1"
+HWLOC_COMPONENTS = "-gl"
+
+[annotations]
+com.hooks.aws_ofi_nccl.enabled = "true"
+com.hooks.netstack.source = "host"
+com.hooks.aws_ofi_nccl.variant = "rocm6"

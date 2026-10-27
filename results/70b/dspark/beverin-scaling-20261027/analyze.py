@@ -45,12 +45,14 @@ def analyze(cell, nodes, dataset_rows=1576555):
         steps = []
         for match in re.finditer(r'profile/fetch_ms=.*?global_step=\d+', content, re.DOTALL):
             steps.append({key: float(value) for key, value in re.findall(
-                r'(profile/[a-z_]+|global_step)=([0-9.eE+\-]+)', match.group())})
+                r'(profile/[a-z_]+|lr/[A-Za-z_]+|global_step)=([0-9.eE+\-]+)', match.group())})
         # The fetch timer for the step following an in-process checkpoint includes
         # its save latency. Report those samples separately from compute/feature work.
         steady = [s for s in steps[1:] if int(s['global_step']) not in local_saves]
         attempts.append({'log': log.name, 'epoch_steps': epoch_steps,
                          'resume_global_step': skipped, 'logged_steps': len(steps),
+                         'first_logged_sample': steps[0] if steps else None,
+                         'last_logged_sample': steps[-1] if steps else None,
                          'warmup_global_step': int(steps[0]['global_step']) if steps else None,
                          'post_save_global_steps': [int(s['global_step']) for s in steps[1:]
                                                    if int(s['global_step']) in local_saves],

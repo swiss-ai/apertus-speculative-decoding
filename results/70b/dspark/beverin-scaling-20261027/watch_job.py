@@ -21,6 +21,7 @@ parser.add_argument('--work', type=Path, required=True)
 parser.add_argument('--run-id', required=True)
 parser.add_argument('--job-id', required=True)
 parser.add_argument('--interval', type=int, default=60)
+parser.add_argument('--once', action='store_true')
 args = parser.parse_args()
 run = args.work / 'runs' / args.run_id
 for iteration in range(240):
@@ -51,6 +52,6 @@ for iteration in range(240):
         'min_current_available_gib': min(x[1] for x in memory) if memory else None,
     }
     print(json.dumps(report, sort_keys=True), flush=True)
-    if not queue:
+    if not queue or args.once:
         break
     time.sleep(args.interval)

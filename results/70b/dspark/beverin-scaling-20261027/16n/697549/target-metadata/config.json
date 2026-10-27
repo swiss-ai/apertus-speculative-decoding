@@ -1,0 +1,111 @@
+{
+  "audio_token_id": 131085,
+  "audio_token_offset": 262344,
+  "audio_tokenizer_config": {
+    "adanorm_num_embeddings": 4,
+    "architectures": [
+      "WavTokenizerModel"
+    ],
+    "audio_channels": 1,
+    "codebook_dim": 512,
+    "codebook_size": 4096,
+    "compress": 2,
+    "decoder_attention_num_groups": 32,
+    "decoder_hidden_size": 768,
+    "decoder_intermediate_size": 2304,
+    "decoder_num_layers": 12,
+    "dilation_growth_rate": 2,
+    "dtype": "float32",
+    "hidden_size": 512,
+    "kernel_size": 7,
+    "last_kernel_size": 7,
+    "model_type": "wavtokenizer",
+    "norm_eps": 1e-06,
+    "norm_type": "weight_norm",
+    "num_filters": 32,
+    "num_lstm_layers": 2,
+    "num_residual_layers": 1,
+    "pad_mode": "reflect",
+    "residual_kernel_size": 3,
+    "sampling_rate": 24000,
+    "upsampling_ratios": [
+      6,
+      5,
+      5,
+      4
+    ],
+    "use_causal_conv": false,
+    "use_conv_shortcut": true
+  },
+  "image_token_id": 131079,
+  "image_token_offset": 131272,
+  "model_type": "apertus1p5",
+  "text_config": {
+    "attention_bias": false,
+    "attention_dropout": 0.0,
+    "bos_token_id": 1,
+    "dtype": "bfloat16",
+    "eos_token_id": [
+      2,
+      68,
+      72
+    ],
+    "hidden_act": "xielu",
+    "hidden_dropout": 0.0,
+    "hidden_size": 8192,
+    "initializer_range": 0.02,
+    "intermediate_size": 43008,
+    "max_position_embeddings": 262144,
+    "mlp_bias": false,
+    "model_type": "apertus1p5_text",
+    "num_attention_heads": 64,
+    "num_hidden_layers": 80,
+    "num_key_value_heads": 8,
+    "output_vocab_size": 131072,
+    "pad_token_id": 3,
+    "post_norm": false,
+    "qk_norm": true,
+    "rms_norm_eps": 1e-05,
+    "rope_parameters": {
+      "factor": 32.0,
+      "high_freq_factor": 4.0,
+      "low_freq_factor": 1.0,
+      "original_max_position_embeddings": 8192,
+      "rope_theta": 4000000,
+      "rope_type": "llama3"
+    },
+    "tie_word_embeddings": false,
+    "use_cache": true,
+    "vocab_size": 266752
+  },
+  "tie_word_embeddings": false,
+  "transformers_version": "5.14.0.dev0",
+  "vision_tokenizer_config": {
+    "architectures": [
+      "Apertus1p5VisionTokenizerModel"
+    ],
+    "attn_resolutions": [
+      16
+    ],
+    "base_channels": 256,
+    "channel_multiplier": [
+      1,
+      1,
+      2,
+      2,
+      4
+    ],
+    "codebook_size": 131072,
+    "dropout": 0.0,
+    "dtype": "float32",
+    "embed_dim": 256,
+    "in_channels": 3,
+    "latent_channels": 256,
+    "model_type": "apertus1p5_vision_tokenizer",
+    "num_res_blocks": 4,
+    "resolution": 256
+  },
+  "architectures": [
+    "Apertus1p5ForConditionalGeneration"
+  ]
+}

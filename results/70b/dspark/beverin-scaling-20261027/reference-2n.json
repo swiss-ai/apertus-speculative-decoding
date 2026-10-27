@@ -1,0 +1,86 @@
+{
+  "job_id": "694470",
+  "nodes": 2,
+  "source_artifacts": "../beverin-20261025/694470",
+  "steady_phase_seconds": {
+    "fetch": {
+      "n": 5,
+      "mean": 1.0082366,
+      "median": 0.235079,
+      "min": 0.023495000000000002,
+      "p90": 1.69,
+      "max": 2.87
+    },
+    "fwd": {
+      "n": 5,
+      "mean": 7.854,
+      "median": 9.27,
+      "min": 2.6,
+      "p90": 11.6,
+      "max": 11.6
+    },
+    "bwd": {
+      "n": 5,
+      "mean": 1.8215198,
+      "median": 0.674454,
+      "min": 0.662574,
+      "p90": 0.8860159999999999,
+      "max": 6.22
+    },
+    "opt": {
+      "n": 5,
+      "mean": 3.688,
+      "median": 2.99,
+      "min": 2.98,
+      "p90": 3.0,
+      "max": 6.49
+    },
+    "step": {
+      "n": 5,
+      "mean": 14.36,
+      "median": 14.8,
+      "min": 12.0,
+      "p90": 15.3,
+      "max": 15.5
+    }
+  },
+  "estimate": {
+    "epoch_steps": 67783,
+    "epoch_step_count_agrees_across_attempts": true,
+    "train_hours_from_mean_step": 270.37885555555556,
+    "train_hours_from_median_step": 278.66344444444445,
+    "train_node_hours_from_mean_step": 540.7577111111111,
+    "ten_epoch_train_days_from_mean_step": 112.65785648148147,
+    "nominal_global_token_budget_per_s": 2281.8941504178274,
+    "dataset_rows_per_s_projected": 1.6196974557962844,
+    "rank0_actual_tokens_per_s": {
+      "n": 5,
+      "mean": 536.5624,
+      "median": 509.932,
+      "min": 493.73,
+      "p90": 554.465,
+      "max": 616.269
+    },
+    "mean_save_duration_s": 88.18294477462769,
+    "approx_64_saves_per_epoch_hours": 1.5676967959933812,
+    "excludes": [
+      "validation",
+      "startup",
+      "resume",
+      "queue waits",
+      "regular saves (estimated separately)"
+    ]
+  },
+  "saves": [
+    {
+      "global_step": 6,
+      "start_unix_s": 1792936052.2082868,
+      "end_unix_s": 1792936140.3912315,
+      "duration_s": 88.18294477462769
+    }
+  ],
+  "limitations": [
+    "Short reference pilot; different packing and sample count from scaling pilots.",
+    "Two CPU-profiled steps are included in the five steady samples."
+  ]
+}

@@ -4,6 +4,12 @@ Question: can the DSpark 70B training (online hidden-state extraction from
 Apertus-v1.5-70B + speculators trainer, `methods/dspark/train/`) run on CSCS
 Beverin's `mi300` partition instead of Clariden's saturated `normal` partition?
 
+**Current update (2026-10-27):** the rocBLAS workaround is validated on
+16 nodes at approximately 41 training hours/epoch, with save/resume passing;
+a 32-node comparison is running. The one-node production run continues.
+See the scaling follow-up below. The initial feasibility summary and slow
+16-node results that follow are historical.
+
 **Update 2026-10-25: the 16-node pilot trained and saved but ran at ~200 s per
 step against Clariden's 4.1 s, so the epoch run was not launched (see "16-node
 pilot").** Original verdict of the one-node check: **feasible with work.** On one MI300A node the 70B served
@@ -470,27 +476,65 @@ advancement and the expected logged resume, writing `job-audit.json`.
   [`results/70b/dspark/beverin-20261025/`](../results/70b/dspark/beverin-20261025/).
 - [CSCS support draft](beverin-support-ticket.md), not sent.
 
-## Scaling follow-up (2026-10-27): 16-node pilot in progress
+## Scaling follow-up (2026-10-27): 16 nodes validated; 32-node comparison running
 
-The user authorized a 16-node pilot with 100–200 steady steps and an exact
-save/resume check, followed by a short 32-node comparison if the result
-supports it. No full multi-node production chain is authorized by this step.
+The user authorized a 16-node save/resume pilot and a conditional 32-node
+comparison, keeping the one-node production run intact. No full multi-node
+production chain has been submitted. No Clariden jobs were queried or changed.
 
-Job **697549** started at approximately 09:34:49 UTC, run
-`scaling-16n-20261027-rocblas`. It uses 16 nodes / 32 trainer ranks, full SEQ
-8192 / 512 anchors, nominal batch 262,144 tokens, LR **6e-4**, the validated
-v0.31 + rocBLAS runtime snapshot `repo-ada15200/`, and the memory-safe
-extraction/worker settings above. Profiling is off. The segment hook saves
-at 100, resumes within the allocation with extraction servers retained, and
-saves/exits at 200, yielding up to 198 steady samples. The allocation is
-bounded at three hours with a 20-minute deadline-save margin, and has
-`--nice=10000`. Checkpoints are separate from production. LR scaling is a
-pilot heuristic; quality equivalence remains untested.
+**16-node job 697549 completed** (09:34:49–11:19:03 UTC, 1:44:14). It used
+32 trainer ranks, nominal batch 262,144 tokens, LR 6e-4, SEQ 8192 / 512
+anchors, `repo-ada15200/`, v0.31 + trainer rocBLAS, and the existing safe
+worker/extraction settings. CPU profiling was off. It saved at 100,
+resumed from the exact epoch/local/global cursor 0/100/100, advanced with
+continuous logged LR, saved normally at 128 and saved/exited at 200.
+All 15 verification checks passed. All nodes confirmed rocBLAS with no CPU
+profiling; reported data-recovery errors remained zero and losses finite.
 
-At submission, production job 694473 was healthy at step 10,648; its latest
-checkpoint was 8,840. Seventy-four Beverin nodes were idle. No Clariden jobs
-were queried or changed. The 32-node job has not been submitted. Records:
+| Reference | Steady samples | Mean / median step | Exact steps/epoch | Projected training time/epoch | Training node-hours/epoch |
+|---|---:|---:|---:|---:|---:|
+| 1 node, production snapshot 694473 | 200 | 14.490 / 14.8 s | 141,472 | 569.43 h (23.73 d) | 569.4 |
+| 2 nodes, debug 694470 | 5 | 14.36 / 14.8 s | 67,783 | 270.38 h (11.27 d) | 540.8 |
+| 16 nodes, 697549 | 197 | **18.036 / 18.2 s** | **8,179** | **40.98 h (1.71 d)** | **655.6** |
+| 32 nodes, 697813 | running | pending measurement | pending measurement | pending measurement | pending measurement |
+
+The two-node reference includes two CPU-profiled steps. The one-node window
+is steps 10,530–10,729, captured 09:53:50 UTC. The earlier one-node pilot's
+38 steady samples were faster (12.45 s median); timing varies with the
+window. Against the fresh production reference, 16 nodes give 13.90x epoch
+speedup, 86.9% parallel efficiency and 15.1% more training node-hours.
+The step-count benefit includes better packing, so counts are taken from
+logs rather than divided by node count.
+
+The 16-node mean projects **17.07 training days for ten epochs**. The three
+save durations were 90.58, 69.33 and 61.97 s; their mean implies roughly
+**1.31 additional hours per epoch** at the configured checkpoint frequency.
+Target startup took about 29 minutes, with the first compiling step taking
+102 s. The first resumed step took 57.3 s. Validation and queue waits remain
+unmeasured. Steady timings omit the first step of each attempt and the
+post-checkpoint step whose fetch timer includes save latency; save costs
+are reported separately.
+
+Whole-job 10-second memory samples peak at **340 GiB used**, minimum
+available **144 GiB**. The first-save window peaks at 330 GiB, minimum
+available 156 GiB. This supports the conditional 32-node comparison.
+**697813** was submitted at **13:17:22 UTC**, uses 64 trainer ranks,
+524,288 nominal tokens/step and LR **8.48528137423857e-4**, with the same
+100+100-step save/resume plan and source/recipe/settings. Both pilots have
+three-hour limits, 20-minute deadline-save margins and `--nice=10000`.
+The LR values follow the square-root batch heuristic; short pilots do not
+establish training-quality equivalence or multi-day stability.
+
+The initial monitoring stream stopped before 697549 completed. A fresh
+check at 13:15 UTC found the successful completion; full raw logs/audits
+cover the entire run. Independent status snapshots now monitor 697813.
+Production 694473 remained running when 697813 was submitted, and all five
+successors were intact.
+
+Raw logs, launchers, image/data/target digests, runtime sources, configurations,
+checkpoint metadata, memory samples and reproducible verification scripts:
 [`results/70b/dspark/beverin-scaling-20261027/`](../results/70b/dspark/beverin-scaling-20261027/).
+Large model/optimizer files remain at the recorded cluster run paths.
 
 ## Memory budget for the planned 16-node layout (estimate, not measured)
 
