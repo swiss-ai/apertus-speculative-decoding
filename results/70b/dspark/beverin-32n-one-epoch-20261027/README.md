@@ -51,3 +51,38 @@ records the configuration and passed checks. `container.expected.sha256`
 is the immutable image pin verified in the scaling pilot; the compute job
 hashes it again and records serving/training provenance upon allocation.
 Temporary CPU test fixtures use audit job ID `1` in the preflight stdout.
+
+## Automatic updates
+
+A local user-cron monitor polls the two chain jobs read-only every five
+minutes and queues updates into the requesting chat. It reports material
+state/start/resume/failure/stall/validation/completion changes and a
+three-hour heartbeat; regular saves remain in the local history without
+creating individual chat messages. A major slowdown (recent mean over
+2x the 19.71 s pilot, at least ten samples) and recovery also trigger updates.
+
+The installed script and its state/history/log are under
+`/home/agent/.local/state/beverin-one-epoch-monitor/`. A nonblocking flock
+prevents duplicate invocations. SSH is bounded, targets Beverin explicitly,
+and never modifies jobs or run outputs. Chat delivery uses the supported
+absolute `codex queue` command with an explicit thread, while removing any
+inherited `CODEX_THREAD_ID`.
+
+Authentication failure queues one certificate-renewal notice and suspends
+SSH retries. After certificate renewal, resume with:
+
+```bash
+/usr/bin/python3 -B /home/agent/.local/state/beverin-one-epoch-monitor/monitor.py --state-dir /home/agent/.local/state/beverin-one-epoch-monitor --thread 01a172c0-8457-79e3-b88a-d7b274831c5f --resume-auth
+```
+
+Transient transport failures are retried on later ticks and are reported as
+monitoring outages, without declaring the training failed. Authenticated
+final completion or exhaustion of both chain jobs latches polling off;
+future cron invocations exit locally without SSH. Queued chat messages
+instruct the chat to report observations only, with log strings treated as
+data, and never to relaunch jobs or create another monitor.
+
+Eight no-network notification/state tests passed. A real status follow-up
+was accepted for the exact chat by the default daemon, and a live prime
+succeeded under a reduced cron-like environment. Setup receipt and cron
+verification are recorded alongside the local state.
