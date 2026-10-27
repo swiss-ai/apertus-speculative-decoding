@@ -70,9 +70,28 @@ PY
 failed=0
 for config in ${EAGLE_TRAIN_CONFIG}; do
   log "pipeline config=${config}"
+  rc=0
   "${PYTHON}" -m apertus_eagle.pipeline --config "${config}" \
     ${EAGLE_STEPS:+--steps "${EAGLE_STEPS}"} ${EAGLE_RUN_ID:+--run-id "${EAGLE_RUN_ID}"} \
-    || { rc=$?; failed=${rc}; log "pipeline failed rc=${rc} config=${config}"; }
+    || rc=$?
+  if [ -n "${EAGLE_DEPLOYMENT_ROOT:-}" ]; then
+    # A scientific negative must not stop independent arms. Nonfinite updates,
+    # missing/corrupt exports and other infrastructure failures must stop here.
+    outcome=0
+    "${PYTHON}" -m apertus_eagle.adaptation_validate --config "${config}" \
+      --run-id "${EAGLE_RUN_ID}" || outcome=$?
+    if [ "${outcome}" = 4 ]; then
+      log "recovery deadline stop; controller will resume the remaining bounded curves"
+      failed=0
+      break
+    fi
+    [ "${outcome}" = 0 ] || exit "${outcome}"
+    [ "${rc}" = 0 ] || [ "${rc}" = 3 ] || exit "${rc}"
+  fi
+  if [ "${rc}" != 0 ]; then
+    failed=${rc}
+    log "pipeline failed rc=${rc} config=${config}"
+  fi
 done
 log "pipeline finished"
 exit "${failed}"

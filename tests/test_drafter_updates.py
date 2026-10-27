@@ -103,6 +103,7 @@ def test_recovery_keeps_scientific_failures_separate_from_missing_artifacts(tmp_
     assert curve_report(run, head)["state"] == "incomplete"
     summary = {
         "steps": 384,
+        "non_finite_grad_steps": 0,
         "wall_seconds": 100,
         "gates": {"finite_losses": True, "real_updates": True, "loss_decreased": False},
         "eval_initial": {"simulated_acc_len": 2.0, "extra": {"opb": {"simulated_acc_len": 4.0}}},
@@ -116,7 +117,9 @@ def test_recovery_keeps_scientific_failures_separate_from_missing_artifacts(tmp_
     }.items():
         (run / name).write_text(json.dumps(obj))
     (head / "config.json").write_text("{}")
-    (head / "export-report.json").write_text('{"reload": {"pass": true}}')
+    (head / "export-report.json").write_text(
+        '{"reload": {"pass": true, "exported_tensors_bitwise_equal": true}}'
+    )
     report = curve_report(run, head)
     assert report["state"] == "complete"
     assert not report["scientific_gates_passed"]

@@ -34,6 +34,8 @@ def main() -> None:
             sha.update(block)
     (output / "image.sha256").write_text(f"{sha.hexdigest()}  {image}\n")
     shutil.copy2(args.repo / "targets/8b/contract.json", output / "target-contract.json")
+    if (args.repo / "source-manifest.json").exists():
+        shutil.copy2(args.repo / "source-manifest.json", output / "source-manifest.json")
     for name, argv in {
         "git-revision.txt": ["git", "-C", str(args.repo), "rev-parse", "HEAD"],
         "checkout.patch": ["git", "-C", str(args.repo), "diff", "HEAD", "--binary"],
@@ -58,6 +60,10 @@ def main() -> None:
                 "python": sys.version,
                 "environment": {key: os.environ[key] for key in selected if key in os.environ},
                 "overlay_mounts": resolved.get("mounts", []),
+                "mount_entries": len(resolved.get("mounts", [])),
+                "mount_specs_comma_joined_utf8_bytes": len(
+                    ",".join(resolved.get("mounts", [])).encode()
+                ),
             },
             indent=2,
         )

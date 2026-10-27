@@ -194,9 +194,37 @@ is outside its scope.
 The recovery controller keeps the original 19 configurations (500/2k/8k traces,
 with/without 20% OPB replay, plus the existing high-LR summarization arm), with
 384 optimizer steps each. It records every scientific gate even when an
-infrastructure-complete run fails one. After the curves finish, review dev
-acceptance and OPB forgetting to select 2–3 heads for the original within-job,
-GPU-swapped serving comparisons at k=3/7 and C=1/64/256. No additional architecture,
+infrastructure-complete run fails one. The preregistered rule selects at most
+one final head per domain (three total),
+requiring all unchanged original scientific gates and at least +0.20 development
+simulated accepted tokens. Ties favor fewer traces, replay, lower learning rate,
+then run name. OPB forgetting is reported without excluding specialist selection.
+
+Selected heads proceed automatically to original within-job, GPU-swapped serving
+comparisons at k=3/7 and C=1/64/256. Each head gets two sequential four-GPU rounds
+in one normal allocation (24-hour limit): base/adapted on physical GPUs 0/1 for
+k3 and 2/3 for k7, then reversed on the same GPUs. Original full held-out prompt
+passes use natural EOS and Apertus sampling. First 32 prompts per workload, greedy
+and capped at 256 output tokens, supply base/base and adapted/adapted calibration
+controls using the existing correctness gate and default tolerances.
+
+Only at least 10% throughput **and** 10% median decode-latency improvement in both
+GPU-swapped repeats counts as substantial. Report absolute tok/s, TPOT, TTFT and
+tail latencies, acceptance, GPU-seconds per million output tokens and compute
+break-even. Material TTFT/tail/OPB regression makes the result a conditional
+specialist tradeoff; it cannot justify broad replacement. No minimum arbitrary
+absolute per-token saving is imposed. Simulated acceptance never implies serving
+speedup. The full rule is committed in
+`methods/eagle/configs/8b/adapt-recovery-policy.json` and frozen before new results.
+
+No qualifying development head, or no substantial repeatable serving cell, closes
+as `negative_complete`. Successful bounded EAGLE recovery writes `verdict.json`
+and `verdict.md` automatically; no manual confirmation-selection checkpoint remains.
+Infrastructure/nonfinite-update/export/correctness failures stop as `needs_repair`.
+Valid negative independent scientific arms continue. The original conditional
+DSpark best-setting repeat remains separate: only a qualifying EAGLE serving
+result triggers a recorded dependency to verify compatible data/port/provenance;
+this campaign does not submit that extension. No additional architecture,
 language, context-length or adapter experiments are authorized by this recovery.
 
 Runtime isolation matters: the original remote `scratch` symlink pointed into
@@ -223,8 +251,14 @@ prepares nested input subsets, renders immutable copies of the original configs
 under the recovery root, then runs chat/summarization/multilingual batches through
 the existing EAGLE submitter. It stops on infrastructure failure and after at most
 three attempts per batch, records full original scientific gates, and finishes
-with `adaptation-matrix-v1.json` awaiting serving selection. The controller uses
-an exclusive file lock and a cluster receipt; restarting it resumes owned work.
+with `adaptation-matrix-v1.json`, `selection.json`, paired confirmation records,
+and a final machine-readable `verdict.json`. A detached sparse worktree pins
+controller/launcher sources and hashes; private short overlay roots mitigate historical Pyxis
+mount-list failures. Exact resolved list bytes are recorded; no measured byte
+limit is assumed. An exclusive file lock and durable receipts prevent duplicate
+controllers; restarting resumes owned work. `freeze_adaptation` checks the old
+process identity and replaces only the trace-waiting controller under a separate
+replacement lock. All historical raw scientific artifacts remain unchanged.
 
 Results/root:
 `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261027`.

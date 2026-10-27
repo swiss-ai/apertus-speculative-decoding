@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "registered_before_recovery_results": "2026-10-27",
+  "scope": "Original 19 final exported EAGLE heads only; no intermediate-checkpoint search, DSpark extension, deployment or routing changes.",
+  "selection": {
+    "require_all_original_scientific_gates": true,
+    "minimum_absolute_development_acceptance_gain": 0.20,
+    "maximum_heads": 3,
+    "maximum_per_domain": 1,
+    "rank": ["development_acceptance_gain_descending", "trace_count_ascending", "replay_preferred", "learning_rate_ascending", "run_name_ascending"],
+    "opb_forgetting": "Report without excluding specialist selection. A material regression prevents broad-replacement recommendation."
+  },
+  "confirmation": {
+    "k": [3, 7],
+    "concurrencies": [1, 64, 256],
+    "rounds": 2,
+    "gpus_round_a": {"base-k3": 0, "adapt-k3": 1, "base-k7": 2, "adapt-k7": 3},
+    "gpus_round_b": {"adapt-k3": 0, "base-k3": 1, "adapt-k7": 2, "base-k7": 3},
+    "requests_per_slot": 4,
+    "minimum_requests": 32,
+    "prompt_passes": "Complete original held-out workload passes at every concurrency; natural EOS and original completion caps, Apertus sampling T=0.7/top_p=0.8/top_k=20/seed=1.",
+    "correctness": "First 32 prompts of every original confirmation workload, greedy, max_tokens=256, seed=1. Original calibrated divergence gate/default tolerances using base/base and adapted/adapted cross-deployment controls from GPU-swapped rounds. No proof of losslessness.",
+    "maximum_jobs": 3,
+    "wall_time_per_head": "24:00:00",
+    "partition": "normal"
+  },
+  "recommendation": {
+    "minimum_throughput_ratio_each_repeat": 1.10,
+    "maximum_tpot_p50_ratio_each_repeat": 0.90,
+    "maximum_tail_or_ttft_ratio_for_unconditional_cell": 1.05,
+    "maximum_opb_throughput_regression_fraction_for_broad_replacement": 0.05,
+    "maximum_opb_latency_ratio_for_broad_replacement": 1.05,
+    "maximum_opb_development_acceptance_regression_fraction_for_broad_replacement": 0.02,
+    "require_all_requests_and_warmups_successful": true,
+    "require_calibrated_correctness": true,
+    "claim": "Recommend only measured workload/k/concurrency cells with >=10% throughput and >=10% median decode-latency improvement in BOTH swapped repeats. Report any material TTFT/tail/OPB regression as a conditional tradeoff; never infer serving gain from simulated acceptance. No blanket all-workload claim."
+  },
+  "cost": "Report absolute latency, tok/s, GPU-seconds per million output tokens and conservative break-even output tokens using full trace allocation plus all training allocations for the selected domain, with selected training-loop lower bound and whole-recovery allocated compute separately. No monetary tariff assumed.",
+  "terminal_behavior": "No qualifying development heads => negative_complete. Finite scientifically negative independent arms continue. Missing/corrupt artifacts, nonfinite updates, launch errors or correctness failures => needs_repair. Completed serving with no substantial repeatable cell => negative_complete; otherwise complete with narrowly scoped verdict/tradeoffs."
+}

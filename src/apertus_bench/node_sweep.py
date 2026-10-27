@@ -97,6 +97,15 @@ class Loadtest:
 
 
 @dataclass
+class Capture:
+    label: str
+    workload: str
+    workloads_file: Path
+    limit: int = 32
+    max_tokens: int = 256
+
+
+@dataclass
 class Server:
     """One vLLM instance of a pd arm."""
 
@@ -133,6 +142,7 @@ class Plan:
     loadtests: list[Loadtest]
     probe: Loadtest | None
     node_gpus: int
+    captures: list[Capture] = field(default_factory=list)
 
 
 def _engine_args(engine: dict[str, Any]) -> list[str]:
@@ -428,6 +438,9 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
                     env=env,
                     metadata={},
                     kind="command",
+                    pythonpath=[
+                        str(p).replace("{repo}", str(REPO_ROOT)) for p in raw.get("pythonpath", [])
+                    ],
                 )
             )
             continue
@@ -468,6 +481,16 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
         loadtests=loadtests,
         probe=probe,
         node_gpus=node_gpus,
+        captures=[
+            Capture(
+                label=entry.get("label", entry["workload"]),
+                workload=entry["workload"],
+                workloads_file=Path(entry.get("workloads_file", workloads_file)),
+                limit=int(entry.get("limit", 32)),
+                max_tokens=int(entry.get("max_tokens", 256)),
+            )
+            for entry in spec.get("captures", [])
+        ],
     )
 
 
@@ -611,7 +634,7 @@ async def run_arm(
                 *argv,
                 stdout=command_log,
                 stderr=asyncio.subprocess.STDOUT,
-                env={**env, "PYTHONPATH": _pythonpath()},
+                env={**env, "PYTHONPATH": _pythonpath(arm.pythonpath)},
             )
             code = await command.wait()
         status["exit_code"] = code
@@ -669,6 +692,29 @@ async def run_arm(
             await _wait_ready(arm.name, arm.port, arm.served_model, processes, 2400), 1
         )
         _write_status(status_path, status)
+        if plan.captures:
+            from apertus_bench.client import StreamingChatClient
+            from apertus_bench.correctness import capture_greedy_outputs
+            from apertus_bench.workloads import load_prompts
+
+            async with StreamingChatClient(
+                f"http://127.0.0.1:{arm.port}", arm.served_model, None, timeout_seconds=600
+            ) as client:
+                for capture in plan.captures:
+                    prompts = load_prompts(capture.workloads_file, capture.workload)[
+                        : capture.limit
+                    ]
+                    if not prompts or capture.limit <= 0 or capture.max_tokens <= 0:
+                        raise ValueError("invalid or empty greedy capture")
+                    report = await capture_greedy_outputs(
+                        client,
+                        prompts,
+                        arm_dir / f"capture-{capture.label}.json",
+                        max_tokens=capture.max_tokens,
+                        seed=1,
+                    )
+                    if not all(case["measurement"]["success"] for case in report["cases"]):
+                        raise RuntimeError(f"greedy capture failed: {capture.label}")
         tests = ([plan.probe] if plan.probe else []) + plan.loadtests
         for test in tests:
             target = arm_dir / test.label
