@@ -93,7 +93,9 @@ throughput. G3 requires the one-layer candidate's best k to exceed the same-job
 DSpark e10 best k by at least 5% at C=128 or 256 in both repeats. The decision
 retains absolute throughput, GPU-seconds/million tokens, selected k, acceptance
 and source hashes. With valid correctness and throughput measurements, a miss
-closes as `negative_complete`; a positive is limited to the declared workload.
+closes as `negative_complete`. A raw positive means only the original G3 passed;
+its legacy `substantial_gain_on_declared_workload` label is **not an implementation
+recommendation**. The separate strict review below remains required.
 Infrastructure or correctness failures stop the dependency chain and remain
 unresolved, without a scientific verdict. Earlier attempts and raw cells are
 preserved. No training extension or additional depth grid is launched.
@@ -106,3 +108,47 @@ Overlay mount directories use short, job-private paths under scratch
 (`sd3-JOB_ID`) because an earlier experiment exceeded pyxis's mount-list limit.
 The first queued continuation was canceled before allocation to apply that
 constraint; its submission evidence remains in `campaign-receipt-v1/`.
+
+## Strict implementation review: pending completed measurements
+
+The original pipeline, queued jobs and 5% scientific G3 gate remain unchanged.
+`methods/dspark/train/depth_review.py` is separate CPU-only postprocessing. It
+reads both completed sweeps and the exact original `b/decision.json`, retains
+that file's hash and label, and writes fresh JSON and Markdown review artifacts.
+It refuses to overwrite reports or interpret absent calibrated correctness as
+valid implementation evidence.
+
+For each C, one reference k is selected by geometric-mean throughput over both
+repeats (ties choose smaller k). Every candidate k is evaluated as a fixed pair
+with that same reference k in both repeats. A conservative substantial-benefit
+screen requires at least **10% throughput and 10% mean TPOT or mean end-to-end
+request-latency improvement in both repeats**, with the same latency metric
+passing in each. A guard also requires 10% throughput over each repeat's strongest
+reference, so choosing a weaker fixed reference cannot manufacture a gain.
+Implementation evidence applies to the original one-layer candidate at C>=128
+where the original G3 also passed; lower-C and five-layer results are reported.
+
+Every pair reports absolute throughput, request rate, mean output length,
+GPU-seconds/million tokens, and mean/p50/p95/p99 TPOT, request latency and TTFT,
+including absolute and percentage deltas for both repeats. At least 10% regression
+in mean/p50 TTFT or p95/p99 TTFT/request/TPOT is flagged with its absolute cost.
+Such results support only conditional implementation evidence. A 5–9% G3 gain,
+switching candidate winners between repeats, or an unconfirmed latency gain does
+not qualify. Original negative and marginal outcomes stay explicit.
+
+The staged helper and pending-review plan are under the campaign's fresh
+`strict-review-v1/` directory; they do not modify its frozen `source/` tree.
+Once `b/decision.json` exists, execute this metadata-only command:
+
+```bash
+python3 /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v2/strict-review-v1/depth_review.py \
+  /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v2/a/sweep \
+  /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v2/b/sweep \
+  --raw-decision /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v2/b/decision.json \
+  --output /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v2/strict-review-v1/final-review.json
+```
+
+This creates `final-review.json` and `final-review.md`. No new GPU work is needed.
+Eight focused tests cover marginal/negative outcomes, switching k, cross-repeat
+latency-metric substitution, weak references, conditional tails, correctness and
+write-once outputs. Real implementation evidence remains pending.

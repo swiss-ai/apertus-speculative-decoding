@@ -15,7 +15,10 @@ failed before training on conflicting CLI flags. Fixed in `70710111` and
 requeued as **3769226** in a fresh run directory. Automatic afterok continuation
 is queued: **3769355** validates training and calibrated correctness, then
 **3769356/3769357** run the counterbalanced serving comparisons and final gates.
-The comparison remains **incomplete**, with no serving recommendation. Recovered
+The comparison remains **incomplete**, with no serving recommendation. A future
+5% G3 pass is a scientific result only; implementation evidence still requires
+the separate fixed-k strict review (10% repeatable throughput plus latency gains,
+with absolute TTFT/tail costs). Recovered
 evidence, source hashes and job/dependency receipts are in
 [`results/8b/small-drafter/recovery-20261027/`](../results/8b/small-drafter/recovery-20261027/README.md).
 
