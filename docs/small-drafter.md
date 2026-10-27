@@ -12,9 +12,11 @@ epoch 10").
 Status 2026-10-27: phase A is complete. The five-layer 6,200-step control
 finished (3722176, validation EAL 4.630); the one-layer launch (3722177)
 failed before training on conflicting CLI flags. Fixed in `70710111` and
-requeued as **3769226** in a fresh run directory. The shallow-drafter
-comparison remains **incomplete**, with no serving recommendation. Recovered
-evidence and executable evaluation instructions are in
+requeued as **3769226** in a fresh run directory. Automatic afterok continuation
+is queued: **3769355** validates training and calibrated correctness, then
+**3769356/3769357** run the counterbalanced serving comparisons and final gates.
+The comparison remains **incomplete**, with no serving recommendation. Recovered
+evidence, source hashes and job/dependency receipts are in
 [`results/8b/small-drafter/recovery-20261027/`](../results/8b/small-drafter/recovery-20261027/README.md).
 
 ## Summary
@@ -206,3 +208,10 @@ new decision.
 | `runs/depth-l5-scratch` | 3722176 | Completed 6,200 steps; validation EAL 4.630, accepted length 4.466. Training metrics, not serving acceptance. |
 | `runs/depth-l1-warm` | 3722177 | Failed before training: `--from-pretrained` conflicts with `--num-layers`; no checkpoint. |
 | `runs/depth-l1-warm-recovery-20261027` | 3769226 | Same one-layer initialization, data and 6,200-step schedule; fixed decoder-init flags; queued on normal, 2 nodes, 6 h. |
+| recovery validation/correctness | 3769355 | Afterok 3769226; checks exact training budget/recipe, config, source/target/checkpoint hashes and calibrated k7 correctness on a compute node. |
+| recovery comparison a | 3769356 | Afterok 3769355; original serving grid, full held-out prompt passes, two greedy captures per deployment. |
+| recovery comparison b and verdict | 3769357 | Afterok 3769356; counterbalanced arm order, per-configuration calibrated correctness and repeatable >=5% G3 gate; valid misses close negative. |
+
+The first queued continuation (3769344/45/46) was canceled while still waiting
+on dependencies so the v2 jobs could use short, job-private pyxis overlay paths.
+Its submissions and cancellation receipts are preserved; it produced no measurements.

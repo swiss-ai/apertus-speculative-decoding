@@ -44,6 +44,14 @@ the flat job list, dependency graph, current state and final decision path;
 `events.jsonl` preserves state transitions. Job IDs are also recorded in the
 coordinator's shallow-drafter receipt.
 
+Active chain: **3769226 → 3769355 → 3769356 → 3769357**.
+Training is pending Priority; downstream jobs are pending Dependency at the
+submission snapshot. Frozen serving source is `aa77395b`; all 64 frozen source
+files match that Git revision. The compact v2 submission archive SHA-256 is
+`103532b0d8de04b90a4a012cc6114bd94661cf7e8da6299a2f3c4f5acde58da7`.
+Exact scripts, source manifest, trainer source observations, preserved environment,
+Speculators diff and queue status are in `campaign-receipt-v2/`.
+
 The campaign freezes executable sources at the submitted Git revision under
 its own `source/` directory; weights, optimizer state and corpus stay in their
 existing cluster locations. The source manifest verifies every frozen file
