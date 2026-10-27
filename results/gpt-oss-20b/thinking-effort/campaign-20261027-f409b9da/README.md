@@ -37,3 +37,12 @@ Specialist training is conditional on a complete Phase 1 proceed decision and a
 compatible upstream GPT-OSS DFlash training/export recipe. The implementation
 provides the gated training handoff and validates/evaluates the four exported
 heads; it does not introduce a new training framework.
+
+Update at 2026-10-27 18:00 UTC: blocks 0 and 1 completed with all 12 cells valid
+(768 measured requests, no output-cap truncation). The original controller stopped
+on a Slurm `Job dependency problem` before submitting block 2. After confirming
+successful preflight, unchanged source and no existing block 2 deployment, only
+that missing block was resubmitted as job `3769167` on debug; its recovery argv
+and checks are preserved under `submissions/phase1-block-2/`.
+The [interim report](reports/phase1-20261027T172238778034Z/comparison.md) remains
+pending until the third repeat completes. Specialist training has not started.
