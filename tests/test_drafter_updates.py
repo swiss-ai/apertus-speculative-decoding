@@ -94,6 +94,37 @@ def test_short_smoke_preserves_failed_scientific_gate(tmp_path) -> None:
     assert not assess(run, head, 4)["infrastructure_passed"]
 
 
+def test_recovery_keeps_scientific_failures_separate_from_missing_artifacts(tmp_path) -> None:
+    from apertus_eagle.adaptation_recovery import curve_report
+
+    run, head = tmp_path / "run", tmp_path / "head"
+    run.mkdir()
+    head.mkdir()
+    assert curve_report(run, head)["state"] == "incomplete"
+    summary = {
+        "steps": 384,
+        "wall_seconds": 100,
+        "gates": {"finite_losses": True, "real_updates": True, "loss_decreased": False},
+        "eval_initial": {"simulated_acc_len": 2.0, "extra": {"opb": {"simulated_acc_len": 4.0}}},
+        "eval_final": {"simulated_acc_len": 2.1, "extra": {"opb": {"simulated_acc_len": 3.5}}},
+    }
+    for name, obj in {
+        "train-summary.json": summary,
+        "history.json": [],
+        "provenance.json": {},
+        "evals.json": [],
+    }.items():
+        (run / name).write_text(json.dumps(obj))
+    (head / "config.json").write_text("{}")
+    (head / "export-report.json").write_text('{"reload": {"pass": true}}')
+    report = curve_report(run, head)
+    assert report["state"] == "complete"
+    assert not report["scientific_gates_passed"]
+    assert report["opb_acceptance_final"] == 3.5
+    (head / "export-report.json").write_text('{"reload": {"pass": false}}')
+    assert curve_report(run, head)["state"] == "infrastructure_failed"
+
+
 def _row(text: str) -> dict:
     return {"messages": [{"role": "user", "content": text}]}
 
