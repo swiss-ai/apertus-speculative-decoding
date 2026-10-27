@@ -1,7 +1,9 @@
 # Beverin 32-node, one-epoch production run
 
 User authorized a fresh 32-node draft-model run for **one epoch** after the
-validated scaling pilots. Run ID:
+validated scaling pilots. Submitted **2026-10-27 16:05:51 UTC** as jobs
+**698072** (pending priority) and **698073** (pending afterany dependency).
+Startup and training have not begun at this recorded check. Run ID:
 `opb-thinkoff-32n-1epoch-beverin-20261027`.
 
 - 32 nodes, 64 FSDP trainer ranks; each node retains a TP2 target extraction
@@ -35,3 +37,17 @@ snapshot; `launch.sh` requires its full Git SHA. Slurm launchers capture
 source revisions, exact configuration, container/data/model digests,
 applied patches, resolved non-secret environments, job/node IDs, raw logs
 and checkpoint/validation metadata with each deployment.
+
+Runtime revision: `dd96fe2af69c38f08576bf88e1be77bc2ddf345f`, snapshot
+`/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a`.
+Exact submission command on Beverin:
+
+```bash
+bash /iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/launch-one-epoch-dd96fe2a.sh dd96fe2af69c38f08576bf88e1be77bc2ddf345f
+```
+
+`launch.sbatch` preserves the generated command/environment; `metadata.json`
+records the configuration and passed checks. `container.expected.sha256`
+is the immutable image pin verified in the scaling pilot; the compute job
+hashes it again and records serving/training provenance upon allocation.
+Temporary CPU test fixtures use audit job ID `1` in the preflight stdout.

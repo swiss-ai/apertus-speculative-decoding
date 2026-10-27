@@ -16,11 +16,21 @@ save100/resume100/save200 with the rocBLAS workaround. **16 nodes (697549):
 saves add 1.31 / 1.51 h respectively. Peak memory was 340 / 342 GiB, with
 144 / 142 GiB minimum available. Recommendation: **32 nodes for faster
 turnaround** (44% shorter epoch including saves for 13% more node-hours).
-Its larger batch/LR still needs quality validation. No full multi-node
-production chain was launched. One-node production continues unchanged:
+Its larger batch/LR still needs quality validation. One-node production continues unchanged:
 job 694474 resumed from 11,840 and reached 11,953 at 15:15 UTC; four daily
 successors remain. Raw artifacts, hashes and checks:
 `results/70b/dspark/beverin-scaling-20261027/`.
+
+**One-epoch production launch (2026-10-27, 16:05 UTC):** fresh run
+`opb-thinkoff-32n-1epoch-beverin-20261027` is submitted on 32 nodes as
+**698072 → 698073**, two dependent 24-hour allocations, currently pending
+priority/dependency. It uses **EPOCHS=1**, LR **8.48528137423857e-4**, the
+full 8,192-token / 512-anchor recipe and rocBLAS; expected **4,077 steps /
+40 warmup steps** with the normal linear schedule. No pilot stop is set.
+Runtime `repo-dd96fe2a/` adds opt-in final-validation recovery and an atomic,
+authenticated completion guard so a redundant link skips containers.
+The one-node run and Clariden remain untouched. Exact launch and queued
+Slurm records: `results/70b/dspark/beverin-32n-one-epoch-20261027/`.
 
 ## Goal and recipe
 

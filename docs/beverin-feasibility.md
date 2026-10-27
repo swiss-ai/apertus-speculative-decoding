@@ -476,11 +476,44 @@ advancement and the expected logged resume, writing `job-audit.json`.
   [`results/70b/dspark/beverin-20261025/`](../results/70b/dspark/beverin-20261025/).
 - [CSCS support draft](beverin-support-ticket.md), not sent.
 
+## One-epoch production launch (2026-10-27, 16:05 UTC)
+
+The user authorized one fresh epoch of the draft model on 32 nodes.
+Run **`opb-thinkoff-32n-1epoch-beverin-20261027`** was submitted as
+**698072 → 698073**, two 24-hour allocations with an `afterany` dependency.
+At submission, the first was pending priority and the second pending its
+dependency; no startup or training steps had occurred. Beverin was busy
+(116 nodes allocated, one idle at the initial check).
+
+The per-rank recipe and container/data/Speculators pins match the validated
+32-node pilot: 64 trainer ranks, TP2 extraction per node, SEQ 8192, 512
+anchors, Muon LR **8.48528137423857e-4**, safe extraction/worker settings and
+trainer rocBLAS. This is a **genuine EPOCHS=1 schedule**, expected 4,077
+steps and 40 warmup steps, with the existing linear scheduler. No pilot
+segment, pilot resume, MAX_STEPS or profiling flag is exported. No pilot
+checkpoint is reused. Regular saves remain at 1/64 epoch, deadline save
+40 minutes before each time limit, with normal in-allocation retries.
+
+Runtime snapshot **`repo-dd96fe2a/`** contains opt-in one-epoch completion
+handling. The upstream end checkpoint precedes validation; when validation
+is interrupted, continuation restores that checkpoint and runs validation
+without repeating training or its final save. Completion requires the
+0/0/4077 state, nonempty final model/optimizer/scheduler/config files and
+finite saved validation metrics, followed by rank-0 atomic marker and a
+barrier. A redundant chain link authenticates completion before containers
+start. No-progress audits are allowed only for authenticated completion or
+successfully completed, explicitly logged validation-only recovery.
+Nine CPU lifecycle/audit tests passed locally and on Beverin Python 3.6;
+shell syntax and exact Slurm configuration checks passed, including an
+independent parent review. The one-node run and all Clariden jobs remain
+unchanged. Launch, source revision, configuration and queued-state artifacts:
+[`results/70b/dspark/beverin-32n-one-epoch-20261027/`](../results/70b/dspark/beverin-32n-one-epoch-20261027/).
+
 ## Scaling follow-up (2026-10-27): 16 and 32 nodes validated
 
 The user authorized a 16-node save/resume pilot and a conditional 32-node
-comparison, keeping the one-node production run intact. No full multi-node
-production chain has been submitted. No Clariden jobs were queried or changed.
+comparison, keeping the one-node production run intact. These measurements
+preceded the one-epoch production launch above. No Clariden jobs were queried or changed.
 
 **16-node job 697549 completed** (09:34:49–11:19:03 UTC, 1:44:14). It used
 32 trainer ranks, nominal batch 262,144 tokens, LR 6e-4, SEQ 8192 / 512
@@ -539,8 +572,7 @@ waits are additional; target startup was roughly 29 / 31 minutes on
 16 / 32 nodes. The 32-node batch is twice the 16-node batch, eight times
 Yu's reference, with LR chosen by the square-root heuristic. Short pilots
 do not establish quality equivalence or multi-day stability. Sixteen nodes
-retains the smaller batch and lower compute cost. No full multi-node
-production chain was launched.
+retains the smaller batch and lower compute cost.
 
 The initial monitoring stream stopped before 697549 completed. A fresh
 check at 13:15 UTC found the successful completion; full raw logs/audits

@@ -1,0 +1,47 @@
+{
+  "run_id": "opb-thinkoff-32n-1epoch-beverin-20261027",
+  "submitted_utc": "2026-10-27T16:05:51Z",
+  "job_ids": [
+    "698072",
+    "698073"
+  ],
+  "status_at_submission": [
+    "PENDING Priority",
+    "PENDING Dependency"
+  ],
+  "continuation_dependency": "afterany:698072",
+  "runtime_revision": "dd96fe2af69c38f08576bf88e1be77bc2ddf345f",
+  "runtime_path": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a",
+  "speculators_revision": "7046ac63fac4eeb218dc2e92a385c7d1ec8c4e00",
+  "fresh_initialization": true,
+  "nodes": 32,
+  "training_world_size": 64,
+  "gpus_per_node": 4,
+  "epochs": 1,
+  "expected_steps_per_epoch": 4077,
+  "scheduler_type": "linear",
+  "scheduler_total_steps": 4077,
+  "scheduler_warmup_steps": 40,
+  "lr": 0.000848528137423857,
+  "seq_per_rank": 8192,
+  "anchors_per_rank": 512,
+  "global_token_budget": 524288,
+  "checkpoint_frequency": 0.015625,
+  "allocation_time": "24:00:00",
+  "links": 2,
+  "deadline_margin_seconds": 2400,
+  "extract_mem": 0.62,
+  "workers": 1,
+  "prefetch": 1,
+  "blas_backend": "cublas (rocBLAS on ROCm)",
+  "preflight_checks": {
+    "local_cpu_tests": 9,
+    "beverin_python36_cpu_tests": 9,
+    "shell_syntax": "passed",
+    "exact_sbatch_exports": "passed",
+    "parent_independent_slurm_review": "passed"
+  },
+  "one_node_unchanged": true,
+  "clariden_touched": false,
+  "resolved_trainer_and_serving_provenance": "Written per deployment by the launcher once allocated; current state is queued."
+}

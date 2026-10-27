@@ -1,0 +1,66 @@
+2026-10-27T16:09:10+00:00
+JobId=698072 JobName=dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027
+   UserId=faruk_zahiragic(1186) GroupId=infra01(65603) MCS_label=N/A
+   Priority=208840 Nice=0 Account=infra01 QOS=normal
+   JobState=PENDING Reason=Priority Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=1-00:00:00 TimeMin=N/A
+   SubmitTime=17:05:52 EligibleTime=17:05:52
+   AccrueTime=17:05:52
+   StartTime=18:45:00 EndTime=Tomorr 18:45 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=17:09:10 Scheduler=Main
+   Partition=mi300 AllocNode:Sid=172.28.9.44:5186
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList= SchedNodeList=nid[002344,002346,002354,002356,002358,002408,002410,002412,002414,002416,002418,002420,002422,002426,002440,002442,002444,002446,002448,002450,002452,002454,002456,002458,002472,002474,002476,002478,002480,002482,002484,002486]
+   NumNodes=32-32 NumCPUs=32 NumTasks=32 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=32,mem=16416000M,node=32,billing=32,gres/gpu=128
+   AllocTRES=(null)
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)
+   Command=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/submit-train-opb-thinkoff-32n-1epoch-beverin-20261027-20261027T160551Z.sbatch
+   WorkDir=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a
+   StdErr=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027-698072.out
+   StdIn=/dev/null
+   StdOut=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027-698072.out
+   TresPerNode=gres/gpu:4
+   
+
+JobId=698073 JobName=dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027
+   UserId=faruk_zahiragic(1186) GroupId=infra01(65603) MCS_label=N/A
+   Priority=208822 Nice=0 Account=infra01 QOS=normal
+   JobState=PENDING Reason=Dependency Dependency=afterany:698072(unfulfilled)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=1-00:00:00 TimeMin=N/A
+   SubmitTime=17:05:52 EligibleTime=Unknown
+   AccrueTime=Unknown
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=17:05:52 Scheduler=Main
+   Partition=mi300 AllocNode:Sid=172.28.9.44:5186
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=32-32 NumCPUs=32 NumTasks=32 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=32,mem=16416000M,node=32,billing=32,gres/gpu=128
+   AllocTRES=(null)
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)
+   Command=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/submit-train-opb-thinkoff-32n-1epoch-beverin-20261027-20261027T160551Z.sbatch
+   WorkDir=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a
+   StdErr=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027-698073.out
+   StdIn=/dev/null
+   StdOut=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs/dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027-698073.out
+   TresPerNode=gres/gpu:4
+   
+
+     JOBID        STATE NOD         TIME                                                    NAME                    NODELIST(REASON)
+    698072      PENDING  32         0:00     dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027                          (Priority)
+    698073      PENDING  32         0:00     dspark-70b-opb-thinkoff-32n-1epoch-beverin-20261027                        (Dependency)
+    694478      PENDING   1         0:00                      dspark-70b-opb-thinkoff-1n-beverin                        (Dependency)
+    694477      PENDING   1         0:00                      dspark-70b-opb-thinkoff-1n-beverin                        (Dependency)
+    694476      PENDING   1         0:00                      dspark-70b-opb-thinkoff-1n-beverin                        (Dependency)
+    694475      PENDING   1         0:00                      dspark-70b-opb-thinkoff-1n-beverin                        (Dependency)
+    694474      RUNNING   1      1:43:19                      dspark-70b-opb-thinkoff-1n-beverin                           nid002928
+7046ac63fac4eeb218dc2e92a385c7d1ec8c4e00
