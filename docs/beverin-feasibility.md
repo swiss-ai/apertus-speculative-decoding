@@ -509,6 +509,17 @@ independent parent review. The one-node run and all Clariden jobs remain
 unchanged. Launch, source revision, configuration and queued-state artifacts:
 [`results/70b/dspark/beverin-32n-one-epoch-20261027/`](../results/70b/dspark/beverin-32n-one-epoch-20261027/).
 
+The requested automatic updates are installed as local user cron: a
+read-only check every five minutes, chat updates for material changes and
+three-hour heartbeats, with no alert per ordinary save. Authenticated final
+completion or both chain jobs exhausting latches remote polling off.
+Authentication failure queues one renewal request and pauses SSH retries.
+The exact chat queue accepted a real preflight status, and the natural
+18:15:03 UTC cron tick read step 222 / saved 192 without errors. Eight
+notification/state tests passed; setup/receipt and initial snapshot are
+in the production run record. The frozen monitor and private state/history
+are under `/home/agent/.local/state/beverin-one-epoch-monitor/`.
+
 ## Scaling follow-up (2026-10-27): 16 and 32 nodes validated
 
 The user authorized a 16-node save/resume pilot and a conditional 32-node

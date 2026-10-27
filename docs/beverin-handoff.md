@@ -32,6 +32,14 @@ authenticated completion guard so a redundant link skips containers.
 The one-node run and Clariden remain untouched. Exact launch and queued
 Slurm records: `results/70b/dspark/beverin-32n-one-epoch-20261027/`.
 
+**Automatic updates:** local user cron checks the 32-node one-epoch run
+read-only every five minutes, queues material changes and three-hour
+heartbeats into the requesting chat, and stops remote polling after
+validated completion or chain exhaustion. The first natural cron tick at
+18:15 UTC observed step 222 / saved 192 with no errors. Authentication
+failure notifies once and pauses SSH retries until explicit renewal/resume.
+Setup and delivery receipt: the run record's `monitor-setup.json`.
+
 ## Goal and recipe
 
 Train a DSpark speculative-decoding drafter for Apertus-v1.5-70B the way Yu

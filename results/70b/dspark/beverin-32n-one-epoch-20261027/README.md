@@ -85,4 +85,6 @@ data, and never to relaunch jobs or create another monitor.
 Eight no-network notification/state tests passed. A real status follow-up
 was accepted for the exact chat by the default daemon, and a live prime
 succeeded under a reduced cron-like environment. Setup receipt and cron
-verification are recorded alongside the local state.
+verification are recorded in `monitor-setup.json` and alongside local state.
+The natural 18:15:03 UTC cron tick was verified: step 222 / save 192,
+RUNNING with no reported errors; routine progress correctly stayed quiet.
