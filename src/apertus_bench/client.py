@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -28,17 +29,35 @@ class RequestMeasurement:
     output_sha256: str | None = None
     output: str | None = None
     error: str | None = None
+    reasoning_output: str | None = None
+    final_output: str | None = None
+    reasoning_tokens: int | None = None
+    final_tokens: int | None = None
+    channel_token_count_source: str | None = None
+    server_reasoning_tokens: int | None = None
+    stream_events: list[dict[str, Any]] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
+def _reasoning_payload(delta: dict[str, Any]) -> str:
+    # New vLLM uses reasoning; older releases use reasoning_content. These are
+    # aliases, not two distinct channels to concatenate.
+    for key in ("reasoning", "reasoning_content"):
+        value = delta.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return ""
+
+
 def _token_payload(delta: dict[str, Any]) -> str:
     pieces: list[str] = []
-    for key in ("content", "reasoning_content"):
+    for key in ("content",):
         value = delta.get(key)
         if isinstance(value, str) and value:
             pieces.append(value)
+    pieces.append(_reasoning_payload(delta))
     for tool_call in delta.get("tool_calls") or []:
         function = tool_call.get("function") or {}
         arguments = function.get("arguments")
@@ -55,9 +74,11 @@ class StreamingChatClient:
         api_key: str | None,
         *,
         timeout_seconds: float,
+        token_counter: Callable[[str], int] | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
+        self.token_counter = token_counter
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         timeout = httpx.Timeout(timeout_seconds, connect=min(timeout_seconds, 30.0))
         # No pool cap: concurrency is set by the caller's workers. httpx's default of
@@ -89,6 +110,9 @@ class StreamingChatClient:
         ignore_eos: bool,
         store_output: bool,
         top_k: int | None = None,
+        min_p: float | None = None,
+        reasoning_effort: str | None = None,
+        store_stream: bool = False,
     ) -> RequestMeasurement:
         payload = {
             "model": self.model,
@@ -105,6 +129,17 @@ class StreamingChatClient:
         if top_k is not None:
             # vLLM extension of the OpenAI schema; omitted means the server default.
             payload["top_k"] = top_k
+        if min_p is not None:
+            payload["min_p"] = min_p
+        if reasoning_effort is not None:
+            if reasoning_effort not in {"low", "medium", "high"}:
+                raise ValueError("reasoning_effort must be low, medium or high")
+            if (prompt.chat_template_kwargs or {}).get("reasoning_effort") not in (
+                None,
+                reasoning_effort,
+            ):
+                raise ValueError("prompt chat template conflicts with requested reasoning_effort")
+            payload["reasoning_effort"] = reasoning_effort
         if ignore_eos:
             payload["ignore_eos"] = True
 
@@ -112,6 +147,9 @@ class StreamingChatClient:
         first_payload_at: float | None = None
         payload_times: list[float] = []
         output_parts: list[str] = []
+        reasoning_parts: list[str] = []
+        final_parts: list[str] = []
+        raw_events: list[dict[str, Any]] = []
         usage: dict[str, Any] | None = None
         finish_reason: str | None = None
         status_code: int | None = None
@@ -131,6 +169,13 @@ class StreamingChatClient:
                     if not raw_event or raw_event == "[DONE]":
                         continue
                     event = json.loads(raw_event)
+                    if store_stream:
+                        raw_events.append(
+                            {
+                                "elapsed_ms": (time.perf_counter() - started) * 1000,
+                                "event": event,
+                            }
+                        )
                     if event.get("usage"):
                         usage = event["usage"]
                     choices = event.get("choices") or []
@@ -139,7 +184,11 @@ class StreamingChatClient:
                     choice = choices[0]
                     if choice.get("finish_reason"):
                         finish_reason = choice["finish_reason"]
-                    piece = _token_payload(choice.get("delta") or {})
+                    delta = choice.get("delta") or {}
+                    reasoning_parts.append(_reasoning_payload(delta))
+                    if isinstance(delta.get("content"), str):
+                        final_parts.append(delta["content"])
+                    piece = _token_payload(delta)
                     if piece:
                         now = time.perf_counter()
                         if first_payload_at is None:
@@ -158,6 +207,10 @@ class StreamingChatClient:
                 ttft_ms=(first_payload_at - started) * 1000 if first_payload_at else None,
                 tpot_ms=None,
                 error=f"{type(error).__name__}: {error}",
+                output="".join(output_parts) if store_output else None,
+                reasoning_output="".join(reasoning_parts) if store_output else None,
+                final_output="".join(final_parts) if store_output else None,
+                stream_events=raw_events if store_stream else None,
             )
 
         ended = time.perf_counter()
@@ -174,6 +227,9 @@ class StreamingChatClient:
             for previous, current in zip(payload_times, payload_times[1:], strict=False)
         ]
         error = None if usage else "stream completed without usage; token throughput unavailable"
+        reasoning = "".join(reasoning_parts)
+        final = "".join(final_parts)
+        details = (usage or {}).get("completion_tokens_details") or {}
         return RequestMeasurement(
             request_index=request_index,
             prompt_id=prompt.id,
@@ -190,4 +246,11 @@ class StreamingChatClient:
             output_sha256=hashlib.sha256(output.encode()).hexdigest(),
             output=output if store_output else None,
             error=error,
+            reasoning_output=reasoning if store_output else None,
+            final_output=final if store_output else None,
+            reasoning_tokens=self.token_counter(reasoning) if self.token_counter else None,
+            final_tokens=self.token_counter(final) if self.token_counter else None,
+            channel_token_count_source="tokenizer_reencoding" if self.token_counter else None,
+            server_reasoning_tokens=details.get("reasoning_tokens"),
+            stream_events=raw_events if store_stream else None,
         )

@@ -30,6 +30,8 @@ class GenerationSettings:
     seed: int = 1
     max_tokens: int | None = None
     ignore_eos: bool = False
+    reasoning_effort: str | None = None
+    min_p: float | None = None
 
 
 @dataclass(frozen=True)
@@ -101,6 +103,8 @@ async def _execute_requests(
                 temperature=generation.temperature,
                 top_p=generation.top_p,
                 top_k=generation.top_k,
+                min_p=generation.min_p,
+                reasoning_effort=generation.reasoning_effort,
                 seed=generation.seed + request_index,
                 max_tokens=generation.max_tokens,
                 ignore_eos=generation.ignore_eos,
