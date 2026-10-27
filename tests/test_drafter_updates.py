@@ -166,6 +166,20 @@ def test_guard_rejects_test_prompts_and_near_duplicates() -> None:
     assert not guard.admit(_row(other + " tail"), "d4")
 
 
+def test_prior_eligible_pool_is_rechecked_after_selecting_dev() -> None:
+    words = " ".join(f"devword{i}" for i in range(40))
+    dev, near, separate = _row(words), _row(words + " tail"), _row("unrelated task")
+    guard = Guard([], set())
+    assert guard.admit(dev, "dev")
+    assert guard.admit(near, "near")
+    assert guard.admit(separate, "separate")
+    guard.protect([dev])
+    # Eligibility came before split selection; a repeat-digest check cannot be
+    # reused here because all three candidates have already been seen.
+    assert not guard.unprotected(near)
+    assert guard.unprotected(separate)
+
+
 def test_trace_seeds_depend_on_the_row_not_its_position() -> None:
     from apertus_eagle.generate_targets import row_seed
 

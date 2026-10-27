@@ -148,15 +148,10 @@ class Guard:
             for gram in self.grams[-1]:
                 self.index.setdefault(gram, set()).add(len(self.grams) - 1)
 
-    def admit(self, row: dict[str, Any], digest: str) -> bool:
+    def unprotected(self, row: dict[str, Any]) -> bool:
+        """Recheck prior candidates after a dev/test split becomes protected."""
         from apertus_eagle.overlap_check import NEAR_DUP
 
-        if digest in self.protected_digests:
-            self.rejected["protected_digest"] += 1
-            return False
-        if digest in self.seen_digests:
-            self.rejected["repeat"] += 1
-            return False
         text = self._user_text(row)
         if self._normalize(text) in self.exact:
             self.rejected["protected_text"] += 1
@@ -168,6 +163,17 @@ class Guard:
                 hits[position] = hits.get(position, 0) + 1
         if any(n / max(1, len(mine | self.grams[p])) >= NEAR_DUP for p, n in hits.items()):
             self.rejected["near_dup"] += 1
+            return False
+        return True
+
+    def admit(self, row: dict[str, Any], digest: str) -> bool:
+        if digest in self.protected_digests:
+            self.rejected["protected_digest"] += 1
+            return False
+        if digest in self.seen_digests:
+            self.rejected["repeat"] += 1
+            return False
+        if not self.unprotected(row):
             return False
         self.seen_digests.add(digest)
         return True
@@ -396,14 +402,25 @@ def main(argv: list[str] | None = None) -> None:
             report["eligible"] = len(rows)
             if len(rows) < total:
                 raise SystemExit(f"chat: {len(rows)} eligible prompts < {total}")
-            splits = {"dev": rows[: args.dev], "pool": rows[args.dev : total]}
+            dev = rows[: args.dev]
+            guard.protect(dev)
+            pool = [row for row in rows[args.dev :] if guard.unprotected(row)][: args.pool]
+            if len(pool) < args.pool:
+                raise SystemExit(
+                    f"chat: {len(pool)} pool prompts after dev protection < {args.pool}"
+                )
+            splits = {"dev": dev, "pool": pool}
         elif domain == "summarization":
             candidates = summarization_candidates(total, args.oversample, args.summary_files)
             pools = {lang: eligible(rows, domain) for lang, rows in candidates.items()}
             report["eligible_by_language"] = {lang: len(rows) for lang, rows in pools.items()}
             dev, short_dev = by_quota(pools, SUMMARY_SHARE, args.dev)
+            guard.protect(dev)
             used = {r["id"] for r in dev}
-            rest = {lang: [r for r in rows if r["id"] not in used] for lang, rows in pools.items()}
+            rest = {
+                lang: [r for r in rows if r["id"] not in used and guard.unprotected(r)]
+                for lang, rows in pools.items()
+            }
             pool, short_pool = by_quota(rest, SUMMARY_SHARE, args.pool)
             if short_dev or short_pool:
                 raise SystemExit(f"summarization shortfall: dev {short_dev}, pool {short_pool}")
