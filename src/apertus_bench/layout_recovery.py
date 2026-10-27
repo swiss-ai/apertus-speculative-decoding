@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import gzip
 import hashlib
 import json
 import os
@@ -19,6 +20,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+
+from apertus_bench.prometheus import parse_speculative_snapshot, speculative_delta
 
 REPO = Path(__file__).resolve().parents[2]
 SPECS = REPO / "experiments/high-concurrency-8b"
@@ -50,6 +53,26 @@ def write_json(path: Path, value: Any) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(value, indent=2) + "\n")
     temporary.replace(path)
+
+
+def write_state(path: Path, state: dict[str, Any]) -> None:
+    """Expose a bounded top-level registry for the parent's read-only monitor."""
+    state["workstream"] = "layouts"
+    state["state"] = state["campaign_state"]
+    state["job_ids"] = [row["job_id"] for row in state["stages"]]
+    state["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    state["scientific_completion"] = "pending_scientific_review"
+    if state["campaign_state"] == "active":
+        current = state["stages"][-1] if state["stages"] else {}
+        state["current_job"] = current.get("job_id")
+        state["next_action"] = (
+            "Await active stage, validate gates, then submit the next bounded stage"
+        )
+    else:
+        state["next_action"] = (
+            "Inspect gates/artifacts and finish scientific review before any recommendation"
+        )
+    write_json(path, state)
 
 
 def sha256(path: Path) -> str:
@@ -168,6 +191,70 @@ def source_identity() -> dict[str, Any]:
     }
 
 
+def cell_quality(path: Path, method: str) -> dict[str, Any]:
+    """Check retained provenance and observable counter continuity."""
+    errors = []
+    metadata_path = path.with_name("metadata.json")
+    meta = json.loads(metadata_path.read_text()) if metadata_path.exists() else {}
+    extra = meta.get("extra", {})
+    if (
+        not meta.get("workload_file_sha256")
+        or not extra.get("deployment_id")
+        or not extra.get("engine")
+    ):
+        errors.append("Missing corpus/deployment/engine provenance")
+    if method == "eagle" and any(
+        not extra.get(k)
+        for k in (
+            "checkpoint_sha256",
+            "target_model",
+            "target_revision",
+            "target_tensor_parallel_size",
+        )
+    ):
+        errors.append("Missing EAGLE target/checkpoint contract")
+    snapshots = [path.with_name("metrics_before.prom"), path.with_name("metrics_after.prom")]
+    counter_result = None
+    if not all(p.exists() for p in snapshots):
+        errors.append("Missing raw metric snapshots")
+    else:
+        try:
+            counter_result = speculative_delta(
+                *(parse_speculative_snapshot(p.read_text()) for p in snapshots)
+            )
+            if method in {"dspark", "eagle"} and not counter_result.get("enabled"):
+                errors.append("Speculative counters unavailable")
+        except ValueError as exc:
+            errors.append(str(exc))
+    series = path.with_name("metrics_timeseries.jsonl")
+    opener = Path.open
+    if not series.exists() and series.with_suffix(".jsonl.gz").exists():
+        series = series.with_suffix(".jsonl.gz")
+        opener = gzip.open
+    if not series.exists():
+        errors.append("Missing metric timeseries")
+    else:
+        previous = {}
+        with opener(series, "rt") as stream:
+            for line in stream:
+                row = json.loads(line)
+                for key in ("prompt_tokens", "generation_tokens", "preemptions"):
+                    value = row.get(key)
+                    if value is not None and key in previous and value < previous[key]:
+                        errors.append(f"Cumulative {key} decreased")
+                    if value is not None:
+                        previous[key] = value
+    return {
+        "passed": not errors,
+        "errors": sorted(set(errors)),
+        "counter_delta": counter_result,
+        "metadata_sha256": sha256(metadata_path) if metadata_path.exists() else None,
+        "observability_limit": (
+            "Snapshots plus sampled generic counters cannot exclude every unsampled restart."
+        ),
+    }
+
+
 def cell_gate(run: Path, spec: dict[str, Any], stage: str = "") -> dict[str, Any]:
     """Slurm COMPLETED is insufficient: every intended arm and cell must pass."""
     checks: list[dict[str, Any]] = []
@@ -213,6 +300,17 @@ def cell_gate(run: Path, spec: dict[str, Any], stage: str = "") -> dict[str, Any
                         "requests": requests,
                     }
                 )
+                if path.exists():
+                    quality = cell_quality(path, arm.get("serve_method", arm["method"]))
+                    checks.append(
+                        {
+                            "kind": "provenance_counter_continuity",
+                            "arm": name,
+                            "label": label,
+                            "concurrency": c,
+                            **quality,
+                        }
+                    )
                 # Catch the original gross slowdown (c128=2,017; c1024=839
                 # tok/s) before accepting ratios. These are deliberately loose
                 # floors relative to healthy old TP4 baselines. The 0.7 budget
@@ -256,6 +354,10 @@ def collect_rows(run: Path, stage: str) -> list[dict[str, Any]]:
         d = json.loads(p.read_text())
         rel = p.relative_to(run).parts
         s = d.get("speculative_decoding", {}) or {}
+        metadata_path = p.with_name("metadata.json")
+        meta = json.loads(metadata_path.read_text()) if metadata_path.exists() else {}
+        method = meta.get("variant", {}).get("method", "baseline")
+        method = "eagle" if method == "eagle3" else method
         rows.append(
             {
                 "stage": stage,
@@ -265,6 +367,8 @@ def collect_rows(run: Path, stage: str) -> list[dict[str, Any]]:
                 "concurrency": int(p.parent.name[1:]),
                 "summary": str(p),
                 "summary_sha256": sha256(p),
+                "metadata": {k: meta.get(k) for k in ("workload_file_sha256", "cell", "extra")},
+                "quality": cell_quality(p, method),
                 "throughput_tok_s": d["tokens"]["output_tokens_per_second"],
                 "successful": d["requests"]["successful"],
                 "failed": d["requests"]["failed"],
@@ -289,6 +393,14 @@ def collect_rows(run: Path, stage: str) -> list[dict[str, Any]]:
         base = plain.get(("plain-" + suffix, r["label"], r["concurrency"]))
         r["speedup_vs_matched_plain"] = (
             r["throughput_tok_s"] / base["throughput_tok_s"] if base else None
+        )
+        r["plain_summary"] = base["summary"] if base else None
+        r["matched_generation_and_corpus"] = bool(
+            base
+            and r["metadata"].get("workload_file_sha256")
+            == base["metadata"].get("workload_file_sha256")
+            and (r["metadata"].get("cell") or {}).get("generation")
+            == (base["metadata"].get("cell") or {}).get("generation")
         )
     return rows
 
@@ -339,6 +451,16 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
             ),
         }
     )
+    if state.get("pending_submission"):
+        state.update(
+            campaign_state="needs_attention",
+            error=(
+                "Previous submission outcome uncertain; inspect pending_submission output/job.txt "
+                "and Slurm before recording a job ID or retrying"
+            ),
+        )
+        write_state(state_path, state)
+        return
     specs = recovery_specs(site)
     spec_root = root / "specs"
     spec_root.mkdir(exist_ok=True)
@@ -364,7 +486,7 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
                     campaign_state="needs_attention",
                     error="Source changed after controller registration; refusing new deployments",
                 )
-                write_json(state_path, state)
+                write_state(state_path, state)
                 return
             stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
             out = root / "runs" / f"{stage}-{stamp}"
@@ -378,9 +500,24 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
                 "VLLM_PATCH_DIR": str(Path.home() / f".sml/lr-{stage}-{stamp}"),
             }
             command = [str(REPO / "serving/node-sweep.sh"), str(path)]
-            submitted = subprocess.run(
-                command, text=True, capture_output=True, cwd=REPO, env=run_env, timeout=600
-            )
+            state["pending_submission"] = {
+                "stage": stage,
+                "output": str(out),
+                "spec": str(path),
+                "command": command,
+                "started_at": stamp,
+            }
+            write_state(state_path, state)
+            try:
+                submitted = subprocess.run(
+                    command, text=True, capture_output=True, cwd=REPO, env=run_env, timeout=600
+                )
+            except (subprocess.SubprocessError, OSError) as exc:
+                state.update(
+                    campaign_state="needs_attention", error=f"Submission outcome uncertain: {exc}"
+                )
+                write_state(state_path, state)
+                return
             submit = {
                 "command": command,
                 "returncode": submitted.returncode,
@@ -401,7 +538,7 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
             match = re.search(r"job=(\d+)", submitted.stdout)
             if submitted.returncode or not match:
                 state.update(campaign_state="needs_attention", error=f"Submission failed: {stage}")
-                write_json(state_path, state)
+                write_state(state_path, state)
                 raise RuntimeError(state["error"])
             record = {
                 "stage": stage,
@@ -412,14 +549,15 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
                 "state": "submitted",
             }
             state["stages"].append(record)
-            write_json(state_path, state)
+            state.pop("pending_submission", None)
+            write_state(state_path, state)
         while True:
             try:
                 observed = slurm_state(record["job_id"])
             except (subprocess.SubprocessError, OSError) as exc:
                 record["status_poll_error"] = str(exc)
                 record["consecutive_poll_errors"] = record.get("consecutive_poll_errors", 0) + 1
-                write_json(state_path, state)
+                write_state(state_path, state)
                 if record["consecutive_poll_errors"] >= 10:
                     state.update(
                         campaign_state="needs_attention",
@@ -428,14 +566,14 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
                             "inspect existing job before resuming"
                         ),
                     )
-                    write_json(state_path, state)
+                    write_state(state_path, state)
                     return
                 time.sleep(poll)
                 continue
             record["consecutive_poll_errors"] = 0
             record["slurm"] = observed
             state["observed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-            write_json(state_path, state)
+            write_state(state_path, state)
             if observed["state"] in TERMINAL:
                 record["gate"] = cell_gate(Path(record["output"]), spec, stage)
                 record["state"] = (
@@ -452,7 +590,7 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
                             "or failed completeness/request gates"
                         ),
                     )
-                    write_json(state_path, state)
+                    write_state(state_path, state)
                     return
                 write_json(
                     root / f"analysis-{stage}-{record['job_id']}.json",
@@ -464,14 +602,14 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
                         ),
                     },
                 )
-                write_json(state_path, state)
+                write_state(state_path, state)
                 break
             time.sleep(poll)
     state["campaign_state"] = "measurements_complete_pending_scientific_review"
     state["implementation_recommendation"] = (
         "pending review; only substantial reproducible benefit warrants implementation"
     )
-    write_json(state_path, state)
+    write_state(state_path, state)
 
 
 def main(argv: list[str] | None = None) -> None:

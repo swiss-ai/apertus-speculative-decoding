@@ -56,6 +56,16 @@ def make_cell(tmp_path, *, status="ok", success=1.0, throughput=14000):
             }
         )
     )
+    p.with_name("metadata.json").write_text(
+        json.dumps(
+            {"workload_file_sha256": "corpus", "extra": {"deployment_id": "dep", "engine": "{}"}}
+        )
+    )
+    for name in ["metrics_before.prom", "metrics_after.prom"]:
+        p.with_name(name).write_text("")
+    p.with_name("metrics_timeseries.jsonl").write_text(
+        '{"generation_tokens": 1}\n{"generation_tokens": 2}\n'
+    )
     return p
 
 
@@ -89,3 +99,54 @@ def test_analysis_matches_tp4_to_tp4_when_dp4_is_also_present(tmp_path):
     rows = collect_rows(tmp_path, "old-thinking")
     row = next(r for r in rows if r["arm"] == "dspark-on-k7-tp4")
     assert row["speedup_vs_matched_plain"] == 2.0
+
+
+def test_gate_rejects_counter_restart(tmp_path):
+    p = make_cell(tmp_path)
+    p.with_name("metrics_timeseries.jsonl").write_text(
+        '{"generation_tokens": 4}\n{"generation_tokens": 1}\n'
+    )
+    gate = cell_gate(tmp_path, spec())
+    assert not gate["passed"]
+    assert any(
+        "Cumulative generation_tokens decreased" in row.get("errors", []) for row in gate["checks"]
+    )
+
+
+def test_monitor_receipt_exposes_all_downstream_ids(tmp_path):
+    from apertus_bench.layout_recovery import write_state
+
+    state = {
+        "campaign_state": "measurements_complete_pending_scientific_review",
+        "stages": [{"job_id": "1"}, {"job_id": "2"}],
+    }
+    p = tmp_path / "state.json"
+    write_state(p, state)
+    got = json.loads(p.read_text())
+    assert got["job_ids"] == ["1", "2"]
+    assert got["state"] != "complete"
+    assert got["scientific_completion"] == "pending_scientific_review"
+
+
+def test_uncertain_submission_is_never_repeated_on_restart(tmp_path, monkeypatch):
+    import subprocess
+
+    from apertus_bench import layout_recovery as recovery
+
+    calls = []
+
+    def timeout(*args, **kwargs):
+        calls.append(args)
+        raise subprocess.TimeoutExpired(args[0], 600)
+
+    monkeypatch.setattr(recovery, "STAGES", [("preflight", "00:10:00")])
+    monkeypatch.setattr(recovery, "source_identity", lambda: {"commit": "same"})
+    monkeypatch.setattr(recovery, "recovery_specs", lambda site: {"preflight": spec()})
+    monkeypatch.setattr(recovery.subprocess, "check_output", lambda *a, **kw: "same\n")
+    monkeypatch.setattr(recovery.subprocess, "run", timeout)
+    recovery.controller(tmp_path, Path("/fresh/site"), "normal", 30)
+    state = json.loads((tmp_path / "state.json").read_text())
+    assert state["state"] == "needs_attention"
+    assert state["pending_submission"]["stage"] == "preflight"
+    recovery.controller(tmp_path, Path("/fresh/site"), "normal", 30)
+    assert len(calls) == 1
