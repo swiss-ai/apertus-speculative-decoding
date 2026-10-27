@@ -169,7 +169,7 @@ monitor=$!
 
 extra=()
 [ "${FSDP}" = 1 ] && extra+=(--fsdp-shard)
-[ -n "${FROM_PRETRAINED:-}" ] && extra+=(--from-pretrained "${FROM_PRETRAINED}")
+. "${REPO_ROOT}/methods/dspark/train/draft-init-args.sh"
 [ "${GRAD_CKPT:-0}" = 1 ] && extra+=(--gradient-checkpointing)
 [ -n "${MAX_STEPS:-}" ] && extra+=(--max-steps "${MAX_STEPS}")
 t0=$(date +%s)
@@ -182,7 +182,7 @@ CUDA_VISIBLE_DEVICES="${TRAIN_GPUS}" DSPARK_PORT="${PORT}" torchrun --nnodes "${
   bash "${REPO_ROOT}/methods/dspark/train/rank-wrapper.sh" \
   --verifier-name-or-path "${TARGET_MODEL}" --data-path "${DATA}" \
   --hidden-states-backend file --hidden-states-path "${HS}" --on-missing generate --on-generate delete \
-  --target-layer-ids ${LAYERS} --speculator-type dspark --num-layers "${NUM_LAYERS}" --block-size 8 \
+  --target-layer-ids ${LAYERS} --speculator-type dspark "${draft_init_args[@]}" --block-size 8 \
   --markov-rank 256 --enable-confidence-head --confidence-head-with-markov \
   --loss-fn '{"ce":0.1,"tv":0.9}' --loss-implementation eager --optimizer muon --lr "${LR}" \
   --epochs "${EPOCHS}" --total-seq-len "${SEQ}" --max-anchors "${ANCHORS}" \
