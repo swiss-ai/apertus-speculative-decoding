@@ -147,6 +147,7 @@ async def capture_greedy_outputs(
     *,
     max_tokens: int | None,
     seed: int,
+    deployment_id: str | None = None,
 ) -> dict[str, object]:
     cases: list[dict[str, object]] = []
     for index, prompt in enumerate(prompts):
@@ -174,6 +175,8 @@ async def capture_greedy_outputs(
         "sampling": {"temperature": 0.0, "top_p": 1.0, "seed": seed},
         "cases": cases,
     }
+    if deployment_id is not None:
+        report["deployment_id"] = deployment_id
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(report, indent=2) + "\n")
     return report
@@ -209,6 +212,8 @@ def compare_captures(baseline: dict[str, Any], candidate: dict[str, Any]) -> dic
     same_deployment = baseline["model"] == candidate["model"] and baseline.get(
         "base_url"
     ) == candidate.get("base_url")
+    if baseline.get("deployment_id") and candidate.get("deployment_id"):
+        same_deployment = baseline["deployment_id"] == candidate["deployment_id"]
     return {
         "schema_version": 2,
         "baseline_model": baseline["model"],

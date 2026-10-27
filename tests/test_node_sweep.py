@@ -27,6 +27,14 @@ def _flag(argv: list[str], flag: str) -> str:
     return argv[argv.index(flag) + 1]
 
 
+def test_optional_captures_require_two_within_deployment_repeats() -> None:
+    assert build_plan(_spec(), check_heads=False).captures is None
+    config = {"workloads_file": "smoke.jsonl", "repeats": 2, "max_tokens": 384}
+    assert build_plan(_spec(captures=config), check_heads=False).captures == config
+    with pytest.raises(SpecError, match="exactly two"):
+        build_plan(_spec(captures={**config, "repeats": 1}), check_heads=False)
+
+
 def test_plan_serves_arms_like_the_launchers() -> None:
     plan = build_plan(_spec(), check_heads=False)
     plain, dspark = plan.arms

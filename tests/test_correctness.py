@@ -43,6 +43,14 @@ def write(path: Path, record: dict[str, object]) -> Path:
     return path
 
 
+def test_reused_url_and_model_are_independent_when_deployment_ids_differ() -> None:
+    a, b = capture("model", "same"), capture("model", "same")
+    a["deployment_id"], b["deployment_id"] = "job-a-arm", "job-b-arm"
+    assert not compare_captures(a, b)["same_deployment"]
+    b["deployment_id"] = a["deployment_id"]
+    assert compare_captures(a, b)["same_deployment"]
+
+
 def test_compare_capture_files(tmp_path: Path) -> None:
     baseline = tmp_path / "baseline.json"
     candidate = tmp_path / "candidate.json"

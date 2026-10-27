@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import socket
 import subprocess
@@ -43,6 +44,25 @@ def sha256(path: Path) -> str:
         while block := handle.read(1 << 20):
             digest.update(block)
     return digest.hexdigest()
+
+
+def verify_target(contract_path: Path) -> dict:
+    contract = json.loads(contract_path.read_text())["source"]
+    root = Path(contract["authorized_checkpoint"])
+    files = [
+        {"name": "config.json", "sha256": contract["config_sha256"]},
+        {"name": "tokenizer.json", "sha256": contract["tokenizer_json_sha256"]},
+        {"name": "chat_template.jinja", "sha256": contract["chat_template_sha256"]},
+        *contract["weight_manifest"]["files"],
+    ]
+    verified = {}
+    for record in files:
+        path = root / record["name"]
+        actual = sha256(path)
+        if actual != record["sha256"]:
+            raise ValueError(f"target contract mismatch: {path}")
+        verified[record["name"]] = actual
+    return {"path": str(root), "revision": contract["revision"], "verified_sha256": verified}
 
 
 def specs(candidate: str, control: str, e10: str, eagle: str, workload: str) -> tuple[dict, dict]:
@@ -103,6 +123,13 @@ def checkpoint_evidence(root: Path, expected_depth: int) -> dict:
     weights = sorted(root.glob("*.safetensors"))
     if not weights:
         raise ValueError(f"{root}: no exported serving weights")
+    validation = json.loads((root / "val_metrics.json").read_text())
+    if not validation or not all(
+        isinstance(value, (int, float)) and math.isfinite(value) for value in validation.values()
+    ):
+        raise ValueError(f"{root}: missing or nonfinite completed validation")
+    if not 1 <= validation["eal_epoch"] <= 8:
+        raise ValueError(f"{root}: invalid validation EAL")
     files = [
         root / "config.json",
         root / "training_state.json",
@@ -120,7 +147,7 @@ def checkpoint_evidence(root: Path, expected_depth: int) -> dict:
         "checkpoint": str(root),
         "depth": expected_depth,
         "training_state": state,
-        "validation": json.loads((root / "val_metrics.json").read_text()),
+        "validation": validation,
         "files": {p.name: {"bytes": p.stat().st_size, "sha256": sha256(p)} for p in files},
     }
 
@@ -140,10 +167,11 @@ def read_sweep(root: Path) -> dict:
         for c in LEVELS:
             path = root / arm / "opb" / "opb" / f"c{c}" / "summary.json"
             summary = json.loads(path.read_text())
-            if summary["requests"]["success_rate"] < 0.99:
+            success = summary["requests"]["success_rate"]
+            if not math.isfinite(success) or not 0.99 <= success <= 1:
                 raise ValueError(f"{path}: below 99% success")
             speed = summary["tokens"]["output_tokens_per_second"]
-            if speed <= 0:
+            if not math.isfinite(speed) or speed <= 0:
                 raise ValueError(f"{path}: invalid throughput")
             cells[arm, c] = {
                 "throughput": speed,
@@ -237,14 +265,19 @@ def main() -> None:
                 "control": checkpoint_evidence(args.control, 5),
                 "reference_checkpoints": references,
                 "workload_sha256": sha256(args.workload),
-                "git_revision": subprocess.check_output(
-                    ["git", "rev-parse", "HEAD"], text=True
-                ).strip(),
+                "git_revision": (
+                    json.loads(Path(os.environ["DEPTH_SOURCE_MANIFEST"]).read_text())["revision"]
+                    if "DEPTH_SOURCE_MANIFEST" in os.environ
+                    else subprocess.check_output(
+                        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+                    ).strip()
+                ),
                 "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
                 "hostname": socket.gethostname(),
                 "source_sha256": sha256(Path(__file__)),
                 "image": {"path": str(args.image), "sha256": sha256(args.image)},
                 "target_contract_sha256": sha256(repo / "targets/8b/contract.json"),
+                "target_identity_checked": verify_target(repo / "targets/8b/contract.json"),
                 "patch_sources": {
                     name: sha256(repo / "serving/patches" / name)
                     for name in (

@@ -34,60 +34,63 @@ The transport archive SHA-256 is
 `collect-evidence.py` is the exact collection script. Do not rerun it over
 the completed collection; choose another version for later artifacts.
 
-## Executable continuation
+## Automatic continuation
 
-1. Check `clariden status 3769226 --json`, then the dedicated run's trainer
-   log and checkpoint metadata. Slurm success alone is insufficient: require
-   `global_step=6200`, completed validation and one-layer configuration.
-2. Sync this branch to its dedicated remote checkout. The committed
-   `evaluation-specs/depth-recovery-a.yaml` and `-b.yaml` use the trained
-   one- and five-layer checkpoints, existing DSpark e10 at k=1..7, EAGLE e10
-   at k=3/7 and plain. Both trained variants also cover k=1..7. Concurrency
-   is 1/8/32/64/128/256 on the existing 128 held-out OPB prompts.
-3. Once training is verified, submit these two specs through the existing
-   launcher, with **normal** partition, a four-hour limit and
-   `SWEEP_PATCHES=serving/patches/vllm-apertus-dspark-num-layers.patch`.
-   Use a short unique `VLLM_PATCH_DIR` under the data root for each launch.
-   Set `SML_ENV_DIR` under the data root as well. The first command arm in
-   each allocation runs `depth_recovery.py preflight` on the compute node:
-   verifies both completed checkpoints and captures their hashes and reference
-   weights, workload, source revision and Slurm/node identity. A failed
-   preflight invalidates the comparison. The two specs counterbalance arm
-   order; actual GPU assignments are retained, not assumed to be swapped.
-4. After both jobs finish, inspect all arm statuses and collect raw
-   metadata, requests, summaries, metric snapshots, command/preflight logs,
-   resolved environments, patch sources and hashes. Keep the training
-   configuration/provenance linked to both checkpoints. Keep each new
-   deployment in its own run directory and preserve failed attempts.
-5. Run the deterministic collector on the completed sweep directories:
+`methods/dspark/train/submit-depth-recovery.sh` queues an afterok chain from
+training **3769226**: a two-hour validation/correctness allocation, then the
+two original four-hour counterbalanced serving allocations. The downstream
+jobs start only after their predecessor succeeds. `campaign.json` retains
+the flat job list, dependency graph, current state and final decision path;
+`events.jsonl` preserves state transitions. Job IDs are also recorded in the
+coordinator's shallow-drafter receipt.
 
-```bash
-python3 methods/dspark/train/depth_recovery.py decide RUN_A RUN_B \
-  --output NEW_ANALYSIS_DIRECTORY/decision.json
-```
+The campaign freezes executable sources at the submitted Git revision under
+its own `source/` directory; weights, optimizer state and corpus stay in their
+existing cluster locations. The source manifest verifies every frozen file
+and the training launcher files against `70710111`. The original submitted
+training script prints `70710111`; later documentation commits do not change
+its executable training sources. The manifest distinguishes those before/after
+source observations from the trainer's own captured argv and Speculators diff.
+It preserves the original training submission and resolved environment.
 
-It refuses incomplete arms, any cell below 99% success, or nonpositive
-throughput. G3 requires the one-layer candidate's best k to exceed the
-**same-job** DSpark e10 best k by at least 5% at C=128 or 256 in both
-counterbalanced repeats. The output retains the selected k, absolute
-throughput, GPU-seconds/million tokens, acceptance and source hashes.
-It does not turn a simulator ceiling or training EAL into a serving result.
-Before recommending a positive candidate, finish the repository's calibrated
-greedy-output checks with same-configuration controls. A training extension
-is a new decision under the user's two-run reduction; do not start one
-automatically.
+Inside the allocated compute node, validation requires exactly 6,200 steps,
+a one-layer config with the original five target auxiliary layers, finite
+completed validation, and the original packed-token, anchor, optimizer, loss,
+data and four-rank training recipe. It verifies the trainer's saved command
+and exact Speculators revision/diff. Preflight hashes both trained checkpoints,
+reference weights, workload, container and overlays, and checks the target's
+weights, tokenizer, config and template against the recorded target contract.
+Compact training metadata and compressed relevant logs are collected without
+copying weights. A failed preflight starts no serving arms.
 
-Example submission from the dedicated remote repository, after step 1:
+Before benchmarking, k7 of each trained variant receives two independent
+deployments and two greedy captures per deployment. The smoke corpus is the
+fixed first six original held-out OPB prompts, with a declared 384-token cap.
+The repository's calibrated correctness gate uses both within-deployment and
+cross-deployment controls of plain and the matching speculative configuration.
+Its existing margins stay unchanged (prefix/edit 0.05; token difference 2).
+The controls' worst cases remain visible; a pass is limited to this smoke set.
 
-```bash
-SWEEP_PARTITION=normal SWEEP_TIME=04:00:00 \
-  SML_ENV_DIR=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/env \
-  VLLM_PATCH_DIR=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/patch-depth-a \
-  SWEEP_PATCHES=serving/patches/vllm-apertus-dspark-num-layers.patch \
-  serving/node-sweep.sh results/8b/small-drafter/recovery-20261027/evaluation-specs/depth-recovery-a.yaml
-```
+Both benchmark specs retain the full original 128-prompt held-out passes,
+k=1..7 for trained one-/five-layer DSpark and existing DSpark e10, existing
+EAGLE e10 k=3/7, plain, and C=1/8/32/64/128/256. They counterbalance arm order;
+actual GPU assignments are retained. Every measured deployment also receives
+two smoke captures. Final analysis checks every configuration against its own
+same-configuration controls across the two benchmark allocations, including
+the exact k values used by the throughput decision. Explicit deployment IDs
+prevent a reused localhost URL from masquerading as a same-deployment control.
 
-Use a different patch directory and the `-b.yaml` spec for the second job.
-Both completed comparisons, their analysis and a concise verdict remain to
-be produced. No additional depth grid, EAGLE training or ongoing-task changes
-are authorized by this recovery.
+Final collection rejects incomplete arms, cells below 99% success and invalid
+throughput. G3 requires the one-layer candidate's best k to exceed the same-job
+DSpark e10 best k by at least 5% at C=128 or 256 in both repeats. The decision
+retains absolute throughput, GPU-seconds/million tokens, selected k, acceptance
+and source hashes. With valid correctness and throughput measurements, a miss
+closes as `negative_complete`; a positive is limited to the declared workload.
+Infrastructure or correctness failures stop the dependency chain and remain
+unresolved, without a scientific verdict. Earlier attempts and raw cells are
+preserved. No training extension or additional depth grid is launched.
+
+Campaign root:
+`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v1`.
+The final artifact will be `b/decision.json`; the precise deployment roots are
+`validate/repeat-a`, `validate/repeat-b`, `a/sweep` and `b/sweep`.

@@ -141,6 +141,7 @@ class Plan:
     loadtests: list[Loadtest]
     probe: Loadtest | None
     node_gpus: int
+    captures: dict[str, Any] | None = None
 
 
 def _engine_args(engine: dict[str, Any]) -> list[str]:
@@ -360,6 +361,13 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
     target_model = spec.get("target_model", defaults["target_model"])
     served_base = spec.get("served_base", defaults["served_base"])
     node_gpus = int(spec.get("node_gpus", 4))
+    captures = spec.get("captures")
+    if captures is not None and (
+        not captures.get("workloads_file") or int(captures.get("repeats", 2)) != 2
+    ):
+        raise SpecError(
+            "captures requires workloads_file and exactly two within-deployment repeats"
+        )
     common_engine = {**DEFAULT_ENGINE, "max_model_len": defaults["max_model_len"]}
     common_engine.update(spec.get("engine") or {})
     workloads_file = Path(
@@ -498,6 +506,7 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
         loadtests=loadtests,
         probe=probe,
         node_gpus=node_gpus,
+        captures=captures,
     )
 
 
@@ -708,6 +717,27 @@ async def run_arm(
             await _wait_ready(arm.name, arm.port, arm.served_model, processes, 2400), 1
         )
         _write_status(status_path, status)
+        if plan.captures is not None:
+            from apertus_bench.client import StreamingChatClient
+            from apertus_bench.correctness import capture_greedy_outputs
+            from apertus_bench.workloads import load_prompts
+
+            prompts = load_prompts(Path(plan.captures["workloads_file"]))
+            for repeat in (1, 2):
+                capture = arm_dir / "correctness" / f"capture-{repeat}.json"
+                if capture.exists():
+                    raise FileExistsError(capture)
+                async with StreamingChatClient(
+                    f"http://127.0.0.1:{arm.port}", arm.served_model, None, timeout_seconds=600
+                ) as client:
+                    report = await capture_greedy_outputs(
+                        client, prompts, capture,
+                        max_tokens=plan.captures.get("max_tokens"), seed=1,
+                        deployment_id=deployment_id,
+                    )
+                if not all(case["measurement"]["success"] for case in report["cases"]):
+                    raise RuntimeError(f"{arm.name}: failed correctness capture {repeat}")
+            status["correctness_captures"] = 2
         tests = ([plan.probe] if plan.probe else []) + plan.loadtests
         for test in tests:
             target = arm_dir / test.label

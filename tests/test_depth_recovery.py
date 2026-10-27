@@ -26,6 +26,22 @@ def test_preflight_rejects_incomplete_training(tmp_path: Path) -> None:
         recovery.checkpoint_evidence(tmp_path, 1)
 
 
+def test_preflight_rejects_nonfinite_validation(tmp_path: Path) -> None:
+    (tmp_path / "training_state.json").write_text(json.dumps({"global_step": 6200}))
+    (tmp_path / "config.json").write_text(
+        json.dumps(
+            {
+                "transformer_layer_config": {"num_hidden_layers": 1},
+                "aux_hidden_state_layer_ids": [1, 8, 15, 22, 29],
+            }
+        )
+    )
+    (tmp_path / "model.safetensors").write_bytes(b"placeholder")
+    (tmp_path / "val_metrics.json").write_text(json.dumps({"eal_epoch": float("nan")}))
+    with pytest.raises(ValueError, match="nonfinite"):
+        recovery.checkpoint_evidence(tmp_path, 1)
+
+
 def test_evidence_outputs_cannot_overwrite_prior_reports(tmp_path: Path) -> None:
     p = tmp_path / "report.json"
     recovery.write_new(p, {"first": True})
