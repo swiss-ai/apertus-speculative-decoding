@@ -46,3 +46,13 @@ that missing block was resubmitted as job `3769167` on debug; its recovery argv
 and checks are preserved under `submissions/phase1-block-2/`.
 The [interim report](reports/phase1-20261027T172238778034Z/comparison.md) remains
 pending until the third repeat completes. Specialist training has not started.
+
+Phase 1 final update: recovery job `3769167` completed successfully in 25 minutes.
+All three repeats and all 18 cells are complete and valid (1,152 measured requests,
+no output-cap truncation). The [final Phase 1 report](reports/phase1-20261027T185227817834Z/comparison.md)
+passes the proceed gate with no identity/validity problems. Relative to medium,
+accepted draft tokens per round increased 28–35% at low effort and decreased
+15–18% at high effort across the three repeats. The shared drafter improved
+latency over plain serving at every effort in every repeat. This supports running
+the conditional specialist-versus-mixed comparison; it does not establish that
+specialist heads are required. Phase 2 training has not started.
