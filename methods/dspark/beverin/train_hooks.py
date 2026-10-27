@@ -99,10 +99,22 @@ def install():
 
         Trainer._optimizers_step = step
 
+    if os.environ.get("BEVERIN_SINGLE_EPOCH", "0") == "1":
+        import torch.distributed as dist
+        from speculators.train.trainer import root_logger
+        from single_epoch import install as install_single_epoch
+
+        def barrier(trainer):
+            if trainer.is_distributed:
+                dist.barrier()
+
+        install_single_epoch(Trainer, barrier, root_logger)
+
     print("BEVERIN_HOOKS " + json.dumps({
         "reduce_dtype": reduce_dtype,
         "segment_steps": segment_steps,
         "empty_cache_on_save": os.environ.get("BEVERIN_EMPTY_CACHE_ON_SAVE", "0"),
         "profile_steps": profile_steps,
         "blas_backend": str(torch.backends.cuda.preferred_blas_library()),
+        "single_epoch": os.environ.get("BEVERIN_SINGLE_EPOCH", "0"),
     }), flush=True)

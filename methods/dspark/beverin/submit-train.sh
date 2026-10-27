@@ -38,7 +38,8 @@ pass_env() {
            PYTORCH_HIP_ALLOC_CONF BEVERIN_REDUCE_DTYPE BEVERIN_SEGMENT_STEPS BEVERIN_PILOT_RESUME \
            BEVERIN_EMPTY_CACHE_ON_SAVE BEVERIN_PROFILE_STEPS BEVERIN_NCCL_PROTO \
            BEVERIN_NCCL_MIN_NCHANNELS BEVERIN_NCCL_NCHANNELS_PER_NET_PEER BEVERIN_FI_MR_CACHE_MONITOR \
-           NCCL_DEBUG NCCL_DEBUG_SUBSYS DATA_PROVENANCE EXTRACT_START_ATTEMPTS BEVERIN_BLAS_BACKEND; do
+           NCCL_DEBUG NCCL_DEBUG_SUBSYS DATA_PROVENANCE EXTRACT_START_ATTEMPTS BEVERIN_BLAS_BACKEND \
+           BEVERIN_SINGLE_EPOCH BEVERIN_EXPECTED_EPOCH_STEPS; do
     if [ -n "${!v+x}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -78,6 +79,19 @@ if [ -n "\${DATA_PROVENANCE:-}" ]; then
 fi
 python3 "\${REPO_ROOT}/methods/dspark/beverin/audit_train.py" start \\
   --work "\${WORK}" --run-id "\${RUN_ID}" --job-id "\${SLURM_JOB_ID}"
+if [ "\${BEVERIN_SINGLE_EPOCH:-0}" = 1 ]; then
+  guard_rc=0
+  python3 "\${REPO_ROOT}/methods/dspark/beverin/single_epoch.py" \\
+    --checkpoints "\${WORK}/runs/\${RUN_ID}/checkpoints" \\
+    --expected-steps "\${BEVERIN_EXPECTED_EPOCH_STEPS}" || guard_rc=\$?
+  if [ "\${guard_rc}" = 0 ]; then
+    python3 "\${REPO_ROOT}/methods/dspark/beverin/audit_train.py" finish \\
+      --work "\${WORK}" --run-id "\${RUN_ID}" --job-id "\${SLURM_JOB_ID}" --completion-skip
+    echo "FINISH \$(date -u -Iseconds) already trained and validated; containers skipped"
+    exit 0
+  fi
+  [ "\${guard_rc}" = 1 ] || exit "\${guard_rc}"
+fi
 sha256sum "$(sed -n 's|^image = "\(.*\)"|\1|p' "${EDF}")" > "\${BEVERIN_DEPLOYMENT}/container.sha256" &
 image_hash_pid=\$!
 # The trainer saves and exits STOP_MARGIN s before the time limit
