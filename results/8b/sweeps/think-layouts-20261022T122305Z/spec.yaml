@@ -1,0 +1,24 @@
+# Thinking on: DP4 and TP4 (max_num_seqs 1024), plain and the thinking-on
+# DSpark drafter at k=3/7. normal, SWEEP_TIME 08:00:00.
+name: think-layouts
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-clean
+    label: arena-hard-clean-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-contaminated
+    label: arena-hard-contaminated-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+arms:
+  - {name: plain-dp4, method: baseline, engine: {data_parallel_size: 4}}
+  - {name: dspark-on-k3-dp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 3, engine: {data_parallel_size: 4}}
+  - {name: dspark-on-k7-dp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 7, engine: {data_parallel_size: 4}}
+  - {name: plain-tp4, method: baseline, tensor_parallel_size: 4, engine: {max_num_seqs: 1024}}
+  - {name: dspark-on-k3-tp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 3, tensor_parallel_size: 4, engine: {max_num_seqs: 1024}}
+  - {name: dspark-on-k7-tp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 7, tensor_parallel_size: 4, engine: {max_num_seqs: 1024}}

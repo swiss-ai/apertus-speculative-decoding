@@ -1,0 +1,77 @@
+{
+  "scope": "Original failed attempts; immutable diagnostics separate from fresh recovery runs",
+  "failures": [
+    {
+      "job_id": "3738048",
+      "arm": "eagle-k7-tp4",
+      "run": "tp4-c2-20261024T160931Z",
+      "kind": "CUDA out of memory",
+      "failed_allocation_gib": 5.52,
+      "device_free_gib": 4.23,
+      "torch_reserved_unallocated_gib": 9.16,
+      "fatal_trace_line": 7043,
+      "root_cause_line": 7068,
+      "log_artifact": {
+        "path": "results/8b/sweeps/tp4-c2-20261024T160931Z/eagle-k7-tp4/replica.out",
+        "original_bytes": 400494113,
+        "original_sha256": "af42ca1757cd7978f20e6b1629b93de695af9203d702b86ed4f609583f0a6a98",
+        "stored_path": "results/8b/sweeps/tp4-c2-20261024T160931Z/eagle-k7-tp4/replica.out.gz",
+        "stored_bytes": 2223049,
+        "stored_sha256": "04889039c15b6a9d52fa90b79bc733126233c7bff9f02667136d44fd1fb476f9",
+        "compression": "gzip-lossless"
+      }
+    },
+    {
+      "job_id": "3721142",
+      "arm": "dspark-on-k7-tp4",
+      "run": "think-layouts-20261022T122305Z",
+      "kind": "CUDA out of memory",
+      "failed_allocation_gib": 7.4,
+      "device_free_gib": 7.19,
+      "torch_reserved_unallocated_gib": 8.23,
+      "fatal_trace_line": 8078,
+      "root_cause_line": 8103,
+      "log_artifact": {
+        "path": "results/8b/sweeps/think-layouts-20261022T122305Z/dspark-on-k7-tp4/replica.out",
+        "original_bytes": 448160636,
+        "original_sha256": "5bff38438758d72decdbce02fec9fda4eaa0113455610a9ecbebd3c4c5d05c29",
+        "stored_path": "results/8b/sweeps/think-layouts-20261022T122305Z/dspark-on-k7-tp4/replica.out.gz",
+        "stored_bytes": 2495206,
+        "stored_sha256": "507ccd03bcbff88e7b0ddc2ac1ab8c2fd362224395860249aeee5d97d714ed8b",
+        "compression": "gzip-lossless"
+      }
+    },
+    {
+      "job_id": "3721143",
+      "arm": "pd-1p3d-plain/pd-1p3d-dspark-on-k3",
+      "run": "think-pd-20261022T122307Z",
+      "kind": "Startup dependency failure",
+      "root_error": "ModuleNotFoundError: nixl_meta_utils; RuntimeError: NIXL is not available",
+      "missing_sources": [
+        "nixl_meta_utils.py",
+        "nixl/__init__.py",
+        "nixl/_api.py"
+      ]
+    },
+    {
+      "job_id": "3737433",
+      "arm": "plain-tp4",
+      "run": "tp4-b1-20261024T132121Z",
+      "kind": "Time limit after unhealthy baseline; no speculative arm measurement",
+      "opb_c128_tok_s": 2016.8282287455354,
+      "opb_c1024_tok_s": 839.4864278689041,
+      "opb_c1024_success_rate": 0.7490234375,
+      "source_previously_committed": true
+    }
+  ],
+  "inference": "High-batch full-vocabulary logits plus allocator fragmentation contributed to the TP4 OOMs. The exact allocator remedy requires allocated-node validation.",
+  "tp4_remedy": {
+    "gpu_memory_utilization": 0.7,
+    "original_gpu_memory_utilization": 0.8,
+    "allocator": "expandable_segments:True",
+    "apply_equally_to_plain_and_speculative": true,
+    "approx_additional_headroom_gib_per_95gib_device": 9.5,
+    "tradeoff": "Reduced advertised KV-cache token capacity; record actual capacity and preemptions, not equivalent-capacity claims"
+  },
+  "nixl_remedy": "Fresh campaign-owned prefix, original NIXL1.5.0 and CUDA13 CPython3.12 aarch64 wheel identities, full installed manifest, native import and P/D startup gates"
+}

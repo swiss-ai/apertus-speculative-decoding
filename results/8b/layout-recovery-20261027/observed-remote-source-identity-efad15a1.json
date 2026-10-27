@@ -1,0 +1,514 @@
+{
+  "source": {
+    "commit": "efad15a10609e615c5c8635be3c243d1ec5b9da7",
+    "files": {
+      "experiments/high-concurrency-8b/README.md": "c93bf6f366359f89282f61b004df84b2751c89399f31742582de294477add683",
+      "experiments/high-concurrency-8b/dp4-a.yaml": "50ffa0df086a6bdd354a4ac5148a58ad743cb3595faf6bd1f7d96fb572eef047",
+      "experiments/high-concurrency-8b/dp4-b.yaml": "a8104b124864ae56926762c797c91731e1a4a13d067d895c634df48e2bcfb97f",
+      "experiments/high-concurrency-8b/dp4-c.yaml": "2526df959a96a11a279de3b0a69818c3284a4e5232ee272a9afe504e4b810e88",
+      "experiments/high-concurrency-8b/dp4.yaml": "3378b4620cfcd19505685bad7da15dab8b4a24fce67b23cf0731fa0e9ea50f77",
+      "experiments/high-concurrency-8b/pd.yaml": "2519e70540fbbb11e741b17b784656f2dc72fd3a3dfbd836abb81b17aa603393",
+      "experiments/high-concurrency-8b/recovery/README.md": "0cf866f8e135ea00b2363561cd541bf994c03c0d4ba6cf215785e5e029dd1c60",
+      "experiments/high-concurrency-8b/recovery/analyze_historical.py": "af947c4d032fd02b3a6eb57d323caf98bd3fe225933b97d1a6788bea49a3c138",
+      "experiments/high-concurrency-8b/recovery/check_dependencies.py": "45afbd80b7e0bead15b0411c8da330994d416564ad1e1d4bc9e26ff02c6dbe9c",
+      "experiments/high-concurrency-8b/recovery/prepare_nixl.py": "8399a7826001e3b82b055fce1ce95993a0629dc4cd273689c9dddfd91462d299",
+      "experiments/high-concurrency-8b/smoke.yaml": "c21029a9800a7ab1bac72ce5e45f8f6a923a820cd8f4e35c83bee93a8aea4d73",
+      "experiments/high-concurrency-8b/think-1gpu.yaml": "00ada761dde195a00652643f95bbb30b086d2581040ee7f7b9c263040545a9cb",
+      "experiments/high-concurrency-8b/think-layouts.yaml": "cc8396baa04803c042f86c39b321cee65fda4476886832ce8448adaa77356e0a",
+      "experiments/high-concurrency-8b/think-pd.yaml": "5e45244213e36c32533561f69a1230213a112b72e9a4876223460fc6cf388882",
+      "experiments/high-concurrency-8b/topk-off.yaml": "098a0815de6bbdcb47c056e67f0481336b4055a16f75ccc8ac40c8129465b986",
+      "experiments/high-concurrency-8b/topk-think.yaml": "b7ad31b46058c201206f8a2ee43c65274be1c1271952ec6bf44980885fe88c70",
+      "experiments/high-concurrency-8b/tp2dp2.yaml": "762dd75aae49b4dcd66adaa00e99b04c0d756f8cd8f2e28a05c9a8bf7f0275bc",
+      "experiments/high-concurrency-8b/tp4-a.yaml": "36d8aa6ca6e185aad5517bdd6ac64a1db74d4967f8b799079b42cac2478805f4",
+      "experiments/high-concurrency-8b/tp4-a2.yaml": "04c10b8c88e25d080fae0da55759cc3c97d43739c737ab44a6552c2a8dd49a1b",
+      "experiments/high-concurrency-8b/tp4-b1.yaml": "91995670601954d7eb4493a2fa79c7d8ea9ceb100eb937cd32a9efd03f4aefb5",
+      "experiments/high-concurrency-8b/tp4-b2.yaml": "9588926d65b529dfc76b0897b27bc4dd0f8abeb9eef2fbdbff45f095addfbb21",
+      "experiments/high-concurrency-8b/tp4-c1.yaml": "d3f28378e8ca3762a143cf8343bec33309f66eb3fc59cd20df86466c8ca9bc7a",
+      "experiments/high-concurrency-8b/tp4-c2.yaml": "8be7b9f3e2bb0e9adec3696757fe715b7c9112b727bce0f060a69e6988c563b9",
+      "experiments/high-concurrency-8b/tp4.yaml": "936d8417504532e9d2bef7f1150cad9f52df849a0a20d7e16d6c1f32d467abba",
+      "methods/eagle/configs/70b/draft-e3-config.json": "8a1f95239d2e42c483a107f9f23de8b4b00025dfa384ac1480e93518150a749b",
+      "methods/eagle/configs/70b/draft-e31-config.json": "94bbdd518f80897803f0a6aca9b3b9fa11c7cf37a8c6b19144915dae4750ea5a",
+      "methods/eagle/configs/70b/train-e3-overfit.yaml": "312fd3d05d09c05730a3a3e8843b24edf8eead41351e5dff6e60382728a25986",
+      "methods/eagle/configs/70b/train-e3.yaml": "b902e83682132da1aefd959c58f5cd495e9db99fc5a07a778c023e24e224fe34",
+      "methods/eagle/configs/70b/train-e31-overfit.yaml": "e31313719a708de82a1dd3b209bc2864fd523e4ce30e5b70b521d635e71cfcab",
+      "methods/eagle/configs/70b/train-e31.yaml": "6ab003110acb74a0d0f9bba4b6d5c21654abd1a5205d17981a4f2ce7d2ce1b2e",
+      "methods/eagle/configs/8b/draft-e31-config.json": "8a3a0c39b9917b0831ef3d98574f1a5ddf23b64ec1998d33ff8504a741246bf6",
+      "methods/eagle/configs/8b/probe-plan-eagle.txt": "97bb5bad2da209af8ec4dde520138a39c34538a3ee1f411b9b7665cb38bff8d8",
+      "methods/eagle/configs/8b/probe-plan-k7.txt": "c7591af7cc43633634f8f1cd76d4724fd9d4e2baf1418435bd689567bd71fd89",
+      "methods/eagle/configs/8b/probe-plan.txt": "c9380919ca60ae2fa326229d516d6be9fbd00be3f8dea90adde0d7a568442dc9",
+      "methods/eagle/configs/8b/train-e31-opb-thinkoff.yaml": "79d87053efae4e0bfb93401f35fdf5d3bda698d53251ab5d34562e4ad5c90917",
+      "methods/eagle/configs/8b/train-e31-opb-thinkon-2n.yaml": "546c8cfca2a74a34e63ab5332127027d87edf62696a0d058a5294221b28752d6",
+      "methods/eagle/configs/8b/train-e31-opb-thinkon.yaml": "34da44ae756895521d816d7be647cc50d3b03abffa7379495ed8a9561aa305d1",
+      "methods/eagle/configs/8b/train-e31-overfit.yaml": "39ba2a733063ca1cd9a0c73e615f57bcba6cfd9a1d905e23a5d4f288bb516728",
+      "methods/eagle/configs/8b/train-e31.yaml": "c443a26af5b349a1c957f208592485599ba19b10b0d4cd8a3ec3a31c782c84a2",
+      "methods/eagle/configs/experiment.yaml": "742cd05d2e88adc9a189149390f1cd4d279288f372d0047e7624d570838b7a52",
+      "methods/eagle/configs/train-env.toml": "ba3ca7ea2ef95ba86c198d864498c75f2c0212bb97ddcec5a8f65652a6de9229",
+      "serving/baseline.sh": "d6d31b6a82749a033d686ab4663cb793721791a692f54896952474c901bc8715",
+      "serving/loadtest.sh": "a4f8cb109647b85c70b51a8e6196f17f68c153519173973a1edeeea2093cb817",
+      "serving/node-sweep.sh": "6db1876bf74e07e8628f11bb234368d7a1988b90463df6954500005c9192064c",
+      "serving/patch-vllm.sh": "30327bffa8137feb07fe7a1814d95b58d32d6fe66c1543426c1547f01cc5c097",
+      "serving/patches/vllm-apertus-dspark-anchor-layout.patch": "3a8e5f9ec29db465056343328b9547dc4ef7668c6853dd8eaee5fb04220ac9d6",
+      "serving/patches/vllm-apertus-dspark-confidence-verify.patch": "b7d7086fe5d99857e9b0167da002ba612af9b7ea25571c36c2b7c28e92c6ed58",
+      "serving/patches/vllm-apertus-dspark-draft-cut.patch": "06bd825d797a4312803d3a083a579a5b9fe2febc28ef20e42f7fea0b0b2e7d09",
+      "serving/patches/vllm-apertus-dspark-mrv2-inner.patch": "4ac3cd8c3f74207ec702fa7ddf17a6b1f958db738677f9260dbf02b4b0e64938",
+      "serving/patches/vllm-apertus-dspark-paper-scheduler.patch": "44477f0fe5827ff3416fde0c9960c4ee64a34cb7519a7906acdbabd25754105d",
+      "serving/patches/vllm-apertus-eagle-mrv2-inner.patch": "626495bbdbde9c7b7dac28440b503cfcbba10cbf90f9daddc78b9bf5b0b453c9",
+      "serving/patches/vllm-apertus-eagle3-aux-layers.patch": "78938e9fb90a722ad420eddfd009b7ca8992d3299bd025dacf06688b8c02c043",
+      "serving/patches/vllm-apertus-image-token.patch": "3f4e41d37cfa187836229aafcd628766671de19ed89c006369ba7ae390587bc5",
+      "serving/patches/vllm-apertus-kv-group-size.patch": "b3def14fd09adc4b3a986631fba568f6f73f305ba16f0db5067defa7d024471f",
+      "serving/resolve-env.sh": "f43562973f998a8df4fbcb6bdf96c56dcb48af875ca0a43130d9808995301d4f",
+      "serving/stage-defaults.sh": "f0cbe218ca3af27911af430f5f42d9c29defb4d0a883f32aced717f3cd8b3b5b",
+      "serving/vllm-extra-flags.sh": "25ae8b83ddb7680e93df51375c9aa21ee2ffbaf3a1c500e67366ee9b4723ac0c",
+      "serving/wait-replica.sh": "0f77460abd63f1f15ccdce330f5f7736824b7d5b8baf6acd5f7bddafe3967b34",
+      "src/apertus_bench/__init__.py": "3468e14105d8fa81a2f92bdcdbaf410e2fa2da320efb0a229db5d1af6ee1cc3d",
+      "src/apertus_bench/__main__.py": "94d02f98e2acac6b6dc1720df220ff1012c50f7cde0479d71693a56bebe14556",
+      "src/apertus_bench/analysis.py": "4b803d02a229da8c57dd42dae82ae3b913b54a573374daabf3aefa4c1fedb1d5",
+      "src/apertus_bench/cli.py": "65f340ef674f01cc3cd68c77e537cc6e80c6ebba92bbd74f4eabd094aab6b0db",
+      "src/apertus_bench/client.py": "3af235cd03fd30b0c8ccaa15dbd9eecfbd680405b8dbc15f8f1954a343758008",
+      "src/apertus_bench/correctness.py": "927c02328f0dc9e775d28f469bde28e752573b1a35da7ab46d7080700e7a1baf",
+      "src/apertus_bench/diagnostics.py": "bbc6c6b2933cf31f0b62821c82b5beec19f3eec6f5ab6eb6a463d1f75bcc868f",
+      "src/apertus_bench/eagle.py": "5a1f3fc71f0aa54c77906a4d469d23d6187e45acad982bbdc9c017469dea90de",
+      "src/apertus_bench/layout_recovery.py": "051dcacec29d1c284b58126b45cacea4fb1c4c67ddec178f406ad01a7e52bff8",
+      "src/apertus_bench/load.py": "b1f0e6964c8cf9df0fbb91701636ac3bd207238a3075ee2119045896cae92896",
+      "src/apertus_bench/node_sweep.py": "1e9e138220069d265acfc64a2bb1561bc46832bfc055df344bc24ea7aded6acb",
+      "src/apertus_bench/pd_proxy.py": "97dfd3a0438031f24de08d1aa0455dd27265b2a71fa2ae24e3a6e7542b2391ff",
+      "src/apertus_bench/prometheus.py": "fee2c5a250ddcad5e95b5fd2fbc8aedef568a2c91e9eb800dc2401828594768f",
+      "src/apertus_bench/runner.py": "c55708c5b8e1a8bcfeed4fa686b76e6d08a4df143b5829c0544f9a5b3895f813",
+      "src/apertus_bench/stats.py": "d7652aef871b02b6ba3e7b081a2ffa7a43ba2f643e2acafa5dbee5ff7244c46d",
+      "src/apertus_bench/sweep_report.py": "9041760d652e4582e8442457ee243af33171dec617ceecad5409431af4e151af",
+      "src/apertus_bench/workloads.py": "64f645d4a26d09e06c0c29ff9e5becf644270efef729718a905f13674723a1b2"
+    }
+  },
+  "python_environment": {
+    "python": "3.13.9 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 19:17:31) [GCC 11.2.0]",
+    "executable": "/users/faruk_zahiragic/venvs/sml-apertus/bin/python",
+    "packages": {
+      "PyYAML": {
+        "version": "6.0.3",
+        "files": [
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/_yaml/__init__.py",
+            "sha256": "d3801eff9a2cc5a8692476b75c165401fe308ba5d7df6811f03e97ea9eb81840"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/_yaml/__pycache__/__init__.cpython-313.pyc",
+            "sha256": "9bba163bf5205ae7f09c68c30a83b14e985bf4e8f76f980e577dbfd1ddf194c4"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info/INSTALLER",
+            "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info/METADATA",
+            "sha256": "03c3b415ed38d09faedc49360e930769b40c58f68585e6de00e2e4916a858d34"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info/RECORD",
+            "sha256": "c9b5c8a0d12565d62f2dbc709fef3a75d0bd4ccd2ab3a65ab8ff8d15ae788e2b"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info/WHEEL",
+            "sha256": "5d2b66caf3caad798b3e613b6cba859dffad99bfa37360e97c48712659009c6b"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info/licenses/LICENSE",
+            "sha256": "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info/top_level.txt",
+            "sha256": "ae98f42153138ac02387fd6f1b709c7fdbf98e9090c00cfa703d48554e597614"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__init__.py",
+            "sha256": "b19dfcc333d6a75dfd73073901164507252f271b41d3b5f7d85510033a0547a7"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/__init__.cpython-313.pyc",
+            "sha256": "0f7aeefd3cd2be34f8ceb9eb28e2dc1be6871b61cdacc47e8e8b8f891a89c50e"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/composer.cpython-313.pyc",
+            "sha256": "406dacea0eccaf02e0abbc6cae21cd04d2286ddc6178361d3ff7483ff36b5494"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/constructor.cpython-313.pyc",
+            "sha256": "27730e4fe1595b218dacc84872fcf4afab095d269ca4b9f7ba363252ca2ddb83"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/cyaml.cpython-313.pyc",
+            "sha256": "eb82bb6f4a4e1378d2dec9c7a1717520fa16f8424d6f3bbca92540937ac9e686"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/dumper.cpython-313.pyc",
+            "sha256": "8835f0b19de26d1d829a3348982ee766fc316fdfc5b3f960210836e8df54f609"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/emitter.cpython-313.pyc",
+            "sha256": "3ec90476c4fbaa2a53550dc47693339b3c7eabc0c714ea7eaa96595b7d2d0940"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/error.cpython-313.pyc",
+            "sha256": "a7b9865f7df1b4692c0e2ce058fd0474fe39cc554dc899ea1b59768e58e4241d"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/events.cpython-313.pyc",
+            "sha256": "d61b310e3ea2d8b584c4dfa0aed193763148fdccca9f610e38477a77b4b1daf4"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/loader.cpython-313.pyc",
+            "sha256": "8ef57fcdc055bbe431d4691de90372153394dc54561bbca62d84b526bb71cc04"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/nodes.cpython-313.pyc",
+            "sha256": "9c0be5598648565a3a0ffe62bcdacc850289a65711a0803c033744732cfe30ef"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/parser.cpython-313.pyc",
+            "sha256": "d204b6fee39253fab416630b3dda90aa40e1f142c08ecf2d2705d1b919fd5275"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/reader.cpython-313.pyc",
+            "sha256": "43689988b05e576cc7c4df80e15524c3b3134c2622c9a2ef1e5dba56bccd7f20"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/representer.cpython-313.pyc",
+            "sha256": "e82a768b087f02a3910e611ced747edaf453dd301303b5e8aa86c12e2045b115"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/resolver.cpython-313.pyc",
+            "sha256": "3b0e744f060307c7b1ac9aeafaab8f515cca7c535b31abde7dbe551cbbd81f43"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/scanner.cpython-313.pyc",
+            "sha256": "eab31b297eb51e2ac7fea8968bbde6b583179e92dce364aa04691666aedfa39b"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/serializer.cpython-313.pyc",
+            "sha256": "aba1d05eb0a73c8041ec4222906e8e6a32c05fb87369ff09a863a02df90c497d"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/__pycache__/tokens.cpython-313.pyc",
+            "sha256": "2bd7145a8daab34a3a714217fd4b67b4816756e128e4620a0aa8c668246b4879"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/_yaml.cpython-313-aarch64-linux-gnu.so",
+            "sha256": "79ad11601a93f2148b42ca3c4bd779bc2e8887d87c8ac78bbb1b49fb1418b74f"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/composer.py",
+            "sha256": "fcaa37d16afa783594794a5ab94193dcb720f503c19ce3d59539c8311189f453"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/constructor.py",
+            "sha256": "90d8247da78b524c10618fd0e857f54f3d97570fe91b5c5513d024ef3faf88b0"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/cyaml.py",
+            "sha256": "e99ac01bd7c062f7557b614aff0d21997a06ed962ca185306a91bc0a20bbd87d"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/dumper.py",
+            "sha256": "3cb72d66563064ba7b5e679477046ebf89d8399d940670c8532f3e94a7cb17ea"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/emitter.py",
+            "sha256": "8e086d694ede170837d5b1b407b45979aff6f40762f422a65eafd08e04290a44"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/error.py",
+            "sha256": "021f73fada072546c4f63f8cf18a7181244ce4280b09cc15cc980b2d1176171a"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/events.py",
+            "sha256": "e74fd392c810884e2ea7e94aa3f57e9c1cbeb402319083d0c58e6a0e1282787c"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/loader.py",
+            "sha256": "5156becc8aa6905482218abf3e04869b835226db4763645fff3438fdbd5f1cdd"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/nodes.py",
+            "sha256": "80f28d8fca4a09d87677882bde021820d9cf39a3b11a12405226211919cf13ce"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/parser.py",
+            "sha256": "8a55a9e6fbe0a07146cef3990c8b45a068c3e83e369e1959ad9ca30306b4a09a"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/reader.py",
+            "sha256": "d1d9b38ab3a20c6e17a38d519ee412ecaf6b918df18c78956ac7c330d4ea08dc"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/representer.py",
+            "sha256": "22e58ff9c016f6c1ca1274b4802a926bcf78935060e1c813c5a0f021c6d143e6"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/resolver.py",
+            "sha256": "f4bf9561f9b89961f1503d558385fbae30d12bfed565de9bf76c33abb63620a6"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/scanner.py",
+            "sha256": "60433788b652690c17710460da5d91e0c753d3318fd85f5e1e42862a71f25906"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/serializer.py",
+            "sha256": "0a1b85826854d35863e31808f0668abfabdf33606e8f06bd8bb7761401e3edc0"
+          },
+          {
+            "path": "/users/faruk_zahiragic/venvs/sml-apertus/lib/python3.13/site-packages/yaml/tokens.py",
+            "sha256": "953408cd2570f0c83dc2fe39f7e4e388e41eeb05738aa69196a5f6ffcf6ba79e"
+          }
+        ]
+      },
+      "prometheus-client": {
+        "version": "0.22.1",
+        "files": [
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/INSTALLER",
+            "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/METADATA",
+            "sha256": "e6d0f474554850d1b1279975795a9509f8ca3b5f8e93ce9e16e0efda7ff6bb68"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/RECORD",
+            "sha256": "23d0b97c0aab1cd03ef4f475bdc6156d75b0376c50832cdca1019f3e669b2923"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/REQUESTED",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/WHEEL",
+            "sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/licenses/LICENSE",
+            "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/licenses/NOTICE",
+            "sha256": "4efa1874aeaa60f365f5797e617f1ff933e15e508eaf751e9848ed4413d7a7ae"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client-0.22.1.dist-info/top_level.txt",
+            "sha256": "0312c4bc710c8535be2af6fd2f2d433c8dda6a98a043669e83c4d732df56311a"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__init__.py",
+            "sha256": "0fea6d9509163d7a992093e2e5347440d31d5abfc48effa032ae960058a4ffda"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/__init__.cpython-313.pyc",
+            "sha256": "cbc260d8b0dbdb3ba29bb2bfa69f1a217770903553978a2bd446739784e37e82"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/asgi.cpython-313.pyc",
+            "sha256": "b6d2bbf6d38c9027a9d3ed6abbc7017b4838c6482bd9203830c578d6814b1a59"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/context_managers.cpython-313.pyc",
+            "sha256": "4c328e6c5df6810c49f1a49bd0f885c84df0759732ea5e1cf57a385dc5d4a95a"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/core.cpython-313.pyc",
+            "sha256": "48857ed91fcb29534e47098be4de3b859f6408cd731e873b082781f8e946ac10"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/decorator.cpython-313.pyc",
+            "sha256": "8555085f831642000933a709dddb68376cf2c688eb205b1ac435f3958110cf4b"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/exposition.cpython-313.pyc",
+            "sha256": "69ff9bb24d6cd8c6c084c99e00fa2e991fc0d98f12bfa8c353ef173a49d7eaa0"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/gc_collector.cpython-313.pyc",
+            "sha256": "2de01f3cda2d6468191e561dcf05795c69417adfa52ec6de94ad65863c62153a"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/metrics.cpython-313.pyc",
+            "sha256": "7a0012eb6ff6668e199138b03b31bca238637d07bad79a9de48e8baae8a963cd"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/metrics_core.cpython-313.pyc",
+            "sha256": "907d8f5925b053fd0b3483886ea2662b274cf83b8f9c6bfb289c6b2729797a9c"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/mmap_dict.cpython-313.pyc",
+            "sha256": "76224ffd88babea7c3da0ced08209a80090533921cd9f15db30802e1cb208485"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/multiprocess.cpython-313.pyc",
+            "sha256": "952b3a4ed4639a55d4d36a3ff7f0cd654a6e92be7c10bbc35a67d526ab529aab"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/parser.cpython-313.pyc",
+            "sha256": "b562713b82194bae062dae509d9d2b21a6dc677f4b597b77c3384e9ca33580ca"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/platform_collector.cpython-313.pyc",
+            "sha256": "730307a5f3c63b84980e51a07e13ae34fc94a6c8ae7090d056eba925f639a103"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/process_collector.cpython-313.pyc",
+            "sha256": "c1ac6c4309eb952013b54c8de3147ffc7987b8cb3d9827c89c1dae2f91dae199"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/registry.cpython-313.pyc",
+            "sha256": "663aa1a7d4810b2d648c10e2a57e0fc52c635fdaab840a3eaa7cc5d7c5b96a5e"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/samples.cpython-313.pyc",
+            "sha256": "68b0dde2d0d1e899a4279b14ea558b6bebf6d1a9a4e3f7a4c1e0e988283eb255"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/utils.cpython-313.pyc",
+            "sha256": "f245be0957a5e9fbc795d7aefbacd748382f23c1d0cd704fe0ac04e1da8f780e"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/validation.cpython-313.pyc",
+            "sha256": "4f6b926bbd8fe744ab1217c68d55fed53b14c422f9d06492728f1e18ca622e79"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/__pycache__/values.cpython-313.pyc",
+            "sha256": "91043ed0864bc587034f9ee311cea8ecb60683b147af23a67baecdd0e8e7a7cd"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/asgi.py",
+            "sha256": "8af9fe795ed95340446b813da160456c14549251cfc3d7f995c746b3216e08ba"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/bridge/__init__.py",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/bridge/__pycache__/__init__.cpython-313.pyc",
+            "sha256": "04a5bbbc80d5ff62d1e0997bf67591b61f2e53f30ac21489fe463fc8ad03ccb7"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/bridge/__pycache__/graphite.cpython-313.pyc",
+            "sha256": "e7e028c223b720367be218d9bb4866f6c9bc7b92dc74fddf3899a3259b5c2dda"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/bridge/graphite.py",
+            "sha256": "9b9fbb23257218bf02e92f722f17aea52d697e3f0a14d3cd95acdd75a9904fcb"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/context_managers.py",
+            "sha256": "13bba4b27e03ef20686560e08c8d55469477976b4a8afb3d0c76795007263f01"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/core.py",
+            "sha256": "0642ac0a8c101199aba59474984b62780e738549d5e9190ddacb5169ba5c0cc0"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/decorator.py",
+            "sha256": "ecc754a245a6cd0d7b7e87add91e5070cb9b759d560cf198a34fc7a8bc40c369"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/exposition.py",
+            "sha256": "e217cf066eb37ddd1b012f2115d084c5250d3cde69c650225b5eaf17a5011cb7"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/gc_collector.py",
+            "sha256": "b418575e4b45f60f61ee0bcef83988da0c4fa25dbf81723533a7bd64c6b335f6"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/metrics.py",
+            "sha256": "29a0e9b3c2aee8799d5c0ad265ba9c21e5bd6080344bc48c7f4003afe11665c0"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/metrics_core.py",
+            "sha256": "95bc972219c360671bb43777939343c3b4ac3b7bba57a6877374488adcd9ba0c"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/mmap_dict.py",
+            "sha256": "fade3d932c191c51e4d83f485adba7a8a16daf978482237e463156835e8913e4"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/multiprocess.py",
+            "sha256": "6ffb2029868877d72d2f3292b14c58ea84a3bea41698c695628294f5d3d284b8"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/openmetrics/__init__.py",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/openmetrics/__pycache__/__init__.cpython-313.pyc",
+            "sha256": "7aa986f514bf93e683b4fead7b71549302bbd15e5fd8a2a458589e7292c927d2"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/openmetrics/__pycache__/exposition.cpython-313.pyc",
+            "sha256": "389c972af3e619fb9185ffedef4c7ae4469a4eb24ac6f460a6f7ad85e30809f9"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/openmetrics/__pycache__/parser.cpython-313.pyc",
+            "sha256": "248bc93324bb7ddd5badf57a5a4370ccfb10b533f62a3b5bc009b787506eff35"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/openmetrics/exposition.py",
+            "sha256": "30adfe7eaa67f74a86476c77a98b45feb25c97c007d247e774d3543a54baa476"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/openmetrics/parser.py",
+            "sha256": "815337df2fffebaa80e42809643fe172ea962fc23b7c34397e8ed2933f238cd6"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/parser.py",
+            "sha256": "e69c1f794d996b2d9673ce475d6ed9c72a79c8c00cf9bfb51ee3bb15d52e8a53"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/platform_collector.py",
+            "sha256": "b7f183da808b3773ea9784e5b5b36a4daa7c6b81ceb5bbc19b4394e7f80f9f7f"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/process_collector.py",
+            "sha256": "07ccb7e8bd62ab473728596f74d8f517924440b4de735d7a87acb79bd26193dd"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/py.typed",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/registry.py",
+            "sha256": "dd1fb2c623e2b55b37e9c9c8467a2da9226638fc0042c2f3fad97a930deb71de"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/samples.py",
+            "sha256": "b7bef4fdddb30f60ad8052f9ad8cd56760dcb2f1a164694c5621c5a9fd7b82ef"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/twisted/__init__.py",
+            "sha256": "d11c498d848e0b9a7aa3672ee896df53373c45e1d840636ff6928ff94e2eece1"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/twisted/__pycache__/__init__.cpython-313.pyc",
+            "sha256": "bcc6a1d78578087ec804e6534b4d231194ccc055b0981772e6de6df734d98fe7"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/twisted/__pycache__/_exposition.cpython-313.pyc",
+            "sha256": "3f2b4dc215d5c21b07ec2d411787ad83861943f2923eccf8130fafe5de23213f"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/twisted/_exposition.py",
+            "sha256": "d932f6047e6c5b48ba1fb747928b7d6811fd2ddf88eb46b1e790ee6885a7125a"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/utils.py",
+            "sha256": "cca259696fe1c998104a691a0feae04f997e62c4f7fbe95ed01450eefff1f1e1"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/validation.py",
+            "sha256": "0734997dc04f49071499c868fcf14870ac25ab46c02bcfd32ab030482e757334"
+          },
+          {
+            "path": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/layout-controller-20261027-v1/site/prometheus_client/values.py",
+            "sha256": "8734e1410774c789883d1ddd75ecd0a635280d5752067c1e9b8678f30a31a5af"
+          }
+        ]
+      }
+    }
+  }
+}
