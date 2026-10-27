@@ -57,6 +57,43 @@ def test_summary_candidates_keep_the_actual_source_shard(tmp_path, monkeypatch) 
     assert all(row["source_file"] in row["messages"][0]["content"] for row in result)
 
 
+def test_short_smoke_preserves_failed_scientific_gate(tmp_path) -> None:
+    from apertus_eagle.adaptation_smoke import assess
+
+    run, head = tmp_path / "run", tmp_path / "head"
+    run.mkdir()
+    head.mkdir()
+    summary = {
+        "steps": 4,
+        "gates": {"finite_losses": True, "real_updates": True, "loss_decreased": False},
+        "non_finite_grad_steps": 0,
+        "train_loss_first_decile": 1.6,
+        "train_loss_last_decile": 1.9,
+    }
+    for name, obj in {
+        "train-summary.json": summary,
+        "history.json": [{"lr_used": 1e-5}],
+        "provenance.json": {"slurm_job_id": "old-smoke"},
+        "evals.json": [],
+    }.items():
+        (run / name).write_text(json.dumps(obj))
+    (head / "export-report.json").write_text(
+        json.dumps({"reload": {"pass": True, "exported_tensors_bitwise_equal": True}})
+    )
+    (head / "config.json").write_text(
+        json.dumps({"apertus_training": {"init_from": {"path": "parent-checkpoint"}}})
+    )
+    original = (run / "train-summary.json").read_bytes()
+    report = assess(run, head, 4)
+    assert report["infrastructure_passed"]
+    assert not report["scientific_gates_passed"]
+    assert report["scientific_gates"]["loss_decreased"] is False
+    assert (run / "train-summary.json").read_bytes() == original
+    summary["gates"]["real_updates"] = False
+    (run / "train-summary.json").write_text(json.dumps(summary))
+    assert not assess(run, head, 4)["infrastructure_passed"]
+
+
 def _row(text: str) -> dict:
     return {"messages": [{"role": "user", "content": text}]}
 
