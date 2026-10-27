@@ -35,7 +35,9 @@ for STAGE in validate a b; do
 set -euo pipefail
 export PYTHONDONTWRITEBYTECODE=1
 trap 'python3 "${SOURCE}/methods/dspark/train/depth_campaign.py" fail "${CAMPAIGN}" --stage "${STAGE}"' ERR
-export VLLM_PATCH_DIR="${CAMPAIGN}/patch-${STAGE}"
+# Pyxis has rejected long overlay mount lists before. The Slurm job ID makes
+# this short path private to this allocation; patch-vllm may safely replace it.
+export VLLM_PATCH_DIR="/iopsstor/scratch/cscs/${USER}/sd3-\${SLURM_JOB_ID}"
 export SML_ENV_DIR="${CAMPAIGN}/environments"
 export DEPTH_SOURCE_MANIFEST="${CAMPAIGN}/source-manifest.json"
 python3 "${SOURCE}/methods/dspark/train/depth_campaign.py" verify "${CAMPAIGN}"

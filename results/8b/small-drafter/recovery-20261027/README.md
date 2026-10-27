@@ -91,6 +91,10 @@ unresolved, without a scientific verdict. Earlier attempts and raw cells are
 preserved. No training extension or additional depth grid is launched.
 
 Campaign root:
-`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v1`.
+`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261027-auto-v2`.
 The final artifact will be `b/decision.json`; the precise deployment roots are
 `validate/repeat-a`, `validate/repeat-b`, `a/sweep` and `b/sweep`.
+Overlay mount directories use short, job-private paths under scratch
+(`sd3-JOB_ID`) because an earlier experiment exceeded pyxis's mount-list limit.
+The first queued continuation was canceled before allocation to apply that
+constraint; its submission evidence remains in `campaign-receipt-v1/`.
