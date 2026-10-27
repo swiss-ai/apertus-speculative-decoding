@@ -27,6 +27,11 @@ are retained. Recovery uses a lightweight detached controller on the cluster,
 not local Claude watchers. Its receipts and next action are at
 `spec-exp-data/drafter-updates/recovery-20261027/receipts/campaign.json`.
 It submits one owned training job at a time and cannot create new variants.
+The [controller staging receipt](../results/8b/drafter-updates/recovery-20261027/controller-staging-621b2050.json)
+records the frozen code revision `621b2050`, all 162 verified source files,
+pre-registration before trace job 3769227 started, and the successful serving
+launcher preflight. The trace was still queued at the 19:17 UTC observation;
+the full EAGLE workflow is staged, not scientifically completed.
 
 ## Method
 
