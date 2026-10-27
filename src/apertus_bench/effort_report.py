@@ -25,6 +25,7 @@ IDENTITY = (
     "gpu_identity",
     "source_patch_sha256",
     "harmony_overlay_sha256",
+    "harmony_vocab_sha256",
     "harness_git_revision",
 )
 

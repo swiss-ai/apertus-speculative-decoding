@@ -84,6 +84,8 @@ def main() -> None:
     from vllm.entrypoints.openai.parser import harmony_utils
 
     original = pin_harmony_date(harmony_utils, args.fixed_date)
+    # Fail before model loading if native Harmony's offline assets are incomplete.
+    harmony_utils.get_encoding()
     with args.provenance_file.open("x") as sink:
         json.dump(
             {

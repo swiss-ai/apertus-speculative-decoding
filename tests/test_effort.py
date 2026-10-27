@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -14,6 +15,7 @@ from apertus_bench.effort import (
     render_check,
     schedule,
     serve_command,
+    stage_harmony_vocab,
     training_plan,
 )
 from apertus_bench.effort_report import IDENTITY, build_report
@@ -43,6 +45,22 @@ async def test_validation_uses_live_chat_renderer_and_rejects_unexpected_output(
     renderer.render_chat.return_value = ([], [{"prompt": "wrong renderer"}])
     with pytest.raises(ValueError, match="tokenized native prompt"):
         await render_native_prompt(handler, request)
+
+
+def test_harmony_vocabulary_is_hash_checked_and_preserved_in_offline_cache(tmp_path):
+    source = tmp_path / "vocabulary"
+    source.write_bytes(b"vocabulary")
+    spec = {
+        "harmony_vocab_path": str(source),
+        "harmony_vocab_url": "https://example.test/vocabulary",
+        "harmony_vocab_sha256": hashlib.sha256(b"vocabulary").hexdigest(),
+    }
+    manifest = stage_harmony_vocab(spec, tmp_path / "cache")
+    assert Path(manifest["cache_path"]).read_bytes() == b"vocabulary"
+    assert manifest["sha256"] == spec["harmony_vocab_sha256"]
+    source.write_bytes(b"corrupted")
+    with pytest.raises(ValueError, match="published hash"):
+        stage_harmony_vocab(spec, tmp_path / "other-cache")
 
 
 def test_submission_retries_admission_limit_and_never_resubmits_accepted_job(tmp_path, monkeypatch):

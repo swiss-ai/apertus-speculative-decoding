@@ -17,7 +17,10 @@ The [spec](gpt-oss-20b.yaml) pins the public drafter revision and references the
 existing target and source probe on the cluster. The [EDF environment](env.toml)
 uses vLLM 0.30.0 ARM64. The target stays in its released MXFP4 format. The preparation
 job downloads the head, checks runtime imports, hashes the image/model artifacts,
-and tests both servers on four extra prompts at each effort.
+and tests both servers on four extra prompts at each effort. It also stages the
+Harmony vocabulary in a persistent offline cache, verifies its published SHA-256,
+and retains a copy with the campaign inputs. Native rendering loads this cache
+before model initialization, so a missing vocabulary fails immediately.
 
 After syncing committed source to the cluster, choose a new absolute campaign
 directory for each independent attempt:

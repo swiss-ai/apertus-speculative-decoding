@@ -192,6 +192,23 @@ def source_identity() -> dict[str, str]:
     return {"revision": revision, "patch_sha256": hashlib.sha256(patch.encode()).hexdigest()}
 
 
+def stage_harmony_vocab(spec: dict[str, Any], directory: Path) -> dict[str, Any]:
+    """Populate Harmony's Rust cache with the pinned vocabulary, without network."""
+    source = Path(spec["harmony_vocab_path"])
+    if file_sha256(source) != spec["harmony_vocab_sha256"]:
+        raise ValueError("Harmony vocabulary differs from its published hash")
+    directory.mkdir(parents=True, exist_ok=False)
+    cache_key = hashlib.sha1(spec["harmony_vocab_url"].encode()).hexdigest()
+    cached = directory / cache_key
+    cached.write_bytes(source.read_bytes())
+    return {
+        "source": str(source),
+        "url": spec["harmony_vocab_url"],
+        "cache_path": str(cached),
+        "sha256": file_sha256(cached),
+    }
+
+
 def _prepare_inputs(spec: dict[str, Any], campaign: Path) -> dict[str, Any]:
     """Expensive hashing belongs in the allocation, never on a login node."""
     inputs = campaign / "inputs"
@@ -208,6 +225,8 @@ def _prepare_inputs(spec: dict[str, Any], campaign: Path) -> dict[str, Any]:
                 raise ValueError(f"{key} snapshot changed since the campaign was locked")
         if file_sha256(Path(spec["image"])) != lock["image_sha256"]:
             raise ValueError("container changed since the campaign was locked")
+        if file_sha256(Path(lock["harmony_vocab"]["cache_path"])) != spec["harmony_vocab_sha256"]:
+            raise ValueError("Harmony vocabulary changed since the campaign was locked")
         return lock
     inputs.mkdir(parents=True, exist_ok=False)
     target = model_manifest(Path(spec["target_path"]))
@@ -223,6 +242,7 @@ def _prepare_inputs(spec: dict[str, Any], campaign: Path) -> dict[str, Any]:
         "source": source_identity(),
         "target": target,
         "drafter": drafter,
+        "harmony_vocab": stage_harmony_vocab(spec, inputs / "harmony-cache"),
         "image_sha256": file_sha256(Path(spec["image"])),
         "template_sha256": file_sha256(inputs / "target-chat-template.jinja"),
         "rendering": {
@@ -532,7 +552,7 @@ async def measure_cell(
 
 def runtime_provenance() -> dict[str, Any]:
     packages = {}
-    for name in ("vllm", "torch", "transformers", "httpx", "huggingface-hub"):
+    for name in ("vllm", "torch", "transformers", "httpx", "huggingface-hub", "openai-harmony"):
         try:
             packages[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
@@ -657,6 +677,7 @@ async def run_block(
                     "HF_HUB_OFFLINE": "1",
                     "VLLM_CACHE_ROOT": str(deployment / "compile-cache"),
                     "VLLM_LOGGING_LEVEL": "INFO",
+                    "TIKTOKEN_RS_CACHE_DIR": str(campaign / "inputs/harmony-cache"),
                 }
             )
             provenance = {
@@ -672,6 +693,7 @@ async def run_block(
                         "CUDA_VISIBLE_DEVICES",
                         "HF_HUB_OFFLINE",
                         "VLLM_CACHE_ROOT",
+                        "TIKTOKEN_RS_CACHE_DIR",
                     )
                 },
                 "image": spec["image"],
@@ -778,6 +800,7 @@ async def run_block(
                                     "tokenizer_sha256": manifest["tokenizer.json"]["sha256"],
                                     "template_sha256": lock["template_sha256"],
                                     "harmony_overlay_sha256": lock["rendering"]["overlay_sha256"],
+                                    "harmony_vocab_sha256": lock["harmony_vocab"]["sha256"],
                                     "rendered_prompts_sha256": rendered_hash,
                                     "checkpoint_sha256": None
                                     if head is None
