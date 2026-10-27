@@ -9,6 +9,12 @@ with daily jobs 694472–694478. The rocBLAS workaround removed the severe
 slowdown. See the continuation outcome below and the new section of
 `docs/beverin-feasibility.md` for measured speed, memory and all job IDs.
 
+**Scaling follow-up (2026-10-27):** user authorized a 16-node save/resume
+pilot and a conditional 32-node comparison. Job **697549** is running as
+`scaling-16n-20261027-rocblas` with separate checkpoints; production
+`opb-thinkoff-1n-beverin` continues unchanged. Results will be recorded in
+`results/70b/dspark/beverin-scaling-20261027/`.
+
 ## Goal and recipe
 
 Train a DSpark speculative-decoding drafter for Apertus-v1.5-70B the way Yu

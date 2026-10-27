@@ -470,6 +470,28 @@ advancement and the expected logged resume, writing `job-audit.json`.
   [`results/70b/dspark/beverin-20261025/`](../results/70b/dspark/beverin-20261025/).
 - [CSCS support draft](beverin-support-ticket.md), not sent.
 
+## Scaling follow-up (2026-10-27): 16-node pilot in progress
+
+The user authorized a 16-node pilot with 100–200 steady steps and an exact
+save/resume check, followed by a short 32-node comparison if the result
+supports it. No full multi-node production chain is authorized by this step.
+
+Job **697549** started at approximately 09:34:49 UTC, run
+`scaling-16n-20261027-rocblas`. It uses 16 nodes / 32 trainer ranks, full SEQ
+8192 / 512 anchors, nominal batch 262,144 tokens, LR **6e-4**, the validated
+v0.31 + rocBLAS runtime snapshot `repo-ada15200/`, and the memory-safe
+extraction/worker settings above. Profiling is off. The segment hook saves
+at 100, resumes within the allocation with extraction servers retained, and
+saves/exits at 200, yielding up to 198 steady samples. The allocation is
+bounded at three hours with a 20-minute deadline-save margin, and has
+`--nice=10000`. Checkpoints are separate from production. LR scaling is a
+pilot heuristic; quality equivalence remains untested.
+
+At submission, production job 694473 was healthy at step 10,648; its latest
+checkpoint was 8,840. Seventy-four Beverin nodes were idle. No Clariden jobs
+were queried or changed. The 32-node job has not been submitted. Records:
+[`results/70b/dspark/beverin-scaling-20261027/`](../results/70b/dspark/beverin-scaling-20261027/).
+
 ## Memory budget for the planned 16-node layout (estimate, not measured)
 
 MI300A has no separate host memory: `free` shows ~501 GB, and GPU
