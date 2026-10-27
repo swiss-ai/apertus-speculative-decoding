@@ -1,0 +1,41 @@
+{
+  "recorded_at": "2026-10-27T16:23:23.837600+00:00",
+  "source_revision": "f409b9dab1d776817dd283488db8c73e8927e690",
+  "remote_campaign": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da",
+  "partition": "debug",
+  "time_limit": "01:30:00",
+  "preparation_job": "3768739",
+  "phase1_block0_job": "3768740",
+  "submission_controller_pid": 133383,
+  "status": "preflight_queued; remaining blocks submitted by persistent controller as QoS admits",
+  "measurement_policy": "all blocks afterok preparation; kill-on-invalid-dep; no proceed decision before all valid paired cells",
+  "commands": [
+    "bash serving/thinking-effort.sh --output REMOTE_CAMPAIGN --prepare --partition debug --time 01:30:00",
+    "bash serving/thinking-effort.sh --output REMOTE_CAMPAIGN --dependency 3768739 --partition debug --time 01:30:00 --supervise"
+  ],
+  "prior_attempts": [
+    {
+      "campaign": "campaign-20261027-43b1444a",
+      "job": "3768548",
+      "status": "failed before measurements",
+      "cause": "full vLLM server lacks chat-render route; added native-render validation middleware",
+      "dependent_job": "3768604",
+      "dependent_status": "cancelled"
+    },
+    {
+      "campaign": "campaign-20261027-07e53b9a",
+      "job": "3768688",
+      "status": "failed before measurements",
+      "cause": "Harmony Rust vocabulary could not download on compute node; staged hash-verified offline cache",
+      "dependent_job": "3768700",
+      "dependent_status": "cancelled automatically"
+    }
+  ],
+  "validation": {
+    "pytest": "193 passed",
+    "ruff": "passed",
+    "git_diff_check": "passed",
+    "gpu_preflight": "pending; no benchmark result claimed"
+  },
+  "phase2": "gated training specifications and evaluation implemented; actual fine-tuning requires complete proceed decision and a compatible GPT-OSS DFlash training/export recipe"
+}
