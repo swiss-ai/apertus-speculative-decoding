@@ -2,7 +2,11 @@ import argparse
 import json
 import shutil
 import subprocess
+import sys
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -441,6 +445,98 @@ async def test_smoke_rejects_wrong_response_model(fake_engine):
         await validation.smoke(args)
 
 
+def test_gateway_key_prefers_explicit_environment_without_reading_stores(tmp_path, monkeypatch):
+    monkeypatch.setenv("PILOT_TEST_API_KEY", "explicit-test-key")
+    monkeypatch.setattr(
+        pilot, "command", lambda *a, **kw: pytest.fail("explicit key must bypass stores")
+    )
+    assert validation.gateway_key(tmp_path, "PILOT_TEST_API_KEY", "dev") == "explicit-test-key"
+
+
+@pytest.mark.parametrize("platform", ["dev", "research"])
+def test_gateway_key_selects_platform_store_without_exporting_secret(
+    prepared, monkeypatch, platform
+):
+    run, _, _ = prepared
+    monkeypatch.delenv("CSCS_SERVING_API")
+    spec = pilot.read_json(run / "profile.json")
+
+    def retrieve(argv, **kwargs):
+        assert argv[0] == str(Path(spec["runtime"]["sml_bin"]).parent / "python")
+        assert argv[-1] == platform
+        assert kwargs["capture_output"] and kwargs["stdin"] == subprocess.DEVNULL
+        assert kwargs["timeout"] == 15
+        stores = []
+        monkeypatch.setattr(sys, "argv", ["-c", platform])
+        monkeypatch.setitem(
+            sys.modules,
+            "keyring",
+            SimpleNamespace(
+                get_password=lambda service, user: (
+                    stores.append((service, user)) or "stored-dev-test-key"
+                )
+            ),
+        )
+
+        class InitConfig:
+            @staticmethod
+            def load():
+                return SimpleNamespace(
+                    get_non_none_value=lambda name: (
+                        stores.append(name) or "stored-research-test-key"
+                    )
+                )
+
+        monkeypatch.setitem(
+            sys.modules,
+            "swiss_ai_model_launch.cli.configuration",
+            SimpleNamespace(InitConfig=InitConfig),
+        )
+        output = StringIO()
+        with redirect_stdout(output):
+            exec(argv[2])
+        expected = (
+            [("apertus-speculative-decoding", "dev-api-key")]
+            if platform == "dev"
+            else ["swissai_research_api_key"]
+        )
+        assert stores == expected
+        return subprocess.CompletedProcess(argv, 0, output.getvalue())
+
+    monkeypatch.setattr(pilot, "command", retrieve)
+    assert (
+        validation.gateway_key(run, "CSCS_SERVING_API", platform)
+        == f"stored-{platform}-test-key"
+    )
+    assert "CSCS_SERVING_API" not in validation.os.environ
+    dep = pilot.read_json(run / "deployment.json")
+    dep["platform"] = platform
+    options = argparse.Namespace(run=run, gateway=True, api_key_env="CSCS_SERVING_API")
+    assert validation.endpoint(options, dep)[1] == f"stored-{platform}-test-key"
+    assert "stored-dev-test-key" not in (run / "profile.json").read_text()
+
+
+@pytest.mark.parametrize("failure", ["missing", "read-error", "timeout"])
+def test_gateway_key_failure_does_not_report_credential_output(prepared, monkeypatch, failure):
+    run, _, _ = prepared
+    monkeypatch.delenv("CSCS_SERVING_API")
+
+    def retrieve(argv, **kwargs):
+        if failure == "read-error":
+            raise subprocess.CalledProcessError(
+                1, argv, output="private-output", stderr="private-error"
+            )
+        if failure == "timeout":
+            raise subprocess.TimeoutExpired(argv, 15, output="private-output")
+        return subprocess.CompletedProcess(argv, 0, "")
+
+    monkeypatch.setattr(pilot, "command", retrieve)
+    with pytest.raises(ValueError, match="gateway") as exc:
+        validation.gateway_key(run, "CSCS_SERVING_API", "dev")
+    assert "private" not in str(exc.value)
+    assert "CSCS_SERVING_API" not in validation.os.environ
+
+
 async def test_invalid_waits_do_not_start_requests_or_stop_jobs(fake_engine, monkeypatch):
     run, args, engine = fake_engine
     stopped = []
@@ -562,6 +658,53 @@ async def test_queued_validation_stops_before_requests_on_failed_preflight(
         pilot.fcntl.flock(lock, pilot.fcntl.LOCK_EX)
         with pytest.raises(ValueError, match="another validation controller"):
             await validation.validate_when_ready(args)
+
+
+@pytest.mark.parametrize("environment_key", [None, "explicit-controller-test-key"])
+async def test_queued_validation_uses_gateway_credentials_without_mutating_environment(
+    fake_engine, monkeypatch, environment_key
+):
+    run, _, _ = fake_engine
+    pilot.write_json(run / "job.json", {"job_id": "12345", "operator": "agent"})
+    monkeypatch.delenv("CSCS_SERVING_API")
+    if environment_key:
+        monkeypatch.setenv("CSCS_SERVING_API", environment_key)
+    monkeypatch.setattr(
+        pilot,
+        "inspect_run",
+        lambda run: {
+            "base_url": "http://worker",
+            "preflight": {"status": "passed"},
+            "slurm": "12345|RUNNING",
+        },
+    )
+    monkeypatch.setattr(pilot, "collect", lambda run: None)
+    retrieved = []
+
+    def retrieve(argv, **kwargs):
+        assert argv[-1] == "dev"
+        retrieved.append(argv)
+        return subprocess.CompletedProcess(argv, 0, "stored-controller-test-key")
+
+    monkeypatch.setattr(pilot, "command", retrieve)
+    endpoints = []
+
+    async def check(options):
+        endpoints.append(validation.endpoint(options, pilot.read_json(run / "deployment.json")))
+        return run / ("gateway-checks" if options.gateway else "direct-checks")
+
+    monkeypatch.setattr(validation, "smoke", check)
+    options = argparse.Namespace(
+        run=run, wait_seconds=1, smoke_only=True, no_gateway=False, stop_after=False
+    )
+    output = await validation.validate_when_ready(options)
+    report = pilot.read_json(output / "report.json")
+    assert report["passed"] and report["gateway_checks"].endswith("gateway-checks")
+    assert endpoints[0] == ("http://worker", None)
+    assert endpoints[1][1] == (environment_key or "stored-controller-test-key")
+    assert len(retrieved) == (0 if environment_key else 1)
+    assert validation.os.environ.get("CSCS_SERVING_API") == environment_key
+    assert "controller-test-key" not in (output / "report.json").read_text()
 
 
 def test_qualification_requires_matching_arrival_output_caps(prepared, tmp_path):

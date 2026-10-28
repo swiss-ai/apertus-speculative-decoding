@@ -57,8 +57,8 @@ Request logging and usage telemetry are disabled; speculative counters and
 ordinary operational statistics remain enabled.
 
 For a queued deployment, `validate` can wait for readiness and run the complete
-bounded validation automatically. It loads the existing SML gateway key in
-memory if `CSCS_SERVING_API` is absent, uses the allocation for load generation,
+bounded validation automatically. It reads the appropriate gateway key in
+memory, uses the allocation for load generation,
 and saves its controller source, logs and final report under `automation/`.
 Only one controller may validate a deployment at a time.
 
@@ -77,10 +77,25 @@ manual commands below can also be used individually.
 ```bash
 ./serving/research-pilot.sh smoke "$PILOT_RUN" --base-url http://WORKER_IP:8080 --limits
 
-# Set the bearer token through your existing credential mechanism. It is
-# read from the environment and is never written to a pilot artifact.
+# The key is resolved from the selected environment variable or platform store.
 ./serving/research-pilot.sh smoke "$PILOT_RUN" --gateway \
   --api-key-env CSCS_SERVING_API --metrics-url http://WORKER_IP:8080/metrics --limits
+```
+
+Gateway commands first use `--api-key-env` when that variable is set. Otherwise,
+development runs read keyring service `apertus-speculative-decoding`, username
+`dev-api-key`; research runs read the existing SML `swissai_research_api_key`.
+The keyring reader uses the Python environment alongside the profile's `sml_bin`.
+Development does not fall back to the research key. Values are held in memory,
+are not exported to job steps, and are never written to pilot artifacts.
+
+To save a development key from <https://servingdev.swissai.svc.cscs.ch>, run
+these short commands on Clariden and enter the key at the hidden prompt:
+
+```bash
+source ~/venvs/sml-apertus/bin/activate
+PILOT_SVC=apertus-speculative-decoding
+python -m keyring set "$PILOT_SVC" dev-api-key
 ```
 
 The smoke check retains two greedy captures of the eight synthetic prompts

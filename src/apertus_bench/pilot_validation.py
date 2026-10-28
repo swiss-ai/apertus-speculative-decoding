@@ -46,12 +46,54 @@ def source_path(run: Path, spec: dict, key: str) -> Path:
     return run / "source" / spec["validation"][key]
 
 
+def gateway_key(run: Path, env_name: str, platform: str) -> str:
+    """Read credentials in memory using the SML environment's keyring backend."""
+    explicit = os.environ.get(env_name)
+    if explicit:
+        return explicit
+    if platform not in {"dev", "research"}:
+        raise ValueError("unknown gateway credential platform")
+    h = helpers()
+    spec = h.read_json(run / "profile.json")
+    python = Path(spec["runtime"]["sml_bin"]).parent / "python"
+    getter = """import sys
+try:
+    if sys.argv[1] == "dev":
+        import keyring
+        value = keyring.get_password("apertus-speculative-decoding", "dev-api-key")
+    else:
+        from swiss_ai_model_launch.cli.configuration import InitConfig
+        value = InitConfig.load().get_non_none_value("swissai_research_api_key")
+except Exception:
+    raise SystemExit(1)
+if value:
+    sys.stdout.write(value)
+"""
+    try:
+        result = h.command(
+            [str(python), "-c", getter, platform],
+            capture_output=True,
+            stdin=subprocess.DEVNULL,
+            timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError):
+        raise ValueError(
+            f"could not read the stored {platform} gateway credential; set {env_name}"
+        ) from None
+    if not result.stdout:
+        location = (
+            "keyring service apertus-speculative-decoding, username dev-api-key"
+            if platform == "dev"
+            else "SML swissai_research_api_key"
+        )
+        raise ValueError(f"no {platform} gateway key available; use {location} or set {env_name}")
+    return result.stdout
+
+
 def endpoint(args, dep: dict) -> tuple[str, str | None]:
     if args.gateway:
         base = dep["gateway"]
-        key = os.environ.get(args.api_key_env)
-        if not key:
-            raise ValueError(f"gateway checks need a bearer token in {args.api_key_env}")
+        key = gateway_key(args.run, args.api_key_env, dep["platform"])
     else:
         base = args.base_url
         key = None
@@ -871,21 +913,8 @@ async def _validate_when_ready(args) -> Path:
         )
         report["direct_checks"] = str(await smoke(options))
         if not args.no_gateway:
-            if not os.environ.get(options.api_key_env):
-                spec = h.read_json(args.run / "profile.json")
-                python = Path(spec["runtime"]["sml_bin"]).parent / "python"
-                getter = (
-                    "from swiss_ai_model_launch.cli.configuration import InitConfig; "
-                    "import sys; sys.stdout.write(InitConfig.load().get_non_none_value("
-                    "'swissai_research_api_key'))"
-                )
-                secret = h.command([str(python), "-c", getter], capture_output=True).stdout
-                if not secret:
-                    raise ValueError("no stored gateway key available for validation")
-                os.environ[options.api_key_env] = secret
             options.gateway = True
             report["gateway_checks"] = str(await smoke(options))
-            os.environ.pop(options.api_key_env, None)
         if not args.smoke_only:
             _, _, runtime = state(args.run)
             # The original environment retains the vLLM overlay path; the client
