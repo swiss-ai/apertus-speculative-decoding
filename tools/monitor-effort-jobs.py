@@ -109,12 +109,19 @@ def incident(snapshot):
     return None
 
 
+def start_if_idle(server, thread, identifier):
+    metadata = server.request("thread/read", {"threadId": thread, "includeTurns": False})
+    if metadata["thread"]["status"]["type"] == "idle":
+        server.request("thread/queue/start", {"threadId": thread, "queuedSubmissionId": identifier})
+
+
 def notify(codex, thread, state_dir, finding):
     server = AppServer(codex)
     try:
         queued = server.request("thread/queue/list", {"threadId": thread, "limit": 100})
         for item in queued["data"]:
             if any(PREFIX in value.get("text", "") for value in item["input"]):
+                start_if_idle(server, thread, item["id"])
                 return {"status": "already_queued", "id": item["id"]}
         prompt = (
             f"{PREFIX} Periodic check found {finding['kind']}. Read {state_dir / 'latest.json'} "
@@ -134,21 +141,17 @@ def notify(codex, thread, state_dir, finding):
             check=True,
             timeout=30,
         )
-        metadata = server.request("thread/read", {"threadId": thread, "includeTurns": False})
-        if metadata["thread"]["status"]["type"] == "idle":
-            queue = server.request("thread/queue/list", {"threadId": thread, "limit": 100})
-            selected = next(
-                (
-                    item
-                    for item in queue["data"]
-                    if any(PREFIX in value.get("text", "") for value in item["input"])
-                ),
-                None,
-            )
-            if selected:
-                server.request(
-                    "thread/queue/start", {"threadId": thread, "queuedSubmissionId": selected["id"]}
-                )
+        queue = server.request("thread/queue/list", {"threadId": thread, "limit": 100})
+        selected = next(
+            (
+                item
+                for item in queue["data"]
+                if any(PREFIX in value.get("text", "") for value in item["input"])
+            ),
+            None,
+        )
+        if selected:
+            start_if_idle(server, thread, selected["id"])
         return {"status": "queued", "delivery": result.stdout.strip()}
     finally:
         server.close()

@@ -48,7 +48,9 @@ def test_existing_repair_message_is_not_duplicated(monkeypatch, tmp_path):
         def __init__(self, _):
             pass
 
-        def request(self, *args):
+        def request(self, method, *args):
+            if method == "thread/read":
+                return {"thread": {"status": {"type": "active"}}}
             return {"data": [{"id": "queued", "input": [{"text": monitor.PREFIX}]}]}
 
         def close(self):
@@ -57,3 +59,18 @@ def test_existing_repair_message_is_not_duplicated(monkeypatch, tmp_path):
     monkeypatch.setattr(monitor, "AppServer", Server)
     result = monitor.notify("codex", "thread", tmp_path, {"kind": "failure"})
     assert result == {"status": "already_queued", "id": "queued"}
+
+
+def test_idle_thread_starts_queued_repair():
+    calls = []
+
+    class Server:
+        def request(self, method, params):
+            calls.append((method, params))
+            return {"thread": {"status": {"type": "idle"}}}
+
+    monitor.start_if_idle(Server(), "thread", "queued")
+    assert calls[-1] == (
+        "thread/queue/start",
+        {"threadId": "thread", "queuedSubmissionId": "queued"},
+    )
