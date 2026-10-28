@@ -112,6 +112,12 @@ The launchers default to the cached Capstor paths. Override `TARGET_MODEL`, `DRA
 
 ## Launch a variant
 
+For the final DSpark 10 epoch research-serving pilot, use
+[`serving/research-pilot.sh`](serving/research-pilot.sh) and its
+[runbook](experiments/serving-pilot/README.md). It provides a pinned profile,
+immutable launch artifacts, development validation, metrics, plain fallback
+and qualification before research rollout.
+
 From this repository on the Clariden login node:
 
 ```bash

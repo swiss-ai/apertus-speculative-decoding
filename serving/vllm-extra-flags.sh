@@ -6,6 +6,16 @@ set -euo pipefail
 
 extra=()
 
+if [ -n "${VLLM_CHAT_TEMPLATE:-}" ]; then
+  extra+=(--chat-template "${VLLM_CHAT_TEMPLATE}")
+fi
+if [ "${VLLM_DISABLE_LOG_REQUESTS:-0}" = "1" ]; then
+  extra+=(--disable-log-requests)
+fi
+if [ -n "${VLLM_DTYPE:-}" ]; then
+  extra+=(--dtype "${VLLM_DTYPE}")
+fi
+
 if [ "${ENABLE_PREFIX_CACHING:-}" = "0" ]; then
   extra+=(--no-enable-prefix-caching)
 elif [ "${ENABLE_PREFIX_CACHING:-}" = "1" ]; then

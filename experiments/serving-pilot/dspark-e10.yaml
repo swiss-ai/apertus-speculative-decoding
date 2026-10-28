@@ -1,0 +1,70 @@
+schema_version: 1
+name: apertus15-8b-dspark-e10
+owner: "{user}"
+target:
+  model: swiss-ai/Apertus-v1.5-8B
+  path: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+  revision: a411d838600baf0e3635a3daf66fb7c55fc97bb6
+  contract: targets/8b/contract.json
+drafter:
+  path: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  k: 3
+runtime:
+  image: /capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+  # Verify these again inside the allocation, before advertising the model.
+  image_sha256: f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5
+  vllm_revision: a601a9d998ddeb488f0c17e8512874b116aa7658
+  model_launch_root: "{home}/model-launch-apertus"
+  sml_bin: "{home}/venvs/sml-apertus/bin/sml"
+  environment: "{home}/model-launch-apertus/src/swiss_ai_model_launch/assets/envs/vllm_apertus_1.5_release.toml"
+  min_opentela_version: 0.0.6
+  opentela_binary: /capstor/store/cscs/swissai/infra01/opentela-share/prod/otela-arm64-sai-v0.0.7-00933f1
+  patches:
+    - serving/patches/vllm-apertus-image-token.patch
+    - serving/patches/vllm-apertus-eagle3-aux-layers.patch
+    - serving/patches/vllm-apertus-dspark-mrv2-inner.patch
+    - serving/patches/vllm-apertus-dspark-anchor-layout.patch
+engine:
+  target_tensor_parallel_size: 1
+  dtype: bfloat16
+  max_model_len: 32768
+  gpu_memory_utilization: 0.8
+  max_num_batched_tokens: 16384
+  max_num_seqs: 256
+  enable_prefix_caching: false
+  enable_thinking: false
+deployment:
+  platform: dev
+  partition: normal
+  account: infra01
+  time: "04:00:00"
+  model_id: "{user}/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3"
+  fallback_model_id: "{user}/swiss-ai/Apertus-v1.5-8B-plain"
+  allocated_gpus: 4
+  active_gpus: 1
+  gateway:
+    dev: https://servingdev.swissai.svc.cscs.ch
+    research: https://serving.swissai.svc.cscs.ch
+validation:
+  smoke: experiments/serving-pilot/smoke.jsonl
+  probe: workloads/8b/probe-speculator-benchmarks.jsonl
+  workloads: workloads/8b/eagle-8b-test.jsonl
+  workload_names: [chat, summarization]
+  concurrencies: [1, 8, 32]
+  max_tokens: 384
+  correctness_max_tokens: 128
+  temperature: 0.7
+  top_p: 0.8
+  tolerance:
+    normalized_edit_distance_margin: 0.05
+    common_prefix_fraction_margin: 0.05
+    completion_token_difference_margin: 2
+  max_p95_regression: 0.10
+  soak_seconds: 7200
+  open_loop:
+    image: /capstor/store/cscs/swissai/infra01/container-images/ci/k6.sqsh
+    rate: 2
+    duration_seconds: 180
+    preallocated_vus: 8
+    max_vus: 32
+    max_tokens: 128
