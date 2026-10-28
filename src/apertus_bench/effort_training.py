@@ -464,12 +464,33 @@ def retain_responses(
     return samples, bad
 
 
+async def load_transferred_features(handle: str, timeout: float = 120.0):
+    """Wait for the asynchronous connector writer and its completion lock."""
+    from hs_connectors.transfer import FileTransfer
+
+    transfer = FileTransfer(Path(handle).parent)
+    try:
+        async with asyncio.timeout(timeout):
+            while True:
+                try:
+                    tensors = await asyncio.to_thread(transfer.get_generated, handle)
+                except TimeoutError:
+                    # The upstream lock wait is bounded independently of this transfer deadline.
+                    continue
+                if tensors is not None:
+                    return tensors
+                await asyncio.sleep(0.05)
+    except TimeoutError as error:
+        raise TimeoutError(
+            f"hidden-state transfer did not finish within {timeout}s: {handle}"
+        ) from error
+
+
 async def extract_features(
     campaign: Path, config: dict[str, Any], urls: list[str], samples: list[dict[str, Any]]
 ) -> None:
     import torch
     from openai import AsyncOpenAI
-    from safetensors.torch import load_file
     from speculators.data_generation.offline import check_hidden_states
     from speculators.data_generation.vllm_client import generate_hidden_states_async
 
@@ -488,7 +509,7 @@ async def extract_features(
                 timeout=1800,
                 max_retries=0,
             )
-            tensors = await asyncio.to_thread(load_file, handle)
+            tensors = await load_transferred_features(handle)
             await asyncio.to_thread(check_hidden_states, tensors, sample["token_ids"])
             if tuple(tensors["hidden_states"].shape[1:]) != (6, 2880):
                 raise ValueError(
@@ -570,7 +591,6 @@ async def feature_preflight(campaign, parent, spec, config, upstream):
     """Check real GPT-OSS feature extraction and reconstructed teacher logits."""
     import torch
     from openai import AsyncOpenAI
-    from safetensors.torch import load_file
     from speculators.data_generation.offline import check_hidden_states
     from speculators.data_generation.vllm_client import extract_output
     from speculators.utils.loading import load_model_layers
@@ -602,7 +622,7 @@ async def feature_preflight(campaign, parent, spec, config, upstream):
                 extra_body={"return_token_ids": True},
             )
             handle = extract_output(response, tokens)
-            features = load_file(handle)
+            features = await load_transferred_features(handle)
             check_hidden_states(features, tokens)
             if tuple(features["hidden_states"].shape) != (len(tokens), 6, 2880):
                 raise ValueError(

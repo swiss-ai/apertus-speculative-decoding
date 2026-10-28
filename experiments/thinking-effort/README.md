@@ -164,6 +164,8 @@ must reproduce vLLM's greedy next token. The five draft feature layers, tensor
 shape, native IDs and finite values are also checked. Feature caches and all
 corpus files are hashed before training. Shared embeddings, verifier head and
 verifier norm stay frozen.
+Hidden-state reads wait for the asynchronous connector writer through upstream's
+file-transfer lock protocol, with a bounded deadline, before validating or moving files.
 
 Use a **new Phase 2 campaign and isolated source worktree**. Keep large feature
 caches, optimizer states and checkpoints on scratch storage. Reference the old

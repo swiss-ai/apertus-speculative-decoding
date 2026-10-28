@@ -1,5 +1,7 @@
 """Validate the data contract against the actual optional upstream trainer."""
 
+import asyncio
+import fcntl
 import json
 
 import pytest
@@ -11,7 +13,39 @@ pytest.importorskip("speculators")
 from safetensors.torch import save_file  # noqa: E402
 from speculators.train.data import ArrowDataset  # noqa: E402
 
-from apertus_bench.effort_training import package_datasets  # noqa: E402
+from apertus_bench.effort_training import (  # noqa: E402
+    load_transferred_features,
+    package_datasets,
+)
+
+
+@pytest.mark.parametrize("writer_lock", [False, True])
+def test_hidden_state_transfer_waits_for_delayed_writer(tmp_path, writer_lock):
+    path = tmp_path / "features.safetensors"
+    expected = torch.arange(16)
+
+    async def exercise():
+        async def publish():
+            await asyncio.sleep(0.08)
+            if writer_lock:
+                with path.with_suffix(path.suffix + ".lock").open("w") as lock:
+                    fcntl.flock(lock, fcntl.LOCK_EX)
+                    path.write_text("incomplete writer output")
+                    await asyncio.sleep(0.12)
+                    save_file({"token_ids": expected}, str(path))
+            else:
+                save_file({"token_ids": expected}, str(path))
+
+        loaded, _ = await asyncio.gather(load_transferred_features(str(path), timeout=2), publish())
+        torch.testing.assert_close(loaded["token_ids"], expected)
+        assert not path.with_suffix(path.suffix + ".lock").exists()
+
+    asyncio.run(exercise())
+
+
+def test_hidden_state_transfer_missing_file_has_bounded_timeout(tmp_path):
+    with pytest.raises(TimeoutError, match="hidden-state transfer did not finish"):
+        asyncio.run(load_transferred_features(str(tmp_path / "missing.safetensors"), timeout=0.1))
 
 
 def test_all_role_datasets_load_through_upstream_with_exact_budgets_and_dev_boundary(tmp_path):
