@@ -100,6 +100,10 @@ def normalize_entrypoint(output: Path) -> None:
             after = after.replace(
                 "set -euo pipefail\n", 'set -euo pipefail\nmkdir -p "logs/${SLURM_JOB_ID}"\n', 1
             )
+            after = after.replace(
+                'RANKS_DIR="$HOME/.sml/job-${SLURM_JOB_ID}"',
+                f'RANKS_DIR="{output}/ranks-${{SLURM_JOB_ID}}"',
+            )
         if after != before:
             changes.extend(
                 difflib.unified_diff(
@@ -429,7 +433,8 @@ def prepare(args: argparse.Namespace) -> Path:
         env["EXTRA_MOUNTS"] = ",".join(mounts)
         cache = f"/iopsstor/scratch/cscs/{getpass.getuser()}/apertus-pilot/{run_id}"
         env["EXTRA_ENV"] = (
-            f"VLLM_CACHE_ROOT={cache};VLLM_NO_USAGE_STATS=1;HF_HUB_OFFLINE=1;PYTHONNOUSERSITE=1"
+            f"VLLM_CACHE_ROOT={cache};VLLM_NO_USAGE_STATS=1;HF_HUB_OFFLINE=1;PYTHONNOUSERSITE=1;"
+            f"XDG_CACHE_HOME={cache}/xdg;TRITON_CACHE_DIR={cache}/triton;CUDA_CACHE_PATH={cache}/cuda"
         )
         (output / "bin").mkdir()
         shutil.copy2(path_value(spec["runtime"]["opentela_binary"]), output / "bin/otela-arm64")

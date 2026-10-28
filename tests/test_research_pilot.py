@@ -81,7 +81,8 @@ import json, pathlib, sys
 args=sys.argv[1:]
 out=pathlib.Path(args[args.index('--output-script')+1])
 out.mkdir()
-(out/'master.sh').write_text('#!/bin/bash\\ntrue\\n')
+(out/'master.sh').write_text('#!/bin/bash\\nset -euo pipefail\\n'
+                           'RANKS_DIR="$HOME/.sml/job-${SLURM_JOB_ID}"\\ntrue\\n')
 (out/'head.sh').write_text('#!/bin/bash\\nvllm serve '+args[args.index('--framework-args')+1]+'\\n')
 (out/'arguments.json').write_text(json.dumps(args))
 """)
@@ -152,6 +153,7 @@ def test_prepare_uses_real_launchers_and_freezes_inputs(prepared):
     assert "--dev" in renderer
     assert "python3 -m vllm.entrypoints.openai.api_server" in (run / "rendered/head.sh").read_text()
     assert "vllm serve" in (run / "rendered-entrypoint.patch").read_text()
+    assert f'RANKS_DIR="{run}/ranks-' in (run / "rendered/master.sh").read_text()
     assert (run / "chat_template.jinja").read_text().startswith("{% set enable_thinking = false %}")
     environment = (run / "environment.toml").read_text()
     assert f'"{run}:{run}"' in environment
