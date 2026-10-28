@@ -113,6 +113,7 @@ def stage_job(args, campaign: Path, name: str) -> dict:
         f"--partition={args.partition}",
         f"--time={args.time}",
         "--nodes=1",
+        "--ntasks=1",
         "--exclusive",
         "--cpus-per-task=32",
         f"--job-name=effort-phase2-{name}",

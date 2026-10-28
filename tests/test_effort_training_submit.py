@@ -1,4 +1,6 @@
 import json
+import shlex
+import subprocess
 from types import SimpleNamespace
 
 import pytest
@@ -29,6 +31,30 @@ def test_job_state_keeps_full_terminal_names(monkeypatch):
         lambda *args, **kwargs: SimpleNamespace(stdout="123|OUT_OF_MEMORY\n123.batch|FAILED\n"),
     )
     assert controller.job_state("123") == "OUT_OF_MEMORY"
+
+
+def test_stage_allocation_and_container_step_explicitly_use_one_task(monkeypatch, tmp_path):
+    captured = []
+    monkeypatch.setattr(controller, "source_identity", lambda: {"revision": "frozen"})
+
+    def capture(argv, directory, record, args):
+        captured.append(argv)
+        return record
+
+    monkeypatch.setattr(controller, "submit_job", capture)
+    args = SimpleNamespace(
+        upstream=tmp_path / "upstream",
+        phase1_reference=tmp_path / "phase1",
+        account="infra01",
+        partition="debug",
+        time="01:30:00",
+    )
+    controller.stage_job(args, tmp_path, "data")
+    assert "--ntasks=1" in captured[0]
+    script = tmp_path / "submissions/data/job.sh"
+    step = shlex.split(script.read_text().splitlines()[2])
+    assert step[0] == "srun" and "--ntasks=1" in step and "--nodes=1" in step
+    subprocess.run(["bash", "-n", str(script)], check=True)
 
 
 def test_parent_paths_and_frozen_source_are_recorded_without_reading_raw_requests(

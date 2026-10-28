@@ -243,6 +243,7 @@ def submit(args: argparse.Namespace) -> list[dict[str, str]]:
             f"--partition={args.partition}",
             f"--time={args.time}",
             "--nodes=1",
+            "--ntasks=1",
             "--exclusive",
             f"--output={directory / 'job.out'}",
             f"--error={directory / 'job.err'}",
