@@ -1,0 +1,100 @@
+{
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--account=infra01",
+    "--partition=debug",
+    "--time=00:30:00",
+    "--nodes=1",
+    "--ntasks=1",
+    "--exclusive",
+    "--cpus-per-task=32",
+    "--job-name=effort-phase2-prereq",
+    "--output=/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/job.out",
+    "--error=/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/job.err",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/job.sh"
+  ],
+  "commands": [
+    [
+      "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-c/runtime/bin/python",
+      "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/prerequisite.py",
+      "--spec",
+      "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/experiment.yaml",
+      "--speculators",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb",
+      "--output",
+      "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/training-smoke"
+    ],
+    [
+      "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-c/runtime/bin/python",
+      "-m",
+      "apertus_bench.effort",
+      "--spec",
+      "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/training-smoke/serving-smoke.yaml",
+      "run",
+      "--output",
+      "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/serving-preflight",
+      "--block",
+      "0",
+      "--preflight-only"
+    ]
+  ],
+  "steps": [
+    [
+      "srun",
+      "--overlap",
+      "--nodes=1",
+      "--ntasks=1",
+      "--environment=/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/environment.toml",
+      "bash",
+      "-c",
+      "export PYTHONPATH=/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/src:/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/hs_connectors/src:/users/faruk_zahiragic/apertus-effort-phase2-cfa64e06/src; export OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=0; cd /users/faruk_zahiragic/apertus-effort-phase2-cfa64e06; exec /users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-c/runtime/bin/python /users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/prerequisite.py --spec /users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/experiment.yaml --speculators /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb --output /users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/training-smoke"
+    ],
+    [
+      "srun",
+      "--overlap",
+      "--nodes=1",
+      "--ntasks=1",
+      "--environment=/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/environment.toml",
+      "bash",
+      "-c",
+      "export PYTHONPATH=/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/src:/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/hs_connectors/src:/users/faruk_zahiragic/apertus-effort-phase2-cfa64e06/src; export OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=0; cd /users/faruk_zahiragic/apertus-effort-phase2-cfa64e06; exec /users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-c/runtime/bin/python -m apertus_bench.effort --spec /users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/training-smoke/serving-smoke.yaml run --output /users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d/serving-preflight --block 0 --preflight-only"
+    ]
+  ],
+  "source_revision": "cfa64e06fee0748942a7aeabbd0877d168b62884",
+  "upstream_revision": "e3041ddb4e58d8d0fad86f938f44423bdf424ae9",
+  "supersedes_job": "3782362",
+  "single_task_verified": true,
+  "draft_attention_implementation": "sdpa",
+  "runtime_reused_from": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-c/runtime",
+  "reason": "reuse completed pinned environment; preserve failed FlexAttention attempt unchanged",
+  "recorded_at": "2026-10-28T12:20:50.086570+00:00",
+  "qualification_job": "3782492",
+  "qualification": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d",
+  "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06",
+  "controller_pid": 98557,
+  "controller_argv": [
+    "/users/faruk_zahiragic/venvs/apertus-bench/bin/python",
+    "-u",
+    "-m",
+    "apertus_bench.effort_training_submit",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06",
+    "--phase1-reference",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da",
+    "--upstream",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb",
+    "--qualification",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d",
+    "--qualification-job",
+    "3782492",
+    "--partition",
+    "debug",
+    "--time",
+    "01:30:00"
+  ],
+  "controller_environment": {
+    "PYTHONPATH": "/users/faruk_zahiragic/apertus-effort-phase2-cfa64e06/src",
+    "PYTHONUNBUFFERED": "1"
+  }
+}
