@@ -41,3 +41,10 @@ Large feature caches, optimizer states and checkpoint exports remain on scratch
 alongside the complete run provenance. Follow
 [the pipeline documentation](../../../../../experiments/thinking-effort/README.md)
 for stage behavior and artifact formats.
+
+Recovery update: qualification job `3771335` failed after 18 seconds because its
+Slurm steps inherited multiple tasks and collided while creating the environment.
+No research fine-tuning or Phase 2 measurements started. The corrected attempt
+uses explicit single-task allocations and steps. Replacement qualification job
+`3782362` and a fresh controller/campaign are recorded in
+[the recovery record](../campaign-20261028-d0862bd6/recovery-record.json).

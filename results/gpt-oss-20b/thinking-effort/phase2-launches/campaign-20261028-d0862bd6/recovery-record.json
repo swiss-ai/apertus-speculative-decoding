@@ -1,0 +1,19 @@
+{
+  "recorded_at": "2026-10-28T11:58:43.832007+00:00",
+  "source_revision": "d0862bd6",
+  "qualification_job": "3782362",
+  "qualification_attempt": "prereq-20261028-c",
+  "remote_campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-d0862bd6",
+  "previous_qualification": {
+    "job": "3771335",
+    "state": "FAILED",
+    "elapsed_seconds": 18,
+    "cause": "qualification srun inherited nine tasks; concurrent environment creation collided",
+    "training_started": false
+  },
+  "fix": "explicit --ntasks=1 on both sbatch allocations and every srun step",
+  "validation": "14 targeted tests pass, including single-task allocation/step regression test; replacement qualification script syntax and all task-count flags checked",
+  "fine_tuned_heads_completed": 0,
+  "phase2_measurements_completed": 0,
+  "progress": "replacement qualification submitted on debug; controller restarted in a fresh campaign"
+}
