@@ -248,6 +248,39 @@ def test_research_launch_requires_matching_unchanged_evidence(prepared, tmp_path
         pilot.verify_qualification(report, spec)
 
 
+def test_runtime_preflight_retains_complete_identity_and_training_artifacts(prepared, monkeypatch):
+    run, _, _ = prepared
+    spec = pilot.read_json(run / "profile.json")
+    head = Path(spec["drafter"]["path"])
+    for name in pilot.TRAINING_FILES:
+        if not (head / name).exists():
+            (head / name).write_text("{}\n")
+    monkeypatch.setenv("SLURM_JOB_ID", "12345")
+    monkeypatch.setenv("OPENTELA_BIN", str(run / "bin/otela-arm64"))
+    original = pilot.command
+
+    def loaded_runtime(argv, **kwargs):
+        if argv[0] == "git":
+            return subprocess.CompletedProcess(argv, 0, spec["runtime"]["vllm_revision"] + "\n")
+        return original(argv, **kwargs)
+
+    monkeypatch.setattr(pilot, "command", loaded_runtime)
+    monkeypatch.setattr(pilot.importlib.metadata, "version", lambda name: "fixture-version")
+    pilot.preflight(run)
+    report = pilot.read_json(run / "preflight.json")
+    assert report["status"] == "passed"
+    assert report["image_sha256"] == file_sha256(Path(spec["runtime"]["image"]))
+    assert report["drafter"]["complete"]
+    assert report["drafter"]["files"]["model.safetensors"] == file_sha256(
+        head / "model.safetensors"
+    )
+    assert (run / "training/train_command.txt").exists()
+    assert (run / "target/tokenizer.json").exists()
+    assert report["corpora"]["smoke"]["sha256"] == file_sha256(
+        run / "source" / spec["validation"]["smoke"]
+    )
+
+
 def test_gate_needs_independent_matched_control_and_rejects_divergence(prepared, tmp_path):
     original, _, _ = prepared
     spec = pilot.read_json(original / "profile.json")
@@ -508,3 +541,140 @@ async def test_queued_validation_stops_before_requests_on_failed_preflight(
         pilot.fcntl.flock(lock, pilot.fcntl.LOCK_EX)
         with pytest.raises(ValueError, match="another validation controller"):
             await validation.validate_when_ready(args)
+
+
+def test_qualification_requires_matching_arrival_output_caps(prepared, tmp_path):
+    candidate, _, _ = prepared
+    spec = pilot.read_json(candidate / "profile.json")
+    baseline = tmp_path / "plain-evidence"
+    baseline.mkdir()
+    pilot.write_json(baseline / "profile.json", spec)
+    checks, measurements, arrivals = {}, {}, {}
+    for run, variant in ((baseline, "plain"), (candidate, "dspark")):
+        dep = {
+            "variant": variant,
+            "deployment_id": variant,
+            "model": spec["deployment"]["fallback_model_id" if variant == "plain" else "model_id"],
+            "fallback_model": spec["deployment"]["fallback_model_id"],
+        }
+        (run / "deployment.json").write_text(json.dumps(dep))
+        pilot.write_json(
+            run / "preflight.json",
+            {
+                "status": "passed",
+                "slurm_job_id": variant,
+                "target_files": {"config": "target"},
+                "image_sha256": "image",
+                "vllm_revision": "vllm",
+                "chat_template_sha256": "template",
+                "drafter": {"checkpoint_sha256": "head"} if variant == "dspark" else None,
+            },
+        )
+        (run / "launch-manifest.json").write_text(
+            json.dumps({"overlays/runtime.py": "same-overlay"})
+        )
+        folder = run / "checks/fixture"
+        folder.mkdir(parents=True)
+        checks[variant] = folder
+        pilot.write_json(
+            folder / "report.json",
+            {
+                "run": str(run),
+                "model": dep["model"],
+                "passed": True,
+                "gateway": True,
+                "authenticated": True,
+                "limits": {"passed": True},
+            },
+        )
+        for name in ("capture-1.json", "capture-2.json"):
+            pilot.write_json(folder / name, {"cases": []})
+        root = run / "measurements/fixture"
+        root.mkdir(parents=True)
+        measurements[variant] = root
+        pilot.write_json(root / "status.json", {"passed": True, "run": str(run)})
+        expected = [("probe", 8)] + [
+            (w, c)
+            for w in spec["validation"]["workload_names"]
+            for c in spec["validation"]["concurrencies"]
+        ]
+        for workload, concurrency in expected:
+            cell = root / workload / f"c{concurrency}"
+            cell.mkdir(parents=True)
+            pilot.write_json(
+                cell / "metadata.json",
+                {
+                    "workload_file_sha256": "same-corpus",
+                    "prompt_ids": ["one"],
+                    "cell": {"workload": workload, "concurrency": concurrency},
+                    "extra": {"deployment_id": dep["deployment_id"], "path": "direct"},
+                },
+            )
+            pilot.write_json(
+                cell / "summary.json",
+                {
+                    "requests": {"failed": 0},
+                    "speculative_decoding": {"enabled": True, "drafts": 10},
+                    "latency_ms": {"e2e": {"p95": 100 if variant == "plain" else 80}},
+                    "tokens": {"output_tokens_per_second": 100 if variant == "plain" else 150},
+                },
+            )
+            for name in ("requests.jsonl", "metrics_before.prom", "metrics_after.prom"):
+                (cell / name).write_text("fixture raw observations\n")
+        arrival = run / "open-loop/fixture"
+        arrival.mkdir(parents=True)
+        arrivals[variant] = arrival
+        pilot.write_json(arrival / "status.json", {"passed": True, "run": str(run)})
+        pilot.write_json(
+            arrival / "provenance.json",
+            {
+                "k6_image_sha256": "image",
+                "script_sha256": "script",
+                "corpus_sha256": "corpus",
+                "sampling": {"temperature": 1},
+                "config": {
+                    "scenario_definition": {"rate": 2, "duration": "180s"},
+                    "max_tokens": 128,
+                    "ignore_eos": False,
+                    "request_timeout": "120s",
+                    "prompt_seed": 1,
+                    "think_time": 0,
+                },
+            },
+        )
+        for name in ("summary.json", "raw-summary.json", "raw.jsonl", "prompts.json"):
+            (arrival / name).write_text("{}\n")
+    gate = candidate / "gates/fixture"
+    gate.mkdir(parents=True)
+    pilot.write_json(gate / "correctness.json", {"passed": True})
+    pilot.write_json(
+        gate / "inputs.json",
+        {
+            "signatures": [
+                validation.evidence_signature(baseline),
+                validation.evidence_signature(candidate),
+            ],
+            "checks": [str(p) for p in checks.values()],
+        },
+    )
+    args = argparse.Namespace(
+        candidate_checks=checks["dspark"],
+        fallback_checks=checks["plain"],
+        baseline_measurements=measurements["plain"],
+        candidate_measurements=measurements["dspark"],
+        baseline_open_loop=arrivals["plain"],
+        candidate_open_loop=arrivals["dspark"],
+        gate=gate,
+        soak=None,
+    )
+    qualified = validation.qualify(args)
+    assert pilot.read_json(qualified / "report.json")["status"] == "ready_for_pilot"
+    pilot.verify_qualification(qualified / "report.json", spec)
+    provenance_path = arrivals["dspark"] / "provenance.json"
+    changed = pilot.read_json(provenance_path)
+    changed["config"]["max_tokens"] = 256
+    provenance_path.write_text(json.dumps(changed))
+    with pytest.raises(ValueError, match="evidence changed"):
+        pilot.verify_qualification(qualified / "report.json", spec)
+    with pytest.raises(RuntimeError, match="qualification failed"):
+        validation.qualify(args)

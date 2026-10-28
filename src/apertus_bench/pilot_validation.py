@@ -677,13 +677,19 @@ def qualify(args) -> Path:
                 "prompts.json",
             )
         )
-    checks["matched_arrival_test"] = (
-        all(
-            arrival[0][key] == arrival[1][key]
-            for key in ("k6_image_sha256", "script_sha256", "corpus_sha256", "sampling")
+    checks["matched_arrival_test"] = all(
+        arrival[0][key] == arrival[1][key]
+        for key in ("k6_image_sha256", "script_sha256", "corpus_sha256", "sampling")
+    ) and all(
+        arrival[0]["config"][key] == arrival[1]["config"][key]
+        for key in (
+            "scenario_definition",
+            "max_tokens",
+            "ignore_eos",
+            "request_timeout",
+            "prompt_seed",
+            "think_time",
         )
-        and arrival[0]["config"]["scenario_definition"]
-        == arrival[1]["config"]["scenario_definition"]
     )
     roots = [(args.baseline_measurements, baseline), (args.candidate_measurements, candidate)]
     for root, run in roots:
