@@ -262,6 +262,8 @@ def test_runtime_preflight_retains_complete_identity_and_training_artifacts(prep
     def loaded_runtime(argv, **kwargs):
         if argv[0] == "git":
             return subprocess.CompletedProcess(argv, 0, spec["runtime"]["vllm_revision"] + "\n")
+        if str(argv[0]).endswith("bin/otela-arm64"):
+            assert argv[1:] == ["version"]
         return original(argv, **kwargs)
 
     monkeypatch.setattr(pilot, "command", loaded_runtime)
@@ -437,6 +439,25 @@ async def test_smoke_rejects_wrong_response_model(fake_engine):
     engine["wrong_model"] = True
     with pytest.raises(RuntimeError, match="smoke checks failed"):
         await validation.smoke(args)
+
+
+async def test_invalid_waits_do_not_start_requests_or_stop_jobs(fake_engine, monkeypatch):
+    run, args, engine = fake_engine
+    stopped = []
+    monkeypatch.setattr(pilot, "stop", lambda run: stopped.append(run))
+    for value in (0, -1):
+        args.seconds = value
+        with pytest.raises(ValueError, match="duration must be positive"):
+            await validation.soak(args)
+        wait = argparse.Namespace(
+            run=run, wait_seconds=value, stop_after=True, no_gateway=True, smoke_only=True
+        )
+        with pytest.raises(ValueError, match="wait must be positive"):
+            await validation.validate_when_ready(wait)
+    assert engine["requests"] == 0
+    assert not stopped
+    assert not (run / "automation").exists()
+    assert not (run / "soaks").exists()
 
 
 async def test_runner_does_not_send_gateway_token_to_metrics(fake_engine, tmp_path):

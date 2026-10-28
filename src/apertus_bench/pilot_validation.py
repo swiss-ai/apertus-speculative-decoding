@@ -547,15 +547,15 @@ def gate(args) -> Path:
 async def soak(args) -> Path:
     h = helpers()
     spec, dep, _ = state(args.run)
+    seconds = spec["validation"]["soak_seconds"] if args.seconds is None else args.seconds
+    if seconds <= 0:
+        raise ValueError("observation duration must be positive")
     base, key = endpoint(args, dep)
     if not args.metrics_url:
         raise ValueError("soak requires the engine's --metrics-url")
     output = args.run / "soaks" / h.stamp()
     output.mkdir(parents=True)
     prompt = load_prompts(source_path(args.run, spec, "smoke"))[0]
-    seconds = args.seconds or spec["validation"]["soak_seconds"]
-    if seconds <= 0:
-        raise ValueError("observation duration must be positive")
     started, samples, before = time.monotonic(), [], None
     try:
         async with (
@@ -795,6 +795,8 @@ def qualify(args) -> Path:
 
 
 async def validate_when_ready(args) -> Path:
+    if args.wait_seconds <= 0:
+        raise ValueError("validation wait must be positive")
     h = helpers()
     if not (args.run / "job.json").exists():
         raise ValueError("submit the deployment before starting validation")

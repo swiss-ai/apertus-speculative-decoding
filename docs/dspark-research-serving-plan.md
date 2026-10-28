@@ -7,6 +7,11 @@ authenticated API and UI, and the existing Prometheus and Grafana stack for
 metrics. Start with fixed draft length **k=3**, thinking off, and a verified
 plain-serving fallback.
 
+Implementation: [operator runbook](../experiments/serving-pilot/README.md),
+[pilot launcher](../serving/research-pilot.sh), and
+[launch audit](../results/8b/serving-pilot/launch-audit-20261028T151519Z/README.md).
+The task branch is `feat/dspark-research-serving-pilot`.
+
 This implements the first pilot in [P1 item 5 of the action items canvas](https://swissai-initiative.slack.com/docs/T0627JS49GT/F0C6431UBTP).
 Faruk owns the deployment and validation; Rob supports platform integration
 and capacity. Budget **1–2 working days**, excluding queue delays. The initial

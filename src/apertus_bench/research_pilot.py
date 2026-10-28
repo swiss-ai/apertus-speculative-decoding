@@ -577,7 +577,7 @@ def preflight(run: Path) -> None:
             if overlay_hashes(run) != qualification["overlay_sha256"]:
                 raise ValueError("research source overlays differ from the qualified overlays")
         binary = os.environ.get("OPENTELA_BIN", "/opentelabin/otela-arm64")
-        version = command([binary, "--version"], capture_output=True).stdout.strip()
+        version = command([binary, "version"], capture_output=True).stdout.strip()
         match = re.search(r"(\d+)\.(\d+)\.(\d+)", version)
         minimum = tuple(map(int, runtime["min_opentela_version"].split(".")))
         if not match or tuple(map(int, match.groups())) < minimum:
