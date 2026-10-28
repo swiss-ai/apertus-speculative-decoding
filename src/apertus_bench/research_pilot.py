@@ -144,6 +144,7 @@ def git_info(root: Path) -> dict[str, Any]:
 
     return {
         "root": str(root),
+        "branch": git("branch", "--show-current"),
         "revision": git("rev-parse", "HEAD"),
         "diff": git("diff", "HEAD", "--", "."),
     }
