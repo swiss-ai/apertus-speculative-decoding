@@ -19,6 +19,8 @@ def test_recovery_plans_preserve_original_scope_and_match_memory_recipe():
             for arm in plan.arms:
                 if arm.kind != "command":
                     assert arm.env.items() >= ALLOCATOR.items()
+                    assert arm.env["PYTORCH_CUDA_ALLOC_CONF"] == "expandable_segments:False"
+                    assert "--disable-custom-all-reduce" not in arm.serve_argv
                     assert arm.serve_argv[arm.serve_argv.index("--max-model-len") + 1] == "32768"
         for arm in plan.arms:
             if arm.kind == "pd":

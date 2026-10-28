@@ -25,7 +25,9 @@ from apertus_bench.prometheus import parse_speculative_snapshot, speculative_del
 
 REPO = Path(__file__).resolve().parents[2]
 SPECS = REPO / "experiments/high-concurrency-8b"
-ALLOCATOR = {"PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"}
+# This image exports CUDA graph buffers via cudaIpcGetMemHandle, which does
+# not accept expandable-segment allocations. Retain the standard allocator.
+ALLOCATOR = {"PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:False"}
 STAGES = [
     ("preflight", "01:30:00"),
     ("tp4-dspark-off-k7", "02:30:00"),
@@ -84,7 +86,7 @@ def sha256(path: Path) -> str:
 
 
 def memory_safe(spec: dict[str, Any]) -> dict[str, Any]:
-    """Reserve 9.5 GiB extra headroom per GH200, equally for paired arms."""
+    """Reserve 9.5 GiB extra headroom with IPC-compatible graph allocations."""
     result = copy.deepcopy(spec)
     result.setdefault("engine", {})["gpu_memory_utilization"] = 0.7
     for arm in result["arms"]:
@@ -440,7 +442,7 @@ def controller(root: Path, site: Path, partition: str, poll: int) -> None:
                 "terminal Slurm states alone never mean campaign complete"
             ),
             "memory_recipe": (
-                "TP4 k7 retries/preflight: utilization0.7 and expandable_segments "
+                "TP4 k7 retries/preflight: utilization0.7 and expandable_segments=False "
                 "for both paired arms; other original layouts0.8"
             ),
         }
