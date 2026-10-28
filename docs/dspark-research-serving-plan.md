@@ -10,7 +10,8 @@ plain-serving fallback.
 Implementation: [operator runbook](../experiments/serving-pilot/README.md),
 [pilot launcher](../serving/research-pilot.sh),
 [launch audit](../results/8b/serving-pilot/launch-audit-20261028T151519Z/README.md),
-and [continuation audit](../results/8b/serving-pilot/continuation-audit-20261028T154130Z/README.md).
+[continuation audit](../results/8b/serving-pilot/continuation-audit-20261028T154130Z/README.md),
+and [gateway validation audit](../results/8b/serving-pilot/gateway-audit-20261028T175015Z/README.md).
 The task branch is `feat/dspark-research-serving-pilot`.
 
 This implements the first pilot in [P1 item 5 of the action items canvas](https://swissai-initiative.slack.com/docs/T0627JS49GT/F0C6431UBTP).
