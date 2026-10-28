@@ -51,6 +51,22 @@ The thinking-off template overrides a request that asks for thinking.
 Request logging and usage telemetry are disabled; speculative counters and
 ordinary operational statistics remain enabled.
 
+For a queued deployment, `validate` can wait for readiness and run the complete
+bounded validation automatically. It loads the existing SML gateway key in
+memory if `CSCS_SERVING_API` is absent, uses the allocation for load generation,
+and saves its controller source, logs and final report under `automation/`.
+Only one controller may validate a deployment at a time.
+
+```bash
+nohup ./serving/research-pilot.sh validate "$PILOT_RUN" --wait-seconds 10800 \
+  > "$PILOT_RUN/validation-controller.log" 2>&1 < /dev/null &
+```
+
+Use `--smoke-only --stop-after` for the disposable plain calibration control,
+or `--stop-after` for other disposable validation deployments. These options
+cancel only the deployment's recorded job after collecting its logs. The
+manual commands below can also be used individually.
+
 ## Validate requests and metrics
 
 ```bash
@@ -84,6 +100,8 @@ accepted-length and per-position panels; plain serving has no acceptance
 series. Failure counts remain in the client/k6 result artifacts. Missing
 series display no data. The dashboard import does not create a new metrics
 service or change the platform gateway.
+For the existing Grafana dashboard sidecar, the same dashboard is packaged as
+[grafana-configmap.yaml](grafana-configmap.yaml) in the `rob-poc` namespace.
 
 ## Measure the bounded comparison
 

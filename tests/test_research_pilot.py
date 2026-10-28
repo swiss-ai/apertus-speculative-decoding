@@ -481,3 +481,30 @@ def test_open_loop_keeps_credentials_out_and_rejects_dropped_iterations(fake_eng
     drops["count"] = 1
     with pytest.raises(RuntimeError, match="arrival-rate check failed"):
         validation.open_loop(args)
+
+
+async def test_queued_validation_stops_before_requests_on_failed_preflight(
+    fake_engine, monkeypatch
+):
+    run, _, engine = fake_engine
+    pilot.write_json(run / "job.json", {"job_id": "12345", "operator": "agent"})
+    monkeypatch.setattr(
+        pilot,
+        "inspect_run",
+        lambda run: {
+            "preflight-failed": {"error": "image digest mismatch"},
+        },
+    )
+    monkeypatch.setattr(pilot, "collect", lambda run: None)
+    args = argparse.Namespace(
+        run=run, wait_seconds=1, smoke_only=False, no_gateway=False, stop_after=False
+    )
+    with pytest.raises(RuntimeError, match="automated validation failed"):
+        await validation.validate_when_ready(args)
+    report = pilot.read_json(next((run / "automation").glob("*/report.json")))
+    assert not report["passed"] and "image digest mismatch" in report["error"]
+    assert engine["requests"] == 0
+    with (run / ".validate.lock").open("a") as lock:
+        pilot.fcntl.flock(lock, pilot.fcntl.LOCK_EX)
+        with pytest.raises(ValueError, match="another validation controller"):
+            await validation.validate_when_ready(args)

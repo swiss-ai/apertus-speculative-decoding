@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import math
 import os
+import shutil
 import subprocess
 import time
 from dataclasses import replace
@@ -374,6 +376,7 @@ def evidence_signature(run: Path) -> str:
             "image": runtime["image_sha256"],
             "vllm": runtime["vllm_revision"],
             "template": runtime["chat_template_sha256"],
+            "overlays": h.overlay_hashes(run),
             "variant": dep["variant"],
             "engine": spec["engine"],
             "head": runtime["drafter"]["checkpoint_sha256"] if runtime["drafter"] else None,
@@ -506,6 +509,13 @@ def gate(args) -> Path:
         raise ValueError("calibration control is not the same configuration as the plain baseline")
     if state(baseline)[2]["target_files"] != state(candidate)[2]["target_files"]:
         raise ValueError("treatment target assets differ")
+    for key in ("image_sha256", "vllm_revision", "chat_template_sha256"):
+        if state(baseline)[2][key] != state(candidate)[2][key]:
+            raise ValueError(f"treatment runtime differs in {key}")
+    if state(baseline)[0]["engine"] != state(candidate)[0]["engine"] or h.overlay_hashes(
+        baseline
+    ) != h.overlay_hashes(candidate):
+        raise ValueError("treatment engine settings or source overlays differ")
     if len({r["corpus_sha256"] for r in reports}) != 1:
         raise ValueError("correctness corpora differ")
     spec = state(candidate)[0]
@@ -640,6 +650,12 @@ def qualify(args) -> Path:
         ),
         "fallback_identity": plain_check["model"] == dep["fallback_model"],
         "matched_target": state(baseline)[2]["target_files"] == runtime["target_files"],
+        "matched_runtime": all(
+            state(baseline)[2][key] == runtime[key]
+            for key in ("image_sha256", "vllm_revision", "chat_template_sha256")
+        )
+        and h.overlay_hashes(baseline) == h.overlay_hashes(candidate)
+        and state(baseline)[0]["engine"] == spec["engine"],
         "correctness": bool(
             correctness["passed"] and gate_inputs["signatures"][1] == evidence_signature(candidate)
         ),
@@ -760,6 +776,7 @@ def qualify(args) -> Path:
         "configuration_signature": h.configuration_signature(spec),
         "target_files": runtime["target_files"],
         "checkpoint_sha256": runtime["drafter"]["checkpoint_sha256"],
+        "overlay_sha256": h.overlay_hashes(candidate),
         "evidence_sha256": {str(p.resolve()): file_sha256(p) for p in inputs},
     }
     output = candidate / "qualifications" / h.stamp()
@@ -768,6 +785,139 @@ def qualify(args) -> Path:
     print(output)
     if not result["passed"]:
         raise RuntimeError("pilot qualification failed; inspect the saved checks")
+    return output
+
+
+async def validate_when_ready(args) -> Path:
+    h = helpers()
+    if not (args.run / "job.json").exists():
+        raise ValueError("submit the deployment before starting validation")
+    with (args.run / ".validate.lock").open("a") as lock:
+        try:
+            h.fcntl.flock(lock, h.fcntl.LOCK_EX | h.fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ValueError("another validation controller already owns this deployment") from exc
+        return await _validate_when_ready(args)
+
+
+async def _validate_when_ready(args) -> Path:
+    """Lightweight login-node controller; load generation stays in the allocation."""
+    h = helpers()
+    output = args.run / "automation" / h.stamp()
+    output.mkdir(parents=True)
+    for name in ("research_pilot.py", "pilot_validation.py"):
+        shutil.copy2(Path(__file__).parent / name, output / name)
+    h.write_json(
+        output / "controller.json",
+        {
+            "created_at": h.now(),
+            "repository": h.git_info(h.REPO),
+            "wait_seconds": args.wait_seconds,
+            "smoke_only": args.smoke_only,
+            "stop_after": args.stop_after,
+            "gateway": not args.no_gateway,
+            "source_sha256": {
+                name: file_sha256(output / name)
+                for name in ("research_pilot.py", "pilot_validation.py")
+            },
+        },
+    )
+    report = {"run": str(args.run), "started_at": h.now(), "passed": False}
+    try:
+        deadline = time.monotonic() + args.wait_seconds
+        base = None
+        async with httpx.AsyncClient(timeout=5) as client:
+            while time.monotonic() < deadline:
+                info = h.inspect_run(args.run)
+                for failure in ("preflight-failed", "preparation-failed"):
+                    if failure in info:
+                        raise RuntimeError(f"deployment {failure}: {info[failure]}")
+                row = info.get("slurm", "").split("|")
+                if len(row) > 1 and row[1].split()[0] in {
+                    "FAILED",
+                    "CANCELLED",
+                    "TIMEOUT",
+                    "OUT_OF_MEMORY",
+                    "NODE_FAIL",
+                    "COMPLETED",
+                }:
+                    raise RuntimeError(f"deployment ended before validation: {row[1]}")
+                base = info.get("base_url")
+                if base and info.get("preflight", {}).get("status") == "passed":
+                    try:
+                        if (await client.get(base + "/health")).status_code == 200:
+                            break
+                    except httpx.HTTPError:
+                        pass
+                base = None
+                await asyncio.sleep(min(30, max(0, deadline - time.monotonic())))
+        if not base:
+            raise TimeoutError("pilot did not become ready within the validation wait")
+        options = argparse.Namespace(
+            run=args.run,
+            base_url=base,
+            gateway=False,
+            api_key_env="CSCS_SERVING_API",
+            metrics_url=base + "/metrics",
+            limits=True,
+        )
+        report["direct_checks"] = str(await smoke(options))
+        if not args.no_gateway:
+            if not os.environ.get(options.api_key_env):
+                spec = h.read_json(args.run / "profile.json")
+                python = Path(spec["runtime"]["sml_bin"]).parent / "python"
+                getter = (
+                    "from swiss_ai_model_launch.cli.configuration import InitConfig; "
+                    "import sys; sys.stdout.write(InitConfig.load().get_non_none_value("
+                    "'swissai_research_api_key'))"
+                )
+                secret = h.command([str(python), "-c", getter], capture_output=True).stdout
+                if not secret:
+                    raise ValueError("no stored gateway key available for validation")
+                os.environ[options.api_key_env] = secret
+            options.gateway = True
+            report["gateway_checks"] = str(await smoke(options))
+            os.environ.pop(options.api_key_env, None)
+        if not args.smoke_only:
+            _, _, runtime = state(args.run)
+            # The original environment retains the vLLM overlay path; the client
+            # only needs the frozen benchmark source in addition to that path.
+            inside = (
+                'export PYTHONPATH="$1/source/src:${PYTHONPATH:-}"; '
+                'exec python3 -m apertus_bench.research_pilot measure "$1" --base-url "$2"'
+            )
+            argv = [
+                "srun",
+                "--overlap",
+                f"--jobid={runtime['slurm_job_id']}",
+                "--nodes=1",
+                "--ntasks=1",
+                f"--environment={args.run / 'environment.toml'}",
+                "bash",
+                "-c",
+                inside,
+                "pilot-client",
+                str(args.run),
+                base,
+            ]
+            h.write_json(output / "measurement-command.json", {"argv": argv})
+            with (output / "measure.log").open("x") as log:
+                h.command(argv, stdout=log, stderr=subprocess.STDOUT, env=h.job_environment())
+            report["measurements"] = str(sorted((args.run / "measurements").iterdir())[-1])
+            report["open_loop"] = str(open_loop(argparse.Namespace(run=args.run, base_url=base)))
+        report["passed"] = True
+    except Exception as exc:
+        report["error"] = str(exc)
+    finally:
+        report["ended_at"] = h.now()
+        h.write_json(output / "report.json", report)
+        if args.stop_after:
+            h.stop(args.run)
+        else:
+            h.collect(args.run)
+    print(output)
+    if not report["passed"]:
+        raise RuntimeError(f"automated validation failed; see {output / 'report.json'}")
     return output
 
 
@@ -810,6 +960,12 @@ def add_parsers(sub) -> None:
     cmd = sub.add_parser("open-loop", help="run SML k6 at a matched fixed arrival rate")
     cmd.add_argument("run", type=Path)
     cmd.add_argument("--base-url")
+    cmd = sub.add_parser("validate", help="wait for readiness, then run smoke, cells and k6")
+    cmd.add_argument("run", type=Path)
+    cmd.add_argument("--wait-seconds", type=int, default=10800)
+    cmd.add_argument("--smoke-only", action="store_true")
+    cmd.add_argument("--no-gateway", action="store_true")
+    cmd.add_argument("--stop-after", action="store_true")
 
 
 def dispatch(args) -> Any:
@@ -820,4 +976,5 @@ def dispatch(args) -> Any:
         "soak": soak,
         "qualify": qualify,
         "open-loop": open_loop,
+        "validate": validate_when_ready,
     }[args.action](args)

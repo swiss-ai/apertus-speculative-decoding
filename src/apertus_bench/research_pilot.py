@@ -539,6 +539,15 @@ def verify_manifest(run: Path, name: str) -> None:
             raise ValueError(f"immutable run artifact changed: {relative}")
 
 
+def overlay_hashes(run: Path) -> dict[str, str]:
+    manifest = run / "launch-manifest.json"
+    return (
+        {name: sha for name, sha in read_json(manifest).items() if name.startswith("overlays/")}
+        if manifest.exists()
+        else {}
+    )
+
+
 def preflight(run: Path) -> None:
     if not os.environ.get("SLURM_JOB_ID"):
         raise ValueError("full preflight must run inside the Slurm allocation")
@@ -564,6 +573,8 @@ def preflight(run: Path) -> None:
                 raise ValueError("research target differs from the qualified target")
             if drafter and drafter["checkpoint_sha256"] != qualification["checkpoint_sha256"]:
                 raise ValueError("research drafter differs from the qualified drafter")
+            if overlay_hashes(run) != qualification["overlay_sha256"]:
+                raise ValueError("research source overlays differ from the qualified overlays")
         binary = os.environ.get("OPENTELA_BIN", "/opentelabin/otela-arm64")
         version = command([binary, "--version"], capture_output=True).stdout.strip()
         match = re.search(r"(\d+)\.(\d+)\.(\d+)", version)
