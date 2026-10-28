@@ -1,0 +1,11 @@
+--- a/source/src/apertus_bench/research_pilot.py
++++ b/source/src/apertus_bench/research_pilot.py
+@@ -565,7 +565,7 @@
+             if drafter and drafter["checkpoint_sha256"] != qualification["checkpoint_sha256"]:
+                 raise ValueError("research drafter differs from the qualified drafter")
+         binary = os.environ.get("OPENTELA_BIN", "/opentelabin/otela-arm64")
+-        version = command([binary, "--version"], capture_output=True).stdout.strip()
++        version = command([binary, "version"], capture_output=True).stdout.strip()
+         match = re.search(r"(\d+)\.(\d+)\.(\d+)", version)
+         minimum = tuple(map(int, runtime["min_opentela_version"].split(".")))
+         if not match or tuple(map(int, match.groups())) < minimum:

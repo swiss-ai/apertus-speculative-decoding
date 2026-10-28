@@ -5,6 +5,11 @@ research gateway stack. The default is a development deployment with fixed
 k=3, bf16, TP=1, thinking off and a 32,768-token context. The target revision
 and image digest are pinned in [dspark-e10.yaml](dspark-e10.yaml).
 
+The [launch audit](../../results/8b/serving-pilot/launch-audit-20261028T151519Z/README.md)
+and [continuation audit](../../results/8b/serving-pilot/continuation-audit-20261028T154130Z/README.md)
+record the submitted development jobs and their current pre-start inputs.
+Check those jobs and controller reports before launching replacements.
+
 Use `serving/research-pilot.sh` from the repository root on Clariden. It uses
 the existing `apertus-bench` Python environment. Every launch needs a new
 output directory. Commands print their output paths; retain those paths for
@@ -58,7 +63,7 @@ and saves its controller source, logs and final report under `automation/`.
 Only one controller may validate a deployment at a time.
 
 ```bash
-nohup ./serving/research-pilot.sh validate "$PILOT_RUN" --wait-seconds 10800 \
+nohup ./serving/research-pilot.sh validate "$PILOT_RUN" --wait-seconds 129600 \
   > "$PILOT_RUN/validation-controller.log" 2>&1 < /dev/null &
 ```
 
