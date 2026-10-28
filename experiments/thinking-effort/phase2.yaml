@@ -1,0 +1,25 @@
+schema_version: 1
+upstream_revision: e3041ddb4e58d8d0fad86f938f44423bdf424ae9
+train_prompts_per_domain: 256
+development_prompts_per_domain: 32
+seed: 0
+epochs: 4
+supervised_tokens_per_head: 1572864
+maximum_training_sequence: 8192
+minimum_retained_train_prompts: 128
+minimum_retained_development_prompts: 16
+generation_workers: 4
+generation_concurrency_per_worker: 4
+learning_rate: 0.00001
+weight_decay: 0.01
+loss_fn: ce
+loss_implementation: fused
+position_loss_weight: fixed-exp-decay
+position_loss_gamma: 4.0
+max_anchors: 512
+noise_std: 0.0
+checkpoint_selection: lowest_development_loss
+supervised_token_basis: assistant tokens presented across complete training epochs; excludes prompt and padding
+dataset_revisions:
+  openai/gsm8k: 740312add88f781978c0658806c59bc2815b9866
+  google-research-datasets/mbpp: 4bb6404fdc6cacfda99d4ac4205087b89d32030c

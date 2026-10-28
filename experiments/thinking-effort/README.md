@@ -127,3 +127,72 @@ matrix compares all four heads at all three efforts, with fresh paired baselines
 The specialist decision requires a consistent 10% latency reduction versus the
 mixed head and lower decode cost per token. Adapter serving, routing, offloading,
 and Apertus integration are not part of this implementation.
+
+## Executable Phase 2 pipeline
+
+The [Phase 2 configuration](phase2.yaml) now freezes four matched fine-tunes of
+the released head through the existing Speculators trainer at commit
+`e3041ddb4e58d8d0fad86f938f44423bdf424ae9`. Its converter, DFlash loss, backward
+pass, optimizer, validation and checkpoint selector are reused. Native export
+keeps the released configuration and tensor names for the already-validated vLLM
+runtime. The wrapper records any source/conversion checks alongside the run.
+
+The training set has 512 task prompts and development has 64, split equally
+between pinned GSM8K **training** and MBPP **training** subsets. IDs are split
+before generation, with normalized task duplicates excluded against the 64
+evaluation prompts. Every task is regenerated at all three native efforts, with
+the Phase 1 target, date, sampling and termination settings. The run retains raw
+responses, analysis/final text and actual native prompt/completion token IDs.
+Tasks are retained at all three efforts together, requiring natural completion
+and at most 8,192 tokens for training. All exclusions are reported.
+
+Each head sees exactly **1,572,864 supervised assistant tokens** across four
+epochs; prompt and padding tokens are excluded. A bounded corpus can recur to
+fill that quota. The mixed head receives exactly one third from each effort.
+The actual token count is measured in upstream training calls and must match
+the declared budget. AdamW uses constant LR `1e-5`, weight decay `0.01`, seed 0,
+FP32 weights with BF16 compute, CE against the upstream teacher's argmax labels,
+and the original fixed exponential position weighting (gamma 4). This is the
+existing Speculators DFlash recipe; no new loss or architecture is introduced.
+Each head is selected by its lowest development loss, never by evaluation data.
+
+Before large data generation, three real native prompts test the hidden-state
+extraction path. Extracted last-layer features plus the frozen target norm/head
+must reproduce vLLM's greedy next token. The five draft feature layers, tensor
+shape, native IDs and finite values are also checked. Feature caches and all
+corpus files are hashed before training. Shared embeddings, verifier head and
+verifier norm stay frozen.
+
+Use a **new Phase 2 campaign and isolated source worktree**. Keep large feature
+caches, optimizer states and checkpoints on scratch storage. Reference the old
+campaign with `--phase1-reference`; the GPU jobs revalidate its completed proceed
+decision and enforce identical target, initialization, corpus and serving settings.
+Code revisions may differ between phases, and remain frozen within each phase.
+
+```bash
+PYTHONPATH=src python3 -m apertus_bench.effort_training_submit \
+  --output /iopsstor/scratch/cscs/USER/thinking-effort/phase2/UNIQUE \
+  --phase1-reference /absolute/phase1/campaign \
+  --upstream /absolute/pinned/speculators \
+  --qualification /absolute/completed/prerequisite/attempt \
+  --qualification-job SLURM_JOB_ID --partition debug --time 01:30:00
+```
+
+Run this lightweight controller under `nohup` for unattended execution. It waits
+for the GPU training/export/serving qualification, submits data generation and
+feature extraction, then trains the four heads concurrently on the four GPUs
+of one node. After validated exports it submits all three paired evaluation
+blocks, retrying debug admission limits. Stages are submitted only after a
+confirmed predecessor completion; expired Slurm dependency IDs are not reused.
+Accepted job IDs are preserved and reused on an identical controller restart.
+Failures retain artifacts and stop the pipeline. A completed measurement or
+training directory is never overwritten.
+
+`bootstrap-phase2.py` creates an isolated training environment over the serving
+image, preserving its Torch/Transformers/vLLM versions and installing pinned
+Speculators package metadata/dependencies. It records install commands, logs and
+resolved packages. Evaluation uses the original serving image environment.
+Serving, training and exported checkpoints retain the required provenance.
+The final comparison includes each head's training-token cost, stored bytes and
+projected BF16 tensor-weight memory; it does not claim to measure simultaneous
+multi-head residence or KV-cache memory.

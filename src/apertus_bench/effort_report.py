@@ -247,6 +247,29 @@ def build_report(campaign: Path, *, phase: str = "phase1") -> dict[str, Any]:
                 "this does not evaluate adapters, offloading or production capacity.",
             }
         )
+        heads_path = campaign / "heads.json"
+        if heads_path.exists():
+            heads = _read(heads_path)
+            costs = {role: _read(Path(head["provenance"])) for role, head in heads.items()}
+            result["resource_costs"] = {
+                "supervised_tokens_by_head": {
+                    role: p["supervised_tokens"] for role, p in costs.items()
+                },
+                "stored_checkpoint_bytes_by_head": {
+                    role: p["stored_checkpoint_bytes"] for role, p in costs.items()
+                },
+                "bf16_draft_weight_bytes_by_head": {
+                    role: p["export_weight_bytes"] for role, p in costs.items()
+                },
+                "specialists_vs_mixed_training_tokens_ratio": sum(
+                    costs[role]["supervised_tokens"] for role in EFFORTS
+                )
+                / costs["mixed"]["supervised_tokens"],
+                "weight_memory_basis": (
+                    "serialized tensor payload at original dtype; projected weight-only residence, "
+                    "excludes KV cache, buffers, activations; deployments load one head at a time"
+                ),
+            }
     return result
 
 
@@ -277,4 +300,18 @@ def markdown_report(report: dict[str, Any]) -> str:
     ]
     if report["problems"]:
         lines += ["", *[f"- {problem}" for problem in report["problems"]]]
+    if "resource_costs" in report:
+        costs = report["resource_costs"]
+        lines += [
+            "",
+            "| Head | Training tokens | Stored checkpoint bytes | Draft tensor bytes |",
+            "| --- | ---: | ---: | ---: |",
+        ]
+        for role in (*EFFORTS, "mixed"):
+            lines.append(
+                f"| {role} | {costs['supervised_tokens_by_head'][role]} | "
+                f"{costs['stored_checkpoint_bytes_by_head'][role]} | "
+                f"{costs['bf16_draft_weight_bytes_by_head'][role]} |"
+            )
+        lines += ["", costs["weight_memory_basis"] + "."]
     return "\n".join(lines) + "\n"

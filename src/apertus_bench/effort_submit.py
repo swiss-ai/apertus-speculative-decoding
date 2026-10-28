@@ -117,8 +117,16 @@ def submit(args: argparse.Namespace) -> list[dict[str, str]]:
         raise ValueError("asset preparation and preflight belong to Phase 1")
     if phase == "phase2" and args.heads is None:
         raise ValueError("Phase 2 requires --heads")
+    parent = getattr(args, "phase1_reference", None)
+    if phase == "phase2" and parent:
+        reports = sorted(parent.glob("reports/phase1-*/comparison.json"))
+        report = json.loads(reports[-1].read_text()) if reports else {}
+        if report.get("decision") != "proceed" or report.get("problems"):
+            raise ValueError("Phase 2 requires a complete Phase 1 proceed decision")
+        # Full raw-data validation and checkpoint hashing run inside each GPU
+        # allocation, not on the login node that submits it.
     if not args.prepare and not args.dependency and not args.preflight_only:
-        status = output / "preflight/phase1/block-0/status.json"
+        status = (parent or output) / "preflight/phase1/block-0/status.json"
         if not status.exists() or json.loads(status.read_text())["status"] != "preflight_complete":
             raise ValueError("run --prepare first, or supply its afterok --dependency job ID")
     environment_source = args.environment.resolve()
@@ -197,6 +205,8 @@ def submit(args: argparse.Namespace) -> list[dict[str, str]]:
                 command.append("--preflight-only")
             if args.heads:
                 command += ["--heads", str(args.heads.resolve())]
+            if parent:
+                command += ["--phase1-reference", str(parent.resolve())]
             commands.append(command)
             if not args.preflight_only:
                 commands.append(
@@ -275,6 +285,7 @@ def main() -> None:
     parser.add_argument("--blocks", nargs="+", type=int, choices=range(3))
     parser.add_argument("--phase", choices=("phase1", "phase2"), default="phase1")
     parser.add_argument("--heads", type=Path)
+    parser.add_argument("--phase1-reference", type=Path)
     parser.add_argument(
         "--prepare", action="store_true", help="download head and preflight both arms"
     )

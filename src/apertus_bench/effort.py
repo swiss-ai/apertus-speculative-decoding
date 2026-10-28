@@ -625,6 +625,7 @@ async def run_block(
     phase: str = "phase1",
     preflight_only: bool = False,
     heads_path: Path | None = None,
+    phase1_reference: Path | None = None,
 ) -> None:
     # Transformers is needed only in the serving container, not by report/plan.
     from transformers import AutoTokenizer
@@ -635,12 +636,28 @@ async def run_block(
     if phase == "phase2":
         from apertus_bench.effort_report import build_report
 
-        phase1 = build_report(campaign, phase="phase1")
+        parent = phase1_reference or campaign
+        if parent != campaign:
+            from apertus_bench.effort_training import validate_parent
+
+            validate_parent(campaign, parent)
+        phase1 = build_report(parent, phase="phase1")
         if phase1["decision"] != "proceed":
             raise ValueError("Phase 2 is disabled without a complete Phase 1 proceed decision")
         if heads_path is None:
             raise ValueError("Phase 2 requires --heads with matched training provenance")
         heads = check_training_heads(heads_path, lock["target"]["sha256"])
+        for role, head in heads.items():
+            evidence = head["training_provenance"]
+            if evidence["initialization_sha256"] != lock["drafter"]["sha256"]:
+                raise ValueError(f"{role} did not start from the Phase 1 released head")
+            if (
+                evidence["evaluation_prompt_ids_sha256"]
+                != hashlib.sha256(
+                    json.dumps(lock["workload"]["prompt_ids"], sort_keys=True).encode()
+                ).hexdigest()
+            ):
+                raise ValueError(f"{role} training exclusion did not use these evaluation prompts")
     else:
         heads = {"dflash": {"path": spec["drafter_path"], "manifest": lock["drafter"]}}
     block_dir = phase_dir / f"block-{block}"
@@ -983,6 +1000,7 @@ def main() -> None:
     run.add_argument("--block", type=int, choices=range(3), required=True)
     run.add_argument("--phase", choices=("phase1", "phase2"), default="phase1")
     run.add_argument("--heads", type=Path)
+    run.add_argument("--phase1-reference", type=Path)
     run.add_argument("--preflight-only", action="store_true")
     report_parser = commands.add_parser("report", help="write a new immutable paired comparison")
     report_parser.add_argument("campaign", type=Path)
@@ -1035,6 +1053,7 @@ def main() -> None:
                 phase=args.phase,
                 preflight_only=args.preflight_only,
                 heads_path=args.heads,
+                phase1_reference=args.phase1_reference.resolve() if args.phase1_reference else None,
             )
 
         asyncio.run(run_with_signals())
