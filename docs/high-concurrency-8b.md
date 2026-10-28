@@ -62,14 +62,22 @@ Derived recovery analysis retains source-file hashes and quality checks.
    it does not alter the shared installation.
 
 TP4 k7 retries use `gpu_memory_utilization=0.7` and
-`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` on **both** the plain
-and speculative arms. The original budget was 0.8. That reserves about
+`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False` on **both** the plain
+and speculative arms, retaining normal custom all-reduce and CUDA graphs. The original budget was 0.8. That reserves about
 9.5 GiB more headroom per 95 GiB GPU and reduces available KV capacity;
 actual advertised KV-cache tokens, preemptions and latency must be compared.
 This is a deployment tradeoff, not an identical-capacity rerun. Context length
 32768, sequence capacity 1024, and batched tokens 16384 are retained.
 A short allocated-node C1024 stress/import preflight precedes the full retries;
 its short-output timing is not a final workload performance result.
+
+The first recovery preflight (3769354, 2026-10-28) failed before readiness:
+its checker named an absent connector module, and expandable-segment CUDA graph
+buffers failed `cudaIpcGetMemHandle` in all three TP4 arms. No stress/timing
+cells were produced. Controller-v2 corrects the factory import and explicitly
+disables expandable segments; the lower matched memory budget remains. Failed
+v1 provenance is preserved. Fresh preflight3782518 must establish compatibility
+before any full comparison continues.
 
 ## Bounded remaining comparisons and k selection
 

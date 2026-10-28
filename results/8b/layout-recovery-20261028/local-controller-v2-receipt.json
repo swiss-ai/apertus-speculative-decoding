@@ -1,0 +1,71 @@
+{
+  "workstream": "layouts",
+  "state": "awaiting_cluster_jobs",
+  "job_ids": [
+    "3769354",
+    "3782518"
+  ],
+  "local_branch": "high-concurrency-8b",
+  "local_repo": "/home/projects/apertus-speculative-decoding-highconc",
+  "new_recovery_jobs_only": true,
+  "remote_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/state.json",
+  "job_id_schema": "Top-level job_ids mirrors stages[*].job_id; stages contain stage/output/spec/gate; scientific completion remains separate",
+  "artifact_paths": [
+    "results/8b/layout-recovery-20261027/source-collection.json",
+    "results/8b/layout-recovery-20261027/historical-analysis.json",
+    "docs/high-concurrency-8b.md",
+    "results/8b/layout-recovery-20261027/historical-review-v2/review.md",
+    "results/8b/layout-recovery-20261027/historical-review-v2/cells.csv",
+    "results/8b/layout-recovery-20261027/historical-review-v2/comparisons.csv",
+    "results/8b/layout-recovery-20261027/review-helper-v1/README.md",
+    "results/8b/layout-recovery-20261027/postprocessing-validation-v1.json",
+    "results/8b/layout-recovery-20261028/README.md",
+    "results/8b/layout-recovery-20261028/preflight3769354-diagnosis.json",
+    "results/8b/layout-recovery-20261028/failed-preflight3769354-collection.json",
+    "results/8b/layout-recovery-20261028/source-freeze-v2.json",
+    "results/8b/layout-recovery-20261028/controller-v2-first-observation.json"
+  ],
+  "next_action": "Await corrected preflight3782518. Remote v2 controller proceeds through original bounded stages only after gates. On failure inspect preserved dependency/arm logs and gates. After measurement completion collect v2 outputs and run existing frozen CPU review helper against v2 state.",
+  "scientific_completion": "pending_scientific_review",
+  "updated_at": "2026-10-28T12:32:06.823504+00:00",
+  "source_commit": "efad15a10609e615c5c8635be3c243d1ec5b9da7",
+  "dependency_manifest_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/nixl-manifest.json",
+  "dependency_site": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-layout-recovery-20261027-v1/site",
+  "source_freeze_invariant": "Active remote source is efad15a1 plus overlay51fdd333...; do not reset tracked changes or sync new commits. Old v1 is stopped and preserved.",
+  "controller_pid": 136390,
+  "remote_controller_host": "clariden1",
+  "remote_launch_receipt_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/launch-receipt.json",
+  "remote_log_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/controller.log",
+  "local_revision": "aa398fba",
+  "observed_job_states": {
+    "3769354": "FAILED",
+    "3782518": "submitted"
+  },
+  "continuation": "Read remote state and grow job IDs from its top-level job_ids. Do not alter remote HEAD/source efad15a1. On needs_attention inspect its failed stage and source logs; do not blindly restart/resubmit. On measurements_complete_pending_scientific_review collect each stage output with hashes/lossless gzip, compare matched plain/spec throughput+latency+KV capacity, apply protocol gates and only recommend substantial repeatable gains.",
+  "postprocessing_state": "ready_cpu_only",
+  "postprocessing_helper_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/review-helper-v1/review.py",
+  "postprocessing_instructions_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/review-helper-v1/README.md",
+  "postprocessing_manifest_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/review-helper-v1/manifest.sha256",
+  "historical_review_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/historical-review-v2",
+  "postprocessing_validation_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/postprocessing-validation-v1.json",
+  "postprocessing_scope": "Standalone immutable local helper; no remote source changes or new measurements. Explicit same-P/D and DP4 comparisons, absolute metrics, logical cache scopes, resident-memory coverage and unestablished scientific gates.",
+  "job_observation_timestamp": "2026-10-27T19:18:06Z",
+  "previous_controllers": [
+    {
+      "remote_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261027/controller-v1/state.json",
+      "controller_pid": 69249,
+      "job_ids": [
+        "3769354"
+      ],
+      "state": "needs_attention",
+      "slurm_state": "FAILED",
+      "local_artifact_root": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/controller-v1"
+    }
+  ],
+  "local_repair_commit": "aa398fbad2ad7d3f18325eadd41f54047361cbd8",
+  "source_overlay_sha256": "51fdd333056fedaeafeb7cbc1df9c33bc71f24b84cdeb09e31bd98ca48ec9a8d",
+  "remote_source_freeze_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/source-freeze-v2.json",
+  "remote_source_identity_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/observed-source-identity-v2.json",
+  "continuation_instructions_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261028/README.md",
+  "postprocessing_controller_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/state.json"
+}
