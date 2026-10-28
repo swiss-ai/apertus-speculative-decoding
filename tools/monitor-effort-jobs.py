@@ -180,7 +180,7 @@ def main():
             return
         state_path = args.state_dir / "monitor-state.json"
         state = json.loads(state_path.read_text()) if state_path.exists() else {}
-        if state.get("disabled"):
+        if state.get("disabled") or state.get("access_blocked"):
             return
         observed_at = datetime.now(UTC).isoformat()
         try:
@@ -196,6 +196,13 @@ def main():
         except (subprocess.SubprocessError, ValueError) as error:
             snapshot = {"connection_error": str(error)}
             finding = {"kind": "monitor_connection_error", "error": str(error)}
+            stderr = getattr(error, "stderr", "") or ""
+            if any(
+                message in stderr.lower()
+                for message in ("permission denied", "authentication failed", "certificate expired")
+            ):
+                snapshot["connection_error"] = stderr[-1500:]
+                finding = {"kind": "authentication_required", "error": stderr[-1500:]}
         latest = {"observed_at": observed_at, "snapshot": snapshot, "incident": finding}
         (args.state_dir / "latest.json").write_text(json.dumps(latest, indent=2) + "\n")
         if finding and not args.check_only:
@@ -208,6 +215,9 @@ def main():
             ):
                 latest["notification"] = notify(args.codex, args.thread, args.state_dir, finding)
                 state.update(last_fingerprint=fingerprint, last_notified=time.time())
+                if finding["kind"] == "authentication_required":
+                    # CSCS requires normal certificate renewal. Never retry failed auth in a loop.
+                    state["access_blocked"] = True
                 if finding["kind"] == "complete":
                     remove_schedule()
                     state["disabled"] = True
