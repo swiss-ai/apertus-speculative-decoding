@@ -104,6 +104,8 @@ multi-turn and multilingual behavior, usage, finish reasons, context limits,
 disconnect recovery and advancing acceptance counters. Missing or reset
 counters fail the DSpark check. A separate HTTP client fetches metrics so
 the gateway token never reaches the worker's metrics endpoint.
+Context checks use the gateway's `/v1/tokenize` route or the worker's
+`/tokenize` route to construct a request close to the advertised limit.
 
 Check the model selector and a streamed reply in the development UI as well.
 Tool calls, structured outputs and logprobs are not advertised by this pilot;

@@ -123,13 +123,20 @@ def valid_message(data: dict, model: str) -> bool:
     )
 
 
-async def limit_checks(client: httpx.AsyncClient, base: str, model: str, context: int) -> dict:
+async def limit_checks(
+    client: httpx.AsyncClient,
+    base: str,
+    model: str,
+    context: int,
+    *,
+    tokenize_path: str = "/tokenize",
+) -> dict:
     """Use the engine tokenizer to avoid estimating a near-limit request by chars."""
 
     async def length(count: int) -> tuple[int, list[dict]]:
         messages = [{"role": "user", "content": "word " * count}]
         response = await client.post(
-            base + "/tokenize",
+            base + tokenize_path,
             json={
                 "model": model,
                 "messages": messages,
@@ -172,6 +179,7 @@ async def limit_checks(client: httpx.AsyncClient, base: str, model: str, context
     )
     return {
         "passed": near and too_long.status_code == 400,
+        "tokenize_path": tokenize_path,
         "near_limit_prompt_tokens": chosen[0],
         "over_limit_status": too_long.status_code,
     }
@@ -294,7 +302,11 @@ async def smoke(args) -> Path:
                 )
                 if args.limits:
                     report["limits"] = await limit_checks(
-                        client.http, base, dep["model"], spec["engine"]["max_model_len"]
+                        client.http,
+                        base,
+                        dep["model"],
+                        spec["engine"]["max_model_len"],
+                        tokenize_path="/v1/tokenize" if args.gateway else "/tokenize",
                     )
                     report["checks"]["context-limits"] = report["limits"]["passed"]
             if metrics_url:

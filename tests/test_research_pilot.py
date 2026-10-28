@@ -355,7 +355,13 @@ def fake_engine(prepared, monkeypatch):
     run, _, _ = prepared
     dep = pilot.read_json(run / "deployment.json")
     pilot.write_json(run / "preflight.json", {"status": "passed", "slurm_job_id": "12345"})
-    counts = {"requests": 0, "metrics": True, "wrong_model": False, "headers": []}
+    counts = {
+        "requests": 0,
+        "metrics": True,
+        "wrong_model": False,
+        "headers": [],
+        "tokenize_paths": [],
+    }
 
     def handle(request):
         counts["headers"].append((request.url.host, request.headers.get("authorization")))
@@ -375,6 +381,15 @@ def fake_engine(prepared, monkeypatch):
                 )
             return httpx.Response(200, text=body)
         data = json.loads(request.content)
+        prompt_tokens = len(data["messages"][-1]["content"].split()) + 10
+        if request.url.path in {"/tokenize", "/v1/tokenize"}:
+            direct = request.url.host == "worker"
+            if (request.url.path == "/tokenize") != direct:
+                return httpx.Response(404)
+            counts["tokenize_paths"].append(request.url.path)
+            return httpx.Response(200, json={"count": prompt_tokens})
+        if prompt_tokens + data.get("max_tokens", 1) > 32768:
+            return httpx.Response(400, json={"error": "context length exceeded"})
         counts["requests"] += 1
         model = "wrong" if counts["wrong_model"] else data["model"]
         usage = {"prompt_tokens": 10, "completion_tokens": 1}
@@ -443,6 +458,23 @@ async def test_smoke_rejects_wrong_response_model(fake_engine):
     engine["wrong_model"] = True
     with pytest.raises(RuntimeError, match="smoke checks failed"):
         await validation.smoke(args)
+
+
+@pytest.mark.parametrize("gateway", [False, True])
+async def test_context_limits_use_the_gateway_or_worker_tokenizer_route(fake_engine, gateway):
+    run, args, engine = fake_engine
+    args.limits, args.gateway = True, gateway
+    if gateway:
+        args.metrics_url = "http://worker/metrics"
+    output = await validation.smoke(args)
+    report = pilot.read_json(output / "report.json")
+    assert report["passed"] and report["checks"]["context-limits"]
+    assert report["limits"]["near_limit_prompt_tokens"] >= 32768 - 128
+    assert report["limits"]["over_limit_status"] == 400
+    expected = "/v1/tokenize" if gateway else "/tokenize"
+    assert set(engine["tokenize_paths"]) == {expected}
+    assert report["limits"]["tokenize_path"] == expected
+    assert all(key is None for host, key in engine["headers"] if host == "worker")
 
 
 def test_gateway_key_prefers_explicit_environment_without_reading_stores(tmp_path, monkeypatch):
