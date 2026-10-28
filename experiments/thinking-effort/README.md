@@ -154,6 +154,8 @@ the declared budget. AdamW uses constant LR `1e-5`, weight decay `0.01`, seed 0,
 FP32 weights with BF16 compute, CE against the upstream teacher's argmax labels,
 and the original fixed exponential position weighting (gamma 4). This is the
 existing Speculators DFlash recipe; no new loss or architecture is introduced.
+Training uses upstream's supported SDPA backend; Flex Attention kernel selection
+failed on the GH200 qualification run. Qualification must validate the same backend.
 Each head is selected by its lowest development loss, never by evaluation data.
 
 Before large data generation, three real native prompts test the hidden-state

@@ -654,6 +654,7 @@ async def data_stage(
             "learning_rate": config["learning_rate"],
             "weight_decay": config["weight_decay"],
             "scheduler": "constant",
+            "draft_attention_implementation": config["draft_attention_implementation"],
             "epochs": config["epochs"],
             "seed": config["seed"],
             "loss": {
@@ -773,6 +774,8 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
         config["loss_fn"],
         "--loss-implementation",
         config["loss_implementation"],
+        "--draft-attn-impl",
+        config["draft_attention_implementation"],
         "--per-position-loss-weight",
         config["position_loss_weight"],
         "--dflash-decay-gamma",

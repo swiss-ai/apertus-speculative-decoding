@@ -187,6 +187,8 @@ def run(args) -> None:
         if (
             report["status"] != "training_export_passed"
             or serving["status"] != "preflight_complete"
+            or report.get("draft_attention_implementation")
+            != load_config(args.config)["draft_attention_implementation"]
         ):
             raise ValueError("GPT-OSS DFlash training/export/serving qualification failed")
         write_immutable(

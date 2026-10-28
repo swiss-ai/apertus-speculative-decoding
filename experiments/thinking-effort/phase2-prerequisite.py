@@ -48,7 +48,7 @@ def main() -> None:
         from safetensors.torch import load_file, save_file
         from speculators.convert.dflash.converter import DFlashConverter
         from speculators.losses import resolve_loss_config
-        from speculators.models.dflash import DFlashDraftModel
+        from speculators.models.dflash import DFlashDraftModel, DFlashSpeculatorConfig
 
         spec = yaml.safe_load(args.spec.read_text())
         source = Path(spec["drafter_path"])
@@ -68,7 +68,12 @@ def main() -> None:
         converter = DFlashConverter()
         converter.convert(source, converted, base_model=spec["target_path"])
         original = load_file(str(source / "model.safetensors"))
-        model = DFlashDraftModel.from_pretrained(str(converted), dtype=torch.float32)
+        draft_config = DFlashSpeculatorConfig.from_pretrained(str(converted))
+        draft_config.transformer_layer_config._attn_implementation = "sdpa"
+        model = DFlashDraftModel.from_pretrained(
+            str(converted), config=draft_config, dtype=torch.float32
+        )
+        report["draft_attention_implementation"] = "sdpa"
         model.load_verifier_weights()
         state = model.state_dict()
         for key, tensor in original.items():
