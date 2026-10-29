@@ -56,6 +56,8 @@ def load_config(path: Path) -> dict[str, Any]:
         raise ValueError("per-head budget must divide exactly into three efforts and epochs")
     if config["checkpoint_selection"] != "lowest_development_loss":
         raise ValueError("the frozen checkpoint rule is lowest development loss")
+    if config.get("optimizer") != "adamw":
+        raise ValueError("the frozen optimizer is explicit AdamW")
     return config
 
 
@@ -652,7 +654,12 @@ async def feature_preflight(campaign, parent, spec, config, upstream):
 
 
 async def data_stage(
-    campaign: Path, parent: Path, spec: dict[str, Any], config: dict[str, Any], upstream: Path
+    campaign: Path,
+    parent: Path,
+    spec: dict[str, Any],
+    config: dict[str, Any],
+    upstream: Path,
+    data_reference: Path | None = None,
 ) -> None:
     lock = prepare_inputs(spec, campaign)
     validate_parent(campaign, parent)
@@ -666,7 +673,13 @@ async def data_stage(
         },
     )
     write_json(campaign / "data-runtime.json", runtime_provenance())
-    prepare_prompts(campaign, config)
+    if data_reference:
+        validate_reused_data(campaign, data_reference, config)
+        (campaign / "training-data").symlink_to(
+            data_reference / "training-data", target_is_directory=True
+        )
+    else:
+        prepare_prompts(campaign, config)
     write_json(
         campaign / "optimizer.json",
         {
@@ -700,6 +713,16 @@ async def data_stage(
         config["supervised_tokens_per_head"],
         campaign / "optimizer.json",
     )
+    if data_reference:
+        write_json(
+            campaign / "data-status.json",
+            {
+                **json.loads((data_reference / "data-status.json").read_text()),
+                "reused_from": str(data_reference),
+                "validated_against_new_target_and_input_lock": True,
+            },
+        )
+        return
     await feature_preflight(campaign, parent, spec, config, upstream)
     async with servers(campaign, spec, config, upstream, extraction=False) as urls:
         records = await generate_responses(campaign, spec, config, urls)
@@ -717,6 +740,48 @@ async def data_stage(
             "excluded_task_ids": sorted(excluded),
         },
     )
+
+
+def validate_reused_data(campaign: Path, reference: Path, config: dict[str, Any]) -> None:
+    """Reuse immutable data only when every data/budget setting and model matches."""
+    if json.loads((reference / "data-status.json").read_text())["status"] != "complete":
+        raise ValueError("data reference is incomplete")
+    previous = yaml.safe_load((reference / "phase2.yaml").read_text())
+    if {k: v for k, v in previous.items() if k != "optimizer"} != {
+        k: v for k, v in config.items() if k != "optimizer"
+    }:
+        raise ValueError("data reference configuration or training budget changed")
+    before = json.loads((reference / "inputs/lock.json").read_text())
+    after = json.loads((campaign / "inputs/lock.json").read_text())
+    for key in (
+        "spec",
+        "target",
+        "drafter",
+        "workload",
+        "image_sha256",
+        "template_sha256",
+        "rendering",
+    ):
+        if before[key] != after[key]:
+            raise ValueError(f"data reference input identity changed: {key}")
+    manifest = json.loads((reference / "training-data/prompt-manifest.json").read_text())
+    for split in ("train", "development"):
+        if (
+            file_sha256(reference / f"training-data/{split}-prompts.jsonl")
+            != manifest[f"{split}_sha256"]
+        ):
+            raise ValueError(f"data reference {split} prompts changed")
+
+
+def validate_optimizer_contract(resolved, config: dict[str, Any]) -> None:
+    actual = resolved.optimizer
+    if (
+        actual.optimizer != config["optimizer"]
+        or actual.lr != config["learning_rate"]
+        or actual.weight_decay != config["weight_decay"]
+        or resolved.scheduler.scheduler_type != "none"
+    ):
+        raise ValueError("resolved upstream optimizer/scheduler differs from the frozen contract")
 
 
 class HistoryHandler(logging.Handler):
@@ -782,6 +847,8 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
         str(config["epochs"]),
         "--lr",
         str(config["learning_rate"]),
+        "--optimizer",
+        config["optimizer"],
         "--weight-decay",
         str(config["weight_decay"]),
         "--scheduler-type",
@@ -842,6 +909,7 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
     write_json(root / "train-argv.json", argv)
     os.chdir(upstream)  # Speculators provenance must describe its own checkout.
     resolved = TrainConfig.resolve(argv)
+    validate_optimizer_contract(resolved, config)
     # Upstream's keep-best cleanup deletes other files from the checkpoint root.
     # Retain the resolved configuration and source patch outside that directory.
     with (root / "run.yaml").open("x") as sink:
@@ -885,6 +953,8 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
         "optimizer_schedule_sha256": file_sha256(campaign / "optimizer.json"),
         "supervised_tokens": config["supervised_tokens_per_head"],
         "training_seed": config["seed"],
+        "resolved_optimizer": resolved.optimizer.model_dump(),
+        "resolved_scheduler": resolved.scheduler.model_dump(),
         **{
             f"{split}_prompt_ids_sha256": sha_json(prompt_manifest[f"{key}_ids"])
             for split, key in (
@@ -990,6 +1060,7 @@ def main() -> None:
     parser.add_argument("action", choices=("data", "train", "train-role"))
     parser.add_argument("--campaign", type=Path, required=True)
     parser.add_argument("--phase1-reference", type=Path)
+    parser.add_argument("--data-reference", type=Path)
     parser.add_argument("--config", type=Path, default=TRAINING_CONFIG)
     parser.add_argument("--upstream", type=Path, required=True)
     parser.add_argument("--role", choices=ROLES)
@@ -1001,7 +1072,12 @@ def main() -> None:
             parser.error("data generation requires --phase1-reference")
         spec = read_spec(campaign / "experiment.yaml")
         coroutine = data_stage(
-            campaign, args.phase1_reference.resolve(), spec, config, args.upstream
+            campaign,
+            args.phase1_reference.resolve(),
+            spec,
+            config,
+            args.upstream,
+            args.data_reference.resolve() if args.data_reference else None,
         )
     elif args.action == "train":
         coroutine = training_stage(campaign, config, args.upstream)

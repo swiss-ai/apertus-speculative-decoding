@@ -10,8 +10,9 @@ from apertus_bench.effort_training import (
     retain_responses,
     select_prompts,
     validate_parent,
+    validate_reused_data,
 )
-from apertus_bench.workloads import Prompt
+from apertus_bench.workloads import Prompt, file_sha256
 
 
 def samples():
@@ -26,6 +27,46 @@ def samples():
         for effort in ("low", "medium", "high")
         for i, length in enumerate((3, 5, 7))
     ]
+
+
+def test_completed_data_reuse_requires_identical_inputs_and_budget(tmp_path):
+    config = load_config(TRAINING_CONFIG)
+    reference, campaign = tmp_path / "previous", tmp_path / "new"
+    for path in (reference, campaign):
+        (path / "inputs").mkdir(parents=True)
+        lock = {
+            key: key
+            for key in (
+                "spec",
+                "target",
+                "drafter",
+                "workload",
+                "image_sha256",
+                "template_sha256",
+                "rendering",
+            )
+        }
+        (path / "inputs/lock.json").write_text(json.dumps(lock))
+    (reference / "data-status.json").write_text('{"status":"complete"}')
+    import yaml
+
+    (reference / "phase2.yaml").write_text(
+        yaml.safe_dump({key: value for key, value in config.items() if key != "optimizer"})
+    )
+    data = reference / "training-data"
+    data.mkdir()
+    manifest = {}
+    for split in ("train", "development"):
+        f = data / f"{split}-prompts.jsonl"
+        f.write_text("[]\n")
+        manifest[f"{split}_sha256"] = file_sha256(f)
+    (data / "prompt-manifest.json").write_text(json.dumps(manifest))
+    validate_reused_data(campaign, reference, config)
+    with pytest.raises(ValueError, match="configuration or training budget"):
+        validate_reused_data(campaign, reference, {**config, "supervised_tokens_per_head": 3})
+    (data / "train-prompts.jsonl").write_text("changed\n")
+    with pytest.raises(ValueError, match="prompts changed"):
+        validate_reused_data(campaign, reference, config)
 
 
 @pytest.mark.parametrize("role", ("low", "medium", "high", "mixed"))

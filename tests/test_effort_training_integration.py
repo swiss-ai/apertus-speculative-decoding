@@ -16,7 +16,37 @@ from speculators.train.data import ArrowDataset  # noqa: E402
 from apertus_bench.effort_training import (  # noqa: E402
     load_transferred_features,
     package_datasets,
+    validate_optimizer_contract,
 )
+
+
+def test_upstream_default_optimizer_is_rejected_and_explicit_adamw_passes():
+    from speculators.train.config import TrainConfig
+
+    args = [
+        "--verifier-name-or-path",
+        "/target",
+        "--speculator-type",
+        "dflash",
+        "--data-path",
+        "/data",
+        "--save-path",
+        "/output",
+        "--lr",
+        "0.00001",
+        "--weight-decay",
+        "0.01",
+        "--scheduler-type",
+        "none",
+    ]
+    config = {"optimizer": "adamw", "learning_rate": 0.00001, "weight_decay": 0.01}
+    with pytest.raises(ValueError, match="optimizer/scheduler"):
+        validate_optimizer_contract(TrainConfig.resolve(args), config)
+    explicit = TrainConfig.resolve([*args, "--optimizer", "adamw"])
+    validate_optimizer_contract(explicit, config)
+    explicit.optimizer.weight_decay = 0.1
+    with pytest.raises(ValueError, match="optimizer/scheduler"):
+        validate_optimizer_contract(explicit, config)
 
 
 @pytest.mark.parametrize("writer_lock", [False, True])

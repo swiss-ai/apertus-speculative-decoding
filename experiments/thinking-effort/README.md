@@ -154,6 +154,10 @@ the declared budget. AdamW uses constant LR `1e-5`, weight decay `0.01`, seed 0,
 FP32 weights with BF16 compute, CE against the upstream teacher's argmax labels,
 and the original fixed exponential position weighting (gamma 4). This is the
 existing Speculators DFlash recipe; no new loss or architecture is introduced.
+The wrapper passes `--optimizer adamw` explicitly and rejects a resolved
+optimizer, learning rate, weight decay or scheduler that differs from the frozen
+contract. Speculators' default optimizer is Muon; the first completed attempt
+used that default and is preserved as an off-protocol run.
 Training uses upstream's supported SDPA backend; Flex Attention kernel selection
 failed on the GH200 qualification run. Qualification must validate the same backend.
 Each head is selected by its lowest development loss, never by evaluation data.
@@ -191,6 +195,9 @@ confirmed predecessor completion; expired Slurm dependency IDs are not reused.
 Accepted job IDs are preserved and reused on an identical controller restart.
 Failures retain artifacts and stop the pipeline. A completed measurement or
 training directory is never overwritten.
+Use `--data-reference COMPLETED_CAMPAIGN` to repeat training with the same data.
+The allocation revalidates input identities, data/budget settings and prompt hashes,
+then links the immutable prepared corpus; all feature hashes are checked before training.
 
 `bootstrap-phase2.py` creates an isolated training environment over the serving
 image, preserving its Torch/Transformers/vLLM versions and installing pinned
