@@ -152,7 +152,7 @@ def test_prepare_uses_real_launchers_and_freezes_inputs(prepared):
     framework = renderer[renderer.index("--framework-args") + 1]
     assert "--speculative-config.method dspark" in framework
     assert "--speculative-config.num_speculative_tokens 3" in framework
-    assert "--disable-log-requests" in framework
+    assert "--no-enable-log-requests" in framework
     assert "--dtype bfloat16" in framework
     assert "--dev" in renderer
     assert "python3 -m vllm.entrypoints.openai.api_server" in (run / "rendered/head.sh").read_text()

@@ -10,7 +10,7 @@ if [ -n "${VLLM_CHAT_TEMPLATE:-}" ]; then
   extra+=(--chat-template "${VLLM_CHAT_TEMPLATE}")
 fi
 if [ "${VLLM_DISABLE_LOG_REQUESTS:-0}" = "1" ]; then
-  extra+=(--disable-log-requests)
+  extra+=(--no-enable-log-requests)
 fi
 if [ -n "${VLLM_DTYPE:-}" ]; then
   extra+=(--dtype "${VLLM_DTYPE}")
