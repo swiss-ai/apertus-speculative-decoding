@@ -1,0 +1,23 @@
+# Beverin (MI300A, ROCm) environment for EAGLE training (EAGLE_ENV_SOURCE for
+# submit-eagle-train.sh with EAGLE_TRAIN_PARTITION=mi300). Same image and hooks
+# as the DSpark 70B Beverin runs (branch dspark-70b-beverin,
+# methods/dspark/beverin/env-vllm031.toml): upstream vLLM v0.31.0 ROCm image,
+# Python 3.12 and torch with ROCm. The teacher (Swiss AI transformers fork) and
+# the x86_64 side deps come from EAGLE_PYDEPS, TorchSpec from TORCHSPEC_ROOT.
+# Clariden's GH200 NCCL/FI settings are deliberately absent: the aws_ofi_nccl
+# hook sets NCCL_*/FI_* itself; overrides go inside the container.
+image = "/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm-v0.31.0.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users"]
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-eagle"
+# The image's entrypoint is the vLLM server.
+entrypoint = false
+
+[env]
+PYTHONNOUSERSITE = "1"
+# CSCS vLLM-on-AMD tutorial: works around a hang at RCCL init.
+HWLOC_COMPONENTS = "-gl"
+
+[annotations]
+# RCCL over Slingshot (netstack artifact gpu_rocm7-cxi_13.1.0-ofi_2.6.0-aws_1.20.0).
+com.hooks.aws_ofi_nccl.enabled = "true"
+com.hooks.aws_ofi_nccl.variant = "rocm6"
