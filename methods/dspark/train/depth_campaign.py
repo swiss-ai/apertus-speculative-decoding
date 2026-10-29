@@ -14,6 +14,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import shlex
 import socket
 import subprocess
@@ -28,6 +29,9 @@ TRAIN_FILES = (
     "methods/dspark/train/draft-init-args.sh",
     "methods/dspark/train/common.sh",
     "methods/dspark/train/rank-wrapper.sh",
+    "methods/dspark/train/submit-train.sh",
+    "methods/dspark/train/rebind_verifier.py",
+    "methods/dspark/train/depth_recovery.py",
 )
 
 
@@ -56,16 +60,41 @@ def verify_sources(campaign: Path) -> dict:
     return manifest
 
 
-def snapshot(campaign: Path, training_repo: Path, revision: str, train_job: str) -> None:
+def submitted_training(path: Path) -> tuple[dict, str]:
+    text = path.read_text()
+    exports = {}
+    for line in text.splitlines():
+        if not line.startswith("export "):
+            continue
+        tokens = shlex.split(line)
+        if len(tokens) == 2 and "=" in tokens[1]:
+            key, value = tokens[1].split("=", 1)
+            exports[key] = value
+    for key in ("DSPARK_DIR", "RUN_ID", "DATA", "FROM_PRETRAINED"):
+        if not exports.get(key):
+            raise ValueError(f"training submission missing {key}")
+    match = re.search(r"git=([0-9a-f]{7,40})", text)
+    if match is None:
+        raise ValueError("training submission does not record its source revision")
+    return exports, match[1]
+
+
+def snapshot(
+    campaign: Path, training_repo: Path, revision: str, train_job: str, training_submit: Path
+) -> None:
     import shutil
 
     data = Path("/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter")
     speculators = data / "speculators"
     source = campaign / "source"
+    exports, launch_revision = submitted_training(training_submit)
+    if exports["DSPARK_DIR"] != str(data) or exports["DATA"] != str(data / "data"):
+        raise ValueError("recovery submission changed the original data roots")
+    run_root = data / "runs" / exports["RUN_ID"]
     training_files = {}
     for relative in TRAIN_FILES:
         original = subprocess.check_output(
-            ["git", "-C", str(training_repo), "show", f"70710111:{relative}"]
+            ["git", "-C", str(training_repo), "show", f"{launch_revision}:{relative}"]
         )
         expected = hashlib.sha256(original).hexdigest()
         if recovery.sha256(training_repo / relative) != expected:
@@ -77,16 +106,17 @@ def snapshot(campaign: Path, training_repo: Path, revision: str, train_job: str)
     diff = subprocess.check_output(["git", "-C", str(speculators), "diff", "HEAD"])
     patch = f"# repo: {speculators} ({revision_spec})\n".encode() + diff.strip()
     (campaign / "speculators-at-queue.patch").write_bytes(patch)
-    original_submit = training_repo / "results/8b/dspark/logs/submit-train-20261027T181558Z.sbatch"
+    original_submit = training_submit
     shutil.copyfile(original_submit, campaign / "training-submit.sbatch")
-    import re
-
     environment = re.search(r"--environment=([^ ]+)", original_submit.read_text())[1]
     shutil.copyfile(environment, campaign / "training-environment.toml")
     recovery.write_new(
         campaign / "source-manifest.json",
         {
             "revision": revision,
+            "branch": subprocess.check_output(
+                ["git", "-C", str(training_repo), "branch", "--show-current"], text=True
+            ).strip(),
             "created_at": dt.datetime.now(dt.UTC).isoformat(),
             "files": {
                 str(p.relative_to(source)): recovery.sha256(p)
@@ -96,16 +126,19 @@ def snapshot(campaign: Path, training_repo: Path, revision: str, train_job: str)
             "training_files": training_files,
             "training_repo": str(training_repo),
             "training_job": train_job,
-            "printed_training_launch_revision": "70710111",
+            "printed_training_launch_revision": launch_revision,
             "training_source_observation_revision": subprocess.check_output(
                 ["git", "-C", str(training_repo), "rev-parse", "HEAD"], text=True
             ).strip(),
             "speculators_revision": revision_spec,
             "speculators_patch_sha256": hashlib.sha256(patch).hexdigest(),
-            "candidate": str(data / "runs/depth-l1-warm-recovery-20261027/checkpoints/epoch0_end"),
+            "candidate": str(run_root / "checkpoints/epoch0_end"),
             "control": str(data / "runs/depth-l5-scratch/checkpoints/epoch0_end"),
             "data": str(data / "data"),
-            "warm_start": str(data / "drafters/dspark-e10-trunc-l1"),
+            "warm_start": exports["FROM_PRETRAINED"],
+            "warm_start_preflight_report": str(
+                run_root / "provenance" / f"warm-start-{train_job}.json"
+            ),
             "workload": recovery.DEFAULT_WORKLOAD,
             "e10": recovery.DEFAULT_E10,
             "eagle": recovery.DEFAULT_EAGLE,
@@ -166,11 +199,20 @@ def check_training_recipe(candidate: Path, manifest: dict) -> dict:
     patch_path = candidate.parent / "speculators.patch"
     if recovery.sha256(patch_path) != manifest["speculators_patch_sha256"]:
         raise ValueError("Speculators training source diff changed")
+    warm_preflight = None
+    if "warm_start_preflight_report" in manifest:
+        warm_preflight = json.loads(Path(manifest["warm_start_preflight_report"]).read_text())
+        if (
+            warm_preflight.get("passed") is not True
+            or warm_preflight["initializer"] != manifest["warm_start"]
+        ):
+            raise ValueError("allocated initializer/target hash gate did not pass")
     return {
         "recipe": recipe,
         "command_sha256": recovery.sha256(command_path),
         "patch_sha256": recovery.sha256(patch_path),
         "training_source_observation": manifest["training_files"],
+        "warm_start_preflight": warm_preflight,
         "observation_limit": "matching training sources before queue and after training; argv and "
         "Speculators patch recorded by the training process itself",
     }
@@ -246,6 +288,9 @@ def collect_training_evidence(candidate: Path, output: Path, job: str) -> None:
             for name in ("run.yaml", "train_command.txt", "speculators.patch")
         ),
     ]
+    preflight = candidate.parent.parent / "provenance" / f"warm-start-{job}.json"
+    if preflight.is_file():
+        files.append(preflight)
     log_root = candidate.parent.parent / "logs"
     files.extend(
         path
@@ -409,13 +454,35 @@ def execute(campaign: Path, stage: str) -> None:
                 correctness_reports=reports,
             )
             positive = result["gate_g3_repeatable_throughput_passed"]
-            result["verdict"] = "substantial_gain_on_declared_workload" if positive else "negative"
+            result["verdict"] = (
+                "original_G3_pass_implementation_review_pending" if positive else "negative"
+            )
             recovery.write_new(run / "decision.json", result)
+            strict_path = campaign / "strict-review" / "final-review.json"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "methods/dspark/train/depth_review.py"),
+                    str(campaign / "a/sweep"),
+                    str(run / "sweep"),
+                    "--raw-decision",
+                    str(run / "decision.json"),
+                    "--output",
+                    str(strict_path),
+                ],
+                check=True,
+            )
+            strict = json.loads(strict_path.read_text())
             state(
                 campaign,
-                state="complete" if positive else "negative_complete",
+                state="complete"
+                if strict["implementation_evidence_passed"]
+                else "negative_complete",
                 stage="concluded",
                 decision_path=str(run / "decision.json"),
+                strict_review_path=str(strict_path),
+                original_G3_passed=positive,
+                implementation_verdict=strict["implementation_verdict"],
                 next_action="collect compact evidence and update verdict",
             )
 
@@ -428,6 +495,7 @@ def main() -> None:
     parser.add_argument("--training-repo", type=Path)
     parser.add_argument("--revision")
     parser.add_argument("--train-job")
+    parser.add_argument("--training-submit", type=Path)
     args = parser.parse_args()
     if args.action == "fail":
         state(
@@ -439,7 +507,9 @@ def main() -> None:
         )
         return
     if args.action == "snapshot":
-        snapshot(args.campaign, args.training_repo, args.revision, args.train_job)
+        snapshot(
+            args.campaign, args.training_repo, args.revision, args.train_job, args.training_submit
+        )
         return
     if args.action == "verify":
         verify_sources(args.campaign)

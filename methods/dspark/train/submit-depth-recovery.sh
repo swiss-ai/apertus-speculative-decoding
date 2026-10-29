@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Queue the bounded, fail-closed T3 continuation after the replacement training.
-# Usage: submit-depth-recovery.sh TRAIN_JOB FRESH_CAMPAIGN_DIRECTORY
+# Usage: submit-depth-recovery.sh TRAIN_JOB FRESH_CAMPAIGN_DIRECTORY TRAIN_SUBMIT_SCRIPT
 set -euo pipefail
 TRAIN_JOB="${1:?training job ID required}"
 CAMPAIGN="${2:?fresh absolute campaign directory required}"
+TRAIN_SUBMIT="${3:?exact submitted training script required}"
 [[ "${TRAIN_JOB}" =~ ^[0-9]+$ && "${CAMPAIGN}" = /* ]]
 REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
 REVISION="$(git -C "${REPO}" rev-parse HEAD)"
@@ -15,7 +16,8 @@ git -C "${REPO}" archive "${REVISION}" src serving methods/dspark/train \
   experiments/smoke-70b/experiment.yaml | tar -x -C "${CAMPAIGN}/source"
 SOURCE="${CAMPAIGN}/source"
 python3 "${SOURCE}/methods/dspark/train/depth_campaign.py" snapshot "${CAMPAIGN}" \
-  --training-repo "${REPO}" --revision "${REVISION}" --train-job "${TRAIN_JOB}"
+  --training-repo "${REPO}" --revision "${REVISION}" --train-job "${TRAIN_JOB}" \
+  --training-submit "${TRAIN_SUBMIT}"
 
 PREVIOUS="${TRAIN_JOB}"
 for STAGE in validate a b; do

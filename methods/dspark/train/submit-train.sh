@@ -48,7 +48,7 @@ mkdir -p "${LOG_ROOT}"
 
 # Extraction needs the aux-hidden-state fix for Apertus's multimodal wrapper
 # (Yu's fork_patch.sh); its own overlay directory, on scratch since home is full.
-EXTRA_MOUNTS="$(VLLM_PATCH_DIR="${DSPARK_DIR}/vllm-patch" "${REPO_ROOT}/serving/patch-vllm.sh" "${IMAGE}" \
+EXTRA_MOUNTS="$(VLLM_PATCH_DIR="${DSPARK_TRAIN_PATCH_DIR:-${DSPARK_DIR}/vllm-patch}" "${REPO_ROOT}/serving/patch-vllm.sh" "${IMAGE}" \
   "${REPO_ROOT}/serving/patches/vllm-apertus-eagle3-aux-layers.patch")"
 export EXTRA_MOUNTS
 SML_ENVIRONMENT="$("${REPO_ROOT}/serving/resolve-env.sh" "${ENV_SOURCE}")"
@@ -58,7 +58,8 @@ pass_env() {
   local v
   for v in DSPARK_DIR RUN_ID DATA EPOCHS MAX_STEPS CHECK_ROWS GRAD_CKPT WORKERS PREFETCH SEQ ANCHORS LR CKPT_FREQ \
            EXTRACT_MEM EXTRACT_EAGER IN OUT FULL ALLOW_MISSING TARGET_MODEL LAYERS SPECULATORS NUM_LAYERS FSDP \
-           FROM_PRETRAINED EXTRACT_PER_RANK EXTRACT_GPUS TRAIN_GPUS CHECK_SPLIT SIDE_DEPS; do
+           FROM_PRETRAINED EXTRACT_PER_RANK EXTRACT_GPUS TRAIN_GPUS CHECK_SPLIT SIDE_DEPS \
+           DSPARK_VALIDATE_WARM_START; do
     if [ -n "${!v:-}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -87,6 +88,21 @@ srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/tr
     ;;
   *) echo "unknown MODE ${MODE}" >&2; exit 2 ;;
 esac
+
+# A warm checkpoint owns its verifier identity. --verifier-name-or-path alone
+# does not override that nested identity in this Speculators revision. The
+# opt-in rebinding gate checks complete target/initializer/image hashes on one
+# allocated node before launching extraction or training on either node.
+if [ "${DSPARK_VALIDATE_WARM_START:-0}" = 1 ]; then
+  if [ "${MODE}" != train ]; then echo "warm-start gate requires MODE=train" >&2; exit 2; fi
+  : "${FROM_PRETRAINED:?warm-start initializer required}"
+  CMD="srun --nodes=1 --ntasks=1 --environment=${SML_ENVIRONMENT} python3 \
+${REPO_ROOT}/methods/dspark/train/rebind_verifier.py verify \
+--initializer ${FROM_PRETRAINED} --contract ${REPO_ROOT}/targets/${STAGE}/contract.json \
+--image ${IMAGE} --source-revision $(git rev-parse HEAD) \
+--output ${DSPARK_DIR}/runs/${RUN_ID}/provenance/warm-start-\${SLURM_JOB_ID}.json
+${CMD}"
+fi
 
 SCRIPT="${LOG_ROOT}/submit-${MODE}-${STAMP}.sbatch"
 cat > "${SCRIPT}" <<SBATCH

@@ -28,6 +28,19 @@ def test_frozen_source_changes_block_campaign(tmp_path: Path) -> None:
         campaign.verify_sources(tmp_path)
 
 
+def test_recovery_identity_comes_from_exact_new_training_submission(tmp_path: Path) -> None:
+    script = tmp_path / "train.sbatch"
+    script.write_text(
+        "export DSPARK_DIR=/task/data\nexport RUN_ID=fresh-run\n"
+        "export DATA=/task/data/data\nexport FROM_PRETRAINED=/task/rebound\n"
+        'echo "START git=abcdef123"\n'
+    )
+    values, revision = campaign.submitted_training(script)
+    assert values["RUN_ID"] == "fresh-run"
+    assert values["FROM_PRETRAINED"] == "/task/rebound"
+    assert revision == "abcdef123"
+
+
 async def test_preflight_failure_never_starts_serving(tmp_path: Path, monkeypatch) -> None:
     from apertus_bench import node_sweep
 
