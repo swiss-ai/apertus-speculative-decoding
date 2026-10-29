@@ -1,0 +1,203 @@
+diff --git a/torchspec/data/renderers/__init__.py b/torchspec/data/renderers/__init__.py
+index a1fece4..8bb2296 100644
+--- a/torchspec/data/renderers/__init__.py
++++ b/torchspec/data/renderers/__init__.py
+@@ -23,6 +23,8 @@ from torchspec.data.renderers.kimi_k3 import K3Renderer
+ from torchspec.data.renderers.registry import RENDERER_REGISTRY, RendererRegistry
+ 
+ RENDERER_REGISTRY.register("kimi-k3", K3Renderer)
++from torchspec.data.renderers.apertus import ApertusRenderer
++RENDERER_REGISTRY.register("apertus", ApertusRenderer)
+ 
+ __all__ = [
+     "DEFAULT_CACHE_VERSION",
+diff --git a/torchspec/models/target/eagle3_target_model.py b/torchspec/models/target/eagle3_target_model.py
+index 17d8382..c8bbb74 100644
+--- a/torchspec/models/target/eagle3_target_model.py
++++ b/torchspec/models/target/eagle3_target_model.py
+@@ -145,20 +145,54 @@ class HFTargetModel(Eagle3TargetModel):
+                 "device_map": device or "auto",
+             }
+ 
+-        target_model = AutoModelForCausalLM.from_pretrained(
+-            pretrained_model_name_or_path,
+-            torch_dtype=torch_dtype,
+-            cache_dir=cache_dir,
++        load_kwargs = {
++            "torch_dtype": torch_dtype,
++            "cache_dir": cache_dir,
+             **device_kwargs,
+             **kwargs,
+-        )
++        }
++        try:
++            target_model = AutoModelForCausalLM.from_pretrained(
++                pretrained_model_name_or_path, **load_kwargs
++            )
++        except (ValueError, OSError, AttributeError, TypeError):
++            # Apertus 1.5 is Apertus1p5ForConditionalGeneration. Do not relabel as Llama.
++            try:
++                from transformers import AutoModelForImageTextToText
++
++                target_model = AutoModelForImageTextToText.from_pretrained(
++                    pretrained_model_name_or_path, **load_kwargs
++                )
++            except Exception:
++                from transformers import AutoModel
++
++                target_model = AutoModel.from_pretrained(
++                    pretrained_model_name_or_path, **load_kwargs
++                )
+         return cls(target_model)
+ 
++    def _walk_language_model(self):
++        """Apertus 1.5 is ``*ForConditionalGeneration`` with ``language_model``.
++
++        Do not relabel the target as Llama. Prefer the language-model submodule
++        before the generic ``.model.layers`` walk used by Llama-style LMs.
++        """
++        model = self.model
++        if hasattr(model, "language_model"):
++            return model.language_model
++        inner = getattr(model, "model", None)
++        if inner is not None and hasattr(inner, "language_model"):
++            return inner.language_model
++        return inner if inner is not None else model
++
+     def _get_transformer_layers(self):
+         """
+         Helper to find the module list containing the transformer layers.
+-        Adapts to common architectures (Llama, Qwen, Mistral, OPT, etc.)
++        Adapts to common architectures (Llama, Qwen, Mistral, OPT, Apertus, etc.)
+         """
++        language_model = self._walk_language_model()
++        if hasattr(language_model, "layers"):
++            return language_model.layers
+         if hasattr(self.model, "model") and hasattr(self.model.model, "layers"):
+             return self.model.model.layers
+         elif hasattr(self.model, "layers"):
+@@ -175,6 +209,9 @@ class HFTargetModel(Eagle3TargetModel):
+         Helper to find the final norm layer (post-transformer, pre-lm_head).
+         Its output is the last hidden states before projection to vocab logits.
+         """
++        language_model = self._walk_language_model()
++        if hasattr(language_model, "norm"):
++            return language_model.norm
+         if hasattr(self.model, "model") and hasattr(self.model.model, "norm"):
+             return self.model.model.norm
+         elif hasattr(self.model, "norm"):
+@@ -230,14 +267,17 @@ class HFTargetModel(Eagle3TargetModel):
+         handles.append(final_norm.register_forward_hook(norm_hook))
+ 
+         try:
+-            self.model(
+-                input_ids=input_ids,
+-                attention_mask=attention_mask,
+-                output_hidden_states=False,
+-                output_attentions=False,
+-                output_router_logits=False,
+-                use_cache=False,
+-            )
++            forward_kwargs = {
++                "input_ids": input_ids,
++                "attention_mask": attention_mask,
++                "output_hidden_states": False,
++                "output_attentions": False,
++                "use_cache": False,
++            }
++            try:
++                self.model(**forward_kwargs, output_router_logits=False)
++            except TypeError:
++                self.model(**forward_kwargs)
+         finally:
+             for handle in handles:
+                 handle.remove()
+diff --git a/torchspec/models/target/target_utils.py b/torchspec/models/target/target_utils.py
+index f8d68e1..00b5cca 100644
+--- a/torchspec/models/target/target_utils.py
++++ b/torchspec/models/target/target_utils.py
+@@ -34,6 +34,22 @@ from transformers import AutoConfig
+ logger = logging.getLogger(__name__)
+ 
+ 
++def output_vocab_size(model_config, text_config) -> int:
++    """Allocate the lm_head against the target's output support, not input vocab.
++
++    Apertus 1.5 (and other multimodal wrappers) keep ``text_config.vocab_size``
++    as the *input* vocabulary (embeddings, image/audio token ids) while the
++    physical ``lm_head.weight`` is ``[output_vocab_size, hidden]``. Using
++    ``vocab_size`` here makes ``copy_`` fail or silently pad the wrong rows.
++    Do not relabel the target as Llama to dodge this.
++    """
++    for cfg in (text_config, model_config):
++        value = getattr(cfg, "output_vocab_size", None)
++        if value:
++            return int(value)
++    return int(text_config.vocab_size)
++
++
+ class _TargetRMSNorm(nn.Module):
+     """Weight-only RMSNorm used when remote model construction is unavailable."""
+ 
+@@ -69,7 +85,11 @@ class TargetLMHead(nn.Module):
+         # hidden/vocab sizes this module actually allocates against.
+         self.model_config = config
+         self.config = getattr(config, "text_config", config)
+-        self.lm_head = nn.Linear(self.config.hidden_size, self.config.vocab_size, bias=False)
++        self.lm_head = nn.Linear(
++            self.config.hidden_size,
++            output_vocab_size(self.model_config, self.config),
++            bias=False,
++        )
+         self.norm: nn.Module | None = None
+ 
+     @classmethod
+@@ -144,6 +164,13 @@ class TargetLMHead(nn.Module):
+                 del state_dict
+ 
+         if tensor is not None:
++            if tuple(tensor.shape) != tuple(self.lm_head.weight.shape):
++                raise ValueError(
++                    f"lm_head key {key!r} has shape {tuple(tensor.shape)} but "
++                    f"TargetLMHead allocated {tuple(self.lm_head.weight.shape)}. "
++                    "This is the Apertus input-vs-output vocabulary trap: "
++                    "allocate with output_vocab_size, not text_config.vocab_size."
++                )
+             self.lm_head.weight.data.copy_(tensor)
+         else:
+             raise KeyError(f"Key {key} not found in {file_path}")
+diff --git a/torchspec/transfer/mooncake/__init__.py b/torchspec/transfer/mooncake/__init__.py
+index c6dc53c..b1df9e7 100644
+--- a/torchspec/transfer/mooncake/__init__.py
++++ b/torchspec/transfer/mooncake/__init__.py
+@@ -19,16 +19,24 @@
+ # SOFTWARE.
+ 
+ from torchspec.transfer.mooncake.helpers import calculate_eagle3_buffer_size
+-from torchspec.transfer.mooncake.utils import (
+-    MooncakeMaster,
+-    check_mooncake_master_available,
+-    launch_mooncake_master,
+-    resolve_mooncake_master_bin,
+-)
++
++# utils.py imports ray. One-node overfit never starts Mooncake, and the
++# serving image has no ray. Keep these names lazy so LlamaForCausalLMEagle3
++# can be imported. Job 3446638 died on this import after the 70B load.
++_UTILS_EXPORTS = {
++    "MooncakeMaster",
++    "check_mooncake_master_available",
++    "launch_mooncake_master",
++    "resolve_mooncake_master_bin",
++}
+ 
+ 
+ def __getattr__(name):
+     # Lazy imports to avoid circular dependency with config.mooncake_config
++    if name in _UTILS_EXPORTS:
++        from torchspec.transfer.mooncake import utils
++
++        return getattr(utils, name)
+     if name == "MooncakeConfig":
+         from torchspec.config.mooncake_config import MooncakeConfig
+ 

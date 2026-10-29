@@ -1,0 +1,18 @@
+{
+  "purpose": "Validate moving run e31-opb-thinkon-stage1 (EAGLE 3.1, Apertus 1.5 8B, thinking on) from Clariden to Beverin; plan snazzy-discovering-kitten",
+  "snapshot": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-eagle/repo-80d511ff",
+  "snapshot_commit": "80d511ff (branch eagle-8b-thinkon-beverin)",
+  "image": "/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm-v0.31.0.sqsh",
+  "image_sha256": "b58797bb6a430d7587f1c10ec24ac71f198bd8d590bde98dbbe68d7744a9816f",
+  "pydeps": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-eagle/pydeps-x86_64-20261029b (job 705304; 705301 was the first build without the tokenizers/huggingface_hub pins); copied to snapshot scratch/pydeps",
+  "pydeps_versions": {"transformers": "5.14.0.dev0 (Swiss AI fork, from vllm_apertus_1.5_release-amd64.sqsh)", "tokenizers": "0.22.2", "huggingface_hub": "1.24.0", "accelerate": "1.15.0", "protobuf": "7.36.2", "torch_in_image": "2.13.0+git733fca1 (ROCm)"},
+  "torchspec": "6c042a87140a84d13839e341ece2c5c3ada918bc + torchspec.patch (copied from the Clariden checkout's scratch/TorchSpec)",
+  "source_checkpoint": "e31-opb-thinkon-stage1/checkpoints/resume at step 166654 (Clariden job 3745986 deadline save)",
+  "jobs": {
+    "705340": "P0, 1 node: copies resume into stage1-bev-{p0,pilot-lt,pilot-rb}, p0_probe.py, 40-step 1-node rocBLAS replay",
+    "705341": "P1a, 2 nodes, hipBLASLt (default), 1.5 h, run id stage1-bev-pilot-lt, step time only",
+    "705342": "P1b link 1, 2 nodes, rocBLAS, 3 h, stop after step 167800 (crosses eval at 167756), run id stage1-bev-pilot-rb",
+    "705343": "P1b link 2, 2 nodes, rocBLAS, 1 h, resume check, run id stage1-bev-pilot-rb"
+  },
+  "parity_reference": "Clariden link 3745987 resumes from the same step-166654 checkpoint"
+}
