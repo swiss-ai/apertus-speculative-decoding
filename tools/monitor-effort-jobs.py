@@ -126,7 +126,8 @@ def notify(codex, thread, state_dir, finding):
                 return {"status": "already_queued", "id": item["id"]}
         prompt = (
             f"{PREFIX} Periodic check found {finding['kind']}. Read {state_dir / 'latest.json'} "
-            "and tools/monitor-effort-jobs.py. Continue the GPT-OSS DFlash Phase 2 experiment. "
+            f"and {Path(__file__).resolve()}. Continue the GPT-OSS DFlash Phase 2 experiment. "
+            f"Use the existing task checkout {Path(__file__).resolve().parents[1]}. "
             "The user authorized immediate diagnosis, fixes and reruns without confirmation. "
             "Inspect the latest campaign and logs; fix and restart failed jobs/controllers now. "
             "Keep the experiment/budgets, completed raw cells and failed-attempt provenance; "

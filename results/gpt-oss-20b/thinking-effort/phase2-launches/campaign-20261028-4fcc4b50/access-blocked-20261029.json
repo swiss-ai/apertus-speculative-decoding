@@ -1,0 +1,43 @@
+{
+  "recorded_at": "2026-10-29T00:15:54.832699+00:00",
+  "cause": "Local agent cannot traverse /home/fzahiragic (mode 0700) to read its configured CSCS public-certificate symlink; one-shot SSH diagnostic confirmed Permission denied (publickey) on ela.cscs.ch.",
+  "public_certificate": "/home/agent/.ssh/cscs-key-cert.pub",
+  "public_certificate_symlink_target": "/home/fzahiragic/.ssh/cscs-key-cert.pub",
+  "remote_job_status": "Unknown after last successful snapshot; SSH loss does not cancel Slurm allocations.",
+  "last_successful_snapshot": {
+    "observed_at": "2026-10-28T23:40:01.240541+00:00",
+    "snapshot": {
+      "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+      "controller": {
+        "job_id": "3787459",
+        "status": "train"
+      },
+      "controller_alive": true,
+      "controller_pid": 213262,
+      "jobs": {
+        "qualification": {
+          "job_id": "3782492",
+          "state": "COMPLETED",
+          "exit_code": "0:0"
+        },
+        "data": {
+          "job_id": "3785653",
+          "state": "COMPLETED",
+          "exit_code": "0:0"
+        },
+        "train": {
+          "job_id": "3787459",
+          "state": "RUNNING",
+          "exit_code": "0:0"
+        }
+      },
+      "qualification_directory": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d",
+      "phase1_reference": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da"
+    },
+    "incident": null
+  },
+  "actions": "Stopped SSH authentication retries; retained actual stderr; updated existing monitor to check local certificate state and automatically resume after access is restored. No remote jobs modified or duplicated.",
+  "required_user_action": "Restore the agent account read/traverse access to its existing public certificate, or place the current matching public certificate at the configured agent path.",
+  "validation": "18 monitor tests pass, Ruff passes, scoped cron entry updated and verified; unrelated cron lines preserved.",
+  "monitor_source_revision": "d8d982463258073d35d659e2a45309ee3ff14b67"
+}
