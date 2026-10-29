@@ -841,7 +841,14 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
     cli.build_draft_model = build_with_budget_counter
     write_json(root / "train-argv.json", argv)
     os.chdir(upstream)  # Speculators provenance must describe its own checkout.
-    cli.main(TrainConfig.resolve(argv))
+    resolved = TrainConfig.resolve(argv)
+    # Upstream's keep-best cleanup deletes other files from the checkpoint root.
+    # Retain the resolved configuration and source patch outside that directory.
+    with (root / "run.yaml").open("x") as sink:
+        sink.write(resolved.dump_yaml())
+    with (root / "speculators.patch").open("xb") as sink:
+        sink.write(subprocess.check_output(["git", "-C", str(upstream), "diff", "HEAD"]))
+    cli.main(resolved)
     history = [json.loads(line) for line in (root / "history.jsonl").read_text().splitlines()]
     validations = [row for row in history if "val" in row]
     if len(validations) != config["epochs"]:
