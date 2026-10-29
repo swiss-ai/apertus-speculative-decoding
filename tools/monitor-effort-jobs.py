@@ -19,6 +19,7 @@ from pathlib import Path
 MARKER = "apertus-thinking-effort-monitor"
 PREFIX = "[Effort job monitor]"
 FAILURES = {"FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED"}
+CERTIFICATE = Path.home() / ".ssh/cscs-key-cert.pub"
 REMOTE_PROBE = r"""
 from pathlib import Path
 import json,os,subprocess
@@ -109,12 +110,19 @@ def incident(snapshot):
     return None
 
 
+def start_if_idle(server, thread, identifier):
+    metadata = server.request("thread/read", {"threadId": thread, "includeTurns": False})
+    if metadata["thread"]["status"]["type"] == "idle":
+        server.request("thread/queue/start", {"threadId": thread, "queuedSubmissionId": identifier})
+
+
 def notify(codex, thread, state_dir, finding):
     server = AppServer(codex)
     try:
         queued = server.request("thread/queue/list", {"threadId": thread, "limit": 100})
         for item in queued["data"]:
             if any(PREFIX in value.get("text", "") for value in item["input"]):
+                start_if_idle(server, thread, item["id"])
                 return {"status": "already_queued", "id": item["id"]}
         prompt = (
             f"{PREFIX} Periodic check found {finding['kind']}. Read {state_dir / 'latest.json'} "
@@ -134,21 +142,17 @@ def notify(codex, thread, state_dir, finding):
             check=True,
             timeout=30,
         )
-        metadata = server.request("thread/read", {"threadId": thread, "includeTurns": False})
-        if metadata["thread"]["status"]["type"] == "idle":
-            queue = server.request("thread/queue/list", {"threadId": thread, "limit": 100})
-            selected = next(
-                (
-                    item
-                    for item in queue["data"]
-                    if any(PREFIX in value.get("text", "") for value in item["input"])
-                ),
-                None,
-            )
-            if selected:
-                server.request(
-                    "thread/queue/start", {"threadId": thread, "queuedSubmissionId": selected["id"]}
-                )
+        queue = server.request("thread/queue/list", {"threadId": thread, "limit": 100})
+        selected = next(
+            (
+                item
+                for item in queue["data"]
+                if any(PREFIX in value.get("text", "") for value in item["input"])
+            ),
+            None,
+        )
+        if selected:
+            start_if_idle(server, thread, selected["id"])
         return {"status": "queued", "delivery": result.stdout.strip()}
     finally:
         server.close()
@@ -159,6 +163,14 @@ def remove_schedule():
     if current.returncode == 0:
         remaining = [line for line in current.stdout.splitlines() if MARKER not in line]
         subprocess.run(["crontab", "-"], input="\n".join(remaining) + "\n", text=True, check=True)
+
+
+def certificate_status():
+    """Check only local public-certificate access; never retry SSH to test credentials."""
+    try:
+        return {"sha256": hashlib.sha256(CERTIFICATE.read_bytes()).hexdigest()}
+    except OSError as error:
+        return {"error": f"{type(error).__name__}: {error}"}
 
 
 def main():
@@ -179,8 +191,16 @@ def main():
         state = json.loads(state_path.read_text()) if state_path.exists() else {}
         if state.get("disabled"):
             return
+        certificate = certificate_status()
+        if state.get("access_blocked"):
+            if "error" in certificate or certificate == state.get("access_blocked_certificate"):
+                return
+            state["access_blocked"] = False
+            state["access_restored_at"] = datetime.now(UTC).isoformat()
         observed_at = datetime.now(UTC).isoformat()
         try:
+            if "error" in certificate:
+                raise PermissionError(certificate["error"])
             response = subprocess.run(
                 [args.clariden, "exec", "--", "python3 - <<'PY'\n" + REMOTE_PROBE + "\nPY"],
                 capture_output=True,
@@ -190,9 +210,20 @@ def main():
             )
             snapshot = json.loads(response.stdout)
             finding = incident(snapshot)
+        except PermissionError as error:
+            snapshot = {"connection_error": str(error), "certificate_path": str(CERTIFICATE)}
+            finding = {"kind": "authentication_required", "error": str(error)}
         except (subprocess.SubprocessError, ValueError) as error:
-            snapshot = {"connection_error": str(error)}
-            finding = {"kind": "monitor_connection_error", "error": str(error)}
+            stderr = getattr(error, "stderr", "") or ""
+            detail = stderr[-1500:] or str(error)
+            snapshot = {"connection_error": detail}
+            finding = {"kind": "monitor_connection_error", "error": detail}
+            if any(
+                message in stderr.lower()
+                for message in ("permission denied", "authentication failed", "certificate expired")
+            ):
+                snapshot["connection_error"] = stderr[-1500:]
+                finding = {"kind": "authentication_required", "error": stderr[-1500:]}
         latest = {"observed_at": observed_at, "snapshot": snapshot, "incident": finding}
         (args.state_dir / "latest.json").write_text(json.dumps(latest, indent=2) + "\n")
         if finding and not args.check_only:
@@ -205,6 +236,10 @@ def main():
             ):
                 latest["notification"] = notify(args.codex, args.thread, args.state_dir, finding)
                 state.update(last_fingerprint=fingerprint, last_notified=time.time())
+                if finding["kind"] == "authentication_required":
+                    # CSCS requires normal certificate renewal. Never retry failed auth in a loop.
+                    state["access_blocked"] = True
+                    state["access_blocked_certificate"] = certificate
                 if finding["kind"] == "complete":
                     remove_schedule()
                     state["disabled"] = True
