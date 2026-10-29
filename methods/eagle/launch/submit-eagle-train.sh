@@ -24,7 +24,13 @@ GPUS_PER_NODE="${EAGLE_GPUS_PER_NODE:-4}"
 CUDA_DEVICES="${EAGLE_CUDA_DEVICES:-0}"
 STEPS="${EAGLE_STEPS:-}"
 RUN_ID="${EAGLE_RUN_ID:-}"
-EXCLUDE_NODES="${EAGLE_TRAIN_EXCLUDE:-nid007129}"
+# Unset keeps the Clariden defaults; an empty value omits the line (Beverin:
+# EAGLE_TRAIN_CPUS= EAGLE_TRAIN_MEM= EAGLE_TRAIN_EXCLUDE=).
+EXCLUDE_NODES="${EAGLE_TRAIN_EXCLUDE-nid007129}"
+CPUS_PER_TASK="${EAGLE_TRAIN_CPUS-288}"
+MEMORY="${EAGLE_TRAIN_MEM-450G}"
+# Extra sbatch arguments at submit time (e.g. "--nice=10000" for pilots, "--hold").
+SBATCH_EXTRA="${EAGLE_SBATCH_EXTRA:-}"
 # EAGLE_CHAIN=N queues N jobs, each starting after the previous one ends, all with
 # the same run id: a job near its time limit saves checkpoints/resume and the next
 # one continues (train_rollout exit status 4). Needs EAGLE_RUN_ID or sets one.
@@ -34,6 +40,22 @@ CHAIN="${EAGLE_CHAIN:-1}"
 NODES="${EAGLE_NODES:-1}"
 # EAGLE_RETRIES=N tries training up to N times inside one allocation (see train_once).
 RETRIES="${EAGLE_RETRIES:-3}"
+# Optional lines, each printed with a leading newline, so that nothing is added to
+# the batch script while the variable is unset or empty.
+sbatch_line() { [ -z "$2" ] || printf '\n#SBATCH %s=%s' "$1" "$2"; }
+# Opt-in settings written into the batch script (unset: nothing written):
+# EAGLE_PLATFORM=rocm (train-eagle-on-node.sh), EAGLE_BLAS_BACKEND (train_rollout),
+# EAGLE_STOP_AFTER_STEPS (test hook), EAGLE_START_GUARD_RUN_DIR (start_guard.py),
+# EAGLE_MEM_LOG_DIR (10 s free -g log per node on ROCm).
+OPTIONAL_EXPORTS=""
+for v in EAGLE_PLATFORM EAGLE_BLAS_BACKEND EAGLE_STOP_AFTER_STEPS EAGLE_START_GUARD_RUN_DIR EAGLE_MEM_LOG_DIR; do
+  if [ -n "${!v:-}" ]; then OPTIONAL_EXPORTS+="$(printf '\nexport %s=%q' "${v}" "${!v}")"; fi
+done
+GUARD_LINE=""
+if [ -n "${EAGLE_START_GUARD_RUN_DIR:-}" ]; then
+  # Refuse to train unless the cutover record says this cluster owns the run.
+  GUARD_LINE="$(printf '\npython3 %s/methods/eagle/beverin/start_guard.py "${EAGLE_START_GUARD_RUN_DIR}" || exit 3' "${REPO_ROOT}")"
+fi
 if [ "${CHAIN}" -gt 1 ] && [ -z "${RUN_ID}" ]; then RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"; fi
 # e.g. EAGLE_DEPENDENCY=afterok:3505554 so a stage starts only after its gate job passed.
 DEPENDENCY="${EAGLE_DEPENDENCY:-}"
@@ -89,12 +111,9 @@ cat > "${SBATCH_FILE}" <<SBATCH
 #SBATCH --partition=${PARTITION}
 #SBATCH --nodes=${NODES}
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=${GPUS_PER_NODE}
-#SBATCH --cpus-per-task=288
-#SBATCH --mem=450G
+#SBATCH --gpus-per-node=${GPUS_PER_NODE}$(sbatch_line --cpus-per-task "${CPUS_PER_TASK}")$(sbatch_line --mem "${MEMORY}")
 #SBATCH --time=${TIME_LIMIT}
-#SBATCH --exclusive
-#SBATCH --exclude=${EXCLUDE_NODES}
+#SBATCH --exclusive$(sbatch_line --exclude "${EXCLUDE_NODES}")
 $([ "${NODES}" = 1 ] && echo "#SBATCH --environment=${SML_ENVIRONMENT}")
 #SBATCH --output=${LOG_ROOT}/%j.out
 #SBATCH --error=${LOG_ROOT}/%j.err
@@ -119,9 +138,9 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export WANDB_MODE=offline
 export WANDB_DISABLED=true
 export PYTHONNOUSERSITE=1
-export PYTHONUNBUFFERED=1
+export PYTHONUNBUFFERED=1${OPTIONAL_EXPORTS}
 # No percent-strftime in this body: pyxis --environment sbatch mangled one (job 3491998).
-echo "START \$(date -u -Iseconds) host=\$(hostname) job=\${SLURM_JOB_ID} nodes=${NODES}"
+echo "START \$(date -u -Iseconds) host=\$(hostname) job=\${SLURM_JOB_ID} nodes=${NODES}"${GUARD_LINE}
 train_once() {
 $(if [ "${NODES}" = 1 ]; then
   echo "bash ${REPO_ROOT}/methods/eagle/launch/train-eagle-on-node.sh"
@@ -162,6 +181,7 @@ previous=""
 for link in $(seq 1 "${CHAIN}"); do
   after="${DEPENDENCY}"
   if [ -n "${previous}" ]; then after="afterany:${previous}"; fi
-  previous="$(sbatch --parsable ${after:+--dependency=${after}} "${SBATCH_FILE}")"
+  # shellcheck disable=SC2086
+  previous="$(sbatch --parsable ${after:+--dependency=${after}} ${SBATCH_EXTRA} "${SBATCH_FILE}")"
   echo "Submitted batch job ${previous} (chain ${link}/${CHAIN}, run id ${RUN_ID:-per-job})"
 done
