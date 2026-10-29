@@ -1,0 +1,36 @@
+--- a/rendered/head.sh
++++ b/rendered/head.sh
+@@ -28,4 +28,4 @@
+     --label 'framework_args=--port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain --chat-template-content-format string --tensor-parallel-size 1 --gpu-memory-utilization 0.8 --max-model-len 32768 --enable-auto-tool-choice --tool-call-parser apertus --compilation-config.pass_config.fuse_allreduce_rms false --chat-template /iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-plain-20261029-a/chat_template.jinja --no-enable-log-requests --dtype bfloat16 --no-enable-prefix-caching --max-num-batched-tokens 16384 --max-num-seqs 256' \
+     --label started_at=$(date -u +%FT%TZ) \
+     --label expires_at=$(date -u -d "+5400 seconds" +%FT%TZ) \
+-    --subprocess "vllm serve --port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B     --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain     --chat-template-content-format string     --tensor-parallel-size 1     --gpu-memory-utilization 0.8     --max-model-len 32768     --enable-auto-tool-choice     --tool-call-parser apertus     --compilation-config.pass_config.fuse_allreduce_rms false     --chat-template /iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-plain-20261029-a/chat_template.jinja --no-enable-log-requests --dtype bfloat16 --no-enable-prefix-caching --max-num-batched-tokens 16384 --max-num-seqs 256"
++    --subprocess "python3 -m vllm.entrypoints.openai.api_server --port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B     --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain     --chat-template-content-format string     --tensor-parallel-size 1     --gpu-memory-utilization 0.8     --max-model-len 32768     --enable-auto-tool-choice     --tool-call-parser apertus     --compilation-config.pass_config.fuse_allreduce_rms false     --chat-template /iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-plain-20261029-a/chat_template.jinja --no-enable-log-requests --dtype bfloat16 --no-enable-prefix-caching --max-num-batched-tokens 16384 --max-num-seqs 256"
+--- a/rendered/master.sh
++++ b/rendered/master.sh
+@@ -10,6 +10,7 @@
+ # shellcheck shell=bash
+ 
+ set -euo pipefail
++mkdir -p "logs/${SLURM_JOB_ID}"
+ 
+ critical_pids=()
+ vmagent_pid=""
+@@ -20,7 +21,7 @@
+ # (shared FS, visible to all compute nodes) at job start time. The
+ # single-quoted heredoc keeps each body literal.
+ 
+-RANKS_DIR="$HOME/.sml/job-${SLURM_JOB_ID}"
++RANKS_DIR="/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-plain-20261029-a/ranks-${SLURM_JOB_ID}"
+ 
+ mkdir -p "$RANKS_DIR"
+ 
+@@ -55,7 +56,7 @@
+     --label 'framework_args=--port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain --chat-template-content-format string --tensor-parallel-size 1 --gpu-memory-utilization 0.8 --max-model-len 32768 --enable-auto-tool-choice --tool-call-parser apertus --compilation-config.pass_config.fuse_allreduce_rms false --chat-template /iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-plain-20261029-a/chat_template.jinja --no-enable-log-requests --dtype bfloat16 --no-enable-prefix-caching --max-num-batched-tokens 16384 --max-num-seqs 256' \
+     --label started_at=$(date -u +%FT%TZ) \
+     --label expires_at=$(date -u -d "+5400 seconds" +%FT%TZ) \
+-    --subprocess "vllm serve --port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B     --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain     --chat-template-content-format string     --tensor-parallel-size 1     --gpu-memory-utilization 0.8     --max-model-len 32768     --enable-auto-tool-choice     --tool-call-parser apertus     --compilation-config.pass_config.fuse_allreduce_rms false     --chat-template /iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-plain-20261029-a/chat_template.jinja --no-enable-log-requests --dtype bfloat16 --no-enable-prefix-caching --max-num-batched-tokens 16384 --max-num-seqs 256"
++    --subprocess "python3 -m vllm.entrypoints.openai.api_server --port 8080 --model /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B     --served-model-name faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain     --chat-template-content-format string     --tensor-parallel-size 1     --gpu-memory-utilization 0.8     --max-model-len 32768     --enable-auto-tool-choice     --tool-call-parser apertus     --compilation-config.pass_config.fuse_allreduce_rms false     --chat-template /iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-plain-20261029-a/chat_template.jinja --no-enable-log-requests --dtype bfloat16 --no-enable-prefix-caching --max-num-batched-tokens 16384 --max-num-seqs 256"
+ __SML_HEAD_EOF__
+ 
+ chmod +x "$RANKS_DIR/head.sh"

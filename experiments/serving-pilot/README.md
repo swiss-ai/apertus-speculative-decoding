@@ -10,6 +10,9 @@ The [launch audit](../../results/8b/serving-pilot/launch-audit-20261028T151519Z/
 and [gateway audit](../../results/8b/serving-pilot/gateway-audit-20261028T175015Z/README.md)
 record the submitted development jobs and their current pre-start inputs.
 Check those jobs and controller reports before launching replacements.
+The [recovery audit](../../results/8b/serving-pilot/recovery-audit-20261029T095445851391Z/README.md)
+records the first startup failure, supported logging flag, and replacement jobs
+3790128, 3790129 and 3790130. They supersede the original submissions.
 
 Use `serving/research-pilot.sh` from the repository root on Clariden. It uses
 the existing `apertus-bench` Python environment. Every launch needs a new

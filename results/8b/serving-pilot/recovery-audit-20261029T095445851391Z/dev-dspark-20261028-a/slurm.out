@@ -1,0 +1,13 @@
+Running on ARM64 (aarch64)
+Total nodes allocated: 1
+Node 0: nid007655
+Replica 0 head IP: 172.28.46.164
+All replica URLs: http://172.28.46.164:8080
+Replica health checker started (pid 106629) -> logs/3783300/replica_health.json
+
+To connect to the host node:
+srun --jobid 3783300 -w nid007655 --overlap --pty bash
+
+Make sure to cancel the job at the end:
+scancel 3783300
+Master finished at Wed Oct 28 23:06:59 CET 2026 with code 1
