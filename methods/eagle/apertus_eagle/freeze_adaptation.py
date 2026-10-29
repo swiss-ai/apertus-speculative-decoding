@@ -19,7 +19,14 @@ from pathlib import Path
 from apertus_eagle.adaptation_decision import digest, immutable_json, read
 
 
-def freeze(repo: Path, root: Path, trace_job: str) -> dict:
+def freeze(
+    repo: Path,
+    root: Path,
+    trace_job: str | None,
+    *,
+    source_only: bool = False,
+    run_id: str = "recovery-20261027",
+) -> dict:
     receipts = root / "receipts"
     receipts.mkdir(parents=True, exist_ok=True)
     replacement_lock = (receipts / "controller-replacement.lock").open("a")
@@ -75,6 +82,9 @@ def freeze(repo: Path, root: Path, trace_job: str) -> dict:
         ).splitlines()
         manifest = {
             "revision": revision,
+            "task_branch": subprocess.check_output(
+                ["git", "-C", str(repo), "branch", "--show-current"], text=True
+            ).strip(),
             "files": {f: digest(snapshot / f) for f in files if (snapshot / f).is_file()},
         }
         immutable_json(snapshot / "source-manifest.json", manifest)
@@ -100,6 +110,17 @@ def freeze(repo: Path, root: Path, trace_job: str) -> dict:
         root / "preregistration.json",
         read(snapshot / "methods/eagle/configs/8b/adapt-recovery-policy.json"),
     )
+    if source_only:
+        return {
+            "revision": revision,
+            "source": str(snapshot),
+            "source_manifest": str(snapshot / "source-manifest.json"),
+            "source_manifest_sha256": digest(snapshot / "source-manifest.json"),
+            "policy_sha256": digest(root / "preregistration.json"),
+            "task_branch": manifest.get("task_branch"),
+        }
+    if not trace_job:
+        raise ValueError("A trace job is required unless freezing sources only")
     observed = subprocess.check_output(
         ["sacct", "-X", "-n", "-P", "-j", trace_job, "--format=JobIDRaw,State,ExitCode"], text=True
     )
@@ -148,7 +169,7 @@ export PYTHONDONTWRITEBYTECODE=1
 exec python3 -u -m apertus_eagle.adaptation_recovery \\
   --repo {snapshot} \\
   --campaign-root {root} \\
-  --trace-job {trace_job} --run-id recovery-20261027 --poll-seconds 120
+  --trace-job {trace_job} --run-id {run_id} --poll-seconds 120
 """
     if launcher.exists():
         if launcher.read_text() != script:
@@ -189,9 +210,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--campaign-root", type=Path, required=True)
-    parser.add_argument("--trace-job", required=True)
+    parser.add_argument("--trace-job")
+    parser.add_argument("--source-only", action="store_true")
+    parser.add_argument("--run-id", default="recovery-20261027")
     args = parser.parse_args()
-    print(json.dumps(freeze(args.repo, args.campaign_root, args.trace_job), indent=2))
+    print(
+        json.dumps(
+            freeze(
+                args.repo,
+                args.campaign_root,
+                args.trace_job,
+                source_only=args.source_only,
+                run_id=args.run_id,
+            ),
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

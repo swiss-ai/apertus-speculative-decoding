@@ -440,7 +440,9 @@ def main(argv: list[str] | None = None) -> None:
     if set(allocations) != set(state["job_ids"]):
         raise RuntimeError("Incomplete allocation accounting; refusing an unsupported cost claim")
     compute = {
-        "trace_allocated_gpu_seconds": allocations[args.trace_job]["gpu_seconds"],
+        "trace_allocated_gpu_seconds": sum(
+            allocations[j]["gpu_seconds"] for j in state.get("trace_job_ids", [args.trace_job])
+        ),
         "whole_campaign_allocated_gpu_seconds": sum(v["gpu_seconds"] for v in allocations.values()),
         "domain_training_allocated_gpu_seconds": {
             domain: sum(allocations[j]["gpu_seconds"] for j in batch["job_ids"])

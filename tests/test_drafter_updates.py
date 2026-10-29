@@ -1,3 +1,4 @@
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -55,6 +56,25 @@ def test_summary_candidates_keep_the_actual_source_shard(tmp_path, monkeypatch) 
     result = pools.summarization_candidates(2, 2.0, 2)["eng"]
     assert {row["source_file"] for row in result} == {"4.parquet", "5.parquet"}
     assert all(row["source_file"] in row["messages"][0]["content"] for row in result)
+    assert len({row["id"] for row in result}) == 2
+    assert {row["source_id"] for row in result} == {"repeated-id"}
+    assert all(
+        row["source_text_sha256"] == hashlib.sha256(row["source_file"].encode()).hexdigest()
+        for row in result
+    )
+    assert pools.summarization_candidates(2, 2.0, 2)["eng"] == result
+
+
+def test_exact_content_is_excluded_even_when_source_ids_differ() -> None:
+    first = {"id": "source-one", "source_id": "first", **_row("the identical prompt")}
+    second = {"id": "source-two", "source_id": "second", **_row("the identical prompt")}
+    # The rendered-prompt digest depends on messages, never the source ID.
+    digest = hashlib.sha256(json.dumps(first["messages"]).encode()).hexdigest()
+    assert digest == hashlib.sha256(json.dumps(second["messages"]).encode()).hexdigest()
+    guard = Guard([], set())
+    assert guard.admit(first, digest)
+    assert not guard.admit(second, digest)
+    assert guard.rejected["repeat"] == 1
 
 
 def test_short_smoke_preserves_failed_scientific_gate(tmp_path) -> None:

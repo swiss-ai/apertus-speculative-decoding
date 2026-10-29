@@ -51,6 +51,9 @@ with image.open("rb") as handle:
 (out / "image.sha256").write_text(f"{digest.hexdigest()}  {image}\n")
 shutil.copy2(source, out / "environment-source.toml")
 shutil.copy2(repo / "targets/8b/contract.json", out / "target-contract.json")
+frozen_source = repo / "source-manifest.json"
+if frozen_source.exists():
+    shutil.copy2(frozen_source, out / "source-manifest.json")
 for name, argv in {
     "git-revision.txt": ["git", "-C", str(repo), "rev-parse", "HEAD"],
     "checkout.patch": ["git", "-C", str(repo), "diff", "HEAD", "--binary"],
@@ -61,6 +64,9 @@ relevant = ["SLURM_JOB_ID", "SLURM_JOB_NODELIST", "SLURMD_NODENAME", "PYTHONPATH
             "TORCHINDUCTOR_CACHE_DIR", "DRAFTER_DOMAINS", "DRAFTER_POOL_ARGS", "DRAFTER_GEN_ARGS"]
 (out / "runtime.json").write_text(json.dumps({
     "python": sys.version, "machine": platform.machine(),
+    "task_branch": json.loads(frozen_source.read_text()).get("task_branch")
+        if frozen_source.exists() else subprocess.check_output(
+            ["git", "-C", str(repo), "branch", "--show-current"], text=True).strip(),
     "environment": {key: os.environ[key] for key in relevant if key in os.environ},
     "script": str(repo / "methods/eagle/launch/drafter-traces.sh"),
     "script_sha256": hashlib.sha256((repo / "methods/eagle/launch/drafter-traces.sh").read_bytes()).hexdigest(),

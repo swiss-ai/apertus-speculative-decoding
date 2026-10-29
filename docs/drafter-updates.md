@@ -9,16 +9,18 @@ updated drafter weights without a restart.
 
 ## Summary
 
-Recovery status, 27 October 2026: **no domain-adaptation serving verdict yet**.
+Recovery status, 29 October 2026: **no domain-adaptation serving verdict yet**.
 The four-step fine-tune smoke trained and exported correctly; its original
 scientific loss-improvement gate remains failed. Full trace generation failed
-before generation and is now resubmitted in a fresh recovery directory.
+before generation. The first recovery also stopped during pool preparation on
+colliding prompt IDs from repeated FinePDFs source IDs; a content-aware identity
+fix is validated, and a fresh frozen-source replacement is being staged.
 
 | Part | Evidence | Verdict / next step |
 | --- | --- | --- |
 | Fine-tune/export infrastructure | job 3737459: 4 real optimizer steps, export tensors/logits equal on reload | Infrastructure passes; this tiny smoke establishes no adaptation benefit |
 | Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
-| Domain pools and traces | 3722013 failed on duplicate source-ID tuple ordering; replacement 3769227 queued | Duplicate-ID handling and source-shard attribution fixed; regenerate in a fresh directory |
+| Domain pools and traces | 3722013 failed on duplicate source-ID tuple ordering; replacement 3769227 failed on a separate prompt-ID collision | Heap ordering/shard attribution fixed first; prompt IDs now also include content digests. All overlap gates retained. |
 | Adaptation curves / serving | 19 original finite 384-step configurations, then selected paired serving checks | Await traces; no implementation recommendation before substantial repeatable serving gain |
 | Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
 
@@ -248,7 +250,7 @@ another run's patched source or wandb stub.
 | 3722022 | live swap smoke, e10 → e3 → e10, chat C=32 and summarization C=64 | ok (above) |
 | 3725574 | fine-tune smoke: 4 steps from e10 on the smoke traces (`adapt-smoke.yaml`) | failed after 50 s: submitted without `EAGLE_CUDA_DEVICES=0,1,2,3`, so ranks 1-3 had no GPU (the submitter now refuses this, a2dbf52) |
 | 3737459 | fine-tune smoke, resubmitted with 4 GPUs | 4 steps and export/reload pass; exit 3 solely because the four-step training-loss gate failed; original scientific result preserved |
-| 3769227 | fresh full pools/traces after deterministic duplicate-ID fix | queued, normal partition; `recovery-20261027/data` |
+| 3769227 | fresh full pools/traces after deterministic heap fix | failed after 409 s: distinct FinePDFs chunks shared source-only prompt IDs; no target generation/training began |
 
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,

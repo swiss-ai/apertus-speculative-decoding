@@ -240,12 +240,19 @@ def summarization_candidates(
                     if not scores or sum(scores) / len(scores) < 2.5:
                         continue
                     candidates.add(rank(f"summ:{doc['id']}"), {**doc, "source_file": path.name})
+        # FinePDFs source IDs can refer to distinct text chunks. Preserve the
+        # source ID and shard, but identify a prompt by its actual UTF-8 content
+        # too. Identical prompts are still excluded by Guard before splitting.
         by_language[language] = [
             {
-                "id": f"summarization-{language}-{digest16(doc['id'])}",
+                "id": (
+                    f"summarization-{language}-{digest16(doc['id'])}-"
+                    f"{hashlib.sha256(doc['text'].encode('utf-8')).hexdigest()[:16]}"
+                ),
                 "source_id": doc["id"],
                 "source": f"finepdfs-edu/{language}",
                 "source_file": doc["source_file"],
+                "source_text_sha256": hashlib.sha256(doc["text"].encode("utf-8")).hexdigest(),
                 "language": language,
                 "messages": [
                     {"role": "user", "content": f"{SUMMARY_INSTRUCTION[language]}\n\n{doc['text']}"}
@@ -343,6 +350,10 @@ def main(argv: list[str] | None = None) -> None:
     guard = Guard(protected, protected_digests)
     manifest: dict[str, Any] = {
         "seed": SEED,
+        "summarization_prompt_identity": (
+            "language + sha256(source_id)[:16] + sha256(source_text_utf8)[:16]; "
+            "original source_id/source_file and full source_text_sha256 retained"
+        ),
         "target": contract["target"]["identity"],
         "renderer": "served chat template, enable_thinking=False, add_generation_prompt=True",
         "protected": {
