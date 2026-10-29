@@ -1,0 +1,49 @@
+{
+  "recorded_at": "2026-10-28T19:38:39.126541+00:00",
+  "source_revision": "4fcc4b507b4f5acd70d9849707ce0e264594c6c1",
+  "source_branch": "experiment/thinking-effort-phase2",
+  "remote_source_worktree": "/users/faruk_zahiragic/apertus-effort-phase2-4fcc4b50",
+  "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+  "supersedes": {
+    "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06",
+    "job_id": "3782804",
+    "status": "FAILED",
+    "error": "FileNotFoundError: asynchronous hidden-state writer had not finished before direct load_file",
+    "completed_research_heads": 0,
+    "completed_measurement_cells": 0
+  },
+  "fix": "wait for upstream FileTransfer completion lock and file availability, bounded to 120 seconds; apply to real feature preflight and corpus extraction",
+  "experiment_configuration_unchanged": true,
+  "reused_training_environment": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment",
+  "reused_qualification": {
+    "path": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d",
+    "job_id": "3782492",
+    "status": "COMPLETED"
+  },
+  "controller_argv": [
+    "/users/faruk_zahiragic/venvs/apertus-bench/bin/python",
+    "-u",
+    "-m",
+    "apertus_bench.effort_training_submit",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+    "--phase1-reference",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da",
+    "--upstream",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb",
+    "--qualification",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d",
+    "--qualification-job",
+    "3782492",
+    "--partition",
+    "debug",
+    "--time",
+    "01:30:00"
+  ],
+  "controller_environment": {
+    "PYTHONPATH": "/users/faruk_zahiragic/apertus-effort-phase2-4fcc4b50/src",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "controller_pid": 213262,
+  "validation": "5 upstream integration tests and 13 training/controller unit tests passed; delayed/no-lock, partial/locked, missing-file timeout scenarios verified"
+}

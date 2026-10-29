@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-10-29T09:23:32.771614+00:00",
+  "status": "off_protocol_rerun_required",
+  "prior_run_report_decision": "retain_shared",
+  "conclusion_for_frozen_plan": "not_yet_established",
+  "planned_optimizer": "AdamW",
+  "observed_optimizer": "Muon for 2D weights plus AdamW for other weights",
+  "planned_weight_decay": 0.01,
+  "observed_muon_weight_decay": 0.1,
+  "evidence": "completion-audits/20261029T092100Z/*/run.yaml and train-*.log; pinned Speculators OptimizerArgs.optimizer defaults to muon. The wrapper did not pass --optimizer.",
+  "scope_of_correction": "Pass and verify optimizer=adamw; retrain all four heads from the same released initialization and re-evaluate all three blocks. Reuse completed immutable corpus and feature caches.",
+  "prior_artifacts": "Preserved unchanged; existing comparison.json is a result of the Muon attempt and does not certify the frozen AdamW plan."
+}

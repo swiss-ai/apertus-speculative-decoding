@@ -1,0 +1,66 @@
+{
+  "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+  "final_report": "reports/phase2-20261029T035708570078Z/comparison.json",
+  "decision": "retain_shared",
+  "completed_at": "2026-10-29T03:57:11.591517+00:00",
+  "collected_at": "2026-10-29T09:21:00.187800+00:00",
+  "provenance_audit": "completion-audits/20261029T092100Z/audit.json",
+  "verification": {
+    "training_heads": 4,
+    "supervised_tokens_per_head": 1572864,
+    "epochs_per_head": 4,
+    "evaluation_blocks": 3,
+    "evaluation_cells": 45,
+    "successful_requests": 2880,
+    "truncated_requests": 0,
+    "all_cell_and_cross_block_identities_match": true,
+    "report_json_matches_rendered_markdown": true,
+    "checkpoint_hashes_match_evaluated_heads": true
+  },
+  "specialist_vs_mixed": {
+    "low": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.08374552562559046,
+        0.04521922981465065,
+        0.009803145683484726
+      ],
+      "median_latency_reduction_vs_mixed": 0.04521922981465065,
+      "decode_cost_lower_by_block": [
+        true,
+        true,
+        false
+      ],
+      "passes_frozen_threshold": false
+    },
+    "medium": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.01617362922935972,
+        0.09431775502802153,
+        0.016259840464047826
+      ],
+      "median_latency_reduction_vs_mixed": 0.016259840464047826,
+      "decode_cost_lower_by_block": [
+        false,
+        true,
+        false
+      ],
+      "passes_frozen_threshold": false
+    },
+    "high": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.04476608678957972,
+        -0.01384023522225064,
+        -0.0485586204025672
+      ],
+      "median_latency_reduction_vs_mixed": -0.01384023522225064,
+      "decode_cost_lower_by_block": [
+        true,
+        false,
+        true
+      ],
+      "passes_frozen_threshold": false
+    }
+  },
+  "monitor_stopped": true,
+  "raw_result_index": "collection-manifest.json"
+}
