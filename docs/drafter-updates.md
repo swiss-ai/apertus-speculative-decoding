@@ -14,26 +14,31 @@ The four-step fine-tune smoke trained and exported correctly; its original
 scientific loss-improvement gate remains failed. Full trace generation failed
 before generation. The first recovery also stopped during pool preparation on
 colliding prompt IDs from repeated FinePDFs source IDs; a content-aware identity
-fix is validated, and a fresh frozen-source replacement is being staged.
+fix is validated. Fresh frozen-source replacement **3790165** is queued; no
+recovery training or serving measurements have run yet.
 
 | Part | Evidence | Verdict / next step |
 | --- | --- | --- |
 | Fine-tune/export infrastructure | job 3737459: 4 real optimizer steps, export tensors/logits equal on reload | Infrastructure passes; this tiny smoke establishes no adaptation benefit |
 | Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
-| Domain pools and traces | 3722013 failed on duplicate source-ID tuple ordering; replacement 3769227 failed on a separate prompt-ID collision | Heap ordering/shard attribution fixed first; prompt IDs now also include content digests. All overlap gates retained. |
+| Domain pools and traces | 3722013 failed on heap ties; 3769227 failed on prompt-ID collision; replacement 3790165 queued | Prompt IDs now include content digests while preserving source/shard lineage. All overlap gates retained. |
 | Adaptation curves / serving | 19 original finite 384-step configurations, then selected paired serving checks | Await traces; no implementation recommendation before substantial repeatable serving gain |
 | Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
 
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
 are retained. Recovery uses a lightweight detached controller on the cluster,
 not local Claude watchers. Its receipts and next action are at
-`spec-exp-data/drafter-updates/recovery-20261027/receipts/campaign.json`.
+`spec-exp-data/drafter-updates/recovery-20261029/receipts/campaign.json`.
 It submits one owned training job at a time and cannot create new variants.
-The [controller staging receipt](../results/8b/drafter-updates/recovery-20261027/controller-staging-621b2050.json)
+The [initial controller staging receipt](../results/8b/drafter-updates/recovery-20261027/controller-staging-621b2050.json)
 records the frozen code revision `621b2050`, all 162 verified source files,
 pre-registration before trace job 3769227 started, and the successful serving
-launcher preflight. The trace was still queued at the 19:17 UTC observation;
-the full EAGLE workflow is staged, not scientifically completed.
+launcher preflight. The [replacement staging receipt](../results/8b/drafter-updates/recovery-20261029/controller-staging-b58ee54a.json)
+records source `b58ee54a` on task branch `drafter-updates`, all 162 verified source
+files, the unchanged original policy hash, and job 3790165 pending at 10:04 UTC
+on 29 October. The [unaltered failed-attempt capsule](../results/8b/drafter-updates/recovery-20261029/failed-trace-3769227/artifact-manifest.json)
+retains logs, exact launch/resolved environment, image digest and target contract.
+The full EAGLE workflow is staged, not scientifically completed.
 
 ## Method
 
@@ -251,6 +256,7 @@ another run's patched source or wandb stub.
 | 3725574 | fine-tune smoke: 4 steps from e10 on the smoke traces (`adapt-smoke.yaml`) | failed after 50 s: submitted without `EAGLE_CUDA_DEVICES=0,1,2,3`, so ranks 1-3 had no GPU (the submitter now refuses this, a2dbf52) |
 | 3737459 | fine-tune smoke, resubmitted with 4 GPUs | 4 steps and export/reload pass; exit 3 solely because the four-step training-loss gate failed; original scientific result preserved |
 | 3769227 | fresh full pools/traces after deterministic heap fix | failed after 409 s: distinct FinePDFs chunks shared source-only prompt IDs; no target generation/training began |
+| 3790165 | content-aware summarization prompt IDs; full original pools/traces, frozen source b58ee54a | queued normal, 3 h, 4 GPUs; fresh `recovery-20261029/data` |
 
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,
@@ -268,6 +274,8 @@ process identity and replaces only the trace-waiting controller under a separate
 replacement lock. All historical raw scientific artifacts remain unchanged.
 
 Results/root:
-`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261027`.
-Controller: `receipts/start-controller.sh`; log: `receipts/controller.log`.
+`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029`.
+Controller: `receipts/start-controller-b58ee54a9ffe.sh`; log: `receipts/controller.log`.
+The previous `recovery-20261027` tree and frozen source remain intact. The new
+receipt retains both trace job IDs, including the failed attempt's compute cost.
 No previous raw run, trained head, generated corpus or comparison is overwritten.
