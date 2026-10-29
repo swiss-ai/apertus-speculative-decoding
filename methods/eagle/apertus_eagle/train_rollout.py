@@ -541,10 +541,26 @@ def _probe_param(draft) -> Any:
     return draft.fc.weight.detach().float().clone()
 
 
+def set_blas_backend() -> str | None:
+    """Opt-in ``EAGLE_BLAS_BACKEND`` (e.g. ``cublas``), applied before any matmul.
+
+    PyTorch keeps the CUDA names on ROCm: ``cublas`` selects rocBLAS and
+    ``cublaslt`` hipBLASLt. In the v0.31 ROCm image on Beverin hipBLASLt made
+    some matmuls ~100x slower (DSpark 70B Beverin runs); rocBLAS fixed it.
+    """
+    backend = os.environ.get("EAGLE_BLAS_BACKEND") or None
+    if backend:
+        import torch
+
+        torch.backends.cuda.preferred_blas_library(backend)
+    return backend
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     torchspec_root = _prepare_imports()
     import torch
 
+    blas_backend = set_blas_backend()
     ranks = Ranks()
     ranks.setup()
 
@@ -651,6 +667,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "torchspec_revision": _git_revision(torchspec_root),
         "harness_revision": _git_revision(REPO_ROOT),
         "torch": torch.__version__,
+        "torch_hip": getattr(torch.version, "hip", None),
+        "blas_backend": {
+            "requested": blas_backend,
+            "active": str(torch.backends.cuda.preferred_blas_library()),
+        },
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else device_name(),
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
     }
