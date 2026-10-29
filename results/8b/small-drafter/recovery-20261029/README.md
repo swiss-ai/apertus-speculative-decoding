@@ -38,3 +38,35 @@ After a/b, the fixed-k strict review runs automatically on CPU: repeatable >=10%
 throughput plus >=10% mean TPOT or request-latency benefit, with the same metric
 in both repeats and explicit TTFT/tail tradeoffs. A 5% G3 pass alone is not an
 implementation endorsement. No depth grid or training extension is added.
+
+Active chain: **3790212 → 3790216 → 3790218 → 3790219**, submitted from
+branch `small-drafter`, revision `fb8f5c79`. At the submission snapshot, training
+is pending Priority and the three downstream allocations are pending Dependency.
+The 28 focused recovery tests, Ruff and generated-script syntax checks pass.
+All 66 frozen source files and seven training source files match their recorded
+hashes. The strict review helper retains SHA-256
+`7d9157c1ddb8d2fbeedcd3b0cc649df8ac4bc2882f7882f20763c11feae85ac2`.
+
+The private snapshot suffix and target contract both identify revision
+`a411d838600baf0e3635a3daf66fb7c55fc97bb6`. The shared target config hash was
+checked during preparation and equals the contract:
+`391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686`.
+Actual full target/tokenizer/drafter/container hashes remain pending the
+allocated gate; this is not a claim that they have already passed.
+
+Cluster root:
+`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter`.
+Initializer: `drafters/dspark-e10-trunc-l1-shared-verifier-20261029/`.
+Training: `runs/depth-l1-warm-recovery-20261029/`.
+Campaign: `campaigns/depth-recovery-20261029-auto-v1/`.
+The pre-training gate writes
+`runs/depth-l1-warm-recovery-20261029/provenance/warm-start-3790212.json`.
+Final raw science: `b/decision.json` under the campaign; final implementation
+review: `strict-review/final-review.json` and `.md`. Both are automatic and
+write-once. Infrastructure or correctness failures stop the chain without
+becoming a negative scientific result.
+
+`submission-3790212.tar.gz` preserves exact scripts, environments, source manifest,
+initializer configs/rebinding report, target contract and queue/identity proof.
+Archive SHA-256:
+`f13e1b3258595c09917ee14fffdeddf409d80be2b9fc5a9e8eb7e4419f117e59`.

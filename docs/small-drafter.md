@@ -9,18 +9,20 @@ on the same data, is the existing 1-layer reference
 ([system-optimizations-8b.md](system-optimizations-8b.md), "EAGLE at
 epoch 10").
 
-Status 2026-10-27: phase A is complete. The five-layer 6,200-step control
-finished (3722176, validation EAL 4.630); the one-layer launch (3722177)
-failed before training on conflicting CLI flags. Fixed in `70710111` and
-requeued as **3769226** in a fresh run directory. Automatic afterok continuation
-is queued: **3769355** validates training and calibrated correctness, then
-**3769356/3769357** run the counterbalanced serving comparisons and final gates.
+Status 2026-10-29: phase A and the five-layer 6,200-step control are complete
+(3722176, validation EAL 4.630). One-layer jobs 3722177 and 3769226 both failed
+before training: conflicting CLI flags, then an inaccessible verifier path
+embedded in the warm-start config. The latter is repaired by changing only that
+path in a fresh initializer with the same physical drafter weights. New training
+**3790212** first validates target/initializer/container hashes inside its allocation.
+The afterok chain **3790216 → 3790218 → 3790219** performs validation/correctness,
+the counterbalanced serving comparisons and automatic strict CPU review.
 The comparison remains **incomplete**, with no serving recommendation. A future
 5% G3 pass is a scientific result only; implementation evidence still requires
 the separate fixed-k strict review (10% repeatable throughput plus latency gains,
 with absolute TTFT/tail costs). Recovered
-evidence, source hashes and job/dependency receipts are in
-[`results/8b/small-drafter/recovery-20261027/`](../results/8b/small-drafter/recovery-20261027/README.md).
+evidence, source hashes and current job/dependency receipts are in
+[`results/8b/small-drafter/recovery-20261029/`](../results/8b/small-drafter/recovery-20261029/README.md).
 
 ## Summary
 
@@ -210,10 +212,12 @@ new decision.
 | dataset prepare | 3721370 | 8B dataset, Yu's split verified |
 | `runs/depth-l5-scratch` | 3722176 | Completed 6,200 steps; validation EAL 4.630, accepted length 4.466. Training metrics, not serving acceptance. |
 | `runs/depth-l1-warm` | 3722177 | Failed before training: `--from-pretrained` conflicts with `--num-layers`; no checkpoint. |
-| `runs/depth-l1-warm-recovery-20261027` | 3769226 | Same one-layer initialization, data and 6,200-step schedule; fixed decoder-init flags; queued on normal, 2 nodes, 6 h. |
-| recovery validation/correctness | 3769355 | Afterok 3769226; checks exact training budget/recipe, config, source/target/checkpoint hashes and calibrated k7 correctness on a compute node. |
-| recovery comparison a | 3769356 | Afterok 3769355; original serving grid, full held-out prompt passes, two greedy captures per deployment. |
-| recovery comparison b and verdict | 3769357 | Afterok 3769356; counterbalanced arm order, per-configuration calibrated correctness and repeatable >=5% G3 gate; valid misses close negative. |
+| `runs/depth-l1-warm-recovery-20261027` | 3769226 | Failed before optimizer step 0: initializer embeds an inaccessible private verifier path; no trained checkpoint. |
+| first recovery continuation | 3769355/56/57 | Canceled after training failed; no benchmark measurements. Frozen source and receipts retained. |
+| `runs/depth-l1-warm-recovery-20261029` | 3790212 | Rebound verifier path only, same physical initializer weights; allocated full hash gate then unchanged 6,200-step recipe. Normal, 2 nodes, 6 h. |
+| recovery validation/correctness | 3790216 | Afterok 3790212; checkpoint/source/recipe and calibrated k7 correctness gates. |
+| recovery comparison a | 3790218 | Afterok 3790216; original serving grid and full held-out prompt passes, two captures per deployment. |
+| recovery comparison b and strict review | 3790219 | Afterok 3790218; counterbalanced measurements, calibrated correctness, original 5% G3 result, then automatic fixed-k >=10% throughput+latency implementation screen. |
 
 The first queued continuation (3769344/45/46) was canceled while still waiting
 on dependencies so the v2 jobs could use short, job-private pyxis overlay paths.
