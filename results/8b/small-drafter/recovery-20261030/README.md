@@ -95,3 +95,23 @@ The same home quota prevented standard Git-bundle upload under `~/.sml`
 are transferred through this workstream's scratch, under the same global
 `/tmp/apertus-recovery-20261027/sync.lock`. No other agents' home data or frozen
 overlays are removed or modified.
+
+## Active continuation after storage repair
+
+**3804151 → 3804152 → 3804153** reuses completed training 3790212.
+Source 296ed4f0 freezes the GPU-reversed four-config diagnostic and owned runtime
+storage. At the submission proof, validation is pending `QOSGrpNodeLimit` and
+the benchmarks are pending Dependency. Every benchmark remains conditional
+on an actual correctness pass; repeated numerical divergence stops the chain.
+
+Campaign: `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2`.
+The frozen helper and original numerical margins are unchanged. All 66 source
+files, the completed-training prerequisite and three generated job scripts
+were checked. The source/engine still requires the original image digest.
+`submission-3804151.tar.gz` has SHA-256
+`a7c6c6ba0b66fbc698eb23ab630ec7d6c327bafc7878932ecaf3729ecbae8b1a`.
+No new training, losslessness claim or throughput verdict is implied.
+
+While home remains over quota, the preserved `sync-through-scratch.sh` performs
+an incremental bundle transfer only for this worktree. Invoke it under the
+coordination lock: `flock /tmp/apertus-recovery-20261027/sync.lock bash results/8b/small-drafter/recovery-20261030/sync-through-scratch.sh`.

@@ -9,20 +9,22 @@ on the same data, is the existing 1-layer reference
 ([system-optimizations-8b.md](system-optimizations-8b.md), "EAGLE at
 epoch 10").
 
-Status 2026-10-29: phase A and the five-layer 6,200-step control are complete
-(3722176, validation EAL 4.630). One-layer jobs 3722177 and 3769226 both failed
-before training: conflicting CLI flags, then an inaccessible verifier path
-embedded in the warm-start config. The latter is repaired by changing only that
-path in a fresh initializer with the same physical drafter weights. New training
-**3790212** first validates target/initializer/container hashes inside its allocation.
-The afterok chain **3790216 → 3790218 → 3790219** performs validation/correctness,
-the counterbalanced serving comparisons and automatic strict CPU review.
-The comparison remains **incomplete**, with no serving recommendation. A future
-5% G3 pass is a scientific result only; implementation evidence still requires
-the separate fixed-k strict review (10% repeatable throughput plus latency gains,
-with absolute TTFT/tail costs). Recovered
-evidence, source hashes and current job/dependency receipts are in
-[`results/8b/small-drafter/recovery-20261029/`](../results/8b/small-drafter/recovery-20261029/README.md).
+Status 2026-10-30: both 6,200-step training runs are complete. Held-out
+trainer EAL is **3.520 for one layer versus 4.630 for five layers**; this is not
+a serving-speed result. Initial serving validation 3790216 completed its
+captures but exceeded the calibrated prefix/edit limits for both trained
+variants. Plain restart controls matched exactly. A protocol gap (same GPUs in
+both repeats) is being diagnosed with reversed GPU placement and an existing
+DSpark e10 reference, keeping the same prompts, image and numerical limits.
+
+The first diagnostic 3802723 failed before capture because the home quota
+prevented FlashInfer sampling-lock creation. Its logs are preserved. Private
+FlashInfer/usage storage now avoids home; **3804151 → 3804152 → 3804153** is the
+fresh validation and conditionally gated benchmark/strict-review chain. Training
+is not repeated. The result remains **incomplete, with no implementation
+recommendation**. The original 5% G3 gate and separate repeatable 10% fixed-k
+throughput-plus-latency implementation screen remain unchanged. Evidence and
+receipts are in [`recovery-20261030`](../results/8b/small-drafter/recovery-20261030/README.md).
 
 ## Summary
 
@@ -35,7 +37,7 @@ evidence, source hashes and current job/dependency receipts are in
 | ceiling: an N-layer drafter at the 5-layer acceptance, against DSpark e10's best k | 1 layer: +5.9% at C=64, +5.1% at C=128, +5.5% at C=256. 2 layers: +3.9-4.5%. 3 layers: +2.3-2.7%. |
 | break-even acceptance | 92-93% of the 5-layer acceptance for 1 layer (C=256: 3.49 at k=4 vs 3.78), 94% for 2 layers, 96-97% for 3 layers. |
 | untrained truncations (first N layers of e10) | 2.19 / 1.53 / 1.29 accepted tokens at k=7 for 3/2/1 layers vs 4.77: useless untrained, the warm start for training. |
-| gate G3 (>= 5% over DSpark e10's best fixed k at some C >= 128, same job) | No verdict yet: the control trained, but the one-layer run failed before training and its replacement is queued. The projected ceiling remains about +5.5%; it is not a measured gain. |
+| gate G3 (>= 5% over DSpark e10's best fixed k at some C >= 128, same job) | No throughput verdict: both models trained, but calibrated serving correctness blocked the grid. One GPU-counterbalanced reference diagnostic is pending. The projected +5.5% ceiling remains an estimate. |
 
 In the waste-profiling cost model (`apertus_bench.waste_report`, decode
 steps only, no prefill) the ceiling of a 1-layer drafter is +8.9-9.8% at
@@ -214,10 +216,11 @@ new decision.
 | `runs/depth-l1-warm` | 3722177 | Failed before training: `--from-pretrained` conflicts with `--num-layers`; no checkpoint. |
 | `runs/depth-l1-warm-recovery-20261027` | 3769226 | Failed before optimizer step 0: initializer embeds an inaccessible private verifier path; no trained checkpoint. |
 | first recovery continuation | 3769355/56/57 | Canceled after training failed; no benchmark measurements. Frozen source and receipts retained. |
-| `runs/depth-l1-warm-recovery-20261029` | 3790212 | Rebound verifier path only, same physical initializer weights; allocated full hash gate then unchanged 6,200-step recipe. Normal, 2 nodes, 6 h. |
-| recovery validation/correctness | 3790216 | Afterok 3790212; checkpoint/source/recipe and calibrated k7 correctness gates. |
-| recovery comparison a | 3790218 | Afterok 3790216; original serving grid and full held-out prompt passes, two captures per deployment. |
-| recovery comparison b and strict review | 3790219 | Afterok 3790218; counterbalanced measurements, calibrated correctness, original 5% G3 result, then automatic fixed-k >=10% throughput+latency implementation screen. |
+| `runs/depth-l1-warm-recovery-20261029` | 3790212 | Completed 6,200 steps in 2 h 25 m; held-out EAL 3.520, accepted-length metric 3.352. Weights and full provenance retained. |
+| recovery validation/correctness | 3790216 | Passed preflight and completed captures, then failed calibrated prefix/edit limits. Raw evidence retained. |
+| original recovery benchmarks | 3790218/19 | Canceled after correctness failure; no throughput measurements. |
+| first GPU-counterbalanced diagnostic | 3802723 | Preflight passed; all servers failed at FlashInfer cache lock with EDQUOT before capture. Dependent 3802725/26 canceled. |
+| private-cache validation and gated benchmarks | 3804151/52/53 | Same trained weights, pinned image/flags/prompts/limits, reversed physical GPU roles and existing e10 reference. Private runtime storage; no training rerun. |
 
 The first queued continuation (3769344/45/46) was canceled while still waiting
 on dependencies so the v2 jobs could use short, job-private pyxis overlay paths.
