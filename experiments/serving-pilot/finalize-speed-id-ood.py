@@ -3,13 +3,49 @@
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 import tarfile
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 
 def archive(root):
+    # Recheck identities after all timing windows, so hashing cannot perturb them.
+    profile = json.loads((root / "profile.json").read_text())
+    expected = json.loads((root / "preflight.json").read_text())
+    checks = [(Path(profile["runtime"]["image"]), expected["image_sha256"])]
+    for group, prefix in [
+        (expected["target_files"], profile["target"]["path"]),
+        (expected["drafter"]["files"], profile["drafter"]["path"]),
+    ]:
+        checks.extend((Path(prefix) / name, digest) for name, digest in group.items())
+    verified = []
+    for path, digest in checks:
+        hasher = hashlib.sha256()
+        with path.open("rb") as handle:
+            for block in iter(lambda: handle.read(4 * 1024 * 1024), b""):
+                hasher.update(block)
+        verified.append({"path": str(path), "expected": digest, "actual": hasher.hexdigest()})
+    passed = all(check["expected"] == check["actual"] for check in verified)
+    (root / "runtime-recheck.json").write_text(
+        json.dumps(
+            {
+                "verified_at": datetime.now(UTC).isoformat(),
+                "passed": passed,
+                "files": verified,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    if not passed:
+        raise RuntimeError("runtime identity changed; refuse to publish the comparison")
+    operation = root.parent / root.name.replace("id-ood-", "launch-")
+    shutil.copytree(operation, root / "launch")
+    for name in ("finalize-speed-id-ood.py", "report-speed-id-ood.py"):
+        shutil.copy2(Path(__file__).with_name(name), root / name)
     files = sorted(
         p
         for p in root.rglob("*")
@@ -43,6 +79,7 @@ def archive(root):
                     "preflight.json",
                     "profile.json",
                     "launch-manifest.json",
+                    "runtime-recheck.json",
                 }
             ],
         ),
