@@ -1,0 +1,99 @@
+{
+  "observed_at": "2026-10-30T13:33:04Z",
+  "host": "clariden-ln001",
+  "campaign": {
+    "workstream": "adaptation",
+    "job_ids": [
+      "3769227",
+      "3790165",
+      "3802584",
+      "3804324"
+    ],
+    "trace_job_ids": [
+      "3769227",
+      "3790165",
+      "3802584",
+      "3804324"
+    ],
+    "batches": {},
+    "created_at": "2026-10-30T13:30:09Z",
+    "pid": 36325,
+    "state": "waiting",
+    "current_job": "3804324",
+    "slurm_state": "PENDING",
+    "next_action": "Wait for trace generation, then the original bounded curves.",
+    "previous_campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030",
+    "reused_domains": [
+      "summarization",
+      "multilingual"
+    ],
+    "reuse_audit": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/data-reuse-audit.json",
+    "source_manifest": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/runtime/source-589ddd593f62/source-manifest.json",
+    "policy_sha256": "64c9844f6cd526e6c693f85a5f75cc0d5d7d3f605112b14c3ae1c70a969ef44c",
+    "short_overlay_root": "/iopsstor/scratch/cscs/faruk_zahiragic/t5-95973dac",
+    "updated_at": "2026-10-30T13:31:25Z"
+  },
+  "process_identity": "python3 -u -m apertus_eagle.adaptation_recovery --repo /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/runtime/source-589ddd593f62 --campaign-root /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache --trace-job 3804324 --run-id recovery-20261030-cache --poll-seconds 120 ",
+  "process_cwd": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/runtime/source-589ddd593f62",
+  "source_revision": "589ddd593f62255f9217c1b40e5502808cc7bb94",
+  "source_task_branch": "drafter-updates",
+  "source_manifest_sha256": "eb4156c6ba35ba861b587f18e0e0cd546064bd656a5764b5dd3e13b749cacd8b",
+  "source_files_verified": 163,
+  "registration": {
+    "revision": "589ddd593f62255f9217c1b40e5502808cc7bb94",
+    "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/runtime/source-589ddd593f62",
+    "manifest_sha256": "eb4156c6ba35ba861b587f18e0e0cd546064bd656a5764b5dd3e13b749cacd8b",
+    "policy_sha256": "64c9844f6cd526e6c693f85a5f75cc0d5d7d3f605112b14c3ae1c70a969ef44c",
+    "registered_at": "2026-10-30T13:31:25Z",
+    "trace_observed": "3804324|PENDING|0:0\n"
+  },
+  "lineage": {
+    "task_branch": "drafter-updates",
+    "source_revision": "589ddd593f62255f9217c1b40e5502808cc7bb94",
+    "previous_campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030",
+    "previous_trace_jobs": [
+      "3769227",
+      "3790165",
+      "3802584"
+    ],
+    "original_registered_at": "2026-10-27T19:15:50Z",
+    "original_policy_sha256": "64c9844f6cd526e6c693f85a5f75cc0d5d7d3f605112b14c3ae1c70a969ef44c",
+    "generation_scope": "Chat only. Original pools and validated summarization/multilingual outputs unchanged.",
+    "reused_trace_job": "3790165",
+    "reused_domains": [
+      "summarization",
+      "multilingual"
+    ],
+    "repair": "Runtime cache paths only; HOME, engine parameters, target/drafter identities and gates unchanged. Image FlashInfer lock and vLLM config probes run before target load.",
+    "created_at": "2026-10-30T13:28:08Z"
+  },
+  "submission": {
+    "source_revision": "589ddd593f62255f9217c1b40e5502808cc7bb94",
+    "task_branch": "drafter-updates",
+    "argv": [
+      "bash",
+      "methods/eagle/launch/submit-node-command.sh",
+      "env",
+      "DRAFTER_DATA_ROOT=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/data",
+      "DRAFTER_DOMAINS=chat",
+      "bash",
+      "methods/eagle/launch/drafter-traces.sh"
+    ],
+    "cwd": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/runtime/source-589ddd593f62",
+    "job_id": "3804324",
+    "generation_domains": [
+      "chat"
+    ],
+    "reused_domains": [
+      "summarization",
+      "multilingual"
+    ],
+    "reuse_audit": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/data-reuse-audit.json",
+    "policy_sha256": "64c9844f6cd526e6c693f85a5f75cc0d5d7d3f605112b14c3ae1c70a969ef44c",
+    "cache_fix": "Owned scratch runtime caches with actual-image sampling.lock/config preflight before model load; HOME and engine settings unchanged."
+  },
+  "data_reuse_audit_sha256": "39bdc6b87eee4bca8dc9ac751d72a931fb808172728b4c80b0b61c408fcf4f9b",
+  "trace_status": "3804324 PENDING (QOSGrpNodeLimit)",
+  "runtime_cache_preflight_report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/data/traces/chat/runtime-cache-preflight.json",
+  "runtime_cache_preflight_exists": false
+}

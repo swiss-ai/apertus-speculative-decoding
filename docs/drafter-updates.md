@@ -19,9 +19,11 @@ each generated 8,192 pool plus 256 dev traces. Chat stopped because the JSONL
 reader split a Unicode NEL inside a valid JSON string. A physical-line reader
 fix passed its input preflight. Chat-only **3802584** then failed during engine
 startup: home quota (errno 122) prevented the FlashInfer sampling lock and
-vLLM usage-stat writes. Cache/config paths are being redirected to owned scratch,
+vLLM usage-stat writes. Cache/config paths now point into owned scratch,
 with actual image-runtime lock/config probes before model loading. The completed
 domains and all prompt pools remain unchanged and will be reused.
+Chat-only replacement **3804324** is queued; the actual-image cache preflight
+has not run yet.
 No recovery training or serving measurements have run yet.
 
 | Part | Evidence | Verdict / next step |
@@ -35,7 +37,7 @@ No recovery training or serving measurements have run yet.
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
 are retained. Recovery uses a lightweight detached controller on the cluster,
 not local Claude watchers. Its receipts and next action are at
-`spec-exp-data/drafter-updates/recovery-20261030/receipts/campaign.json`.
+`spec-exp-data/drafter-updates/recovery-20261030-cache/receipts/campaign.json`.
 It submits one owned training job at a time and cannot create new variants.
 The [initial controller staging receipt](../results/8b/drafter-updates/recovery-20261027/controller-staging-621b2050.json)
 records the frozen code revision `621b2050`, all 162 verified source files,
@@ -50,6 +52,11 @@ The [30 October staging receipt](../results/8b/drafter-updates/recovery-20261030
 pins source `e9cc4842` and the unchanged original scientific-policy hash. It
 records the completed-domain reuse audit, successful physical-line parsing of
 all 8,448 chat inputs on the cluster, and job 3802584 pending at 12:02 UTC.
+The [cache-recovery staging receipt](../results/8b/drafter-updates/recovery-20261030-cache/controller-staging-589ddd59.json)
+records source `589ddd59`, 163 verified source files and the unchanged scientific
+policy hash. Job 3804324 was pending at 13:33 UTC; its actual-image cache preflight
+is staged before target loading. The [preserved quota-failure capsule](../results/8b/drafter-updates/recovery-20261030-cache/failed-trace-3802584/artifact-manifest.json)
+retains the failed launch, logs, image/source hashes and environment.
 
 The [preserved 3790165 failure and reuse capsule](../results/8b/drafter-updates/recovery-20261030/failed-trace-3790165/artifact-manifest.json)
 contains losslessly compressed generation logs, original summaries and source/
@@ -287,6 +294,7 @@ and repeat. No shared home files or unrelated jobs are cleaned or modified.
 | 3769227 | fresh full pools/traces after deterministic heap fix | failed after 409 s: distinct FinePDFs chunks shared source-only prompt IDs; no target generation/training began |
 | 3790165 | content-aware summarization prompt IDs; full original pools/traces, frozen source b58ee54a | failed after 1,636 s: summarization/multilingual complete (8,192+256 each, no skips, 32 renderer checks); chat JSONL reader incorrectly split U+0085 inside prompt text |
 | 3802584 | physical-line JSONL reader; chat only; source e9cc4842 | failed after 150 s during engine startup: FlashInfer sampling.lock and vLLM usage-stat writes hit home quota (errno 122); no chat output |
+| 3804324 | scratch-cache wrapper and actual image lock/config probes; chat only; source 589ddd59 | queued normal, 3 h, 4 GPUs; validated completed domains reused |
 
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,
@@ -304,9 +312,9 @@ process identity and replaces only the trace-waiting controller under a separate
 replacement lock. All historical raw scientific artifacts remain unchanged.
 
 Results/root:
-`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030`.
-Controller: `receipts/start-controller-e9cc4842dc59.sh`; log: `receipts/controller.log`.
-Both previous recovery trees and frozen sources remain intact. The current
+`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`.
+Controller: `receipts/start-controller-589ddd593f62.sh`; log: `receipts/controller.log`.
+Previous recovery trees and frozen sources remain intact. The current
 receipt retains all trace job IDs and their compute cost. Completed traces are
 linked for read-only reuse; only chat has a fresh generation output directory.
 No previous raw run, trained head, generated corpus or comparison is overwritten.
