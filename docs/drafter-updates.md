@@ -9,19 +9,22 @@ updated drafter weights without a restart.
 
 ## Summary
 
-Recovery status, 29 October 2026: **no domain-adaptation serving verdict yet**.
+Recovery status, 30 October 2026: **no domain-adaptation serving verdict yet**.
 The four-step fine-tune smoke trained and exported correctly; its original
 scientific loss-improvement gate remains failed. Full trace generation failed
 before generation. The first recovery also stopped during pool preparation on
 colliding prompt IDs from repeated FinePDFs source IDs; a content-aware identity
-fix is validated. Fresh frozen-source replacement **3790165** is queued; no
-recovery training or serving measurements have run yet.
+fix passed in **3790165**: all pools validate, and summarization/multilingual
+each generated 8,192 pool plus 256 dev traces. Chat stopped because the JSONL
+reader split a Unicode NEL inside a valid JSON string. A physical-line reader
+fix is validated; the completed domains will be reused and only chat regenerated.
+No recovery training or serving measurements have run yet.
 
 | Part | Evidence | Verdict / next step |
 | --- | --- | --- |
 | Fine-tune/export infrastructure | job 3737459: 4 real optimizer steps, export tensors/logits equal on reload | Infrastructure passes; this tiny smoke establishes no adaptation benefit |
 | Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
-| Domain pools and traces | 3722013 failed on heap ties; 3769227 failed on prompt-ID collision; replacement 3790165 queued | Prompt IDs now include content digests while preserving source/shard lineage. All overlap gates retained. |
+| Domain pools and traces | 3790165: all pools validate; summarization/multilingual traces complete; chat hit a JSONL Unicode-separator reader bug | Verified completed-domain hashes and renderer parity; reuse those traces, regenerate chat only. All overlap gates retained. |
 | Adaptation curves / serving | 19 original finite 384-step configurations, then selected paired serving checks | Await traces; no implementation recommendation before substantial repeatable serving gain |
 | Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
 
@@ -256,7 +259,7 @@ another run's patched source or wandb stub.
 | 3725574 | fine-tune smoke: 4 steps from e10 on the smoke traces (`adapt-smoke.yaml`) | failed after 50 s: submitted without `EAGLE_CUDA_DEVICES=0,1,2,3`, so ranks 1-3 had no GPU (the submitter now refuses this, a2dbf52) |
 | 3737459 | fine-tune smoke, resubmitted with 4 GPUs | 4 steps and export/reload pass; exit 3 solely because the four-step training-loss gate failed; original scientific result preserved |
 | 3769227 | fresh full pools/traces after deterministic heap fix | failed after 409 s: distinct FinePDFs chunks shared source-only prompt IDs; no target generation/training began |
-| 3790165 | content-aware summarization prompt IDs; full original pools/traces, frozen source b58ee54a | queued normal, 3 h, 4 GPUs; fresh `recovery-20261029/data` |
+| 3790165 | content-aware summarization prompt IDs; full original pools/traces, frozen source b58ee54a | failed after 1,636 s: summarization/multilingual complete (8,192+256 each, no skips, 32 renderer checks); chat JSONL reader incorrectly split U+0085 inside prompt text |
 
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,

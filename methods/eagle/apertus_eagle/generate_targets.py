@@ -56,6 +56,27 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    """Read physical JSONL records, preserving Unicode separators inside strings.
+
+    str.splitlines() also splits U+0085/U+2028/U+2029, all legal JSON string
+    content. Text-file iteration follows physical newline records instead.
+    """
+    rows = []
+    with path.open(encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, 1):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise ValueError(f"Invalid JSONL at {path}:{line_number}: {error.msg}") from error
+            if not isinstance(row, dict):
+                raise ValueError(f"Expected a JSON object at {path}:{line_number}")
+            rows.append(row)
+    return rows
+
+
 def prompt_messages(row: dict[str, Any]) -> list[dict[str, Any]]:
     """Messages before the final assistant turn, developer spans removed."""
     messages = list(row.get("messages") or row.get("conversations") or [])
@@ -94,6 +115,17 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--top-k", type=int, default=-1)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args(argv)
+    # Validate every input and require fresh destinations before loading a GPU
+    # model. Never overwrite generated traces from an earlier attempt.
+    inputs = [(path, read_jsonl(path)) for path in args.input]
+    if len({path.name for path, _rows in inputs}) != len(inputs):
+        raise ValueError("Input basenames must be unique within one generation deployment")
+    for path in [
+        args.output_dir / "generation-summary.json",
+        *[args.output_dir / path.name for path, _rows in inputs],
+    ]:
+        if path.exists():
+            raise FileExistsError(f"Refusing to overwrite generation artifact: {path}")
     policy = dict(GENERATION_POLICY)
     if args.temperature > 0:
         policy.update(
@@ -135,8 +167,7 @@ def main(argv: list[str] | None = None) -> None:
 
     render_checked = 0
     render_failures: list[dict[str, Any]] = []
-    for input_path in args.input:
-        rows = [json.loads(line) for line in input_path.read_text().splitlines() if line.strip()]
+    for input_path, rows in inputs:
         if args.limit:
             rows = rows[: args.limit]
         prepared: list[tuple[dict[str, Any], list[dict[str, Any]], list[int]]] = []
