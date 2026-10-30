@@ -1,0 +1,23 @@
+{
+  "branch": "experiment/dspark-e10-id-ood-speed",
+  "revision": "f586455f",
+  "argv": [
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-speed-code/experiments/serving-pilot/speed-id-ood.py",
+    "--pilot",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+    "--workloads",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-speed-code/workloads/8b/speed-input-20261030",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-speed-code/results/8b/speed/id-ood-20261030-c",
+    "--gpu",
+    "1"
+  ],
+  "gpu_index": 1,
+  "slurm_job_id": "3791982",
+  "slurm_step_id": "9",
+  "node": "nid007257",
+  "gpu_inventory": "index, uuid, name, memory.used [MiB], clocks.current.sm [MHz], power.limit [W]\n0, GPU-7491873d-218a-3734-e8d5-db5bc0b4f295, NVIDIA GH200 120GB, 79987 MiB, 1980 MHz, 900.00 W\n1, GPU-906bc433-80b3-f9ea-34a5-55fd2e97b679, NVIDIA GH200 120GB, 3 MiB, 345 MHz, 900.00 W\n2, GPU-bfa9d4a8-0ae5-18aa-66c8-05be023b6df3, NVIDIA GH200 120GB, 3 MiB, 345 MHz, 900.00 W\n3, GPU-fe63e1aa-6d12-4d00-b695-401a21285632, NVIDIA GH200 120GB, 3 MiB, 345 MHz, 900.00 W\n",
+  "pilot": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+  "design": "three paired deployment repeats on one GPU; AB, BA, AB",
+  "unit": "deployment pair, all on one physical node; not independent nodes"
+}
