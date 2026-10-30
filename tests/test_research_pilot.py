@@ -171,6 +171,28 @@ def test_prepare_uses_real_launchers_and_freezes_inputs(prepared):
         pilot.prepare(args)
 
 
+def test_prepare_preserves_native_bootstrap_override(prepared, tmp_path):
+    _, _, args = prepared
+    args.output = tmp_path / "corrected-bootstrap"
+    args.opentela_bootstrap_addr = (
+        "/ip4/148.187.108.177/tcp/43905/p2p/QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z"
+    )
+    pilot.prepare(args)
+    renderer = pilot.read_json(args.output / "rendered/arguments.json")
+    index = renderer.index("--opentela-bootstrap-addr")
+    assert renderer[index + 1] == args.opentela_bootstrap_addr
+    assert (
+        pilot.read_json(args.output / "profile.json")["deployment"]["opentela_bootstrap_addr"]
+        == args.opentela_bootstrap_addr
+    )
+    pilot.verify_manifest(args.output, "launch-manifest.json")
+    args.opentela_bootstrap_addr += ";echo unwanted"
+    args.output = tmp_path / "invalid-bootstrap"
+    with pytest.raises(ValueError, match="multiaddress"):
+        pilot.prepare(args)
+    assert not args.output.exists()
+
+
 def test_profile_rejects_shared_ids_and_incompatible_heads(prepared):
     run, profile, _ = prepared
     spec = yaml.safe_load(profile.read_text())
@@ -537,8 +559,7 @@ def test_gateway_key_selects_platform_store_without_exporting_secret(
 
     monkeypatch.setattr(pilot, "command", retrieve)
     assert (
-        validation.gateway_key(run, "CSCS_SERVING_API", platform)
-        == f"stored-{platform}-test-key"
+        validation.gateway_key(run, "CSCS_SERVING_API", platform) == f"stored-{platform}-test-key"
     )
     assert "CSCS_SERVING_API" not in validation.os.environ
     dep = pilot.read_json(run / "deployment.json")

@@ -319,6 +319,11 @@ def validate_drafter(spec: dict[str, Any], *, full: bool) -> dict:
 
 def prepare(args: argparse.Namespace) -> Path:
     spec = load_profile(args.profile, platform=args.platform)
+    bootstrap = getattr(args, "opentela_bootstrap_addr", None)
+    if bootstrap:
+        if not re.fullmatch(r"/ip4/[0-9.]+/tcp/[0-9]+/p2p/[A-Za-z0-9]+", bootstrap):
+            raise ValueError("expected one OpenTela /ip4/.../tcp/.../p2p/... multiaddress")
+        spec["deployment"]["opentela_bootstrap_addr"] = bootstrap
     for name in ("partition", "time"):
         if getattr(args, name, None):
             spec["deployment"][name] = getattr(args, name)
@@ -462,6 +467,8 @@ def prepare(args: argparse.Namespace) -> Path:
         ]
         if spec["deployment"]["platform"] == "dev":
             argv.append("--dev")
+        if spec["deployment"].get("opentela_bootstrap_addr"):
+            argv += ["--opentela-bootstrap-addr", spec["deployment"]["opentela_bootstrap_addr"]]
         write_json(
             output / "launch.json",
             {
@@ -758,6 +765,10 @@ def parser() -> argparse.ArgumentParser:
     prep.add_argument("--model-suffix", default="")
     prep.add_argument("--partition")
     prep.add_argument("--time")
+    prep.add_argument(
+        "--opentela-bootstrap-addr",
+        help="pass the verified bootstrap identity to Model Launch's native override",
+    )
     prep.add_argument("--output", type=Path)
     prep.add_argument("--qualification", type=Path, help="passing development qualification report")
     for name in ("submit", "preflight", "status", "collect", "stop"):
