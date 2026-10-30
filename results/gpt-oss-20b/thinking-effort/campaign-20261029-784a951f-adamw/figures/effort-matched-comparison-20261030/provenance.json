@@ -1,0 +1,93 @@
+{
+  "created_at": "2026-10-30T10:43:56.988340+00:00",
+  "argv": [
+    "tools/plot-thinking-effort.py",
+    "--phase1-report",
+    "/home/projects/apertus-speculative-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/reports/phase1-20261027T185227817834Z/comparison.json",
+    "--phase2-report",
+    "results/gpt-oss-20b/thinking-effort/campaign-20261029-784a951f-adamw/reports/phase2-20261030T021802940285Z/comparison.json",
+    "--phase1-lock",
+    "/home/projects/apertus-speculative-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/preflight/inputs/lock.json",
+    "--phase2-lock",
+    "results/gpt-oss-20b/thinking-effort/campaign-20261029-784a951f-adamw/inputs/lock.json",
+    "--output",
+    "results/gpt-oss-20b/thinking-effort/campaign-20261029-784a951f-adamw/figures/effort-matched-comparison-20261030"
+  ],
+  "source_revision": "0395502c4a23146ba8730039562b585f383ecf03",
+  "matplotlib_version": "3.11.1",
+  "sources": {
+    "phase1_report": {
+      "source_path": "/home/projects/apertus-speculative-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/reports/phase1-20261027T185227817834Z/comparison.json",
+      "copy": "sources/phase1-report.json",
+      "sha256": "a62298399ba8743c6b9012fa654c6c918301ddab4a144420fe94fcb1a8904d55"
+    },
+    "phase2_report": {
+      "source_path": "/home/projects/apertus-speculative-decoding-effort-phase2/results/gpt-oss-20b/thinking-effort/campaign-20261029-784a951f-adamw/reports/phase2-20261030T021802940285Z/comparison.json",
+      "copy": "sources/phase2-report.json",
+      "sha256": "d1350fa1cbbb621fa72c49b7574cfd7dd6405a3e56d09a906df4fa5ded4027cc"
+    },
+    "phase1_lock": {
+      "source_path": "/home/projects/apertus-speculative-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/preflight/inputs/lock.json",
+      "copy": "sources/phase1-lock.json",
+      "sha256": "14e595f6e139372e455ad19d1d6d8a182248b2a95a9ca9d4d4dbfd7e914f1157"
+    },
+    "phase2_lock": {
+      "source_path": "/home/projects/apertus-speculative-decoding-effort-phase2/results/gpt-oss-20b/thinking-effort/campaign-20261029-784a951f-adamw/inputs/lock.json",
+      "copy": "sources/phase2-lock.json",
+      "sha256": "8552b39287270dafd99e94ef25add80f20e80e44b0ad4d6fa119abe588e2299a"
+    }
+  },
+  "target_sha256": "aa2967c3b5305107a6c95005a49eaa78914687f8023f5195ac535ead5fe83ba9",
+  "corpus_sha256": "2de28059c090564565802207d20f879a557113a7290a23155a607573df86800d",
+  "data_rows": 54,
+  "comparison_scope": "At each effort: vanilla, that effort's FT head, and mixed FT only.",
+  "matched_head_mapping": {
+    "low": "low",
+    "medium": "medium",
+    "high": "high"
+  },
+  "repeats": 3,
+  "requests_per_workload_effort_head_repeat": 32,
+  "aggregation": "Median of three per-block metrics, stratified by workload and effort.",
+  "e2e_speedup": "plain stratum p50 latency / drafter stratum p50 latency, same phase/block/effort",
+  "decode_speedup": "plain stratum decode ms/token / drafter stratum decode ms/token; same phase/block/effort",
+  "cross_phase_limit": "Default is contextual Phase 1 data; not a contemporaneous paired test against fine-tunes.",
+  "files": {
+    "plot-data.csv": {
+      "sha256": "32aa1c1468dbd7ba85a38a37d500b87c602ee86ca8da79733e3829c008826928",
+      "bytes": 9863
+    },
+    "plot-thinking-effort.py": {
+      "sha256": "20ac8444fc6cb9ad888758fc5a508098be3fbd48c86e1a9b075ed4b4f8a227bb",
+      "bytes": 11366
+    },
+    "sources/phase1-lock.json": {
+      "sha256": "14e595f6e139372e455ad19d1d6d8a182248b2a95a9ca9d4d4dbfd7e914f1157",
+      "bytes": 9391
+    },
+    "sources/phase1-report.json": {
+      "sha256": "a62298399ba8743c6b9012fa654c6c918301ddab4a144420fe94fcb1a8904d55",
+      "bytes": 27803
+    },
+    "sources/phase2-lock.json": {
+      "sha256": "8552b39287270dafd99e94ef25add80f20e80e44b0ad4d6fa119abe588e2299a",
+      "bytes": 9413
+    },
+    "sources/phase2-report.json": {
+      "sha256": "d1350fa1cbbb621fa72c49b7574cfd7dd6405a3e56d09a906df4fa5ded4027cc",
+      "bytes": 68934
+    },
+    "workload-effort-comparison.pdf": {
+      "sha256": "12cf09146394544acd66e8f6f2ca077bd2ee4001dc59eac29a7c555295f0a79d",
+      "bytes": 58362
+    },
+    "workload-effort-comparison.png": {
+      "sha256": "7ec908f00700591bcc84f2a229f6c2ad214f942ac1ea147fb932b0c113d5657f",
+      "bytes": 352498
+    },
+    "workload-effort-comparison.svg": {
+      "sha256": "08af8884280a614592b9082e4c8d307da2fdee90937bb23873184f9a424748b0",
+      "bytes": 183631
+    }
+  }
+}
