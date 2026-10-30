@@ -1,100 +1,107 @@
 # Final-checkpoint 8B serving-layout campaign
 
-Status on 2026-10-27: original finished arms are recovered; affected TP4 and P/D
-arms need fresh measurements. The campaign is **not scientifically complete**.
-The bounded recovery controller stops on failed infrastructure/request/health
-gates and records measurement completion separately from scientific review.
+Status on 2026-10-30: all three affected TP4 k7 comparisons are recovered and
+pass their infrastructure, provenance, counter and request gates. Thinking-on
+P/D completed every intended measurement, with two cells rejected by the
+unchanged 99% request-success rule. The original TP2DP2 k3/k5 and thinking-off
+P/D k3 comparisons continue independently. Scientific implementation promotion
+remains unestablished: most configurations have one deployment, without the
+protocol's repeated confirmation and calibrated per-layout correctness evidence.
 
-## What the completed runs establish
+## Current TP4 verdict
 
-These are deployment-level screening measurements, generally one launch per
-setting. Request counts are not independent deployment repeats. A gain below
-10% is not a reason to implement another serving configuration; even a larger
-screening gain needs matched confirmation and operational checks. The existing
-protocol's calibrated correctness controls have not been run for every layout,
-so throughput results do not establish output equivalence.
+TP4 speculation has substantial load-specific screening gains. At C1024,
+DSpark-off produces 20.4k tok/s OPB and 22.3–22.6k Arena-Hard (1.44–1.60x
+paired plain); EAGLE produces 21.4k and 23.0k (1.45–1.50x); DSpark-on
+produces 26.9k and 27.8–28.0k (2.22–2.64x). The same settings regress at
+C128: Arena-Hard throughput falls 35–45% for DSpark-off, about 28% for
+EAGLE and 35–42% for DSpark-on. EAGLE's 6% OPB C128 gain is a small effect.
+These results support keeping load sensitivity explicit, not a blanket setting.
 
-- DP4 is the current strong high-load candidate. At concurrency 1024,
-  thinking-off DSpark k3 produced 29,598 tok/s on held-out OPB and
-  37,830–38,105 tok/s on Arena-Hard, versus 25,236 and 29,055–30,632 tok/s
-  for its same-job plain baseline. EAGLE k3 produced 29,843 and
-  37,388–37,772 tok/s, versus 25,279 and 28,768–30,731 tok/s. These
-  are substantial descriptive gains, not yet a repeated deployment estimate.
-- Recovered EAGLE k5 TP4 (3737762) is load-sensitive: at concurrency 1024,
-  21,819 tok/s OPB and 24,520–25,419 tok/s Arena-Hard, versus
-  12,452 and 13,620–13,962 tok/s plain (1.75–1.87x). At concurrency
-  128 it gives 13,471 tok/s OPB versus 14,118 plain, and only
-  11,263–12,229 tok/s Arena-Hard versus 17,390–18,559 plain. The
-  34–35% Arena regressions rule out enabling this setting at every load.
-  These TP4 absolute high-load rates are also below DP4's rates, measured
-  in different allocations; a large ratio against plain TP4 is not a reason
-  to prefer TP4 over DP4.
-- Thinking-on DP4 DSpark k3 produced 45,841 tok/s OPB and
-  51,517–51,939 tok/s Arena-Hard at concurrency 1024, versus 31,980
-  and 34,158–34,860 tok/s plain. k7 was slower there (43,163 and
-  45,622–46,231 tok/s). The original TP4 k7 arm crashed; it is not a
-  completed high-load comparison.
-- No new P/D verdict exists: original thinking-on plain DP4 completed, but
-  both P/D arms failed before they could serve. A dependency failure is not
-  evidence of a disaggregation performance loss or gain.
+The gains have material memory costs. The table shows OPB at C1024 (thinking
+prompts for DSpark-on), one paired deployment per arm. Resident memory is the
+sampled sum across all four GPUs, including reserved pools. Logical KV tokens
+represent one TP4 engine pool; they are not multiplied by four TP shards.
 
-Numbers above are read from immutable `summary.json` cells beneath
-`results/8b/sweeps/`. Arena clean and contaminated strata are shown as ranges,
-not merged with an unweighted mean. Their labels and raw rows remain separate.
-Derived recovery analysis retains source-file hashes and quality checks.
+| TP4 arm | Plain → spec tok/s | p95 E2E seconds | Logical KV tokens | Mean resident GiB/node |
+|---|---:|---:|---:|---:|
+| DSpark off k7 | 12,719 → 20, 379 | 62.0 → 47.8 | 1,936,080 → 1,438,768 | 289.8 → 361.9 |
+| EAGLE k7 | 14,305 → 21,400 | 56.3 → 42.8 | 1,936,080 → 1,863,840 | 289.9 → 359.4 |
+| DSpark on k7 | 12,107 → 26,908 | 151.4 → 68.3 | 1,936,080 → 1,438,768 | 290.0 → 362.0 |
 
-## Recovered failures and the repair
+At these cells, speculative execution uses roughly 69.5–72.0GiB more resident
+memory per node than its matched plain deployment. DSpark has 25.7% less
+logical KV capacity; EAGLE has 3.7% less. The 0.7 GPU memory-utilization setting
+is a KV planning budget, not a hard total-process resident-memory cap. Request
+latency and natural-EOS output volumes must be read alongside throughput;
+full absolute metrics, scopes and losing strata are in the strict review files.
 
-1. EAGLE k7 TP4 (3738048) ran out of CUDA memory: a 5.52 GiB allocation
-   could not fit in 4.23 GiB free; PyTorch reported 9.16 GiB reserved but
-   unallocated. The engine-dead messages were downstream symptoms.
-2. Thinking-on DSpark k7 TP4 (3721142) likewise failed a 7.40 GiB
-   allocation with 7.19 GiB free and 8.23 GiB reserved but unallocated.
-3. DSpark-off k7 TP4 (3737433) never measured its speculative arm. Its plain
-   baseline slowed to 2,017 tok/s at C128 and 839 tok/s at C1024, with
-   only 74.9% successful C1024 requests, before the job timed out. Its
-   ratios cannot be used. The old intended retry was never submitted.
-4. Thinking-on P/D (3721143) used an incomplete NIXL 1.5.0 installation:
-   `nixl_meta_utils.py`, `nixl/__init__.py` and `nixl/_api.py` were absent.
-   The connector therefore reported NIXL unavailable. The repair installs
-   the original exact NIXL and CUDA13 aarch64 CPython3.12 wheel versions
-   in a fresh campaign-owned prefix, with wheel and installed-file hashes;
-   it does not alter the shared installation.
+Historical DP4 data remains strong context: thinking-off k3 yields about 29.6k
+OPB and 37.8–38.1k Arena-Hard tok/s; thinking-on DSpark k3 yields 45.8k
+and 51.5–51.9k at C1024. Those are different configurations/allocations, so they
+are descriptive context rather than a controlled layout effect. Assess TP4
+against this absolute node-performance frontier before proposing deployment.
 
-TP4 k7 retries use `gpu_memory_utilization=0.7` and
-`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False` on **both** the plain
-and speculative arms, retaining normal custom all-reduce and CUDA graphs. The original budget was 0.8. That reserves about
-9.5 GiB more headroom per 95 GiB GPU and reduces available KV capacity;
-actual advertised KV-cache tokens, preemptions and latency must be compared.
-This is a deployment tradeoff, not an identical-capacity rerun. Context length
-32768, sequence capacity 1024, and batched tokens 16384 are retained.
-A short allocated-node C1024 stress/import preflight precedes the full retries;
-its short-output timing is not a final workload performance result.
+Recovered EAGLE k5 TP4 (3737762) also crossed over: 1.75–1.87x plain at
+C1024, but 34–35% Arena-Hard regressions at C128. It was collected without a
+rerun. Earlier valid DP4/TP4 arms and failed attempts remain preserved.
 
-The first recovery preflight (3769354, 2026-10-28) failed before readiness:
-its checker named an absent connector module, and expandable-segment CUDA graph
-buffers failed `cudaIpcGetMemHandle` in all three TP4 arms. No stress/timing
-cells were produced. Controller-v2 corrects the factory import and explicitly
-disables expandable segments; the lower matched memory budget remains. Failed
-v1 provenance is preserved. Fresh preflight3782518 must establish compatibility
-before any full comparison continues.
+## Thinking-on P/D verdict
 
-## Bounded remaining comparisons and k selection
+NIXL now serves correctly, and all 63 intended cells were produced. At C1024,
+plain 1-prefill/3-decode P/D is 18–30% slower than same-job plain DP4. Adding
+DSpark k3 improves P/D itself 26–30%, but versus plain DP4 the eligible clean
+Arena-Hard gain is only 3.8%, while OPB loses 8.9%. The contaminated C1024
+speculative point is rejected. No substantial high-load P/D deployment
+advantage is established by these comparisons.
 
-Recover all original DP4/TP4 finished arms rather than rerunning them. After
-the affected TP4 arms, run only the original `tp2dp2.yaml`, `think-pd.yaml`
-and `pd.yaml` workloads, models and algorithms. Retain the original TP2DP2
-k3/k5 finalists: DP4 supports k3 near saturation, while k5 remains competitive
-at lower loads and TP4 changes the crossover. There is no consistent reason
-to add k7 to another grid. P/D retains the original k3 setting for its
-high-load comparison. Small k3/k5 differences select candidates for this
-bounded study; they do not create implementation recommendations.
+At C128, speculative P/D produces 25.5–28.4k tok/s (1.80–1.91x plain DP4),
+but this comparison includes the drafter's benefit; it does not isolate a P/D
+advantage over equivalent speculative DP4. Do not promote a small high-load
+gain or attribute speculation's benefit to disaggregation.
 
-Each original failed attempt remains intact. `source-collection.json` in
-`results/8b/layout-recovery-20261027/` records all 1,420 newly recovered
-files, original hashes and lossless stored representations. Fresh runs retain
-normal node-sweep cell metadata, requests, metrics, environment, container,
-patches, drafters and Slurm provenance. New run directories never overwrite
-an original cell. A final review must show absolute throughput/latency and
-KV capacity, rejected cells, losing strata, repeat uncertainty and operational
-cost before recommending deployment.
+Two cells fail reliability: plain P/D contaminated-thinking C256 has 1019/1032
+successes (98.740%); speculative P/D contaminated-thinking C1024 has 4085/4128
+(98.958%). Errors are upstream decode HTTP/connection-read failures through the
+proxy. They remain rejected and are not rerun for a pass. No benchmark accounting
+bug or proven compute-capacity cause was demonstrated. Separate home-quota
+warnings arose in background usage-reporting threads; no causal link to request
+failures is claimed. P/D counters cover the first decode instance only; the
+report never extrapolates its preemptions into whole-node totals.
+
+## Recovery and provenance
+
+Original EAGLE/DSpark TP4 engine deaths were CUDA OOMs. Recovery reserves extra
+headroom with gpu_memory_utilization 0.7 on both paired arms, retaining context
+32768, max_num_seqs 1024 and batched tokens 16384. The first recovery preflight
+3769354 failed before readiness because its checker used the wrong connector
+module and expandable graph allocations failed cudaIpcGetMemHandle. Corrected
+preflight 3782518 passed with the pinned factory module and
+`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False`, retaining custom all-reduce
+and CUDA graphs. Full recovered jobs 3789188, 3798373 and 3800281 then passed.
+
+P/D 3800861 completed with the two strict reliability rejections above. The
+controller stopped as designed. Independent original layouts continue without
+promoting those false gates. A subsequent submission attempt hit home quota
+before sbatch; its files are preserved. Only owned patch/config runtime paths
+were moved to scratch for the fresh continuation; shared HOME/caches/installs
+and frozen engine source remain unchanged.
+
+The effective engine source is base efad15a1 plus source overlay SHA256
+51fdd333056fedaeafeb7cbc1df9c33bc71f24b84cdeb09e31bd98ca48ec9a8d;
+all 75 source hashes were verified. Every deployment retains image/checkpoint/
+corpus identity, launch command, source patch, environment, Slurm/node identity,
+requests and raw metric snapshots. V2 collection preserved 3.181GB original
+bytes as 1.098GB lossless stored artifacts with both hashes. No weights/corpora
+were duplicated. Do not sync/reset active source while the remaining jobs run.
+
+The strict CPU report in
+`results/8b/layout-recovery-20261030/completed-v2-review-v1/` covers 773 historical
+and recovered cells, 497 comparisons and 455 eligible screening pairs. Raw usage
+sums, metric continuity, matching corpus/generation/prompts and sampled resident
+memory are explicit. Output equivalence, deployment-level confidence intervals,
+open-loop capacity and load-generator sufficiency remain separate original
+scientific gates. Only substantial repeatable benefit warrants implementation.
+
+The current continuation, exact source/runtime freeze and remaining collection/
+review commands are in `results/8b/layout-recovery-20261030/README.md`.

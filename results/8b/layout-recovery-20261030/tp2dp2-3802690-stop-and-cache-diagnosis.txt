@@ -1,0 +1,50 @@
+{"cancelled_owned_job": "3802690", "reason": "Repeated FlashInfer HOME-cache quota failure before any measurement", "quota_error_examples": ["(Worker_TP1 pid=264136) ERROR 10-30 13:25:17 [multiproc_executor.py:1007] OSError: [Errno 122] Disk quota exceeded: '/users/faruk_zahiragic/.cache/flashinfer/0.6.13/90a/cached_ops/tmp/sampling.lock'", "(Worker_TP1 pid=264136) ERROR 10-30 13:25:17 [multiproc_executor.py:1007] OSError: [Errno 122] Disk quota exceeded: '/users/faruk_zahiragic/.cache/flashinfer/0.6.13/90a/cached_ops/tmp/sampling.lock'", "(Worker_TP0 pid=264134) ERROR 10-30 13:25:17 [multiproc_executor.py:1007] OSError: [Errno 122] Disk quota exceeded: '/users/faruk_zahiragic/.cache/flashinfer/0.6.13/90a/cached_ops/tmp/sampling.lock'"]}
+CACHE_SOURCE opt/venv/lib/python3.12/site-packages/flashinfer/jit/env.py 52 
+FLASHINFER_BASE_DIR: pathlib.Path = pathlib.Path(
+    os.getenv("FLASHINFER_WORKSPACE_BASE", pathlib.Path.home().as_posix())
+)
+
+FLASHINFER_CACHE_DIR: pathlib.Path = FLASHINFER_BASE_DIR / ".cache" / "flashinfer"
+_package_root: pathlib.Path = pathlib.Path(__file__).resolve().parents[1]
+CACHE_SOURCE opt/venv/lib/python3.12/site-packages/flashinfer/jit/env.py 55 )
+
+FLASHINFER_CACHE_DIR: pathlib.Path = FLASHINFER_BASE_DIR / ".cache" / "flashinfer"
+_package_root: pathlib.Path = pathlib.Path(__file__).resolve().parents[1]
+
+
+def _get_cubin_dir():
+CACHE_SOURCE opt/venv/lib/python3.12/site-packages/flashinfer/jit/env.py 63     Get the cubin directory path with the following priority:
+    1. flashinfer-cubin package if installed
+    2. Environment variable FLASHINFER_CUBIN_DIR
+    3. Default cache directory
+    """
+    # First check if flashinfer-cubin package is installed
+    if has_flashinfer_cubin():
+CACHE_SOURCE opt/venv/lib/python3.12/site-packages/flashinfer/jit/env.py 89 
+    # Then check environment variable
+    env_dir = os.getenv("FLASHINFER_CUBIN_DIR")
+    if env_dir:
+        return pathlib.Path(env_dir)
+
+    # Fall back to default cache directory
+CACHE_SOURCE opt/venv/lib/python3.12/site-packages/flashinfer/jit/env.py 94 
+    # Fall back to default cache directory
+    return FLASHINFER_CACHE_DIR / "cubins"
+
+
+FLASHINFER_CUBIN_DIR: pathlib.Path = _get_cubin_dir()
+
+CACHE_SOURCE opt/venv/lib/python3.12/site-packages/flashinfer/jit/env.py 97 
+
+FLASHINFER_CUBIN_DIR: pathlib.Path = _get_cubin_dir()
+
+
+def _get_aot_dir():
+    """
+CACHE_SOURCE opt/venv/lib/python3.12/site-packages/flashinfer/jit/env.py 144         for major, minor in sorted(compilation_context.TARGET_CUDA_ARCHS)
+    )
+    return FLASHINFER_CACHE_DIR / flashinfer_version / arch
+
+
+# use pathlib
+FLASHINFER_WORKSPACE_DIR: pathlib.Path = _get_workspace_dir_name()

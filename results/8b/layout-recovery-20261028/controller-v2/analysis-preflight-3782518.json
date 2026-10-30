@@ -1,0 +1,378 @@
+{
+  "rows": [
+    {
+      "stage": "preflight",
+      "run": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z",
+      "arm": "dspark-off-k7-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "summary": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/dspark-off-k7-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "summary_sha256": "a1ea5a45beba8c19bb43059d81157d90e259f5ac37f5bce161701b6b60788528",
+      "metadata": {
+        "workload_file_sha256": "186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b",
+        "cell": {
+          "workload": "opb",
+          "concurrency": 1024,
+          "requests": 1024,
+          "warmup_requests": 1024,
+          "repeat": 1,
+          "generation": {
+            "temperature": 0.0,
+            "top_p": 1.0,
+            "top_k": null,
+            "seed": 1,
+            "max_tokens": 128,
+            "ignore_eos": false
+          }
+        },
+        "extra": {
+          "deployment_id": "layout-recovery-preflight-3782518-dspark-off-k7-tp4",
+          "sweep_arm": "dspark-off-k7-tp4",
+          "max_num_batched_tokens": "16384",
+          "max_num_seqs": "1024",
+          "speculative_config": "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+          "engine": "{\"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.7, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 1024}",
+          "load_generator": "replica node (same container step)",
+          "dspark_checkpoint": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+          "checkpoint_sha256": "6b11d196606b1fad792247a2bcd9fe0255ea8bed2bb5463fd88a09092a394315"
+        }
+      },
+      "quality": {
+        "passed": true,
+        "errors": [],
+        "counter_delta": {
+          "enabled": true,
+          "drafts": 25353.0,
+          "draft_tokens": 177471.0,
+          "accepted_tokens": 100733.0,
+          "acceptance_rate": 0.5676025942266624,
+          "mean_acceptance_length": 4.9732181595866365,
+          "acceptance_rate_per_position": {
+            "0": 0.8512207628288565,
+            "1": 0.7253579458052302,
+            "2": 0.6151145821007376,
+            "3": 0.5335857689425314,
+            "4": 0.46755807991164755,
+            "5": 0.41233779039955826,
+            "6": 0.36804322959807517
+          }
+        },
+        "metadata_sha256": "23f59a4a3d15f31faeb1405f860fe302566a18ba796a4a312df4a77d541018d8",
+        "observability_limit": "Snapshots plus sampled generic counters cannot exclude every unsampled restart."
+      },
+      "throughput_tok_s": 10040.281876763449,
+      "successful": 1024,
+      "failed": 0,
+      "acceptance_length": 4.9732181595866365,
+      "latency_ms": {
+        "e2e": {
+          "count": 1024,
+          "mean": 7932.573646998776,
+          "p50": 8069.359598986921,
+          "p95": 11694.147235453418,
+          "p99": 12153.268091873324
+        },
+        "ttft": {
+          "count": 1024,
+          "mean": 4889.433886996244,
+          "p50": 4819.755587494001,
+          "p95": 9457.78585098742,
+          "p99": 9653.803320078878
+        },
+        "tpot": {
+          "count": 1024,
+          "mean": 25.65821376390669,
+          "p50": 21.60052164569112,
+          "p95": 43.92303002399656,
+          "p99": 56.545447614869346
+        },
+        "stream_event_gap": {
+          "count": 25316,
+          "mean": 118.21475543863568,
+          "p50": 128.8161139964359,
+          "p95": 178.39659075980308,
+          "p99": 302.8755331979482
+        }
+      },
+      "load": {
+        "samples": 10,
+        "scrape_errors": 0,
+        "duration_s": 10.975,
+        "kv_cache_size_tokens": 1438768,
+        "kv_cache_usage": {
+          "mean": 0.13627956693312873,
+          "p50": 0.16762645827860223,
+          "p95": 0.1798000353058754,
+          "max": 0.1798000353058754
+        },
+        "kv_cache_tokens_peak": 258691,
+        "seconds_kv_above_90pct": 0.0,
+        "running": {
+          "mean": 290.8,
+          "p50": 348.0,
+          "p95": 360.0,
+          "max": 360.0
+        },
+        "waiting": {
+          "mean": 370.7,
+          "p50": 459.0,
+          "p95": 672.0,
+          "max": 672.0
+        },
+        "preemptions": 0.0,
+        "prompt_tokens": 456835.0,
+        "generation_tokens": 117285.0
+      },
+      "completion_tokens": 124773,
+      "wall_seconds": 12.427240741992136,
+      "speedup_vs_matched_plain": 1.4371352423154862,
+      "plain_summary": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/plain-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "matched_generation_and_corpus": true
+    },
+    {
+      "stage": "preflight",
+      "run": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z",
+      "arm": "eagle-k7-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "summary": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/eagle-k7-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "summary_sha256": "1ea5c793d90c6561556bc78ec470fdd8a30b84c6edc9b4632cc116c1f68e13b2",
+      "metadata": {
+        "workload_file_sha256": "186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b",
+        "cell": {
+          "workload": "opb",
+          "concurrency": 1024,
+          "requests": 1024,
+          "warmup_requests": 1024,
+          "repeat": 1,
+          "generation": {
+            "temperature": 0.0,
+            "top_p": 1.0,
+            "top_k": null,
+            "seed": 1,
+            "max_tokens": 128,
+            "ignore_eos": false
+          }
+        },
+        "extra": {
+          "deployment_id": "layout-recovery-preflight-3782518-eagle-k7-tp4",
+          "sweep_arm": "eagle-k7-tp4",
+          "max_num_batched_tokens": "16384",
+          "max_num_seqs": "1024",
+          "speculative_config": "{\"draft_tensor_parallel_size\": 4, \"method\": \"eagle3\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se\", \"num_speculative_tokens\": 7}",
+          "engine": "{\"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.7, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 1024}",
+          "load_generator": "replica node (same container step)",
+          "eagle_head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+          "checkpoint_sha256": "d825649bc24cb6f028da2dd96aeff06180779dcdd79702682333af9c076c400a",
+          "target_model": "swiss-ai/Apertus-v1.5-8B",
+          "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+          "target_tensor_parallel_size": "4"
+        }
+      },
+      "quality": {
+        "passed": true,
+        "errors": [],
+        "counter_delta": {
+          "enabled": true,
+          "drafts": 25292.0,
+          "draft_tokens": 177044.0,
+          "accepted_tokens": 100807.0,
+          "acceptance_rate": 0.5693895302862565,
+          "mean_acceptance_length": 4.985726712003796,
+          "acceptance_rate_per_position": {
+            "0": 0.8382097105804207,
+            "1": 0.7064684485212716,
+            "2": 0.6076229637830144,
+            "3": 0.5338446939743793,
+            "4": 0.47481417048869207,
+            "5": 0.4309267752649059,
+            "6": 0.39383994939111183
+          }
+        },
+        "metadata_sha256": "70646075a59c007eea1dc6d8d907384a67a05f2861c0d80649f59f340a1ccd94",
+        "observability_limit": "Snapshots plus sampled generic counters cannot exclude every unsampled restart."
+      },
+      "throughput_tok_s": 9424.50434741639,
+      "successful": 1024,
+      "failed": 0,
+      "acceptance_length": 4.985726712003796,
+      "latency_ms": {
+        "e2e": {
+          "count": 1024,
+          "mean": 9107.133436063406,
+          "p50": 9437.153355494956,
+          "p95": 12463.782229248318,
+          "p99": 12965.959672192985
+        },
+        "ttft": {
+          "count": 1024,
+          "mean": 4490.493548625353,
+          "p50": 4138.114899993525,
+          "p95": 8841.424606648798,
+          "p99": 9307.966687921435
+        },
+        "tpot": {
+          "count": 1024,
+          "mean": 38.92209165831795,
+          "p50": 33.12049035439414,
+          "p95": 66.1521944386736,
+          "p99": 84.73307703628483
+        },
+        "stream_event_gap": {
+          "count": 25270,
+          "mean": 174.54696386290286,
+          "p50": 196.2015835015336,
+          "p95": 301.0629884010996,
+          "p99": 994.46770865703
+        }
+      },
+      "load": {
+        "samples": 10,
+        "scrape_errors": 0,
+        "duration_s": 11.279,
+        "kv_cache_size_tokens": 1863840,
+        "kv_cache_usage": {
+          "mean": 0.1391891079844449,
+          "p50": 0.17627415464121077,
+          "p95": 0.21816652216089072,
+          "max": 0.21816652216089072
+        },
+        "kv_cache_tokens_peak": 406627,
+        "seconds_kv_above_90pct": 0.0,
+        "running": {
+          "mean": 393.8,
+          "p50": 518.0,
+          "p95": 572.0,
+          "max": 572.0
+        },
+        "waiting": {
+          "mean": 335.6,
+          "p50": 442.0,
+          "p95": 680.0,
+          "max": 680.0
+        },
+        "preemptions": 0.0,
+        "prompt_tokens": 476936.0,
+        "generation_tokens": 121724.0
+      },
+      "completion_tokens": 124644,
+      "wall_seconds": 13.225523105007596,
+      "speedup_vs_matched_plain": 1.3489947299560974,
+      "plain_summary": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/plain-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "matched_generation_and_corpus": true
+    },
+    {
+      "stage": "preflight",
+      "run": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z",
+      "arm": "plain-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "summary": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/plain-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "summary_sha256": "4d4a60e30e01335db93378df902a70374e39264de98587d0156a79a220aef7ba",
+      "metadata": {
+        "workload_file_sha256": "186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b",
+        "cell": {
+          "workload": "opb",
+          "concurrency": 1024,
+          "requests": 1024,
+          "warmup_requests": 1024,
+          "repeat": 1,
+          "generation": {
+            "temperature": 0.0,
+            "top_p": 1.0,
+            "top_k": null,
+            "seed": 1,
+            "max_tokens": 128,
+            "ignore_eos": false
+          }
+        },
+        "extra": {
+          "deployment_id": "layout-recovery-preflight-3782518-plain-tp4",
+          "sweep_arm": "plain-tp4",
+          "max_num_batched_tokens": "16384",
+          "max_num_seqs": "1024",
+          "engine": "{\"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.7, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 1024}",
+          "load_generator": "replica node (same container step)"
+        }
+      },
+      "quality": {
+        "passed": true,
+        "errors": [],
+        "counter_delta": {
+          "enabled": false
+        },
+        "metadata_sha256": "7fce2302055d2b8f175be68dda9fa0dd277001e077357de91b1979785be62f9a",
+        "observability_limit": "Snapshots plus sampled generic counters cannot exclude every unsampled restart."
+      },
+      "throughput_tok_s": 6986.316653529928,
+      "successful": 1024,
+      "failed": 0,
+      "acceptance_length": null,
+      "latency_ms": {
+        "e2e": {
+          "count": 1024,
+          "mean": 15946.758866514954,
+          "p50": 17604.386652004905,
+          "p95": 17745.00021327258,
+          "p99": 17756.4111021618
+        },
+        "ttft": {
+          "count": 1024,
+          "mean": 3374.7481465783835,
+          "p50": 3277.034735001507,
+          "p95": 6249.542197419214,
+          "p99": 6619.760352904559
+        },
+        "tpot": {
+          "count": 1024,
+          "mean": 105.38812081987064,
+          "p50": 101.95184275991463,
+          "p95": 129.52308255423313,
+          "p99": 173.1115080381278
+        },
+        "stream_event_gap": {
+          "count": 123138,
+          "mean": 76.1580508742135,
+          "p50": 72.74387350480538,
+          "p95": 179.12378218316007,
+          "p99": 244.91681489336776
+        }
+      },
+      "load": {
+        "samples": 11,
+        "scrape_errors": 1,
+        "duration_s": 11.618,
+        "kv_cache_size_tokens": 1936080,
+        "kv_cache_usage": {
+          "mean": 0.24433752753477725,
+          "p50": 0.2891226736306238,
+          "p95": 0.3379227132987339,
+          "max": 0.3379227132987339
+        },
+        "kv_cache_tokens_peak": 654245,
+        "seconds_kv_above_90pct": 0.0,
+        "running": {
+          "mean": 766.4545454545455,
+          "p50": 941.0,
+          "p95": 998.0,
+          "max": 998.0
+        },
+        "waiting": {
+          "mean": 202.1818181818182,
+          "p50": 57.0,
+          "p95": 541.0,
+          "max": 541.0
+        },
+        "preemptions": 0.0,
+        "prompt_tokens": 412132.0,
+        "generation_tokens": 104095.0
+      },
+      "completion_tokens": 124688,
+      "wall_seconds": 17.84745899500558,
+      "speedup_vs_matched_plain": 1.0,
+      "plain_summary": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/plain-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "matched_generation_and_corpus": true
+    }
+  ],
+  "claim_limit": "One paired deployment per configuration; descriptive screening, not statistical confirmation."
+}

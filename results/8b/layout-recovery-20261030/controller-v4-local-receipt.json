@@ -1,0 +1,131 @@
+{
+  "workstream": "layouts",
+  "state": "awaiting_cluster_jobs",
+  "job_ids": [
+    "3769354",
+    "3782518",
+    "3789188",
+    "3798373",
+    "3800281",
+    "3800861",
+    "3802690"
+  ],
+  "local_branch": "high-concurrency-8b",
+  "local_repo": "/home/projects/apertus-speculative-decoding-highconc",
+  "new_recovery_jobs_only": true,
+  "remote_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261030/controller-v4/state.json",
+  "job_id_schema": "Top-level job_ids mirrors stages[*].job_id; stages contain stage/output/spec/gate; scientific completion remains separate",
+  "artifact_paths": [
+    "results/8b/layout-recovery-20261027/source-collection.json",
+    "results/8b/layout-recovery-20261027/historical-analysis.json",
+    "docs/high-concurrency-8b.md",
+    "results/8b/layout-recovery-20261027/historical-review-v2/review.md",
+    "results/8b/layout-recovery-20261027/historical-review-v2/cells.csv",
+    "results/8b/layout-recovery-20261027/historical-review-v2/comparisons.csv",
+    "results/8b/layout-recovery-20261027/review-helper-v1/README.md",
+    "results/8b/layout-recovery-20261027/postprocessing-validation-v1.json",
+    "results/8b/layout-recovery-20261028/README.md",
+    "results/8b/layout-recovery-20261028/preflight3769354-diagnosis.json",
+    "results/8b/layout-recovery-20261028/failed-preflight3769354-collection.json",
+    "results/8b/layout-recovery-20261028/source-freeze-v2.json",
+    "results/8b/layout-recovery-20261028/controller-v2-first-observation.json",
+    "results/8b/layout-recovery-20261030/controller-v2-collection.json",
+    "results/8b/layout-recovery-20261030/completed-v2-findings.json",
+    "results/8b/layout-recovery-20261030/completed-v2-review-v1/review.md",
+    "results/8b/layout-recovery-20261030/completed-v2-review-v1/cells.csv",
+    "results/8b/layout-recovery-20261030/completed-v2-review-v1/comparisons.csv",
+    "results/8b/layout-recovery-20261030/continuation-freeze-v4.json",
+    "results/8b/layout-recovery-20261030/controller-v4-first-observation.json"
+  ],
+  "next_action": "Await3802690TP2DP2 then original PD-offk3 under private v4 controller. Keep strict99% rejected cells excluded; only independent request-reliability failures may permit next original layout. Infrastructure/provenance/counter failures stop. No valid-stage reruns.",
+  "scientific_completion": "pending_review_with_preserved_rejections",
+  "updated_at": "2026-10-30T12:18:29.630586+00:00",
+  "source_commit": "efad15a10609e615c5c8635be3c243d1ec5b9da7",
+  "dependency_manifest_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/nixl-manifest.json",
+  "dependency_site": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-layout-recovery-20261027-v1/site",
+  "source_freeze_invariant": "Engine source remains efad15a1+overlay51fdd333...; do not reset tracked changes or sync branches. Private v4 wrappers route only runtime paths to scratch.",
+  "controller_pid": 157983,
+  "remote_controller_host": "clariden1",
+  "remote_launch_receipt_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261030/controller-v4/launch-receipt.json",
+  "remote_log_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261030/controller-v4/controller.log",
+  "local_revision": "badb387073b587969ab4206f6e95a764821ebd1c",
+  "observed_job_states": {
+    "3769354": "FAILED",
+    "3782518": "COMPLETED",
+    "3789188": "COMPLETED",
+    "3798373": "COMPLETED",
+    "3800281": "COMPLETED",
+    "3800861": "COMPLETED",
+    "3802690": "RUNNING"
+  },
+  "continuation": "Read remote state and grow job IDs from its top-level job_ids. Do not alter remote HEAD/source efad15a1. On needs_attention inspect its failed stage and source logs; do not blindly restart/resubmit. On measurements_complete_pending_scientific_review collect each stage output with hashes/lossless gzip, compare matched plain/spec throughput+latency+KV capacity, apply protocol gates and only recommend substantial repeatable gains.",
+  "postprocessing_state": "ready_cpu_only",
+  "postprocessing_helper_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/review-helper-v1/review.py",
+  "postprocessing_instructions_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/review-helper-v1/README.md",
+  "postprocessing_manifest_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/review-helper-v1/manifest.sha256",
+  "historical_review_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/historical-review-v2",
+  "postprocessing_validation_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/postprocessing-validation-v1.json",
+  "postprocessing_scope": "Standalone immutable local helper; no remote source changes or new measurements. Explicit same-P/D and DP4 comparisons, absolute metrics, logical cache scopes, resident-memory coverage and unestablished scientific gates.",
+  "job_observation_timestamp": "2026-10-27T19:18:06Z",
+  "previous_controllers": [
+    {
+      "remote_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261027/controller-v1/state.json",
+      "controller_pid": 69249,
+      "job_ids": [
+        "3769354"
+      ],
+      "state": "needs_attention",
+      "slurm_state": "FAILED",
+      "local_artifact_root": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261027/controller-v1"
+    },
+    {
+      "remote_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/state.json",
+      "controller_pid": 136390,
+      "job_ids": [
+        "3782518",
+        "3789188",
+        "3798373",
+        "3800281",
+        "3800861"
+      ],
+      "state": "needs_attention",
+      "reason": "All intended measurements completed;2thinkingPDcells below unchanged99% success gate; preserved as rejected outcomes",
+      "local_artifact_root": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2"
+    },
+    {
+      "remote_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261030/controller-v3/state.json",
+      "controller_pid": 155310,
+      "job_ids": [],
+      "state": "submission_failed_before_sbatch",
+      "reason": "HOME quota blocked patch-overlay creation",
+      "local_artifact_root": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261030/controller-v3"
+    }
+  ],
+  "local_repair_commit": "aa398fbad2ad7d3f18325eadd41f54047361cbd8",
+  "source_overlay_sha256": "51fdd333056fedaeafeb7cbc1df9c33bc71f24b84cdeb09e31bd98ca48ec9a8d",
+  "remote_source_freeze_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261030/controller-v4/continuation-freeze-v4.json",
+  "remote_source_identity_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261030/controller-v4/expected-source-identity-v4.json",
+  "continuation_instructions_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261028/README.md",
+  "postprocessing_controller_state_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261030/controller-v4/state.json",
+  "preflight_gate": {
+    "job_id": "3782518",
+    "state": "COMPLETED",
+    "passed": true,
+    "successful_requests_per_tp4_arm": 1024,
+    "failed_requests_per_tp4_arm": 0,
+    "claim_limit": "Infrastructure/completeness gate; no proof of output equivalence or repeatable deployment benefit."
+  },
+  "current_job": "3802690",
+  "observed_at": "2026-10-29T13:26:38.239316+00:00",
+  "slurm_state": "PENDING",
+  "local_wrapper_commit": "358ea55d3ed98a1727370a483aca3bdb865b6939",
+  "local_bootstrap_commit": "f0369eb330cd7121e502d9cebd2530619c593337",
+  "runtime_artifacts_policy": "Only VLLM_PATCH_DIR, SML_ENV_DIR and VLLM_CONFIG_ROOT are routed under this controller scratch runtime; HOME/shared caches remain unchanged.",
+  "completed_measurement_review_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261030/completed-v2-review-v1",
+  "completed_findings_path": "/home/projects/apertus-speculative-decoding-highconc/results/8b/layout-recovery-20261030/completed-v2-findings.json",
+  "strict_rejected_cells": 2,
+  "remaining_original_stages": [
+    "tp2dp2",
+    "pd-off"
+  ]
+}
