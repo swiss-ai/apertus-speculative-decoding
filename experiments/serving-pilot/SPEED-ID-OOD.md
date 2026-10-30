@@ -50,6 +50,9 @@ Compare natural output lengths with the fixed-length check before interpreting
 a gain. Reject pairs with mismatched metadata, failed warmups, less than 99%
 request success, inactive speculation, counter resets or incorrect fixed lengths.
 The existing counter parser rejects decreases. The baseline must not speculate.
+After measurement, finalization rehashes the image, target assets and head against
+the preserved preflight identities. A mismatch blocks the downloadable result
+archive. Hashing runs on the allocated node after the timed cells finish.
 
 Report every paired speedup, geometric mean and exact percentile bootstrap 95%
 interval over the three deployment pairs, not over individual requests. A gain
