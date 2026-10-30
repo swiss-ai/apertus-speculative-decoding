@@ -17,7 +17,7 @@ def main():
     binary = "/capstor/store/cscs/swissai/infra01/opentela-share/dev/otela-arm64"
     cfg = args.output / "cfg.yaml"
     cfg.write_text(
-        'port: "18092"\np2p:\n  port: "18093"\nqueue:\n  port: "18094"\nlog:\n  level: debug\n'
+        'port: "18092"\np2p:\n  port: "18093"\nqueue:\n  port: "18094"\nloglevel: debug\n'
     )
     cmd = [
         binary,
