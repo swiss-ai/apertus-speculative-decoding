@@ -12,6 +12,10 @@ from pathlib import Path
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
+    parser.add_argument(
+        "--bootstrap-addr",
+        default="/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9",
+    )
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     binary = "/capstor/store/cscs/swissai/infra01/opentela-share/dev/otela-arm64"
@@ -34,7 +38,7 @@ def main():
         "--udpport",
         "59821",
         "--bootstrap.addr",
-        "/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9",
+        args.bootstrap_addr,
     ]
     tcp = {}
     for ip in ("148.187.108.177", "148.187.108.178"):
