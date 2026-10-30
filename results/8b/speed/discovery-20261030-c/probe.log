@@ -1,0 +1,138 @@
+2026-10-30T14:05:04.697+0100	[35mDEBUG[0m	cmd/start.go:28	Cleaning slate
+2026-10-30T14:05:04.843+0100	[34mINFO[0m	protocol/host.go:112	ephemeral-identity: using a fresh in-memory identity (not persisted)
+2026-10-30T14:05:04.862+0100	[33mWARN[0m	protocol/host.go:312	host is not *basichost.BasicHost; hole punching disabled
+2026-10-30T14:05:04.864+0100	[35mDEBUG[0m	common/filesystem.go:9	path does not exist: results/8b/speed/discovery-20261030-c/data/ocfcore/ocfcore.QmZSSxdiGb35Zzp93myG8QMSYyb5nf1M1edoDYqxgStUSb.db, skipping
+2026-10-30T14:05:04.864+0100	[35mDEBUG[0m	server/server.go:46	Wallet account not set, skipping wallet init
+2026-10-30T14:05:04.864+0100	[35mDEBUG[0m	protocol/crdt.go:45	Creating CRDT store, dbpath: results/8b/speed/discovery-20261030-c/data/ocfcore/ocfcore.QmZSSxdiGb35Zzp93myG8QMSYyb5nf1M1edoDYqxgStUSb.db
+2026-10-30T14:05:04.884+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z]
+2026-10-30T14:05:04.888+0100	[35mDEBUG[0m	protocol/host.go:323	Connected to peer: QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z  security=/tls/1.0.0  conns=1
+2026-10-30T14:05:04.888+0100	[35mDEBUG[0m	protocol/host.go:342	Adding minimal entry for new peer [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] on connect
+2026-10-30T14:05:04.889+0100	[35mDEBUG[0m	protocol/node_table.go:382	Rejecting peer [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z]: no valid build attestation (security.require_signed_binary=true)
+2026-10-30T14:05:07.891+0100	[35mDEBUG[0m	go-ds-crdt/migrations.go:165	Migration v0 to v1 finished (0 elements affected)
+2026-10-30T14:05:07.990+0100	[35mDEBUG[0m	go-ds-crdt/migrations.go:70	CRDT database format v1
+2026-10-30T14:05:07.990+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:342	crdt Datastore created. Number of heads: 0. Current max-height: 0. Dirty: false
+2026-10-30T14:05:07.990+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:598	store is marked clean. No need to repair
+2026-10-30T14:05:07.990+0100	[34mINFO[0m	protocol/node_table.go:599	Build attestation verified
+2026-10-30T14:05:08.165+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1420	processing generated block bafybeibi64rgtmgpssvmmczxtbdc3gw4jcgwfvf4tq3s3by42kvquouakq
+2026-10-30T14:05:08.166+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeibi64rgtmgpssvmmczxtbdc3gw4jcgwfvf4tq3s3by42kvquouakq (priority: 1)
+2026-10-30T14:05:08.166+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeibi64rgtmgpssvmmczxtbdc3gw4jcgwfvf4tq3s3by42kvquouakq (height: 1)
+2026-10-30T14:05:08.167+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeibi64rgtmgpssvmmczxtbdc3gw4jcgwfvf4tq3s3by42kvquouakq]
+2026-10-30T14:05:08.169+0100	[34mINFO[0m	server/server.go:149	Load balancing policy: random
+2026-10-30T14:05:08.169+0100	[35mDEBUG[0m	server/tracer.go:24	AXIOM_DATASET not set, tracing disabled
+2026-10-30T14:05:08.169+0100	[34mINFO[0m	server/server.go:357	Server started: id=QmZSSxdiGb35Zzp93myG8QMSYyb5nf1M1edoDYqxgStUSb bootstrap_connected=true
+2026-10-30T14:05:12.700+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:709	handleBlock: processing NEW block bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 via handleBranch
+[GIN] 2026/10/30 - 14:05:12 | 200 | 40.223µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:05:15.201+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:790	sendNewJobs: root priority fetch OK for bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 in 2.500169856s (prio=16)
+2026-10-30T14:05:15.201+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4]
+2026-10-30T14:05:15.201+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 elems=1 tombs=0 prio=16
+2026-10-30T14:05:15.201+0100	[35mDEBUG[0m	protocol/crdt.go:182	Adding peer: [QmeSj8YGWWrtv7qJTQnTyP6ux3aJyoCWLj2N6an5Wy9nKA] triggered by p2p hook
+2026-10-30T14:05:17.917+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeibi64rgtmgpssvmmczxtbdc3gw4jcgwfvf4tq3s3by42kvquouakq]
+2026-10-30T14:05:17.995+0100	[34mINFO[0m	protocol/host.go:824	Relay reservation on QmTnRyTRyUs2 succeeded
+[GIN] 2026/10/30 - 14:05:20 | 200 | 86.973µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:05:22.047+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (priority: 16)
+2026-10-30T14:05:22.109+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1420	processing generated block bafybeify7onn2m25x7prog3ohk37uw2mriffajhz6c6454gbymsm7yrwuu
+2026-10-30T14:05:22.109+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeihajnrlipe7sesnh35ym7zyxambxlr3ytsuivzqf3kid6nu3rcqqu]
+2026-10-30T14:05:22.115+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeify7onn2m25x7prog3ohk37uw2mriffajhz6c6454gbymsm7yrwuu (priority: 2)
+2026-10-30T14:05:22.117+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:91	replacing DAG head: bafybeibi64rgtmgpssvmmczxtbdc3gw4jcgwfvf4tq3s3by42kvquouakq -> bafybeify7onn2m25x7prog3ohk37uw2mriffajhz6c6454gbymsm7yrwuu (new height: 2)
+2026-10-30T14:05:22.118+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeihajnrlipe7sesnh35ym7zyxambxlr3ytsuivzqf3kid6nu3rcqqu elems=1 tombs=0 prio=15
+2026-10-30T14:05:22.120+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeify7onn2m25x7prog3ohk37uw2mriffajhz6c6454gbymsm7yrwuu]
+2026-10-30T14:05:22.120+0100	[35mDEBUG[0m	protocol/crdt.go:182	Adding peer: [QmT4iMREXyej8U6XW4K1q1PirUBcDGwvSrKdLxJ7zNut77] triggered by p2p hook
+2026-10-30T14:05:22.121+0100	[35mDEBUG[0m	protocol/registrar.go:282	Re-announced local services
+2026-10-30T14:05:22.121+0100	[34mINFO[0m	protocol/host.go:835	Registered relay peer QmTnRyTRyUs2 in CRDT
+2026-10-30T14:05:22.124+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeihajnrlipe7sesnh35ym7zyxambxlr3ytsuivzqf3kid6nu3rcqqu (priority: 15)
+2026-10-30T14:05:22.124+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeiaab3qviwjh6wf4ey4q662gvrvtfjpkonrmapxi4yhwqnqblx7xyi]
+2026-10-30T14:05:22.133+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeiaab3qviwjh6wf4ey4q662gvrvtfjpkonrmapxi4yhwqnqblx7xyi elems=1 tombs=0 prio=14
+2026-10-30T14:05:22.133+0100	[35mDEBUG[0m	protocol/crdt.go:182	Adding peer: [QmbSeCxUtbSk7rXnye9GrkkxjPSwNED48rx5C9f6YCaoxF] triggered by p2p hook
+2026-10-30T14:05:22.137+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeiaab3qviwjh6wf4ey4q662gvrvtfjpkonrmapxi4yhwqnqblx7xyi (priority: 14)
+2026-10-30T14:05:22.137+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeiauzs7w7vy3ot6ml23xtcojaavnlafhyyce43dof265grgczdsq2y]
+2026-10-30T14:05:22.155+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeiauzs7w7vy3ot6ml23xtcojaavnlafhyyce43dof265grgczdsq2y elems=1 tombs=0 prio=13
+2026-10-30T14:05:22.160+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeiauzs7w7vy3ot6ml23xtcojaavnlafhyyce43dof265grgczdsq2y (priority: 13)
+2026-10-30T14:05:22.160+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 2 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 2 children): [bafybeia46hn2nwpavgr3z4yytmwvlcwltoxxv4yiyg2sexvmbg6btunnom bafybeiepbuxjlw2ohzi2kzta5efsmlzg6cu7q7upjrrc5cifcdfhldt2ue]
+2026-10-30T14:05:22.174+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeia46hn2nwpavgr3z4yytmwvlcwltoxxv4yiyg2sexvmbg6btunnom elems=1 tombs=0 prio=1
+2026-10-30T14:05:22.175+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeiepbuxjlw2ohzi2kzta5efsmlzg6cu7q7upjrrc5cifcdfhldt2ue elems=1 tombs=0 prio=12
+2026-10-30T14:05:22.176+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeia46hn2nwpavgr3z4yytmwvlcwltoxxv4yiyg2sexvmbg6btunnom (priority: 1)
+2026-10-30T14:05:22.176+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (height: 16)
+2026-10-30T14:05:22.177+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeiepbuxjlw2ohzi2kzta5efsmlzg6cu7q7upjrrc5cifcdfhldt2ue (priority: 12)
+2026-10-30T14:05:22.178+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeiefl3qx7j7lco4aw5uvqthp3eiupoiu42b5k4qnhdpw5if4px2gky]
+2026-10-30T14:05:22.193+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeiefl3qx7j7lco4aw5uvqthp3eiupoiu42b5k4qnhdpw5if4px2gky elems=1 tombs=0 prio=11
+2026-10-30T14:05:22.195+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeiefl3qx7j7lco4aw5uvqthp3eiupoiu42b5k4qnhdpw5if4px2gky (priority: 11)
+2026-10-30T14:05:22.195+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 3 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 3 children): [bafybeibxxxf4oyddqyjthlfpo6cr7eopidvhziqbyyfe3urkbicmhq3mt4 bafybeicfk5s3zgwpk2abvny3pgujaen2ahzcfkfelndkbidcfs7e3piwom bafybeigw6qnwscjqx3qzi7anjouxonwjvuvzjbcjswymjh6dueba36vh7e]
+2026-10-30T14:05:22.214+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeicfk5s3zgwpk2abvny3pgujaen2ahzcfkfelndkbidcfs7e3piwom elems=1 tombs=0 prio=10
+2026-10-30T14:05:22.215+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeigw6qnwscjqx3qzi7anjouxonwjvuvzjbcjswymjh6dueba36vh7e elems=1 tombs=0 prio=10
+2026-10-30T14:05:22.215+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4]
+2026-10-30T14:05:22.216+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeibxxxf4oyddqyjthlfpo6cr7eopidvhziqbyyfe3urkbicmhq3mt4 elems=1 tombs=0 prio=2
+2026-10-30T14:05:22.217+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeicfk5s3zgwpk2abvny3pgujaen2ahzcfkfelndkbidcfs7e3piwom (priority: 10)
+2026-10-30T14:05:22.217+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeidmd3fgrfi3u7vknwnweq4o57g567mirwceq2ki2zvmzkhkdmxyla]
+2026-10-30T14:05:22.218+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeigw6qnwscjqx3qzi7anjouxonwjvuvzjbcjswymjh6dueba36vh7e (priority: 10)
+2026-10-30T14:05:22.218+0100	[35mDEBUG[0m	protocol/crdt.go:182	Adding peer: [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] triggered by p2p hook
+2026-10-30T14:05:22.218+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (height: 16)
+2026-10-30T14:05:22.220+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeibxxxf4oyddqyjthlfpo6cr7eopidvhziqbyyfe3urkbicmhq3mt4 (priority: 2)
+2026-10-30T14:05:22.220+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeic4rfz7iok4r3cgt4y6lfvdj73ctkcaqugskb54ryhjwlhx4plon4]
+2026-10-30T14:05:22.235+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeic4rfz7iok4r3cgt4y6lfvdj73ctkcaqugskb54ryhjwlhx4plon4 elems=1 tombs=0 prio=1
+2026-10-30T14:05:22.235+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeidmd3fgrfi3u7vknwnweq4o57g567mirwceq2ki2zvmzkhkdmxyla elems=1 tombs=0 prio=9
+2026-10-30T14:05:22.237+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeic4rfz7iok4r3cgt4y6lfvdj73ctkcaqugskb54ryhjwlhx4plon4 (priority: 1)
+2026-10-30T14:05:22.237+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (height: 16)
+2026-10-30T14:05:22.237+0100	[35mDEBUG[0m	protocol/crdt.go:185	Updating peer: [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] triggered by p2p hook
+2026-10-30T14:05:22.237+0100	[35mDEBUG[0m	protocol/node_table.go:422	Peer [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] has left, marking as LEFT in table
+2026-10-30T14:05:22.238+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeidmd3fgrfi3u7vknwnweq4o57g567mirwceq2ki2zvmzkhkdmxyla (priority: 9)
+2026-10-30T14:05:22.238+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeidhmi6qthzxnoat2zocdowz4uocnyovxp4asm4r46enm4newrt6de]
+2026-10-30T14:05:22.255+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeidhmi6qthzxnoat2zocdowz4uocnyovxp4asm4r46enm4newrt6de elems=1 tombs=0 prio=8
+2026-10-30T14:05:22.257+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeidhmi6qthzxnoat2zocdowz4uocnyovxp4asm4r46enm4newrt6de (priority: 8)
+2026-10-30T14:05:22.257+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeicv2xyx6uqz4wqmknbfj2tgfpbo4yhfgtlu4wv4tpz5s4okhxtwfe]
+2026-10-30T14:05:22.276+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeicv2xyx6uqz4wqmknbfj2tgfpbo4yhfgtlu4wv4tpz5s4okhxtwfe elems=1 tombs=0 prio=7
+2026-10-30T14:05:22.278+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeicv2xyx6uqz4wqmknbfj2tgfpbo4yhfgtlu4wv4tpz5s4okhxtwfe (priority: 7)
+2026-10-30T14:05:22.278+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeicdwu35sc7rp7zpmahg3y5e374bmr5blwmdmjw4mui2qf3xclxe6u]
+2026-10-30T14:05:22.297+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeicdwu35sc7rp7zpmahg3y5e374bmr5blwmdmjw4mui2qf3xclxe6u elems=1 tombs=0 prio=6
+2026-10-30T14:05:22.298+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeicdwu35sc7rp7zpmahg3y5e374bmr5blwmdmjw4mui2qf3xclxe6u (priority: 6)
+2026-10-30T14:05:22.298+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 2 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 2 children): [bafybeicavteyxndiqo25em4i2ni6bhweysqd6hvwvvorb6ylmdlvvid7bm bafybeihxhvk6ot4q7fy476ytgrlgsulysadrcz7tuwtadk6gn4ije5aegy]
+2026-10-30T14:05:22.318+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeihxhvk6ot4q7fy476ytgrlgsulysadrcz7tuwtadk6gn4ije5aegy elems=1 tombs=0 prio=5
+2026-10-30T14:05:22.318+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeicavteyxndiqo25em4i2ni6bhweysqd6hvwvvorb6ylmdlvvid7bm elems=1 tombs=0 prio=1
+2026-10-30T14:05:22.320+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeihxhvk6ot4q7fy476ytgrlgsulysadrcz7tuwtadk6gn4ije5aegy (priority: 5)
+2026-10-30T14:05:22.321+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeicavteyxndiqo25em4i2ni6bhweysqd6hvwvvorb6ylmdlvvid7bm (priority: 1)
+2026-10-30T14:05:22.321+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (height: 16)
+2026-10-30T14:05:22.321+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 2 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 2 children): [bafybeigkb73o7gxlbfazxhvvv5xqrktlronqan3sco7msvkazo4x3wwla4 bafybeihughuthaz6j6a2fuuc6yjccd3vmotybutaymno2yuiawltvd5gs4]
+2026-10-30T14:05:22.338+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeigkb73o7gxlbfazxhvvv5xqrktlronqan3sco7msvkazo4x3wwla4 elems=1 tombs=0 prio=4
+2026-10-30T14:05:22.339+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeihughuthaz6j6a2fuuc6yjccd3vmotybutaymno2yuiawltvd5gs4 elems=1 tombs=0 prio=2
+2026-10-30T14:05:22.340+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeigkb73o7gxlbfazxhvvv5xqrktlronqan3sco7msvkazo4x3wwla4 (priority: 4)
+2026-10-30T14:05:22.340+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeibzl4zntirv72kqoor56d5gtnl2lwsuqamodtf3b6eda4mxitbaoe]
+2026-10-30T14:05:22.341+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeihughuthaz6j6a2fuuc6yjccd3vmotybutaymno2yuiawltvd5gs4 (priority: 2)
+2026-10-30T14:05:22.341+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeidhq36iohagkv5nyolowps5jjy5xd7t3ovin3v3fshrvbes5pudhq]
+2026-10-30T14:05:22.359+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeidhq36iohagkv5nyolowps5jjy5xd7t3ovin3v3fshrvbes5pudhq elems=1 tombs=0 prio=1
+2026-10-30T14:05:22.359+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeibzl4zntirv72kqoor56d5gtnl2lwsuqamodtf3b6eda4mxitbaoe elems=1 tombs=0 prio=3
+2026-10-30T14:05:22.361+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeidhq36iohagkv5nyolowps5jjy5xd7t3ovin3v3fshrvbes5pudhq (priority: 1)
+2026-10-30T14:05:22.361+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (height: 16)
+2026-10-30T14:05:22.362+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeibzl4zntirv72kqoor56d5gtnl2lwsuqamodtf3b6eda4mxitbaoe (priority: 3)
+2026-10-30T14:05:22.362+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 2 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 2 children): [bafybeie3ih4c7r53gk6glgcbiba5bsmcgr4k3uevlfxnx4ucngou2ppr6a bafybeihxftvwsrgdie35sbwpghe6aem2ekkhln5awslxpvuae3btrgzhda]
+2026-10-30T14:05:22.379+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeie3ih4c7r53gk6glgcbiba5bsmcgr4k3uevlfxnx4ucngou2ppr6a elems=1 tombs=0 prio=2
+2026-10-30T14:05:22.380+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeihxftvwsrgdie35sbwpghe6aem2ekkhln5awslxpvuae3btrgzhda elems=1 tombs=0 prio=1
+2026-10-30T14:05:22.381+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeie3ih4c7r53gk6glgcbiba5bsmcgr4k3uevlfxnx4ucngou2ppr6a (priority: 2)
+2026-10-30T14:05:22.382+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:801	sendNewJobs: fetching 1 children for root=bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 rootPrio=16 (showing first 1 children): [bafybeia7ruu2ftpme6x6blusjr7xb5p5iurkerwxtxk52efz76tb3u2e3i]
+2026-10-30T14:05:22.382+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeihxftvwsrgdie35sbwpghe6aem2ekkhln5awslxpvuae3btrgzhda (priority: 1)
+2026-10-30T14:05:22.382+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (height: 16)
+2026-10-30T14:05:22.400+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:815	sendNewJobs: got delta for block=bafybeia7ruu2ftpme6x6blusjr7xb5p5iurkerwxtxk52efz76tb3u2e3i elems=1 tombs=0 prio=1
+2026-10-30T14:05:22.401+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeia7ruu2ftpme6x6blusjr7xb5p5iurkerwxtxk52efz76tb3u2e3i (priority: 1)
+2026-10-30T14:05:22.401+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 (height: 16)
+2026-10-30T14:05:22.452+0100	[35mDEBUG[0m	protocol/crdt.go:105	Updating peer: [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] triggered by msg received
+2026-10-30T14:05:22.452+0100	[35mDEBUG[0m	protocol/node_table.go:422	Peer [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] has left, marking as LEFT in table
+2026-10-30T14:05:22.990+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z]
+2026-10-30T14:05:22.990+0100	[34mINFO[0m	protocol/connectivity.go:94	Connectivity OK: bootstrap connected and relay reserved
+2026-10-30T14:05:27.162+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeify7onn2m25x7prog3ohk37uw2mriffajhz6c6454gbymsm7yrwuu]
+2026-10-30T14:05:27.895+0100	[35mDEBUG[0m	protocol/crdt.go:105	Updating peer: [QmZSSxdiGb35Zzp93myG8QMSYyb5nf1M1edoDYqxgStUSb] triggered by msg received
+[GIN] 2026/10/30 - 14:05:28 | 200 | 58.622µs |       127.0.0.1 | GET      "/v1/dnt/table"
+[GIN] 2026/10/30 - 14:05:36 | 200 | 64.158µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:05:37.779+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4]
+2026-10-30T14:05:38.171+0100	[35mDEBUG[0m	protocol/node_table.go:422	Peer [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] has left, marking as LEFT in table
+2026-10-30T14:05:38.171+0100	[35mDEBUG[0m	protocol/clock.go:90	Verification Summary: 1 alive peers, 0 unreachable peers
+2026-10-30T14:05:42.456+0100	[35mDEBUG[0m	protocol/crdt.go:105	Updating peer: [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] triggered by msg received
+2026-10-30T14:05:42.456+0100	[35mDEBUG[0m	protocol/node_table.go:422	Peer [QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z] has left, marking as LEFT in table
+[GIN] 2026/10/30 - 14:05:44 | 200 | 59.166µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:05:47.897+0100	[35mDEBUG[0m	protocol/crdt.go:105	Updating peer: [QmZSSxdiGb35Zzp93myG8QMSYyb5nf1M1edoDYqxgStUSb] triggered by msg received
+2026-10-30T14:05:50.004+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 bafybeify7onn2m25x7prog3ohk37uw2mriffajhz6c6454gbymsm7yrwuu]
+[GIN] 2026/10/30 - 14:05:52 | 200 | 83.773µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:05:52.720+0100	[34mINFO[0m	protocol/node_table.go:336	Leaving network
+2026-10-30T14:05:52.722+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1420	processing generated block bafybeifenplyvh7gle2apgvbi5zvm7dloh6i3dwrlfwdr5uryejbwnz4qa
+2026-10-30T14:05:52.723+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeifenplyvh7gle2apgvbi5zvm7dloh6i3dwrlfwdr5uryejbwnz4qa (priority: 17)
+2026-10-30T14:05:52.723+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:91	replacing DAG head: bafybeicajbmk6oli5j63xivhxgrtycmcfl4gjo5tkeqnlvbkkaryqt6me4 -> bafybeifenplyvh7gle2apgvbi5zvm7dloh6i3dwrlfwdr5uryejbwnz4qa (new height: 17)
+2026-10-30T14:05:52.724+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:91	replacing DAG head: bafybeify7onn2m25x7prog3ohk37uw2mriffajhz6c6454gbymsm7yrwuu -> bafybeifenplyvh7gle2apgvbi5zvm7dloh6i3dwrlfwdr5uryejbwnz4qa (new height: 17)
+2026-10-30T14:05:52.725+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeifenplyvh7gle2apgvbi5zvm7dloh6i3dwrlfwdr5uryejbwnz4qa]
+2026-10-30T14:05:52.991+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z]
