@@ -3,6 +3,11 @@
 # otherwise replace NCCL tuning supplied in the submit environment.
 set -euo pipefail
 . "${REPO_ROOT}/methods/dspark/beverin/env.sh"
+export BEVERIN_NUMERICAL_GUARD=1
+if [ -s "${DSPARK_DIR}/runs/${RUN_ID}/checkpoints/numerical-failure.json" ]; then
+  echo 'BEVERIN_NUMERICAL_FAILURE: refusing to restart a numerically failed run' >&2
+  exit 65
+fi
 [ -z "${BEVERIN_NCCL_PROTO:-}" ] || export NCCL_PROTO="${BEVERIN_NCCL_PROTO}"
 [ -z "${BEVERIN_NCCL_MIN_NCHANNELS:-}" ] || export NCCL_MIN_NCHANNELS="${BEVERIN_NCCL_MIN_NCHANNELS}"
 [ -z "${BEVERIN_NCCL_NCHANNELS_PER_NET_PEER:-}" ] || export NCCL_NCHANNELS_PER_NET_PEER="${BEVERIN_NCCL_NCHANNELS_PER_NET_PEER}"

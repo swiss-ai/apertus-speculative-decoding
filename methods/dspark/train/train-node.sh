@@ -189,6 +189,15 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS:-10}"); do
   kill "${monitor}" 2> /dev/null || true
   stamp "torchrun rc=${rc} (attempt ${attempt}) wall=$(( $(date +%s) - t0 ))s; checkpoints: $(ls "${CKPT}" 2> /dev/null | tail -3 | tr '\n' ' ')"
   grep -oE "val/eal_epoch=[0-9.]+" "${LOG}/train-${tag}-node${NODE_RANK}.log" | tail -3 | paste -sd" " || true
+  if [ "${BEVERIN_NUMERICAL_GUARD:-0}" = 1 ] && {
+    [ -s "${CKPT}/numerical-failure.json" ] ||
+    grep -qE 'BEVERIN_NUMERICAL_FAILURE|Final validation did not return finite loss and metrics' \
+      "${LOG}/train-${tag}-node0.log";
+  }; then
+    stamp 'BEVERIN_NUMERICAL_FAILURE: terminal failure; preserving checkpoint, no retry'
+    rc=65
+    break
+  fi
   if [ "${rc}" = 0 ]; then
     if [ "${BEVERIN_PILOT_RESUME:-0}" = 1 ] && [ "${attempt}" = 1 ]; then
       stamp "PILOT_RESUME: restarting trainer with extraction server kept up"

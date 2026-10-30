@@ -110,6 +110,11 @@ def install():
 
         install_single_epoch(Trainer, barrier, root_logger)
 
+    if os.environ.get("BEVERIN_NUMERICAL_GUARD", "0") == "1":
+        from numerical_guard import install as install_numerical_guard
+
+        install_numerical_guard(Trainer, torch)
+
     print("BEVERIN_HOOKS " + json.dumps({
         "reduce_dtype": reduce_dtype,
         "segment_steps": segment_steps,
@@ -117,4 +122,5 @@ def install():
         "profile_steps": profile_steps,
         "blas_backend": str(torch.backends.cuda.preferred_blas_library()),
         "single_epoch": os.environ.get("BEVERIN_SINGLE_EPOCH", "0"),
+        "numerical_guard": os.environ.get("BEVERIN_NUMERICAL_GUARD", "0"),
     }), flush=True)
