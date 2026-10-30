@@ -1,0 +1,109 @@
+{
+  "source_trace_job": "3790165",
+  "source_revision": "b58ee54a9ffefcd570b919b9ad750aada97c4d88",
+  "observed_at": "2026-10-30T11:54:34Z",
+  "pool_manifest_sha256": "400df5612af211b9438ec03af808638460ca6180c3b5f02a3bc62b1b859867bb",
+  "domains": {
+    "summarization": {
+      "validated": true,
+      "generation_summary_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/summarization/generation-summary.json",
+      "generation_summary_sha256": "a4eb0ea435bb68a94ee6e15c37bd0d3c0a38045c456d648a4ddf4efd74638f7e",
+      "render_parity": {
+        "checked": 32,
+        "failures": 0,
+        "rule": "LLM.chat prompt_token_ids == chat_template(tokenize=False)+encode(add_special_tokens=False)"
+      },
+      "splits": {
+        "dev": {
+          "rows": 256,
+          "input_sha256": "235ba248fbc9450b4d06434baad7bb5322f1b23fa6f1fcb88380fb8b26ae84ca",
+          "output_sha256": "fd1ee76f3b73f2d87ac07444f4dd6296ab0665cf232fdfa283d06ef0785c9a4e",
+          "original_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/summarization/dev.jsonl"
+        },
+        "pool": {
+          "rows": 8192,
+          "input_sha256": "72bee042a28d3e3780a6c08a076565a6a152a2ea50aebbb6b61f0e7dee6d04b5",
+          "output_sha256": "a8604d82fb5abff220541d705356183757e20d4c92fb80cce35dbbadb2887f01",
+          "original_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/summarization/pool.jsonl"
+        }
+      }
+    },
+    "multilingual": {
+      "validated": true,
+      "generation_summary_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/multilingual/generation-summary.json",
+      "generation_summary_sha256": "6722b75e2bc59b52a846a8c1cd5bad1d17b9d5a3b58c7f6733cd83f7c231db70",
+      "render_parity": {
+        "checked": 32,
+        "failures": 0,
+        "rule": "LLM.chat prompt_token_ids == chat_template(tokenize=False)+encode(add_special_tokens=False)"
+      },
+      "splits": {
+        "dev": {
+          "rows": 256,
+          "input_sha256": "233f019fd5d1f1bdcae7faee3183539664cc3b6393a6c8f7d6f329dd45f839e0",
+          "output_sha256": "de3693e6709fed732d565f87af66d41209cece2159be8e2be81b50486f901f0a",
+          "original_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/multilingual/dev.jsonl"
+        },
+        "pool": {
+          "rows": 8192,
+          "input_sha256": "c4b4b6796658173125f8acd9e69c2cda37255eacf7b9c51b8d1b288be3eb8bf9",
+          "output_sha256": "f5bc0b092eb7f0e64c896a0bd23763884f7d051a4e0e5a4a77b4039cfb3c47e8",
+          "original_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/multilingual/pool.jsonl"
+        }
+      }
+    }
+  },
+  "pools": {
+    "chat": {
+      "pool": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/chat/pool.jsonl",
+        "sha256": "c02f1612a076db0c04309c89f11bfc724a64bbd7d3583b48a61c390e97a0839b",
+        "physical_rows": 8192
+      },
+      "dev": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/chat/dev.jsonl",
+        "sha256": "adf8dabb4409ab55ce19faf1e510aad5850eb0c37599511e85bda8fe66925fee",
+        "physical_rows": 256
+      }
+    },
+    "summarization": {
+      "pool": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/summarization/pool.jsonl",
+        "sha256": "72bee042a28d3e3780a6c08a076565a6a152a2ea50aebbb6b61f0e7dee6d04b5",
+        "physical_rows": 8192
+      },
+      "dev": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/summarization/dev.jsonl",
+        "sha256": "235ba248fbc9450b4d06434baad7bb5322f1b23fa6f1fcb88380fb8b26ae84ca",
+        "physical_rows": 256
+      }
+    },
+    "multilingual": {
+      "pool": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/multilingual/pool.jsonl",
+        "sha256": "c4b4b6796658173125f8acd9e69c2cda37255eacf7b9c51b8d1b288be3eb8bf9",
+        "physical_rows": 8192
+      },
+      "dev": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/multilingual/dev.jsonl",
+        "sha256": "233f019fd5d1f1bdcae7faee3183539664cc3b6393a6c8f7d6f329dd45f839e0",
+        "physical_rows": 256
+      },
+      "test": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/multilingual/test.jsonl",
+        "sha256": "784a599e25ebbc4dadef6271c992b085f8eef6fb791c5f83593287d3f3467f19",
+        "physical_rows": 128
+      }
+    }
+  },
+  "chat_input_validation": {
+    "dev": {
+      "parseable_physical_rows": 256,
+      "unicode_NEL_count": 1
+    },
+    "pool": {
+      "parseable_physical_rows": 8192,
+      "unicode_NEL_count": 9
+    }
+  }
+}

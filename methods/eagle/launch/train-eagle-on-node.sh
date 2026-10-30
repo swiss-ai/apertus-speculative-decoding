@@ -32,6 +32,12 @@ setup_shared() {
 export PYTHONPATH="${EAGLE_PYDEPS}:${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src:${TORCHSPEC_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 # Sequential teacher-then-trainer on one GPU (plan A3 simplest resource path).
 export CUDA_VISIBLE_DEVICES="${EAGLE_CUDA_DEVICES:-0}"
+if [ -n "${EAGLE_RECOVERY_CACHE_ROOT:-}" ] && [ "${T5_CACHE_WRAPPER_STARTED:-0}" != 1 ]; then
+  cache="${EAGLE_RECOVERY_CACHE_ROOT}/${SLURM_JOB_ID}/node${NODE_RANK}"
+  exec "${PYTHON}" -m apertus_bench.runtime_caches --root "${cache}" \
+    --report "${cache}/runtime-cache-preflight.json" --probe-flashinfer \
+    --exec env T5_CACHE_WRAPPER_STARTED=1 bash "$0"
+fi
 
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 log "host=$(hostname) job=${SLURM_JOB_ID:-none} config=${EAGLE_TRAIN_CONFIG} steps=${EAGLE_STEPS:-all} cuda=${CUDA_VISIBLE_DEVICES}"

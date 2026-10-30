@@ -36,6 +36,8 @@ def main() -> None:
     shutil.copy2(args.repo / "targets/8b/contract.json", output / "target-contract.json")
     if (args.repo / "source-manifest.json").exists():
         shutil.copy2(args.repo / "source-manifest.json", output / "source-manifest.json")
+    if os.environ.get("T5_RUNTIME_CACHE_REPORT"):
+        shutil.copy2(os.environ["T5_RUNTIME_CACHE_REPORT"], output / "runtime-cache-preflight.json")
     for name, argv in {
         "git-revision.txt": ["git", "-C", str(args.repo), "rev-parse", "HEAD"],
         "checkout.patch": ["git", "-C", str(args.repo), "diff", "HEAD", "--binary"],
@@ -53,6 +55,16 @@ def main() -> None:
         "EAGLE_STEPS",
         "TORCHSPEC_ROOT",
         "EAGLE_PYDEPS",
+        "FLASHINFER_WORKSPACE_BASE",
+        "VLLM_CONFIG_ROOT",
+        "VLLM_CACHE_ROOT",
+        "XDG_CACHE_HOME",
+        "XDG_CONFIG_HOME",
+        "HF_HOME",
+        "TRITON_CACHE_DIR",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "CUDA_CACHE_PATH",
+        "TORCH_HOME",
     ]
     (output / "runtime.json").write_text(
         json.dumps(

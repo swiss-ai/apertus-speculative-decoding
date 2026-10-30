@@ -97,7 +97,10 @@ for domain in ${DOMAINS}; do
     continue
   fi
   mkdir -p "${out}"
-  CUDA_VISIBLE_DEVICES="${gpu}" python3 -m apertus_eagle.generate_targets \
+  CUDA_VISIBLE_DEVICES="${gpu}" python3 -m apertus_bench.runtime_caches \
+    --root "${DATA_ROOT}/cache/job-${SLURM_JOB_ID}/${domain}" \
+    --report "${out}/runtime-cache-preflight.json" --probe-flashinfer \
+    --exec python3 -m apertus_eagle.generate_targets \
     --contract "${CONTRACT}" --input "${POOLS}/${domain}/dev.jsonl" "${POOLS}/${domain}/pool.jsonl" \
     --output-dir "${out}" --max-seq-length 8192 --max-new-tokens 2048 \
     --max-prompt-tokens 4096 --gpu-memory-utilization 0.9 "${SAMPLING[@]}" \

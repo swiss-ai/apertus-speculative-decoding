@@ -17,9 +17,11 @@ colliding prompt IDs from repeated FinePDFs source IDs; a content-aware identity
 fix passed in **3790165**: all pools validate, and summarization/multilingual
 each generated 8,192 pool plus 256 dev traces. Chat stopped because the JSONL
 reader split a Unicode NEL inside a valid JSON string. A physical-line reader
-fix is validated; chat-only replacement **3802584** is queued. The completed
-domains and all original prompt pools are reused unchanged after a hash/count/
-target/renderer audit.
+fix passed its input preflight. Chat-only **3802584** then failed during engine
+startup: home quota (errno 122) prevented the FlashInfer sampling lock and
+vLLM usage-stat writes. Cache/config paths are being redirected to owned scratch,
+with actual image-runtime lock/config probes before model loading. The completed
+domains and all prompt pools remain unchanged and will be reused.
 No recovery training or serving measurements have run yet.
 
 | Part | Evidence | Verdict / next step |
@@ -262,6 +264,16 @@ mutable Python dependencies into its own runtime directory; remaining input
 symlinks are read-only. This prevents the training bootstrap from changing
 another run's patched source or wandb stub.
 
+The home-quota recovery changes cache locations only. The pinned image's
+FlashInfer source uses `FLASHINFER_WORKSPACE_BASE` independently of vLLM's cache;
+its usage-stat writer uses `VLLM_CONFIG_ROOT`. Both now point into owned scratch,
+together with CUDA/Triton/Inductor/Hugging Face caches. `HOME`, target/drafter
+settings and scientific gates stay unchanged. The wrapper tests directory writes
+and the actual image's FlashInfer sampling lock/vLLM config path before loading a
+target. It saves the effective paths with each deployment. Training uses a
+job/node cache directory; paired serving uses a fresh directory for every arm
+and repeat. No shared home files or unrelated jobs are cleaned or modified.
+
 ## Runs
 
 | job | what | outcome |
@@ -274,7 +286,7 @@ another run's patched source or wandb stub.
 | 3737459 | fine-tune smoke, resubmitted with 4 GPUs | 4 steps and export/reload pass; exit 3 solely because the four-step training-loss gate failed; original scientific result preserved |
 | 3769227 | fresh full pools/traces after deterministic heap fix | failed after 409 s: distinct FinePDFs chunks shared source-only prompt IDs; no target generation/training began |
 | 3790165 | content-aware summarization prompt IDs; full original pools/traces, frozen source b58ee54a | failed after 1,636 s: summarization/multilingual complete (8,192+256 each, no skips, 32 renderer checks); chat JSONL reader incorrectly split U+0085 inside prompt text |
-| 3802584 | physical-line JSONL reader; chat only, with validated completed-domain trace reuse; source e9cc4842 | queued normal, 3 h, 4 GPUs; fresh `recovery-20261030/data` output for chat |
+| 3802584 | physical-line JSONL reader; chat only; source e9cc4842 | failed after 150 s during engine startup: FlashInfer sampling.lock and vLLM usage-stat writes hit home quota (errno 122); no chat output |
 
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,

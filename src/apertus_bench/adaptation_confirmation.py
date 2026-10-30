@@ -30,6 +30,7 @@ from apertus_eagle.adaptation_decision import (
 from apertus_bench.correctness import compare_captures, run_correctness_gate
 from apertus_bench.eagle import validate_eagle_head
 from apertus_bench.node_sweep import REPO_ROOT, build_plan, run_plan
+from apertus_bench.runtime_caches import prepare as prepare_runtime_caches
 from apertus_bench.workloads import load_prompts
 
 
@@ -232,6 +233,10 @@ async def run(output: Path, selection: dict[str, Any], policy: dict[str, Any]) -
         immutable_json(round_out / "spec.json", spec)
         plan = build_plan(spec)
         for arm in plan.arms:
+            cache_report = prepare_runtime_caches(round_out / arm.name / "runtime-cache")
+            arm.env.update(cache_report["environment"])
+            report_path = round_out / arm.name / "runtime-cache-preflight.json"
+            immutable_json(report_path, cache_report)
             arm.metadata.update(
                 {
                     "recovery_head": selection["name"],
@@ -239,7 +244,10 @@ async def run(output: Path, selection: dict[str, Any], policy: dict[str, Any]) -
                     "slurm_job_id": os.environ["SLURM_JOB_ID"],
                     "slurm_node_id": os.environ.get("SLURMD_NODENAME", "unknown"),
                     "compile_cache": "fresh-per-deployment",
-                    "compile_cache_root": str(round_out / "vllm-cache" / arm.name),
+                    "compile_cache_root": arm.env["VLLM_CACHE_ROOT"],
+                    "flashinfer_workspace_base": arm.env["FLASHINFER_WORKSPACE_BASE"],
+                    "vllm_config_root": arm.env["VLLM_CONFIG_ROOT"],
+                    "runtime_cache_report": str(report_path),
                 }
             )
         results = await run_plan(plan, round_out)

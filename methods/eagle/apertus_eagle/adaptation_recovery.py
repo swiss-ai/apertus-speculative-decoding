@@ -287,6 +287,7 @@ def main(argv: list[str] | None = None) -> None:
                     "SML_ENV_DIR": str(root / "training-environments"),
                     "EXTRA_MOUNTS": "",
                     "EAGLE_DEPLOYMENT_ROOT": str(root / "training-deployments"),
+                    "EAGLE_RECOVERY_CACHE_ROOT": str(root / "training-caches"),
                     "EAGLE_VLLM_PATCH_DIR": str(short_root / f"t-{domain}-{len(batch['job_ids'])}"),
                 }
                 output = command(
@@ -313,6 +314,7 @@ def main(argv: list[str] | None = None) -> None:
                                 "EAGLE_RUN_ID",
                                 "EAGLE_VLLM_PATCH_DIR",
                                 "EAGLE_DEPLOYMENT_ROOT",
+                                "EAGLE_RECOVERY_CACHE_ROOT",
                             }
                         },
                         indent=2,
