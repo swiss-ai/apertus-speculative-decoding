@@ -74,7 +74,8 @@ Read-only inspection of the pinned Speculators code found:
 
 Branch: `fix/beverin-nonfinite-diagnosis-20261030`, isolated worktree
 `/home/projects/apertus-speculative-decoding-beverin-nan`.
-Runtime commits: `a81d1626`, followed by `e6c84030`.
+Runtime commits: `a81d1626`, `e6c84030`, then `556a464d` for durable all-rank
+capture before worker termination. Existing runtimes remain immutable.
 
 The Beverin-only guard now checks loaded trainable weights, input tensors,
 forward loss/metrics, gradients before clipping, the returned gradient norm
@@ -93,6 +94,14 @@ overflow of the gradient norm with finite gradients. Nine existing epoch
 lifecycle checks, eight monitor checks, shell syntax and diff checks passed.
 These CPU tests do not establish compatibility with the ROCm image; the
 two-rank, one-node FSDP preflight checks that separately.
+
+Actual-image preflight **707137** passed finite training, rejection of bad
+input on rank 1 and rejection of bad gradients after FSDP reduction, with
+the expected image digest. A second preflight **707139** checks the capture
+barrier revision. Preliminary diagnostic submission **707138** was cancelled
+while pending, with zero runtime, to use that revision; its provenance and
+replacement reason are retained. Neither diagnostic is a continuation of
+the invalid production checkpoint.
 
 After that preflight passes, `launch-diagnostic.sh` prepares one fresh
 **32-node, at-most-640-step** reproduction with the original LR, batch and
