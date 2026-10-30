@@ -20,6 +20,12 @@ python3 "${SOURCE}/methods/dspark/train/depth_campaign.py" snapshot "${CAMPAIGN}
   --training-submit "${TRAIN_SUBMIT}"
 
 PREVIOUS="${TRAIN_JOB}"
+if [ "${DEPTH_TRAINING_COMPLETE:-0}" = 1 ]; then
+  sacct -X -j "${TRAIN_JOB}" -n -P -o JobIDRaw,State,ExitCode > "${CAMPAIGN}/training-accounting.txt"
+  python3 "${SOURCE}/methods/dspark/train/depth_campaign.py" resume "${CAMPAIGN}" \
+    --accounting "${CAMPAIGN}/training-accounting.txt"
+  PREVIOUS=""
+fi
 for STAGE in validate a b; do
   LIMIT=04:00:00
   [ "${STAGE}" != validate ] || LIMIT=02:00:00
@@ -68,7 +74,9 @@ srun --overlap --nodes=1 --ntasks=1 --environment="\${DEPTH_RESOLVED_ENV}" \
   SWEEP_CACHE_ROOT="${CAMPAIGN}/cache-${STAGE}" \
   bash -c 'cd "${SOURCE}"; export PYTHONPATH="${SOURCE}/src:\${PYTHONPATH:-}"; exec python3 "${SOURCE}/methods/dspark/train/depth_campaign.py" run "${CAMPAIGN}" --stage "${STAGE}"'
 EOF
-  JOB="$(sbatch --parsable --dependency="afterok:${PREVIOUS}" "${CAMPAIGN}/${STAGE}.sbatch")"
+  DEPENDENCY_ARGS=()
+  [ -z "${PREVIOUS}" ] || DEPENDENCY_ARGS=(--dependency="afterok:${PREVIOUS}")
+  JOB="$(sbatch --parsable "${DEPENDENCY_ARGS[@]}" "${CAMPAIGN}/${STAGE}.sbatch")"
   JOB="${JOB%%;*}"
   python3 - "${CAMPAIGN}" "${STAGE}" "${JOB}" "${PREVIOUS}" <<'PY'
 import json
@@ -78,13 +86,14 @@ campaign, stage, job, dependency = sys.argv[1:]
 path = Path(campaign) / "campaign.json"
 state = json.loads(path.read_text())
 state["job_ids"].append(job)
-state.setdefault("stages", {})[stage] = {"job_id": job, "dependency": f"afterok:{dependency}"}
+prerequisite = f"afterok:{dependency}" if dependency else f"completed-training:{state['training_job']}"
+state.setdefault("stages", {})[stage] = {"job_id": job, "dependency": prerequisite}
 state["state"] = "waiting"
 temporary = path.with_suffix(".tmp")
 temporary.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
 temporary.replace(path)
 PY
-  echo "stage=${STAGE} job=${JOB} afterok=${PREVIOUS} campaign=${CAMPAIGN}"
+  echo "stage=${STAGE} job=${JOB} prerequisite=${PREVIOUS:-completed-training-${TRAIN_JOB}} campaign=${CAMPAIGN}"
   PREVIOUS="${JOB}"
 done
 echo "state=${CAMPAIGN}/campaign.json source_revision=${REVISION}"

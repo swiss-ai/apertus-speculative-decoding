@@ -13,6 +13,7 @@ import dataclasses
 import datetime as dt
 import hashlib
 import json
+import math
 import os
 import re
 import shlex
@@ -33,6 +34,10 @@ TRAIN_FILES = (
     "methods/dspark/train/rebind_verifier.py",
     "methods/dspark/train/depth_recovery.py",
 )
+
+
+class CorrectnessGateFailed(ValueError):
+    """Completed captures exceed the unchanged calibrated correctness limits."""
 
 
 def state(campaign: Path, **changes: object) -> None:
@@ -79,6 +84,53 @@ def submitted_training(path: Path) -> tuple[dict, str]:
     return exports, match[1]
 
 
+def completed_training_prerequisite(campaign: Path, accounting_path: Path) -> None:
+    source = verify_sources(campaign)
+    rows = [line.split("|") for line in accounting_path.read_text().splitlines() if line.strip()]
+    matching = [row for row in rows if row[0].strip() == source["training_job"]]
+    if len(matching) != 1 or matching[0][1:3] != ["COMPLETED", "0:0"]:
+        raise ValueError("training prerequisite is not an accounting-confirmed successful job")
+    checkpoint = Path(source["candidate"])
+    state_path, config_path = checkpoint / "training_state.json", checkpoint / "config.json"
+    state_value = json.loads(state_path.read_text())
+    config = json.loads(config_path.read_text())
+    if (
+        state_value["global_step"] != 6200
+        or config["transformer_layer_config"]["num_hidden_layers"] != 1
+        or config["aux_hidden_state_layer_ids"] != [1, 8, 15, 22, 29]
+    ):
+        raise ValueError("completed training checkpoint has wrong step count or model definition")
+    validation_path = checkpoint / "val_metrics.json"
+    eal = json.loads(validation_path.read_text())["eal_epoch"]
+    if not math.isfinite(eal) or not 1 <= eal <= 8:
+        raise ValueError("completed training has no valid held-out validation")
+    identity_path = Path(source["warm_start_preflight_report"])
+    identity = json.loads(identity_path.read_text())
+    if identity.get("passed") is not True or identity["initializer"] != source["warm_start"]:
+        raise ValueError("completed training identity gate did not pass")
+    recovery.write_new(
+        campaign / "completed-training-prerequisite.json",
+        {
+            "training_job": source["training_job"],
+            "passed": True,
+            "state": state_value,
+            "validation_eal": eal,
+            "metadata_sha256": {
+                str(path): recovery.sha256(path)
+                for path in (
+                    state_path,
+                    config_path,
+                    validation_path,
+                    identity_path,
+                    accounting_path,
+                )
+            },
+            "scheduler_note": "completed job aged out of live Slurm dependency records; "
+            "accounting/checkpoint verified; full hash gates rerun in allocation",
+        },
+    )
+
+
 def snapshot(
     campaign: Path, training_repo: Path, revision: str, train_job: str, training_submit: Path
 ) -> None:
@@ -91,6 +143,8 @@ def snapshot(
     if exports["DSPARK_DIR"] != str(data) or exports["DATA"] != str(data / "data"):
         raise ValueError("recovery submission changed the original data roots")
     run_root = data / "runs" / exports["RUN_ID"]
+    identity_path = run_root / "provenance" / f"warm-start-{train_job}.json"
+    identity = json.loads(identity_path.read_text()) if identity_path.exists() else {}
     training_files = {}
     for relative in TRAIN_FILES:
         original = subprocess.check_output(
@@ -143,6 +197,7 @@ def snapshot(
             "e10": recovery.DEFAULT_E10,
             "eagle": recovery.DEFAULT_EAGLE,
             "image": recovery.DEFAULT_IMAGE,
+            "expected_serving_image_sha256": identity.get("container", {}).get("sha256"),
         },
     )
     state(
@@ -261,7 +316,7 @@ def calibrated_checks(a: Path, b: Path, arms: list[str], output: Path) -> list[d
                 )
                 reports.append({"arm": arm, "deployment": number, "capture": repeat, **report})
     if not all(report["passed"] for report in reports):
-        raise ValueError("calibrated correctness exceeded the existing protocol margins")
+        raise CorrectnessGateFailed("calibrated correctness exceeded the existing protocol margins")
     return reports
 
 
@@ -274,6 +329,12 @@ def make_smoke(workload: Path, output: Path) -> None:
     with output.open("x") as out:
         for record in records[:6]:
             out.write(json.dumps(record) + "\n")
+
+
+def require_same_image(source: dict, preflight: dict) -> None:
+    expected = source.get("expected_serving_image_sha256")
+    if expected is not None and preflight["image"]["sha256"] != expected:
+        raise ValueError("serving image differs from the completed training identity gate")
 
 
 def collect_training_evidence(candidate: Path, output: Path, job: str) -> None:
@@ -348,6 +409,11 @@ async def run_spec(spec: dict, output: Path, *, capture_only: bool = False) -> N
         if result["status"] != "ok":
             recovery.write_new(output / "sweep-status.json", statuses)
             raise ValueError("compute preflight failed; no serving arms started")
+        if "DEPTH_SOURCE_MANIFEST" in os.environ:
+            require_same_image(
+                json.loads(Path(os.environ["DEPTH_SOURCE_MANIFEST"]).read_text()),
+                json.loads((output / "preflight/manifest.json").read_text()),
+            )
     remaining = dataclasses.replace(
         plan, arms=[arm for arm in plan.arms if arm.name != "preflight"]
     )
@@ -414,21 +480,27 @@ def execute(campaign: Path, stage: str) -> None:
         base = {
             **a,
             "name": "depth-validation-a",
+            "gpu_order": [0, 1, 2, 3],
             "arms": [
                 arm
                 for arm in a["arms"]
-                if arm["name"] in {"preflight", "plain", "depth-l1-k7", "depth-l5-k7"}
+                if arm["name"]
+                in {"preflight", "plain", "dspark-e10-k7", "depth-l1-k7", "depth-l5-k7"}
             ],
         }
         repeat = {
             **base,
             "name": "depth-validation-b",
+            "gpu_order": [3, 2, 1, 0],
             "arms": [arm for arm in base["arms"] if arm["name"] != "preflight"],
         }
         asyncio.run(run_spec(base, run / "repeat-a", capture_only=True))
         asyncio.run(run_spec(repeat, run / "repeat-b", capture_only=True))
         reports = calibrated_checks(
-            run / "repeat-a", run / "repeat-b", ["depth-l1-k7", "depth-l5-k7"], run / "correctness"
+            run / "repeat-a",
+            run / "repeat-b",
+            ["dspark-e10-k7", "depth-l1-k7", "depth-l5-k7"],
+            run / "correctness",
         )
         recovery.write_new(
             run / "gate.json",
@@ -489,15 +561,23 @@ def execute(campaign: Path, stage: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["snapshot", "verify", "run", "fail"])
+    parser.add_argument("action", choices=["snapshot", "verify", "run", "fail", "resume"])
     parser.add_argument("campaign", type=Path)
     parser.add_argument("--stage", choices=["validate", "a", "b"])
     parser.add_argument("--training-repo", type=Path)
     parser.add_argument("--revision")
     parser.add_argument("--train-job")
     parser.add_argument("--training-submit", type=Path)
+    parser.add_argument("--accounting", type=Path)
     args = parser.parse_args()
+    if args.action == "resume":
+        completed_training_prerequisite(args.campaign, args.accounting)
+        return
     if args.action == "fail":
+        previous = json.loads((args.campaign / "campaign.json").read_text())
+        if previous.get("state") == "failed" and previous.get("error"):
+            state(args.campaign, host_launcher_also_failed=True)
+            return
         state(
             args.campaign,
             state="failed",
@@ -522,6 +602,9 @@ def main() -> None:
             state="failed",
             stage=args.stage,
             error=f"{type(error).__name__}: {error}",
+            failure_kind="correctness"
+            if isinstance(error, CorrectnessGateFailed)
+            else "infrastructure",
             next_action=(
                 "stop; diagnose preserved infrastructure/correctness artifacts; "
                 "no scientific verdict"

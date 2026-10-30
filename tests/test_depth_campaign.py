@@ -41,6 +41,71 @@ def test_recovery_identity_comes_from_exact_new_training_submission(tmp_path: Pa
     assert revision == "abcdef123"
 
 
+def test_host_error_trap_preserves_existing_correctness_failure(
+    tmp_path: Path, monkeypatch
+) -> None:
+    campaign.state(
+        tmp_path,
+        state="failed",
+        stage="validate",
+        failure_kind="correctness",
+        error="CorrectnessGateFailed: measured divergence exceeded unchanged limits",
+    )
+    monkeypatch.setattr(
+        sys, "argv", ["depth_campaign", "fail", str(tmp_path), "--stage", "validate"]
+    )
+    campaign.main()
+    saved = json.loads((tmp_path / "campaign.json").read_text())
+    assert saved["failure_kind"] == "correctness"
+    assert saved["error"].startswith("CorrectnessGateFailed")
+    assert saved["host_launcher_also_failed"]
+
+
+def test_validation_repair_cannot_silently_change_container_image() -> None:
+    campaign.require_same_image(
+        {"expected_serving_image_sha256": "original"}, {"image": {"sha256": "original"}}
+    )
+    with pytest.raises(ValueError, match="image differs"):
+        campaign.require_same_image(
+            {"expected_serving_image_sha256": "original"}, {"image": {"sha256": "changed"}}
+        )
+
+
+def test_completed_training_resume_checks_accounting_and_real_checkpoint(tmp_path: Path) -> None:
+    checkpoint = tmp_path / "checkpoint"
+    checkpoint.mkdir()
+    config = {
+        "transformer_layer_config": {"num_hidden_layers": 1},
+        "aux_hidden_state_layer_ids": [1, 8, 15, 22, 29],
+    }
+    (checkpoint / "config.json").write_text(json.dumps(config))
+    step_path = checkpoint / "training_state.json"
+    step_path.write_text(json.dumps({"global_step": 6199}))
+    (checkpoint / "val_metrics.json").write_text(json.dumps({"eal_epoch": 3.5199}))
+    identity = tmp_path / "identity.json"
+    identity.write_text(json.dumps({"passed": True, "initializer": "/original-initializer"}))
+    source = {
+        "files": {},
+        "training_files": {},
+        "training_job": "3790212",
+        "candidate": str(checkpoint),
+        "warm_start_preflight_report": str(identity),
+        "warm_start": "/original-initializer",
+    }
+    (tmp_path / "source-manifest.json").write_text(json.dumps(source))
+    accounting = tmp_path / "accounting.txt"
+    accounting.write_text("3790212|COMPLETED|0:0\n")
+    with pytest.raises(ValueError, match="wrong step count"):
+        campaign.completed_training_prerequisite(tmp_path, accounting)
+    step_path.write_text(json.dumps({"global_step": 6200}))
+    accounting.write_text("3790212|FAILED|1:0\n")
+    with pytest.raises(ValueError, match="accounting-confirmed"):
+        campaign.completed_training_prerequisite(tmp_path, accounting)
+    accounting.write_text("3790212|COMPLETED|0:0\n")
+    campaign.completed_training_prerequisite(tmp_path, accounting)
+    assert json.loads((tmp_path / "completed-training-prerequisite.json").read_text())["passed"]
+
+
 async def test_preflight_failure_never_starts_serving(tmp_path: Path, monkeypatch) -> None:
     from apertus_bench import node_sweep
 

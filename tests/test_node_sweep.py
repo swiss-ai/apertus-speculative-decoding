@@ -1,3 +1,4 @@
+import asyncio
 import json
 from pathlib import Path
 
@@ -33,6 +34,36 @@ def test_optional_captures_require_two_within_deployment_repeats() -> None:
     assert build_plan(_spec(captures=config), check_heads=False).captures == config
     with pytest.raises(SpecError, match="exactly two"):
         build_plan(_spec(captures={**config, "repeats": 1}), check_heads=False)
+
+
+@pytest.mark.parametrize("order", [[0, 0, 2, 3], [0, 1, 2], [False, 1, 2, 3]])
+def test_gpu_order_requires_exact_allocated_indices(order: list) -> None:
+    with pytest.raises(SpecError, match="gpu_order"):
+        build_plan(_spec(gpu_order=order), check_heads=False)
+
+
+@pytest.mark.parametrize("order", [[0, 1, 2, 3], [3, 2, 1, 0]])
+async def test_capture_repeats_can_counterbalance_all_physical_gpus(
+    tmp_path: Path, monkeypatch, order: list[int]
+) -> None:
+    from apertus_bench import node_sweep
+
+    names = ["plain", "reference", "one-layer", "five-layer"]
+    spec = _spec(arms=[{"name": name, "method": "baseline"} for name in names], gpu_order=order)
+    plan = build_plan(spec, check_heads=False)
+    ready = asyncio.Event()
+    assignments = {}
+
+    async def fake_arm(arm, gpu_ids, *_):
+        assignments[arm.name] = gpu_ids
+        if len(assignments) == 4:
+            ready.set()
+        await ready.wait()
+        return {"arm": arm.name, "status": "ok"}
+
+    monkeypatch.setattr(node_sweep, "run_arm", fake_arm)
+    await node_sweep.run_plan(plan, tmp_path)
+    assert assignments == {name: [gpu] for name, gpu in zip(names, order, strict=True)}
 
 
 def test_plan_serves_arms_like_the_launchers() -> None:

@@ -142,6 +142,7 @@ class Plan:
     probe: Loadtest | None
     node_gpus: int
     captures: dict[str, Any] | None = None
+    gpu_order: list[int] | None = None
 
 
 def _engine_args(engine: dict[str, Any]) -> list[str]:
@@ -361,6 +362,10 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
     target_model = spec.get("target_model", defaults["target_model"])
     served_base = spec.get("served_base", defaults["served_base"])
     node_gpus = int(spec.get("node_gpus", 4))
+    gpu_order = spec.get("gpu_order", list(range(node_gpus)))
+    if (not isinstance(gpu_order, list) or any(type(gpu) is not int for gpu in gpu_order)
+            or sorted(gpu_order) != list(range(node_gpus))):
+        raise SpecError("gpu_order must be a permutation of the allocated GPU indices")
     captures = spec.get("captures")
     if captures is not None and (
         not captures.get("workloads_file") or int(captures.get("repeats", 2)) != 2
@@ -507,6 +512,7 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
         probe=probe,
         node_gpus=node_gpus,
         captures=captures,
+        gpu_order=gpu_order,
     )
 
 
@@ -846,7 +852,9 @@ async def run_plan(plan: Plan, output: Path) -> list[dict[str, Any]]:
     """Start arms in spec order as soon as enough GPUs are free."""
     output.mkdir(parents=True, exist_ok=True)
     prefix = f"{plan.name}-{os.environ.get('SLURM_JOB_ID', 'local')}"
-    free = list(range(plan.node_gpus))
+    order = plan.gpu_order or list(range(plan.node_gpus))
+    free = list(order)
+    priority = {gpu: index for index, gpu in enumerate(order)}
     released = asyncio.Condition()
     results: list[dict[str, Any]] = []
 
@@ -859,7 +867,7 @@ async def run_plan(plan: Plan, output: Path) -> list[dict[str, Any]]:
         finally:
             async with released:
                 free.extend(gpu_ids)
-                free.sort()
+                free.sort(key=priority.__getitem__)
                 released.notify_all()
 
     # Arms start in order: each waits on the condition until its GPUs are free.
