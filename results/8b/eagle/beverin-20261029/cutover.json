@@ -60,5 +60,7 @@
   "image_sha256": "b58797bb6a430d7587f1c10ec24ac71f198bd8d590bde98dbbe68d7744a9816f",
   "blas_backend": "cublas (rocBLAS)",
   "config": "methods/eagle/configs/8b/train-e31-opb-thinkon-2n.yaml (8 ranks x 4 = 32 rows/step, unchanged)",
-  "validation": "results/8b/eagle/beverin-20261029/go-decision.json on branch eagle-8b-thinkon-beverin"
+  "validation": "results/8b/eagle/beverin-20261029/go-decision.json on branch eagle-8b-thinkon-beverin",
+  "clariden_last_link_log_anomaly": "3745987 .out (last write 11:48 UTC+1, step 170510) and .err (05:17) under /users/faruk_zahiragic/apertus-spec-decoding/results/8b/eagle/logs stopped growing while training continued to the deadline save at 173534. The /users (VAST) home quota is full: 50.1G of 50.0G, 415,809 files (CSCS quota tool, usage data of 2026-10-23). sacct FAILED 1:0 is attributed to that log write failure. The resume files were checked before cutover: sizes equal earlier saves, torch zip directories and the safetensors header are complete, backup sha256 identical. Beverin links write logs, run files and caches to /iopsstor and node-local /tmp only.",
+  "release": "scontrol release 707002-707011 at 2026-10-30T17:25:04+01:00 (EligibleTime of 707002)"
 }
