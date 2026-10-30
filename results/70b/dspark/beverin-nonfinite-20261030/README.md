@@ -108,7 +108,9 @@ Raw preflight artifacts and checksums are under `preflight/` and
 Preliminary diagnostic **707138** was cancelled while pending, with zero
 allocation runtime, to use the capture fix. The replacement **707140** was
 submitted **2026-10-30 10:54:54 UTC** and is **pending priority** at the
-10:56 UTC check. Slurm tentatively estimates 13:30:51 UTC; this can change.
+11:59 UTC check, with no allocation or training steps. Slurm’s tentative
+start moved from 13:30 UTC to **21:45 UTC**; this can change. The foreground
+observer remains active through queue delays and the eventual job end.
 
 The fresh run is `opb-thinkoff-32n-nan-debug-20261030-v2`, using immutable
 `repo-556a464d/` (full runtime and launcher commit

@@ -22,6 +22,7 @@ def readjson(p):
  except (OSError,ValueError):return None
 raw=subprocess.check_output(['sacct','-X','-n','-P','-j',job,'-o','JobIDRaw,State,ElapsedRaw,ExitCode,NodeList']).decode().strip().split('|')
 state=raw[1].split()[0].rstrip('+') if len(raw)>1 else 'UNKNOWN'
+estimated_start_local=subprocess.check_output(['squeue','--start','-h','-j',job,'-o','%S'],env=dict(os.environ,SLURM_TIME_FORMAT='standard')).decode().strip() if state=='PENDING' else None
 logs=sorted((run/'logs').glob('train-707140*-node0.log'),key=lambda p:p.stat().st_mtime)
 log=logs[-1] if logs else None;text=tail(log) if log else ''
 steps=re.findall(r'global_step=(\d+)',text);timings=[float(x)/1000 for x in re.findall(r'profile/step_ms=([\deE.+-]+)',text)]
@@ -31,7 +32,7 @@ node=None
 if marker is not None:
  p=run/'deployments'/job/('node%d'%(marker['rank']//2))/'hostname.txt'
  if p.is_file():node=p.read_text().strip()
-print(json.dumps({'utc':datetime.datetime.utcnow().isoformat()+'Z','job':job,'state':state,'elapsed_s':int(raw[2]) if len(raw)>2 else None,'exit_code':raw[3] if len(raw)>3 else None,'nodes':raw[4] if len(raw)>4 else None,'ready_nodes':len(list((run/'logs').glob('ready-707140-node*'))),'last_step':int(steps[-1]) if steps else None,'recent_step_seconds':timings[-10:],'checkpoint':readjson(run/'checkpoints/0/training_state.json'),'failure':marker,'failure_node':node,'capture_files':[{'path':str(p),'bytes':p.stat().st_size} for p in files],'train_log':str(log) if log else None,'launcher_tail':tail(base/'logs/dspark-70b-opb-thinkoff-32n-nan-debug-20261030-v2-707140.out',4096)}))
+print(json.dumps({'utc':datetime.datetime.utcnow().isoformat()+'Z','job':job,'state':state,'estimated_start_cluster_local':estimated_start_local,'elapsed_s':int(raw[2]) if len(raw)>2 else None,'exit_code':raw[3] if len(raw)>3 else None,'nodes':raw[4] if len(raw)>4 else None,'ready_nodes':len(list((run/'logs').glob('ready-707140-node*'))),'last_step':int(steps[-1]) if steps else None,'recent_step_seconds':timings[-10:],'checkpoint':readjson(run/'checkpoints/0/training_state.json'),'failure':marker,'failure_node':node,'capture_files':[{'path':str(p),'bytes':p.stat().st_size} for p in files],'train_log':str(log) if log else None,'launcher_tail':tail(base/'logs/dspark-70b-opb-thinkoff-32n-nan-debug-20261030-v2-707140.out',4096)}))
 '''
 
 
@@ -64,8 +65,7 @@ def main():
     last_state, seen_step, seen_failure, seen_captures = "PENDING", False, False, False
     last_message = time.monotonic()
     pending = None
-    started = time.monotonic()
-    while time.monotonic() - started < 12 * 3600:
+    while True:
         if pending is not None and queue(*pending):
             pending = None
             last_message = time.monotonic()
@@ -118,7 +118,6 @@ def main():
         deadline = time.monotonic() + (300 if last_state == "PENDING" else 120)
         while time.monotonic() < deadline:
             time.sleep(min(45, deadline - time.monotonic()))
-    queue("observer reached its own 12-hour bound; job state must be checked read-only", {"job": "707140"})
 
 
 if __name__ == "__main__":

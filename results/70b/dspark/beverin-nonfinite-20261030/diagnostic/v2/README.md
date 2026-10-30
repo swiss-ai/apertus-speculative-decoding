@@ -1,6 +1,7 @@
 Job **707140** is a fresh bounded 32-node numerical diagnostic using committed
 runtime and launcher `556a464d`. It was submitted at 2026-10-30 10:54:54 UTC.
-At 10:56 UTC it was pending priority, with a tentative 13:30:51 UTC start.
+At 11:59 UTC it was still pending priority, with a tentative 21:45 UTC start.
+The earlier start estimate had moved later; queue estimates can change.
 
 The original LR 8.48528137423857e-4, one-epoch 4,077-step horizon / 40 warmup
 steps, 64 ranks, SEQ 8,192 and 512 anchors are preserved. The segment stops
@@ -15,7 +16,9 @@ Results remain pending.
 `--once` check passed. It uses the existing explicit chat queue for allocation
 start, the first training step, numerical failure, presence of all 64 capture
 files, terminal state and a three-hour heartbeat. It installs no cron entry
-and changes no jobs. Authentication failure suspends SSH; transient transport
+and changes no jobs. Its lifetime continues until this job ends, covering queue
+delays rather than imposing a separate 12-hour cutoff. Authentication failure
+suspends SSH; transient transport
 failures do not imply training failure. `observations.jsonl` and
 `notifications.jsonl` remain live until it stops; final bytes/hashes will be
 retained then.
