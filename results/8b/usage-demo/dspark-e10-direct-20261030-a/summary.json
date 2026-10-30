@@ -1,0 +1,19 @@
+{
+  "all_requests_succeeded": true,
+  "at": "2026-10-30T12:08:32.934179+00:00",
+  "dspark": {
+    "advancing_speculative_counters_observed": true,
+    "draft_token_acceptance": 0.6323024054982818,
+    "median_e2e_ms": 433.5736776702106,
+    "median_ttft_ms": 25.812388863414526,
+    "successful": 10
+  },
+  "limitations": "Handwritten synthetic usage examples, not a production sample or correctness gate. One sequential request per prompt/model, normal EOS, thinking requested off. The existing vanilla endpoint has different hardware/runtime/template/context settings and uncontrolled concurrent traffic. Timings show the observed user experience; they do not isolate the drafter's speedup. Draft acceptance uses worker-wide counter deltas and can include other traffic; it is not a token-level trace of this request.",
+  "quality_verdict": "manual review required; see full answers and review points",
+  "requests": 20,
+  "vanilla": {
+    "median_e2e_ms": 876.7655750270933,
+    "median_ttft_ms": 32.81957283616066,
+    "successful": 10
+  }
+}

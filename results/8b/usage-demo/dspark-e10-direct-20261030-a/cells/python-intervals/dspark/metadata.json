@@ -1,0 +1,40 @@
+{
+  "arm": "dspark",
+  "base_url": "http://172.28.41.76:8080",
+  "baseline_route": "https://api.swissai.svc.cscs.ch",
+  "candidate_route": "http://172.28.41.76:8080",
+  "checkpoint_sha256": "7a70125f58e3e57bbdaa30ea38a1cf8c01433a34507fe34696c10edd2d61ad4f",
+  "concurrency": 1,
+  "corpus_sha256": "8067a05dc9fc77ec8faeaa531e7f9d0fd1744eb2d210526b73a541679dfb5c78",
+  "deployment_id": "apertus15-8b-dspark-e10-dspark-20261029T134252610114Z",
+  "gateway": "https://api.swissai.svc.cscs.ch",
+  "generation": {
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    },
+    "ignore_eos": false,
+    "max_tokens": 900,
+    "seed": 1,
+    "temperature": 0,
+    "top_p": 1
+  },
+  "harness_repository": {
+    "branch": "experiment/dspark-e10-usage-demo",
+    "revision": "beba71811ca3897b15d4cbfb874e00af32993d1e",
+    "root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-usage-code"
+  },
+  "image_sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5",
+  "limitations": "Handwritten synthetic usage examples, not a production sample or correctness gate. One sequential request per prompt/model, normal EOS, thinking requested off. The existing vanilla endpoint has different hardware/runtime/template/context settings and uncontrolled concurrent traffic. Timings show the observed user experience; they do not isolate the drafter's speedup. Draft acceptance uses worker-wide counter deltas and can include other traffic; it is not a token-level trace of this request.",
+  "metrics_scope": "shared worker",
+  "model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3",
+  "node": "nid007257",
+  "prompt_id": "python-intervals",
+  "prompt_sha256": "2dd85475b87233adca1c49c20dd833365fffa358c9db8fa1de4158f4e042ffff",
+  "purpose": "bounded interactive demonstration",
+  "request_count": 1,
+  "slurm_job_id": "3791982",
+  "started_at": "2026-10-30T12:08:20.631014+00:00",
+  "target_model": "swiss-ai/Apertus-v1.5-8B",
+  "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+  "target_tensor_parallel_size": 1
+}

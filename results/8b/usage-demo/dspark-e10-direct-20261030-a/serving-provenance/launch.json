@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "bash",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/source/methods/dspark/launch/dspark.sh",
+    "--account",
+    "infra01",
+    "--no-tui",
+    "--pre-launch-cmds",
+    "export PYTHONPATH=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/source/src:\"${PYTHONPATH:-}\"\nexport OPENTELA_BIN=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/bin/otela-arm64\npython3 -m apertus_bench.research_pilot preflight /iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+    "--output-script",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/rendered",
+    "--dev"
+  ],
+  "environment": {
+    "ENV_SOURCE": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/environment-source.toml",
+    "EXTRA_ENV": "VLLM_CACHE_ROOT=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot/apertus15-8b-dspark-e10-dspark-20261029T134252610114Z;VLLM_NO_USAGE_STATS=1;HF_HUB_OFFLINE=1;PYTHONNOUSERSITE=1;XDG_CACHE_HOME=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot/apertus15-8b-dspark-e10-dspark-20261029T134252610114Z/xdg;TRITON_CACHE_DIR=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot/apertus15-8b-dspark-e10-dspark-20261029T134252610114Z/triton;CUDA_CACHE_PATH=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot/apertus15-8b-dspark-e10-dspark-20261029T134252610114Z/cuda",
+    "EXTRA_MOUNTS": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/overlays/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py:/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py,/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/overlays/workspace/vllm/vllm/model_executor/models/interfaces.py:/workspace/vllm/vllm/model_executor/models/interfaces.py,/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/overlays/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py:/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py,/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/overlays/workspace/vllm/vllm/transformers_utils/configs/speculators/algos.py:/workspace/vllm/vllm/transformers_utils/configs/speculators/algos.py,/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a:/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+    "MODEL_LAUNCH_ROOT": "/users/faruk_zahiragic/model-launch-apertus",
+    "SERVED_MODEL": "faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3",
+    "SML_BIN": "/users/faruk_zahiragic/venvs/sml-apertus/bin/sml",
+    "SML_PARTITION": "normal",
+    "SML_TIME": "12:00:00",
+    "STAGE": "8b",
+    "TARGET_MODEL": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "VLLM_CHAT_TEMPLATE": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja",
+    "VLLM_PATCH_DIR": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/overlays"
+  }
+}
