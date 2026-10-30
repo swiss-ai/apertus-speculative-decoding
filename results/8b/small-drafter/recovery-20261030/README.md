@@ -63,3 +63,35 @@ The trained one-layer weight SHA-256 is
 `9d6f8f8df6dbc95716c39aa5a6fb13e6872604aa08bd942e6c4422315cc01cba`.
 The preserved image digest is
 `f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5`.
+
+## Confirmed cache-quota failure before the diagnostic
+
+Diagnostic 3802723 started with the pinned image and passed preflight. All four
+servers then failed before capture: FlashInfer tried to create
+`/users/faruk_zahiragic/.cache/flashinfer/0.6.13/90a/cached_ops/tmp/sampling.lock`
+and received errno 122 (disk quota exceeded). This is separate from the original
+3790216 correctness failure; no numerical diagnosis was completed. Blocked
+3802725/26 were canceled, and the failed startup attempt is preserved.
+
+The exact pinned `flashinfer/jit/env.py` was inspected. It honors
+`FLASHINFER_WORKSPACE_BASE`, independently of `VLLM_CACHE_ROOT`, and appends
+`.cache/flashinfer`. The controller now sets that base to the fresh campaign's `jit-cache/STAGE`
+before server subprocesses start. The same startup logs also show a nonfatal
+usage-writer quota error; `VLLM_CONFIG_ROOT` redirects only its configuration/usage
+output directory beneath the same private workspace. A write probe
+checks the owned path; the effective cache setting is recorded in runtime
+provenance and benchmark metadata. HOME, image, kernels, engine numerical
+settings, checkpoints, prompts and correctness limits stay unchanged. 96 focused
+tests and Ruff pass. The cache fix enables the same single GPU-counterbalanced
+diagnostic; it is not a retry of completed training or an attempt to loosen gates.
+
+Startup-failure archive SHA-256:
+`efc03a715f2adb05d064a05c084119dc353c994220c7806faff42bb8b5c5d051`.
+All 31 compact source artifacts are retained. Full training evidence is already
+in the separate b1655fd4 archive and is not duplicated.
+
+The same home quota prevented standard Git-bundle upload under `~/.sml`
+(a one-byte task-owned probe confirmed errno 122). Incremental source bundles
+are transferred through this workstream's scratch, under the same global
+`/tmp/apertus-recovery-20261027/sync.lock`. No other agents' home data or frozen
+overlays are removed or modified.

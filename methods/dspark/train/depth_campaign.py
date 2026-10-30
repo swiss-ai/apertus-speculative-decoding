@@ -337,6 +337,22 @@ def require_same_image(source: dict, preflight: dict) -> None:
         raise ValueError("serving image differs from the completed training identity gate")
 
 
+def configure_runtime_cache(campaign: Path, stage: str) -> None:
+    # FlashInfer 0.6.13 defaults to HOME/.cache/flashinfer independently of
+    # VLLM_CACHE_ROOT. Its sampling.lock failed with EDQUOT in 3802723. Keep
+    # that workspace private without changing HOME, kernels or sampler flags.
+    workspace = campaign / "jit-cache" / stage
+    workspace.mkdir(parents=True, exist_ok=True)
+    probe = workspace / ".write-probe"
+    with probe.open("xb") as handle:
+        handle.write(b"1")
+    probe.unlink()
+    os.environ["FLASHINFER_WORKSPACE_BASE"] = str(workspace)
+    # The usage writer also hit EDQUOT; CONFIG_ROOT selects its output path,
+    # not the model/engine's numerical configuration.
+    os.environ["VLLM_CONFIG_ROOT"] = str(workspace / "vllm-config")
+
+
 def collect_training_evidence(candidate: Path, output: Path, job: str) -> None:
     import gzip
     import shutil
@@ -396,6 +412,8 @@ async def run_spec(spec: dict, output: Path, *, capture_only: bool = False) -> N
                 source_manifest_sha256=recovery.sha256(source_manifest),
                 source_manifest_path=str(source_manifest),
                 preflight_manifest_path=str(output / "preflight/manifest.json"),
+                flashinfer_workspace_base=os.environ.get("FLASHINFER_WORKSPACE_BASE", ""),
+                vllm_config_root=os.environ.get("VLLM_CONFIG_ROOT", ""),
             )
     if capture_only:
         plan = dataclasses.replace(plan, loadtests=[], probe=None)
@@ -442,6 +460,8 @@ def runtime_provenance(campaign: Path, stage: str, manifest: dict) -> dict:
         },
         "resolved_environment": str(environment),
         "environment_sha256": recovery.sha256(environment),
+        "flashinfer_workspace_base": os.environ.get("FLASHINFER_WORKSPACE_BASE"),
+        "vllm_config_root": os.environ.get("VLLM_CONFIG_ROOT"),
     }
 
 
@@ -451,6 +471,7 @@ def execute(campaign: Path, stage: str) -> None:
     run = campaign / stage
     run.mkdir(exist_ok=False)
     state(campaign, state="running", stage=stage, active_job=os.environ["SLURM_JOB_ID"])
+    configure_runtime_cache(campaign, stage)
     recovery.write_new(
         run / "runtime-provenance.json", runtime_provenance(campaign, stage, manifest)
     )

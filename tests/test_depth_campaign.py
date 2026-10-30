@@ -1,5 +1,6 @@
 import importlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -69,6 +70,21 @@ def test_validation_repair_cannot_silently_change_container_image() -> None:
         campaign.require_same_image(
             {"expected_serving_image_sha256": "original"}, {"image": {"sha256": "changed"}}
         )
+
+
+def test_flashinfer_workspace_avoids_home_without_changing_home(
+    tmp_path: Path, monkeypatch
+) -> None:
+    original_home = os.environ.get("HOME")
+    monkeypatch.setenv("FLASHINFER_WORKSPACE_BASE", "/historical-home-cache")
+    monkeypatch.setenv("VLLM_CONFIG_ROOT", "/historical-home-usage")
+    campaign.configure_runtime_cache(tmp_path, "validate")
+    workspace = Path(os.environ["FLASHINFER_WORKSPACE_BASE"])
+    assert workspace == tmp_path / "jit-cache/validate"
+    assert workspace.is_dir()
+    assert not (workspace / ".write-probe").exists()
+    assert Path(os.environ["VLLM_CONFIG_ROOT"]) == workspace / "vllm-config"
+    assert os.environ.get("HOME") == original_home
 
 
 def test_completed_training_resume_checks_accounting_and_real_checkpoint(tmp_path: Path) -> None:
