@@ -125,8 +125,8 @@ async def campaign(args):
     # Copy the exact overlay sources; do not modify the running pilot's files.
     shutil.copytree(args.pilot / "overlays", args.output / "overlays")
     provenance = {
-        "branch": subprocess.check_output(["git", "branch", "--show-current"], text=True).strip(),
-        "revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "branch": os.environ["SPEED_SOURCE_BRANCH"],
+        "revision": os.environ["SPEED_SOURCE_REVISION"],
         "argv": sys.argv,
         "gpu_index": args.gpu,
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
@@ -144,6 +144,7 @@ async def campaign(args):
         "design": "three paired deployment repeats on one GPU; AB, BA, AB",
         "unit": "deployment pair, all on one physical node; not independent nodes",
     }
+    shutil.copy2(__file__, args.output / "speed-id-ood.py")
     write_json(args.output / "provenance.json", provenance)
     all_status = []
     for repeat, order in enumerate(((0, 1), (1, 0), (0, 1)), 1):
