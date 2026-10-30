@@ -5,7 +5,7 @@ revision="${1:?pass the committed runtime Git SHA}"
 base=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility
 runtime="${base}/repo-${revision:0:8}"
 [ "$(cat "${runtime}/REVISION")" = "${revision}" ]
-export RUN_ID=opb-thinkoff-32n-nan-debug-20261030
+export RUN_ID=opb-thinkoff-32n-nan-debug-20261030-v2
 if [ -e "${base}/runs/${RUN_ID}" ]; then
   echo "Refusing to reuse an existing run: ${RUN_ID}" >&2
   exit 1

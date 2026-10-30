@@ -116,7 +116,7 @@ class NumericalGuardTests(unittest.TestCase):
         report = json.loads((self.root / "numerical-failure.json").read_text())
         self.assertEqual(report["phase"], expected)
         self.assertEqual(report["global_step"], 518)
-        self.assertTrue((self.root / "numerical-failure-batch.pt").is_file())
+        self.assertTrue((self.root / "numerical-failure-batches/rank0.pt").is_file())
         return trainer
 
     def test_finite_training_proceeds(self):
@@ -165,6 +165,9 @@ class NumericalGuardTests(unittest.TestCase):
                  nprocs=2, join=True)
         report = json.loads((self.root / "numerical-failure.json").read_text())
         self.assertEqual(report["rank"], 1)
+        for rank in (0, 1):
+            self.assertTrue((self.root / "numerical-failure-batches" /
+                             ("rank%s.pt" % rank)).is_file())
         self.assertEqual((self.root / "last-save").read_text(), "preserved")
 
 

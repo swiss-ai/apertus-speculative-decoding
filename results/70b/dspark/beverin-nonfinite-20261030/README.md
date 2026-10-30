@@ -79,8 +79,10 @@ Runtime commits: `a81d1626`, followed by `e6c84030`.
 The Beverin-only guard now checks loaded trainable weights, input tensors,
 forward loss/metrics, gradients before clipping, the returned gradient norm
 and weights after updates. All ranks agree on a failure before proceeding.
-A terminal JSON report prohibits automatic retry and captures the first
-bad rank's batch and RNG state before forward. Existing checkpoints remain
+A terminal JSON report prohibits automatic retry and captures every rank's
+batch and RNG state before forward. This matters when FSDP has spread a bad
+gradient before detection; peers synchronize after capture so torchrun cannot
+kill a rank mid-dump. Existing checkpoints remain
 untouched on the failure path. Diagnostic mode additionally checks backbone
 layers, norms, vocabulary heads, Markov embeddings/projection, confidence
 head and the result of each optimizer separately.

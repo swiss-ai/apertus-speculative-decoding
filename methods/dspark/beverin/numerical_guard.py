@@ -52,6 +52,10 @@ class Guard:
         failing_rank = int(first_bad.item())
         if failing_rank == 2**30:
             return
+        record = {"utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                  "global_step": trainer.global_step, "phase": phase,
+                  "rank": failing_rank, "job_id": os.environ.get("SLURM_JOB_ID"),
+                  "attempt": os.environ.get("TORCHELASTIC_RUN_ID")}
         if rank == failing_rank:
             bad = []
             for name, value in values:
@@ -59,25 +63,28 @@ class Guard:
                     bad.append({"name": name, "shape": list(value.shape),
                                 "dtype": str(value.dtype),
                                 "nonfinite": int((~torch.isfinite(value)).sum().item())})
-            record = {"utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                      "global_step": trainer.global_step, "phase": phase,
-                      "rank": rank, "job_id": os.environ.get("SLURM_JOB_ID"),
-                      "attempt": os.environ.get("TORCHELASTIC_RUN_ID"),
-                      "bad_tensors": bad}
+            record["bad_tensors"] = bad
             self.root.mkdir(parents=True, exist_ok=True)
             # Publish the terminal marker before any potentially large batch dump.
             temporary = self.root / (MARKER + ".tmp-" + str(os.getpid()))
             temporary.write_text(json.dumps(record, indent=2))
             temporary.replace(self.root / MARKER)
             print("BEVERIN_NUMERICAL_FAILURE " + json.dumps(record), flush=True)
-            if self.batch and os.environ.get("BEVERIN_CAPTURE_BAD_BATCH", "1") == "1":
-                try:
-                    torch.save({"batch": {k: v.detach().cpu() if isinstance(v, torch.Tensor)
-                                           else v for k, v in self.batch.items()},
-                                "rng_before_forward": self.rng,
-                                "failure": record}, self.root / "numerical-failure-batch.pt")
-                except Exception as exc:
-                    print("BEVERIN_NUMERICAL_FAILURE batch capture failed: " + str(exc), flush=True)
+        # FSDP can spread one rank's bad gradient before this check observes it.
+        # Retain every rank's batch rather than assuming the first observed rank
+        # originated the failure. Keep peers alive until all dumps finish.
+        if self.batch and os.environ.get("BEVERIN_CAPTURE_BAD_BATCH", "1") == "1":
+            try:
+                folder = self.root / "numerical-failure-batches"
+                folder.mkdir(parents=True, exist_ok=True)
+                torch.save({"batch": {k: v.detach().cpu() if isinstance(v, torch.Tensor)
+                                       else v for k, v in self.batch.items()},
+                            "rng_before_forward": self.rng, "capture_rank": rank,
+                            "failure": record}, folder / ("rank%s.pt" % rank))
+            except Exception as exc:
+                print("BEVERIN_NUMERICAL_FAILURE batch capture failed: " + str(exc), flush=True)
+        if trainer.is_distributed:
+            torch.distributed.barrier()
         raise NumericalFailure("BEVERIN_NUMERICAL_FAILURE phase=%s rank=%s step=%s; "
                                "automatic retry prohibited" %
                                (phase, failing_rank, trainer.global_step))
