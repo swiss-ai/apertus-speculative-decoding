@@ -95,22 +95,40 @@ lifecycle checks, eight monitor checks, shell syntax and diff checks passed.
 These CPU tests do not establish compatibility with the ROCm image; the
 two-rank, one-node FSDP preflight checks that separately.
 
-Actual-image preflight **707137** passed finite training, rejection of bad
-input on rank 1 and rejection of bad gradients after FSDP reduction, with
-the expected image digest. A second preflight **707139** checks the capture
-barrier revision. Preliminary diagnostic submission **707138** was cancelled
-while pending, with zero runtime, to use that revision; its provenance and
-replacement reason are retained. Neither diagnostic is a continuation of
-the invalid production checkpoint.
+Actual-image preflight **707137** passed all three cases. The corrected
+capture/barrier preflight **707139** also completed successfully: finite
+update, one-rank invalid input, and invalid backward gradient. Both rank
+capture files for each failure were loaded and checked for original batch
+and RNG content. It ran on `nid002778` for 97 seconds with torch
+`2.13.0+git733fca1`, HIP `7.2.53211`; the compute-side image hash matched
+`b58797bb6a430d7587f1c10ec24ac71f198bd8d590bde98dbbe68d7744a9816f`.
+Raw preflight artifacts and checksums are under `preflight/` and
+`preflight/v2/`.
 
-After that preflight passes, `launch-diagnostic.sh` prepares one fresh
-**32-node, at-most-640-step** reproduction with the original LR, batch and
-4,077-step scheduler horizon, activation checks and **MAX_ATTEMPTS=1**.
-There is no full-epoch relaunch, no validation replay and no reuse of the
-invalid checkpoint. Keeping the original settings first allows a failure to
-be attributed to a stage before considering changes to LR or math kernels.
-If it remains finite through the bound, that is not proof the original
-problem has been solved.
+Preliminary diagnostic **707138** was cancelled while pending, with zero
+allocation runtime, to use the capture fix. The replacement **707140** was
+submitted **2026-10-30 10:54:54 UTC** and is **pending priority** at the
+10:56 UTC check. Slurm tentatively estimates 13:30:51 UTC; this can change.
+
+The fresh run is `opb-thinkoff-32n-nan-debug-20261030-v2`, using immutable
+`repo-556a464d/` (full runtime and launcher commit
+`556a464dfbfe7ba56699ad037bf952b15c4e6b4e`). It requests 32 nodes / 64 trainer
+ranks for six hours, one allocation and **MAX_ATTEMPTS=1**. The original
+recipe, LR **8.48528137423857e-4**, SEQ 8,192, 512 anchors, effective batch
+524,288, true one-epoch 4,077-step linear scheduler and 40 warmup steps are
+preserved. `BEVERIN_SEGMENT_STEPS=640` bounds the diagnostic while retaining
+that schedule. There is no MAX_STEPS override, validation replay or reuse
+of the invalid checkpoint. Per-rank activation checks and synchronized
+all-rank bad-batch/RNG capture are enabled. Last good periodic checkpoints
+remain intact when numerical failure stops the run.
+
+Launch provenance and exact generated Slurm script are in `diagnostic/v2/`;
+remote output is
+`/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/opb-thinkoff-32n-nan-debug-20261030-v2/`.
+Keeping the original settings first allows a failure to be attributed to a
+stage before changing LR or math kernels. If it remains finite through the
+bound, that is not proof the original problem has been solved. The initial
+numerical trigger remains under investigation.
 
 ## Evidence
 

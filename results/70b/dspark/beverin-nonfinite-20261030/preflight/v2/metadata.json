@@ -1,0 +1,66 @@
+{
+  "source_revision": "556a464dfbfe7ba56699ad037bf952b15c4e6b4e",
+  "source_branch": "fix/beverin-nonfinite-diagnosis-20261030",
+  "runtime": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-556a464d",
+  "run": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/guard-preflight-20261030-556a464d",
+  "archive_sha256": "df5c73d333dde03f413a80cdd75345f17bd8df404df4987b2ea7c351a77eb079",
+  "archive_paths": [
+    "methods/dspark",
+    "docs/beverin-handoff.md",
+    "docs/beverin-feasibility.md"
+  ],
+  "image": "/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm-v0.31.0.sqsh",
+  "image_sha256_expected": "b58797bb6a430d7587f1c10ec24ac71f198bd8d590bde98dbbe68d7744a9816f",
+  "nodes": 1,
+  "gpus": 4,
+  "trainer_ranks": 2,
+  "walltime": "00:20:00",
+  "target_model": null,
+  "command": "torchrun --standalone --nproc-per-node=2 /iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-556a464d/methods/dspark/beverin/check_numerical_guard.py",
+  "purpose": "Validate all-rank capture/barrier fix in actual ROCm/FSDP before diagnostic replacement",
+  "supersedes_preflight_job": "707137",
+  "submitted_utc": "2026-10-30T10:52:02.382362Z",
+  "job_id": "707139",
+  "submission_command": [
+    "sbatch",
+    "--parsable",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/guard-preflight-20261030-556a464d/launch.sbatch"
+  ],
+  "state": "COMPLETED",
+  "return_code": 0,
+  "observed_image_sha256": "b58797bb6a430d7587f1c10ec24ac71f198bd8d590bde98dbbe68d7744a9816f",
+  "passes": [
+    {
+      "mode": "finite",
+      "torch": "2.13.0+git733fca1",
+      "hip": "7.2.53211"
+    },
+    {
+      "mode": "input",
+      "torch": "2.13.0+git733fca1",
+      "hip": "7.2.53211"
+    },
+    {
+      "mode": "gradient",
+      "torch": "2.13.0+git733fca1",
+      "hip": "7.2.53211"
+    }
+  ],
+  "capture_passes": [
+    {
+      "mode": "input",
+      "ranks": [
+        0,
+        1
+      ]
+    },
+    {
+      "mode": "gradient",
+      "ranks": [
+        0,
+        1
+      ]
+    }
+  ],
+  "elapsed_seconds": 97
+}
