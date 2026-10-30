@@ -87,6 +87,8 @@ def report(root):
                             "draft_e2e_p50_ms": draft["latency_ms"]["e2e"]["p50"],
                             "acceptance": draft["speculative_decoding"].get("acceptance_rate"),
                             "requests_each": plain["requests"]["attempted"],
+                            "plain_load": plain.get("load"),
+                            "draft_load": draft.get("load"),
                             "plain_completion_tokens": plain["tokens"]["completion"],
                             "draft_completion_tokens": draft["tokens"]["completion"],
                         }

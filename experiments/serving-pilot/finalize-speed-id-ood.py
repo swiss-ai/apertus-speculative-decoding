@@ -10,7 +10,13 @@ from pathlib import Path
 
 
 def archive(root):
-    files = sorted(p for p in root.rglob("*") if p.is_file() and p.name != "corpus.jsonl")
+    files = sorted(
+        p
+        for p in root.rglob("*")
+        if p.is_file()
+        and p.name != "corpus.jsonl"
+        and "vllm-cache" not in p.relative_to(root).parts
+    )
     manifest = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
     manifest_path = root / "artifact-manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
