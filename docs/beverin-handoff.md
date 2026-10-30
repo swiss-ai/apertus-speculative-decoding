@@ -1,5 +1,14 @@
 # Handoff: DSpark drafter for Apertus 1.5 70B on Beverin (2026-10-25)
 
+**Incident update, 2026-10-30:** the 32-node one-epoch run failed numerically:
+first logged NaN at global_step 519; the step-4077 checkpoint is invalid.
+Continuation 698073 was cancelled at 10:35:46 UTC to stop repeated validation
+of the same corrupted weights. Do not resume that checkpoint. Initial trigger
+is still under diagnosis; the separate one-node run and Clariden were not
+changed. Evidence and fail-fast diagnostic work are on
+`fix/beverin-nonfinite-diagnosis-20261030`, under
+`results/70b/dspark/beverin-nonfinite-20261030/`.
+
 Read this first, then `docs/beverin-feasibility.md` (same branch) for every
 Beverin job and measurement, and `docs/dspark-70b-plan.md` for the Clariden
 side. This file says what was done, where things are, and what to do next.
