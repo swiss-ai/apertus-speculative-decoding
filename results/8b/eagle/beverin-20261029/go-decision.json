@@ -1,0 +1,28 @@
+{
+  "decided_at": "2026-10-30T10:05+01:00",
+  "decision": "GO",
+  "loss_parity_166655_167800": {
+    "reference": "production history.jsonl (Clariden link 3745987, same step-166654 checkpoint)",
+    "pilot": "stage1-bev-pilot-rb (Beverin 705342, rocBLAS)",
+    "common_steps": 1146,
+    "mean_diff_bev_minus_clariden": 0.00016, "mean_abs_diff": 0.00060, "max_abs_diff": 0.0055,
+    "segments_mean_diff": {"166655-166954": 0.00010, "166955-167377": 0.00016, "167378-167800": 0.00021},
+    "per_step_loss_std_clariden": 0.2494,
+    "mean_loss": {"clariden": 0.75989, "beverin": 0.76005},
+    "grad_norm_rel_diff": {"mean": 0.0021, "max": 0.0534},
+    "lr_max_abs_diff": 0.0
+  },
+  "eval_parity_167756": {
+    "clariden": {"simulated_acc_len": 4.133598089396953, "avg_loss": 0.7179810289293104, "avg_acc": 0.8600961589256836},
+    "beverin": {"simulated_acc_len": 4.132593285792794, "avg_loss": 0.7180960199726362, "avg_acc": 0.8600385090060011},
+    "abs_diff_simulated_acc_len": 0.0010, "gate": 0.03
+  },
+  "save_resume": "pass (705342 saved at 167800, 705343 resumed at 167800, history contiguous to 168141)",
+  "memory": "pass (min available 66 GiB, gate ~50)",
+  "throughput": {"beverin_s_per_step": 6.77, "clariden_s_per_step": 6.15, "beverin_steps_per_24h_link": "~12.7k", "clariden_observed_steps_per_day": "3-5k"},
+  "p2": "not run (2-node step < 8 s)",
+  "clariden_cancelled_pending": "3745988-3746022, 3746024-3746033 (45 jobs, one scancel listed latest first)",
+  "clariden_running_left_to_finish": "3745987 (ends by 2026-10-30 17:11 CET)",
+  "beverin_chain_held": ["707002","707003","707004","707005","707006","707007","707008","707009","707010","707011"],
+  "beverin_chain_settings": "repo-80d511ff, train-e31-opb-thinkon-2n.yaml, run id stage1, 24 h links, rocBLAS, start guard on production run dir"
+}
