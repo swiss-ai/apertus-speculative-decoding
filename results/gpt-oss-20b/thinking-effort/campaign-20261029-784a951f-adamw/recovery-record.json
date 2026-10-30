@@ -1,0 +1,51 @@
+{
+  "recorded_at": "2026-10-29T09:27:19.701634+00:00",
+  "source_revision": "784a951f3f04eba697b45a7d2977358e020d1e7f",
+  "source_branch": "experiment/thinking-effort-phase2",
+  "remote_source_worktree": "/users/faruk_zahiragic/apertus-effort-phase2-784a951f",
+  "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw",
+  "supersedes": {
+    "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+    "status": "completed_off_protocol",
+    "reason": "upstream optimizer default Muon was used instead of the frozen AdamW contract",
+    "raw_comparison_decision": "retain_shared",
+    "usable_as_final_AdamW_result": false
+  },
+  "correction": "explicit --optimizer adamw, resolved optimizer/LR/weight decay/scheduler gate before training, run.yaml and speculators.patch retained outside checkpoint cleanup",
+  "frozen_plan_unchanged": true,
+  "reused_immutable_data": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+  "reused_training_environment": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50/training-environment",
+  "reused_qualification": {
+    "path": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d",
+    "job_id": "3782492",
+    "optimizer_in_synthetic_smoke": "AdamW"
+  },
+  "controller_argv": [
+    "/users/faruk_zahiragic/venvs/apertus-bench/bin/python",
+    "-u",
+    "-m",
+    "apertus_bench.effort_training_submit",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw",
+    "--phase1-reference",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da",
+    "--upstream",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb",
+    "--qualification",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-d",
+    "--qualification-job",
+    "3782492",
+    "--data-reference",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+    "--partition",
+    "debug",
+    "--time",
+    "01:30:00"
+  ],
+  "controller_environment": {
+    "PYTHONPATH": "/users/faruk_zahiragic/apertus-effort-phase2-784a951f/src",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "controller_pid": 127254,
+  "validation": "20 training/controller/upstream integration tests passed; regression rejects default Muon, admits explicit AdamW, detects weight-decay drift; data reuse rejects input/config/prompt changes"
+}
