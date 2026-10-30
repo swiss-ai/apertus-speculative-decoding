@@ -41,7 +41,11 @@ class Trainer:
         self.mode, self.checkpointer = mode, SimpleNamespace(path=root)
         self.model = Model(mode).to(self.local_rank, dtype=torch.bfloat16)
         self.setup_model()
+        self.setup_optimizer()
+
+    def setup_optimizer(self):
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=.01)
+        self.optimizers = [self.optimizer]
 
     def setup_model(self):
         for parameter in self.model.parameters():

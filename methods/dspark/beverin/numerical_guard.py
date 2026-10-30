@@ -116,7 +116,8 @@ def install(Trainer, torch):
         self.model.register_forward_hook(after)
         if os.environ.get("BEVERIN_CHECK_ACTIVATIONS", "0") == "1":
             stages = {"fc", "hidden_norm", "norm", "lm_head", "verifier_norm",
-                      "verifier_lm_head", "markov_head.markov_w2", "confidence_head"}
+                      "verifier_lm_head", "markov_head.markov_w1",
+                      "markov_head.markov_w2", "confidence_head"}
             for name, module in self.model.named_modules():
                 if name in stages or (name.startswith("layers.") and name.count(".") == 1):
                     def stage_hook(_module, _args, output, name=name):
@@ -155,3 +156,19 @@ def install(Trainer, torch):
     Trainer.setup_model = setup
     Trainer.train_epoch = train
     Trainer._optimizers_step = step
+
+    if hasattr(Trainer, "setup_optimizer"):
+        original_setup_optimizer = Trainer.setup_optimizer
+
+        def setup_optimizer(self):
+            result = original_setup_optimizer(self)
+            if os.environ.get("BEVERIN_CHECK_ACTIVATIONS", "0") == "1":
+                for optimizer in self.optimizers:
+                    def optimizer_hook(opt, _args, _kwargs):
+                        self._beverin_numerical_guard.check(
+                            self._beverin_numerical_guard.parameters(),
+                            "optimizer:" + type(opt).__name__)
+                    optimizer.register_step_post_hook(optimizer_hook)
+            return result
+
+        Trainer.setup_optimizer = setup_optimizer
