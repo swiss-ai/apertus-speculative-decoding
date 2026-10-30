@@ -1,0 +1,28 @@
+/tmp/beverin-numerics-20261030/lib/python3.12/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+test_bad_optimizer_update_cannot_be_saved (test_beverin_numerical_guard.NumericalGuardTests.test_bad_optimizer_update_cannot_be_saved) ... BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:13Z", "global_step": 518, "phase": "updated-parameters", "rank": 0, "job_id": null, "attempt": null, "bad_tensors": [{"name": "weight", "shape": [2], "dtype": "torch.float32", "nonfinite": 2}]}
+ok
+test_corrupt_loaded_weights_rejected (test_beverin_numerical_guard.NumericalGuardTests.test_corrupt_loaded_weights_rejected) ... BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:13Z", "global_step": 518, "phase": "loaded-parameters", "rank": 0, "job_id": null, "attempt": null, "bad_tensors": [{"name": "weight", "shape": [2], "dtype": "torch.float32", "nonfinite": 2}]}
+ok
+test_finite_loss_with_invalid_backward (test_beverin_numerical_guard.NumericalGuardTests.test_finite_loss_with_invalid_backward) ... BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:13Z", "global_step": 518, "phase": "backward-gradients", "rank": 0, "job_id": null, "attempt": null, "bad_tensors": [{"name": "weight", "shape": [2], "dtype": "torch.float32", "nonfinite": 2}]}
+ok
+test_finite_training_proceeds (test_beverin_numerical_guard.NumericalGuardTests.test_finite_training_proceeds) ... ok
+test_input_failure_before_forward_or_optimizer (test_beverin_numerical_guard.NumericalGuardTests.test_input_failure_before_forward_or_optimizer) ... BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:13Z", "global_step": 518, "phase": "inputs", "rank": 0, "job_id": null, "attempt": null, "bad_tensors": [{"name": "/x", "shape": [2], "dtype": "torch.float32", "nonfinite": 1}]}
+ok
+test_loss_failure_before_backward_or_optimizer (test_beverin_numerical_guard.NumericalGuardTests.test_loss_failure_before_backward_or_optimizer) ... BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:13Z", "global_step": 518, "phase": "forward-loss-and-metrics", "rank": 0, "job_id": null, "attempt": null, "bad_tensors": [{"name": "/1", "shape": [], "dtype": "torch.float32", "nonfinite": 1}, {"name": "/2/loss", "shape": [], "dtype": "torch.float32", "nonfinite": 1}]}
+ok
+test_one_bad_rank_stops_both_before_updates (test_beverin_numerical_guard.NumericalGuardTests.test_one_bad_rank_stops_both_before_updates) ... /tmp/beverin-numerics-20261030/lib/python3.12/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+/tmp/beverin-numerics-20261030/lib/python3.12/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:16Z", "global_step": 518, "phase": "inputs", "rank": 1, "job_id": null, "attempt": null, "bad_tensors": [{"name": "/x", "shape": [2], "dtype": "torch.float32", "nonfinite": 1}]}
+ok
+test_overflowed_norm_with_finite_gradients_stops_before_update (test_beverin_numerical_guard.NumericalGuardTests.test_overflowed_norm_with_finite_gradients_stops_before_update) ... BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:17Z", "global_step": 518, "phase": "gradient-norm", "rank": 0, "job_id": null, "attempt": null, "bad_tensors": [{"name": "total_grad_norm", "shape": [], "dtype": "torch.float32", "nonfinite": 1}]}
+ok
+test_terminal_marker_prevents_restart (test_beverin_numerical_guard.NumericalGuardTests.test_terminal_marker_prevents_restart) ... BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:48:17Z", "global_step": 518, "phase": "forward-loss-and-metrics", "rank": 0, "job_id": null, "attempt": null, "bad_tensors": [{"name": "/1", "shape": [], "dtype": "torch.float32", "nonfinite": 1}, {"name": "/2/loss", "shape": [], "dtype": "torch.float32", "nonfinite": 1}]}
+ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 5.190s
+
+OK

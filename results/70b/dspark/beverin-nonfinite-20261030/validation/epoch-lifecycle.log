@@ -1,0 +1,18 @@
+test_audit_allows_only_authenticated_no_progress_paths (test_beverin_single_epoch.SingleEpochTests.test_audit_allows_only_authenticated_no_progress_paths) ... ok
+test_final_checkpoint_resumes_only_validation (test_beverin_single_epoch.SingleEpochTests.test_final_checkpoint_resumes_only_validation) ... ok
+test_fresh_one_epoch (test_beverin_single_epoch.SingleEpochTests.test_fresh_one_epoch) ... ok
+test_invalid_epoch_or_pilot_contract_rejected (test_beverin_single_epoch.SingleEpochTests.test_invalid_epoch_or_pilot_contract_rejected) ... ok
+test_mid_epoch_resume_trains_only_remaining_steps (test_beverin_single_epoch.SingleEpochTests.test_mid_epoch_resume_trains_only_remaining_steps) ... ok
+test_swallowed_interruption_does_not_mark_complete (test_beverin_single_epoch.SingleEpochTests.test_swallowed_interruption_does_not_mark_complete) ... ok
+test_torn_candidate_metrics_revalidate_but_marker_fails_closed (test_beverin_single_epoch.SingleEpochTests.test_torn_candidate_metrics_revalidate_but_marker_fails_closed) ... ok
+test_validated_continuation_is_noop_and_does_not_overwrite (test_beverin_single_epoch.SingleEpochTests.test_validated_continuation_is_noop_and_does_not_overwrite) ... ok
+test_validation_failure_stays_incomplete_and_can_retry (test_beverin_single_epoch.SingleEpochTests.test_validation_failure_stays_incomplete_and_can_retry) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.031s
+
+OK
+BEVERIN_AUDIT {"job_id": "1", "initial_step": 4, "final_step": 4, "status": "needs_attention", "errors": ["completion skip lacks authenticated final validation", "checkpoint global_step did not advance", "no successful checkpoint save in the trainer log", "expected checkpoint resume was not logged"]}
+BEVERIN_AUDIT {"job_id": "1", "initial_step": 4, "final_step": 4, "status": "ok", "errors": []}
+BEVERIN_AUDIT {"job_id": "1", "initial_step": 4, "final_step": 4, "status": "needs_attention", "errors": ["checkpoint global_step did not advance", "no successful checkpoint save in the trainer log", "expected checkpoint resume was not logged"]}
+BEVERIN_AUDIT {"job_id": "1", "initial_step": 4, "final_step": 4, "status": "ok", "errors": []}
