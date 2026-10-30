@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot immutable effort reports by workload, with same-block plain baselines."""
+"""Compare vanilla, effort-matched FT and mixed FT using immutable effort reports."""
 
 from __future__ import annotations
 
@@ -19,17 +19,15 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.lines import Line2D  # noqa: E402
+from matplotlib.patches import Patch  # noqa: E402
 from matplotlib.ticker import FuncFormatter, MaxNLocator  # noqa: E402
 
 EFFORTS = ("low", "medium", "high")
 WORKLOADS = ("math", "code")
 SERIES = (
-    ("phase1", "dflash", "Released DFlash (Phase 1)", "#333333", "D", "--"),
-    ("phase2", "low", "FT low-only", "#009E73", "^", "-"),
-    ("phase2", "medium", "FT medium-only", "#E69F00", "s", "-"),
-    ("phase2", "high", "FT high-only", "#CC79A7", "v", "-"),
-    ("phase2", "mixed", "FT mixed", "#0072B2", "o", "-"),
+    ("phase1", "dflash", "Vanilla DFlash", "#606770"),
+    ("phase2", "matched", "Effort-matched FT", "#009E73"),
+    ("phase2", "mixed", "Mixed FT", "#0072B2"),
 )
 
 
@@ -62,9 +60,10 @@ def main():
     for key in ("temperature", "top_p", "top_k", "min_p", "max_tokens", "fixed_date"):
         assert locks["phase1"]["spec"][key] == locks["phase2"]["spec"][key]
     rows = []
-    for phase, variant, label, *_ in SERIES:
+    for phase, comparison, label, _ in SERIES:
         for block in range(3):
             for effort in EFFORTS:
+                variant = effort if comparison == "matched" else comparison
                 selected = [
                     r
                     for r in reports[phase]["rows"]
@@ -92,6 +91,7 @@ def main():
                     rows.append(
                         {
                             "phase": phase,
+                            "comparison": comparison,
                             "variant": variant,
                             "label": label,
                             "block": block,
@@ -105,7 +105,8 @@ def main():
                             "plain_decode_ms_per_token": baseline["decode_ms_per_token"],
                         }
                     )
-    assert len(rows) == 90
+    assert len(rows) == 54
+    assert all(r["variant"] == r["effort"] for r in rows if r["comparison"] == "matched")
     output = args.output
     output.mkdir(parents=True, exist_ok=False)
     sources = output / "sources"
@@ -123,7 +124,7 @@ def main():
     shutil.copyfile(__file__, output / "plot-thinking-effort.py")
     data = output / "plot-data.csv"
     with data.open("x", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     plt.rcParams.update(
@@ -132,7 +133,7 @@ def main():
             "font.size": 11,
             "axes.spines.top": False,
             "axes.spines.right": False,
-            "axes.titleweight": "semibold",
+            "axes.titleweight": "bold",
             "axes.labelcolor": "#333333",
             "axes.edgecolor": "#BBBBBB",
             "pdf.fonttype": 42,
@@ -147,57 +148,54 @@ def main():
     for ri, workload in enumerate(WORKLOADS):
         for ci, (metric, ylabel, title) in enumerate(metrics):
             ax = axes[ri, ci]
-            for si, (phase, variant, label, color, marker, linestyle) in enumerate(SERIES):
-                x = [i + (si - 2) * 0.048 for i in range(3)]
+            width = 0.22
+            for si, (phase, comparison, label, color) in enumerate(SERIES):
+                x = [i + (si - 1) * width for i in range(3)]
                 central = []
                 for i, effort in enumerate(EFFORTS):
                     observations = [
                         r[metric]
                         for r in rows
-                        if (r["phase"], r["variant"], r["workload"], r["effort"])
-                        == (phase, variant, workload, effort)
+                        if (r["phase"], r["comparison"], r["workload"], r["effort"])
+                        == (phase, comparison, workload, effort)
                     ]
                     assert len(observations) == 3
                     central.append(median(observations))
                     ax.scatter(
-                        [x[i] - 0.012, x[i], x[i] + 0.012],
+                        [x[i] - 0.035, x[i], x[i] + 0.035],
                         observations,
-                        s=19,
-                        color=color,
-                        alpha=0.25,
-                        linewidths=0,
-                        zorder=2,
+                        s=22,
+                        facecolor="white",
+                        edgecolor="#222222",
+                        linewidths=0.8,
+                        zorder=4,
                     )
-                ax.plot(
+                ax.bar(
                     x,
                     central,
                     color=color,
-                    marker=marker,
-                    linestyle=linestyle,
-                    linewidth=2.7 if variant == "mixed" else 1.7,
-                    markersize=6,
-                    markeredgewidth=1.2,
-                    markerfacecolor="white",
+                    width=width * 0.92,
+                    alpha=0.88,
                     label=label,
-                    zorder=5 if variant == "mixed" else 3,
+                    zorder=2,
                 )
             ax.set_title(f"{workload.capitalize()} · {title}", pad=13)
             ax.set_ylabel(ylabel)
             ax.set_xticks([0, 1, 2], ["Low", "Medium", "High"])
             ax.set_xlabel("Target thinking effort")
             ax.tick_params(axis="x", labelbottom=True)
-            ax.set_xlim(-0.25, 2.25)
+            ax.set_xlim(-0.5, 2.5)
             ax.grid(axis="y", color="#E5E7EB", linewidth=0.8, zorder=0)
             maximum = max(r[metric] for r in rows)
-            ax.set_ylim(0 if ci == 0 else 0.8, maximum * 1.12)
+            ax.set_ylim(0, maximum * 1.12)
             ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
             if ci:
                 ax.axhline(1, color="#888888", linestyle=":", linewidth=1)
                 ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.1f}×"))
     figure.suptitle(
-        "GPT-OSS-20B: released vs fine-tuned DFlash across workloads and effort",
+        "GPT-OSS-20B: vanilla DFlash vs effort-matched FT vs mixed FT",
         fontsize=18,
-        fontweight="semibold",
+        fontweight="bold",
         y=0.975,
     )
     figure.text(
@@ -209,24 +207,12 @@ def main():
         fontsize=11,
         color="#555555",
     )
-    handles = [
-        Line2D(
-            [0],
-            [0],
-            color=color,
-            marker=marker,
-            linestyle=linestyle,
-            linewidth=2.5 if variant == "mixed" else 1.7,
-            markerfacecolor="white",
-            label=label,
-        )
-        for _, variant, label, color, marker, linestyle in SERIES
-    ]
+    handles = [Patch(facecolor=color, alpha=0.88, label=label) for _, _, label, color in SERIES]
     figure.legend(
         handles=handles,
         loc="lower center",
         bbox_to_anchor=(0.5, 0.103),
-        ncol=5,
+        ncol=3,
         frameon=False,
         columnspacing=2.2,
         handlelength=2.6,
@@ -234,8 +220,8 @@ def main():
     figure.text(
         0.5,
         0.069,
-        "Large markers/lines: medians over repeats; small dots: individual repeats. "
-        "Speedups use each run’s same-block plain baseline; higher is better.",
+        "Bars: median of 3 repeats; dots: individual repeats. "
+        "Matched FT: low-trained at low effort, medium-trained at medium, high-trained at high.",
         ha="center",
         fontsize=10,
         color="#444444",
@@ -243,8 +229,8 @@ def main():
     figure.text(
         0.5,
         0.041,
-        "Released head: Phase 1. Fine-tunes: Phase 2. Target, probe, sampling and container "
-        "match; phases use separate deployments/nodes (no direct paired default-vs-FT test).",
+        "Higher is better. Speedups use each run’s paired plain baseline. "
+        "Vanilla comes from separate baseline runs; no contemporaneous vanilla-vs-FT pairing.",
         ha="center",
         fontsize=9.5,
         color="#666666",
@@ -269,6 +255,8 @@ def main():
         "target_sha256": locks["phase2"]["target"]["sha256"],
         "corpus_sha256": locks["phase2"]["workload"]["sha256"],
         "data_rows": len(rows),
+        "comparison_scope": "At each effort: vanilla, that effort's FT head, and mixed FT only.",
+        "matched_head_mapping": {effort: effort for effort in EFFORTS},
         "repeats": 3,
         "requests_per_workload_effort_head_repeat": 32,
         "aggregation": "Median of three per-block metrics, stratified by workload and effort.",
