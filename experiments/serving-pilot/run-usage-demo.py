@@ -76,13 +76,28 @@ def objective_checks(case: dict, measurement: dict) -> dict:
     return checks
 
 
-async def wait_ready(run: Path, seconds: float) -> dict:
+async def wait_ready(run: Path, seconds: float, direct: bool = False) -> dict:
     deadline = time.monotonic() + seconds
     while time.monotonic() < deadline:
         info = h.inspect_run(run)
         fields = info.get("slurm", "").split("|")
         if len(fields) > 1 and fields[1].split()[0] in TERMINAL:
             raise RuntimeError(f"serving deployment ended before demo: {fields[1]}")
+        if direct and info.get("base_url") and info.get("preflight", {}).get("status") == "passed":
+            job = info["preflight"]["slurm_job_id"]
+            for path in sorted((run / "checks").glob("*/report.json"), reverse=True):
+                report = h.read_json(path)
+                if (
+                    report.get("passed")
+                    and not report.get("gateway")
+                    and report.get("runtime_job_id") == job
+                ):
+                    async with httpx.AsyncClient(timeout=5) as health:
+                        response = await health.get(info["base_url"] + "/health")
+                        response.raise_for_status()
+                    info["startup_validation_report"] = str(path)
+                    info["demo_route"] = "direct worker; dev gateway remains unavailable"
+                    return info
         for path in sorted((run / "automation").glob("*/report.json"), reverse=True):
             report = h.read_json(path)
             if report.get("passed") and report.get("gateway_checks"):
@@ -104,6 +119,7 @@ async def capture_cell(client, metrics, metrics_url, prompt, case, out, arm, met
             **metadata,
             "arm": arm,
             "model": client.model,
+            "base_url": client.base_url,
             "started_at": h.now(),
             "prompt_id": prompt.id,
             "prompt_sha256": h.digest(case),
@@ -231,8 +247,12 @@ async def execute(args, out: Path, cases: list[dict], info: dict) -> None:
     dep = h.read_json(run / "deployment.json")
     runtime = info["preflight"]
     profile = h.read_json(run / "profile.json")
-    key = gateway_key(run, "CSCS_SERVING_API", dep["platform"])
-    base = dep["gateway"]
+    direct = getattr(args, "direct", False)
+    baseline_platform = getattr(args, "baseline_platform", None) or dep["platform"]
+    base = profile["deployment"]["gateway"][baseline_platform]
+    key = gateway_key(run, "CSCS_SERVING_API", baseline_platform)
+    candidate_base = info["base_url"] if direct else dep["gateway"]
+    candidate_key = None if direct else gateway_key(run, "CSCS_SERVING_API", dep["platform"])
     metadata = {
         "deployment_id": dep["deployment_id"],
         "checkpoint_sha256": runtime["drafter"]["checkpoint_sha256"],
@@ -245,6 +265,8 @@ async def execute(args, out: Path, cases: list[dict], info: dict) -> None:
         "harness_repository": h.git_info(ROOT),
         "corpus_sha256": file_sha256(out / "prompts.jsonl"),
         "gateway": base,
+        "candidate_route": candidate_base,
+        "baseline_route": base,
         "purpose": "bounded interactive demonstration",
         "limitations": LIMITATION,
     }
@@ -302,7 +324,9 @@ async def execute(args, out: Path, cases: list[dict], info: dict) -> None:
         }
         rows = []
         async with (
-            StreamingChatClient(base, dep["model"], key, timeout_seconds=180) as candidate,
+            StreamingChatClient(
+                candidate_base, dep["model"], candidate_key, timeout_seconds=180
+            ) as candidate,
             StreamingChatClient(base, args.baseline, key, timeout_seconds=180) as vanilla,
         ):
             clients = {"dspark": candidate, "vanilla": vanilla}
@@ -345,7 +369,13 @@ async def execute(args, out: Path, cases: list[dict], info: dict) -> None:
                             metadata if arm == "dspark" else vanilla_metadata,
                         )
                     )
-        (out / "report.md").write_text(readable_report(cases, rows, dep["model"], args.baseline))
+        text = readable_report(cases, rows, dep["model"], args.baseline)
+        text += f"\nRequest routes: DSpark `{candidate_base}`, vanilla `{base}`.\n"
+        if direct:
+            text += (
+                "DSpark was queried directly because it was not discoverable on the dev gateway.\n"
+            )
+        (out / "report.md").write_text(text)
         summary = {
             "at": h.now(),
             "requests": len(rows),
@@ -413,7 +443,7 @@ async def run(args) -> None:
                 "waiting_for_startup_checks",
                 job_id=h.read_json(args.run / "job.json")["job_id"],
             )
-            info = await wait_ready(args.run, args.wait_seconds)
+            info = await wait_ready(args.run, args.wait_seconds, getattr(args, "direct", False))
             await execute(args, out, cases, info)
         except Exception as exc:
             h.write_json(out / "failure.json", {"at": h.now(), "error": str(exc)})
@@ -443,4 +473,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("--baseline", default="SwissAI-Research/swiss-ai/Apertus-v1.5-8B-fixed")
     parser.add_argument("--wait-seconds", type=float, default=129600)
+    parser.add_argument("--direct", action="store_true", help="use validated direct worker route")
+    parser.add_argument("--baseline-platform", choices=("dev", "research"))
     asyncio.run(run(parser.parse_args()))

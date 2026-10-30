@@ -148,6 +148,47 @@ async def test_demo_never_requests_a_completion_before_startup_validation_passes
     assert info["base_url"] == "http://worker" and len(sleeps) == 1
 
 
+@pytest.mark.asyncio
+async def test_explicit_direct_route_requires_passing_same_job_checks_and_live_health(
+    tmp_path, monkeypatch
+):
+    run = tmp_path / "deployment"
+    (run / "checks/direct").mkdir(parents=True)
+    (run / "automation/failed").mkdir(parents=True)
+    (run / "checks/direct/report.json").write_text(
+        json.dumps({"passed": True, "gateway": False, "runtime_job_id": "123"})
+    )
+    (run / "automation/failed/report.json").write_text(
+        json.dumps({"passed": False, "error": "gateway not discoverable"})
+    )
+    monkeypatch.setattr(
+        demo.h,
+        "inspect_run",
+        lambda _: {
+            "slurm": "123|RUNNING|node",
+            "base_url": "http://worker",
+            "preflight": {"status": "passed", "slurm_job_id": "123"},
+        },
+    )
+    original = httpx.AsyncClient
+
+    def handler(request):
+        assert request.url.path == "/health"
+        assert not request.headers.get("authorization")
+        return httpx.Response(200)
+
+    monkeypatch.setattr(
+        demo.httpx,
+        "AsyncClient",
+        lambda **kwargs: original(transport=httpx.MockTransport(handler), **kwargs),
+    )
+    with pytest.raises(RuntimeError, match="startup validation failed"):
+        await demo.wait_ready(run, 30)
+    info = await demo.wait_ready(run, 30, direct=True)
+    assert "direct worker" in info["demo_route"]
+    assert info["startup_validation_report"].endswith("checks/direct/report.json")
+
+
 def test_collector_verifies_results_and_preserves_existing_local_files(tmp_path):
     path = MODULE.with_name("collect-usage-demo.py")
     loader = importlib.util.spec_from_file_location("usage_collector", path)

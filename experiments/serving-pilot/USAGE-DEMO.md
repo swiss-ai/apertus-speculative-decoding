@@ -47,3 +47,11 @@ comparison. Prompts are invented examples, not real production conversations.
 `collect-usage-demo.py` can wait locally for the result archive and copy the
 verified report/raw cells into this checkout. It depends on valid Clariden SSH
 access; the cluster results remain available if collection fails.
+
+If the development gateway cannot discover an otherwise healthy worker, an
+explicit `--direct --baseline-platform research` run can capture examples from
+that existing worker and the existing research vanilla service. Direct mode
+requires a passed runtime preflight, saved passing direct checks for the same
+job, and a fresh health response. It does not claim that gateway validation
+passed. The report and each raw cell record the actual routes; the candidate
+receives no gateway key. Use a new result directory for this distinct capture.
