@@ -17,7 +17,9 @@ colliding prompt IDs from repeated FinePDFs source IDs; a content-aware identity
 fix passed in **3790165**: all pools validate, and summarization/multilingual
 each generated 8,192 pool plus 256 dev traces. Chat stopped because the JSONL
 reader split a Unicode NEL inside a valid JSON string. A physical-line reader
-fix is validated; the completed domains will be reused and only chat regenerated.
+fix is validated; chat-only replacement **3802584** is queued. The completed
+domains and all original prompt pools are reused unchanged after a hash/count/
+target/renderer audit.
 No recovery training or serving measurements have run yet.
 
 | Part | Evidence | Verdict / next step |
@@ -31,7 +33,7 @@ No recovery training or serving measurements have run yet.
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
 are retained. Recovery uses a lightweight detached controller on the cluster,
 not local Claude watchers. Its receipts and next action are at
-`spec-exp-data/drafter-updates/recovery-20261029/receipts/campaign.json`.
+`spec-exp-data/drafter-updates/recovery-20261030/receipts/campaign.json`.
 It submits one owned training job at a time and cannot create new variants.
 The [initial controller staging receipt](../results/8b/drafter-updates/recovery-20261027/controller-staging-621b2050.json)
 records the frozen code revision `621b2050`, all 162 verified source files,
@@ -42,6 +44,18 @@ files, the unchanged original policy hash, and job 3790165 pending at 10:04 UTC
 on 29 October. The [unaltered failed-attempt capsule](../results/8b/drafter-updates/recovery-20261029/failed-trace-3769227/artifact-manifest.json)
 retains logs, exact launch/resolved environment, image digest and target contract.
 The full EAGLE workflow is staged, not scientifically completed.
+The [30 October staging receipt](../results/8b/drafter-updates/recovery-20261030/controller-staging-e9cc4842.json)
+pins source `e9cc4842` and the unchanged original scientific-policy hash. It
+records the completed-domain reuse audit, successful physical-line parsing of
+all 8,448 chat inputs on the cluster, and job 3802584 pending at 12:02 UTC.
+
+The [preserved 3790165 failure and reuse capsule](../results/8b/drafter-updates/recovery-20261030/failed-trace-3790165/artifact-manifest.json)
+contains losslessly compressed generation logs, original summaries and source/
+launch provenance. Each completed domain has 256 dev and 8,192 pool outputs,
+zero skips, matching input/output SHA-256, the expected target/sampling policy,
+and 32 successful renderer-parity checks. Those are usable training artifacts,
+not evidence of an adaptation benefit. Chat's source JSONL remains byte-identical:
+one NEL in dev and nine in the pool are legal string content, not record breaks.
 
 ## Method
 
@@ -260,6 +274,7 @@ another run's patched source or wandb stub.
 | 3737459 | fine-tune smoke, resubmitted with 4 GPUs | 4 steps and export/reload pass; exit 3 solely because the four-step training-loss gate failed; original scientific result preserved |
 | 3769227 | fresh full pools/traces after deterministic heap fix | failed after 409 s: distinct FinePDFs chunks shared source-only prompt IDs; no target generation/training began |
 | 3790165 | content-aware summarization prompt IDs; full original pools/traces, frozen source b58ee54a | failed after 1,636 s: summarization/multilingual complete (8,192+256 each, no skips, 32 renderer checks); chat JSONL reader incorrectly split U+0085 inside prompt text |
+| 3802584 | physical-line JSONL reader; chat only, with validated completed-domain trace reuse; source e9cc4842 | queued normal, 3 h, 4 GPUs; fresh `recovery-20261030/data` output for chat |
 
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,
@@ -277,8 +292,9 @@ process identity and replaces only the trace-waiting controller under a separate
 replacement lock. All historical raw scientific artifacts remain unchanged.
 
 Results/root:
-`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029`.
-Controller: `receipts/start-controller-b58ee54a9ffe.sh`; log: `receipts/controller.log`.
-The previous `recovery-20261027` tree and frozen source remain intact. The new
-receipt retains both trace job IDs, including the failed attempt's compute cost.
+`/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030`.
+Controller: `receipts/start-controller-e9cc4842dc59.sh`; log: `receipts/controller.log`.
+Both previous recovery trees and frozen sources remain intact. The current
+receipt retains all trace job IDs and their compute cost. Completed traces are
+linked for read-only reuse; only chat has a fresh generation output directory.
 No previous raw run, trained head, generated corpus or comparison is overwritten.
