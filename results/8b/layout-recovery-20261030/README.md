@@ -1,6 +1,10 @@
 # Completed TP4 recovery and independent remaining layouts
 
-Status on 2026-10-30: preflight 3782518 and all three full TP4 recoveries
+31 Oct update: both remaining jobs are terminal (120 TP2DP2 +147 PD-off cells).
+Nine additional PD-off reliability rejections are retained. Final collection/CPU
+review status and durable continuation are in ../layout-recovery-20261031/README.md.
+
+Historical status on 2026-10-30: preflight 3782518 and all three full TP4 recoveries
 (3789188, 3798373, 3800281) passed their preserved gates. Thinking-on P/D 3800861
 completed all 63 cells; two fail the unchanged 99% request-success gate and remain
 rejected. The original independent TP2DP2 k3/k5 comparison is submitted as

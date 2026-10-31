@@ -1,12 +1,19 @@
 # Final-checkpoint 8B serving-layout campaign
 
-Status on 2026-10-30: all three affected TP4 k7 comparisons are recovered and
-pass their infrastructure, provenance, counter and request gates. Thinking-on
-P/D completed every intended measurement, with two cells rejected by the
-unchanged 99% request-success rule. The original TP2DP2 k3/k5 and thinking-off
-P/D k3 comparisons continue independently. Scientific implementation promotion
-remains unestablished: most configurations have one deployment, without the
-protocol's repeated confirmation and calibrated per-layout correctness evidence.
+Status on 2026-10-31: all original bounded layout measurements are terminal.
+TP2DP2 3804065 completed all 120 cells with passing gates. Thinking-off P/D
+3806226 completed all 147 cells; nine fail the unchanged 99% request-success
+rule. Together with two thinking-on P/D failures, 11 reliability exclusions
+remain preserved. No further GPU work or repeat-for-a-pass is planned.
+
+Final CPU review is pending the complete hash-preserving evidence transfer;
+Lustre source reads currently delay collection. The detached local finish
+script will run the unchanged packager and raw-request review after the full
+267-cell manifest closes. See
+`results/8b/layout-recovery-20261031/README.md` and the durable layouts receipt.
+The TP4/thinking-on findings below are already reviewed; TP2DP2/P/D-off final
+verdicts and publication remain pending. Scientific implementation promotion
+remains unestablished without the original confirmation/correctness gates.
 
 ## Current TP4 verdict
 
@@ -93,7 +100,7 @@ all 75 source hashes were verified. Every deployment retains image/checkpoint/
 corpus identity, launch command, source patch, environment, Slurm/node identity,
 requests and raw metric snapshots. V2 collection preserved 3.181GB original
 bytes as 1.098GB lossless stored artifacts with both hashes. No weights/corpora
-were duplicated. Do not sync/reset active source while the remaining jobs run.
+were duplicated. The frozen source remains preserved; collection/postprocessing does not modify it.
 
 The strict CPU report in
 `results/8b/layout-recovery-20261030/completed-v2-review-v1/` covers 773 historical
