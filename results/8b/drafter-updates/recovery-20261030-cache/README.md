@@ -1,6 +1,6 @@
 # T5 bounded adaptation recovery
 
-All 19 original curves completed. The multilingual head completed serving confirmation with substantial specialist gains. The overall campaign remains in progress: summarization and chat confirmations are pending.
+All 19 original curves completed. Multilingual and summarization heads completed serving confirmation with specialist gains. The overall campaign remains in progress: final chat confirmation is running.
 
 The original deterministic development-only rule selected the final 8k/no-replay head per domain. No held-out serving result entered selection. The simulated acceptance metric measures trainer rollouts, not served output tokens per target forward pass.
 
@@ -44,6 +44,10 @@ The [full paired summary](multilingual-confirmation-summary.json) retains every 
 
 The [raw capsule manifest](confirmation-3814370-capsule/capsule-manifest.json) links 25 MiB binary parts of the byte-identical complete archive (SHA256 `b8ec1db68d6f4af4b7043a3e787329838ed733ac35d1dde875ae5701bba3a5ad`). It contains 1,785 raw measurement, capture, metric-snapshot and provenance files. The [integrity audit](confirmation-3814370-capsule/integrity-audit.json) verifies all member hashes, 240 complete cells and all 108,544 successful measured requests, zero failed warmups, exact corpus hashes, full prompt passes and required EAGLE provenance. Reproduce with `python3 verify-capsule.py confirmation-3814370-capsule`.
 
-Remote complete artifact root: `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`. Machine status: `receipts/campaign.json`. Summarization job 3814755 is queued with a recorded scheduling-only 2 h cap; chat follows automatically. The controller sequences only the original selected heads and closes with `verdict.json`/`verdict.md`.
+Summarization job 3814755 completed in 1,926 s with all eight correctness gates passing. Only C1 satisfies the full serving-benefit rule. The competitive k3 setting improves 221→251 tok/s, 4.13→3.55 ms/token, and p95 request latency 1.58→1.414 s. Higher-load improvements do not qualify. Adapted k3 also outperforms adapted k7, whose larger matched-k gain uses a weaker baseline. Selected-head training is 2.72 GPUh; all traces plus all summarization curves cost 23.93 GPUh (about 160M output tokens to amortize at k3/C1), a recovery/search cost rather than a measured recurring production-update cost.
+
+The [summarization paired summary](summarization-confirmation-summary.json), [complete raw capsule](confirmation-3814755-capsule/capsule-manifest.json), and [integrity audit](confirmation-3814755-capsule/integrity-audit.json) retain all 48 cells, 22,528 successful measured requests, zero failed warmups and exact source/corpus/target/checkpoint identities. The archive contains 410 files and its exact scheduling-only override, SHA256 `85088ac5ec4a886d533cc472fc66aee36af24f9212940abcbad7c8a5fb86ce08`.
+
+Remote complete artifact root: `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`. Machine status: `receipts/campaign.json`. Final chat job 3815183 is running on nid006274; its original 12 h request was already allocated and was retained. The controller sequences only the original selected heads and closes with `verdict.json`/`verdict.md`.
 
 Scope: original bounded EAGLE adaptation only. This does not conclude broad action#10/A3, implement routing, deploy a head, or establish any DSpark adaptation result. A strong qualifying EAGLE serving result only records the original conditional DSpark best-setting follow-up, dependent on a verified compatible port/data/provenance.

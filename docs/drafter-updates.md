@@ -10,11 +10,13 @@ updated drafter weights without a restart.
 ## Summary
 
 Recovery status, 31 October 2026: **all 19 original 384-step curves completed;
-multilingual serving confirms a substantial specialist gain; summarization/chat
-confirmations remain pending**. Multilingual k3/C1 improves paired throughput
+multilingual and summarization serving confirm specialist gains; chat
+confirmation remains pending**. Multilingual k3/C1 improves paired throughput
 267→312–313 tok/s (17%) and median decode time 3.41→2.78–2.79 ms/token; k7/C1
 improves matched throughput 26–30%. All 40 calibrated correctness gates pass.
-OPB regressions and some high-concurrency TTFT regressions prevent broad
+Summarization k3/C1 improves 221→251 tok/s and 4.13→3.55 ms/token; its
+C64/C256 results fail the full recommendation rule. All eight summarization
+correctness gates pass. OPB regressions and some high-concurrency TTFT regressions prevent broad
 replacement. The fixed policy selected the 8k/no-replay final head
 for each domain. Development simulated accepted length improved by +0.757
 (multilingual), +0.517 (summarization), and +0.223 (chat); OPB declined by 4.92%,
@@ -30,7 +32,7 @@ re-read or restarted.
 | Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
 | Domain pools and traces | 3790165 completed summarization/multilingual; 3804324 completed repaired chat in 650 s | Verified hashes, renderer parity and overlap gates; completed domains reused unchanged |
 | Adaptation curves | All 19 completed with finite real updates and export/reload checks; original gates pass | Strong development gains for selected 8k heads; chat 500-trace final acceptance is slightly worse despite the original best-eval gate passing |
-| Serving confirmation | Multilingual 3814370: both swapped rounds, 240 cells, 40 correctness gates pass; summarization 3814755 queued | Multilingual specialist benefit; compare competitive k settings and amortization. Overall verdict pending remaining heads |
+| Serving confirmation | Multilingual 3814370 and summarization 3814755 pass 48 correctness gates across 288 raw cells; final chat 3815183 running | Multilingual specialist benefit and summarization k3/C1 benefit; reject high-load summarization gains. Overall verdict pending chat |
 | Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
 
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
@@ -297,7 +299,8 @@ and repeat. No shared home files or unrelated jobs are cleaned or modified.
 | 3804872 / 3806293 / 3810109 | original chat / summarization / multilingual training batches | completed all 19 arms, 384 steps each; frozen development-only selection retained |
 | 3814329 | first allocated confirmation, source b812627f | failed in 156 s before requests: inherited TMPDIR made vLLM AF_UNIX socket names exceed 107 bytes |
 | 3814370 | repaired multilingual confirmation, source 7f0a41dc | completed in 4,264 s; 108,544 successful measured requests, zero failed warmups, all 40 correctness gates pass |
-| 3814755 | original summarization confirmation | queued normal; actual 2 h scheduling cap recorded separately; full original workload retained |
+| 3814755 | original summarization confirmation | completed in 1,926 s; all eight correctness gates and 22,528 measured requests pass; actual 2 h scheduling cap retained |
+| 3815183 | original final chat confirmation | running on nid006274; original 12 h request retained because already allocated when inspected |
 
 The first serving submission failed before Slurm at a login-node heredoc ENOSPC;
 its raw setup is preserved. Fresh attempt `repair-20261031` used a writable owned
