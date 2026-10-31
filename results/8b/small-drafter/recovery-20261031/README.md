@@ -42,8 +42,10 @@ The machine-readable [closure](closure.json) and [job states](job-final-states.t
 record the distinction and preserved identities. Prior compact training and
 validation evidence is in [recovery-20261030](../recovery-20261030/README.md).
 Latest raw gate reports, captures, statuses, logs and runtime provenance remain
-under the remote campaign below; final compact collection and a remote terminal
-annotation await storage recovery. No new scientific run is needed to retrieve
-those existing artifacts.
+under the remote campaign below. Its original failed operational state is
+preserved in [campaign-before-closure.json](campaign-before-closure.json). A new
+remote closure file and terminal campaign annotation are written; only final
+compact gate/status/log collection awaits storage recovery. No new scientific
+run is needed to retrieve those existing artifacts.
 
 `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2`
