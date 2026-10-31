@@ -28,6 +28,30 @@ def verify_files(root, files):
             raise ValueError(f"asset hash mismatch: {path}")
 
 
+def opentela_command(binary, config_dir, spec, labels, seed):
+    import shlex
+
+    # The frozen pilot binary is sai-v0.0.7. Its verified CLI supports a private
+    # config root and seed, but not the newer ephemeral-identity/datadir flags.
+    command = [
+        str(binary),
+        "--config-dir",
+        str(config_dir),
+        "start",
+        "--seed",
+        str(seed),
+        "--bootstrap.addr",
+        spec["bootstrap_addr"],
+        "--service.name",
+        "llm",
+        "--service.port",
+        "8080",
+    ]
+    for key, value in labels.items():
+        command += ["--label", f"{key}={value}"]
+    return command + ["--subprocess", shlex.join(spec["engine_argv"])]
+
+
 def serve(runtime=Path("/runtime"), assets=Path("/assets"), logs=Path("/logs")):
     spec = json.loads((runtime / "deployment.json").read_text())
     run = (
@@ -75,25 +99,13 @@ def serve(runtime=Path("/runtime"), assets=Path("/assets"), logs=Path("/logs")):
     (run / "opentela-version.txt").write_text(
         subprocess.check_output([str(binary), "version"], text=True, stderr=subprocess.STDOUT)
     )
-    # The run directory is unique per pod start; identity keys are ephemeral.
+    # The run directory and seed are unique per pod start. Keep mesh identity
+    # files private and exclude this directory when collecting public artifacts.
     # No API credentials are needed by the model worker.
     import shlex
 
-    command = [
-        str(binary),
-        "--config-dir",
-        str(run / "opentela-config"),
-        "start",
-        "--ephemeral-identity",
-        "--datadir",
-        str(run / "opentela-data"),
-        "--bootstrap.addr",
-        spec["bootstrap_addr"],
-        "--service.name",
-        "llm",
-        "--service.port",
-        "8080",
-    ]
+    config_dir = run / "opentela-private"
+    config_dir.mkdir(mode=0o700)
     labels = {
         "launched_by": "k8s",
         "framework": "vllm",
@@ -106,9 +118,7 @@ def serve(runtime=Path("/runtime"), assets=Path("/assets"), logs=Path("/logs")):
         "source_revision": spec["source_revision"],
         "framework_args": shlex.join(spec["engine_argv"][3:]),
     }
-    for key, value in labels.items():
-        command += ["--label", f"{key}={value}"]
-    command += ["--subprocess", shlex.join(spec["engine_argv"])]
+    command = opentela_command(binary, config_dir, spec, labels, uuid.uuid4().int % (2**31 - 1) + 1)
     (run / "command.json").write_text(json.dumps(command, indent=2) + "\n")
     (run / "verification.json").write_text(
         json.dumps(

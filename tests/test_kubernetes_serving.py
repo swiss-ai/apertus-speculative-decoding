@@ -31,6 +31,31 @@ def test_rejects_missing_staged_asset(tmp_path):
         module("launch").verify_files(tmp_path, {"model.safetensors": "0" * 64})
 
 
+def test_mesh_arguments_supported_by_frozen_opentela():
+    # Flag set from the actual sai-v0.0.7 start --help, checked on Clariden.
+    supported = {
+        "--config-dir",
+        "--seed",
+        "--bootstrap.addr",
+        "--service.name",
+        "--service.port",
+        "--label",
+        "--subprocess",
+    }
+    command = module("launch").opentela_command(
+        Path("/bin/otela"),
+        Path("/private"),
+        {
+            "bootstrap_addr": "/ip4/127.0.0.1/tcp/1234/p2p/example",
+            "engine_argv": ["python3", "-m", "server"],
+        },
+        {"launched_by": "k8s"},
+        123,
+    )
+    assert {arg for arg in command if arg.startswith("--")} <= supported
+    assert command[command.index("--seed") + 1] == "123"
+
+
 def test_frozen_runtime_survives_configmap_round_trip(tmp_path):
     import json
 
