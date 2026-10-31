@@ -4,6 +4,12 @@ Question: can the DSpark 70B training (online hidden-state extraction from
 Apertus-v1.5-70B + speculators trainer, `methods/dspark/train/`) run on CSCS
 Beverin's `mi300` partition instead of Clariden's saturated `normal` partition?
 
+**Image test (2026-10-31):** CSCS's ALPS vLLM ROCm image removes the large
+default-backend slowdown in the standalone sharded-matmul reproducer:
+**0.615 ms versus 470 ms** on the original v0.31 image. Full training with
+the ALPS image remains untested. See the
+[ALPS image test](#alps-image-reproducer-test-2026-10-31) below.
+
 **Current update (2026-10-27):** the rocBLAS workaround is validated on
 16 and 32 nodes, with save/resume passing. Projected training time is about
 41 h/epoch on 16 nodes and 22.3 h on 32. The one-node run continues.
@@ -596,6 +602,62 @@ Raw logs, launchers, image/data/target digests, runtime sources, configurations,
 checkpoint metadata, memory samples and reproducible verification scripts:
 [`results/70b/dspark/beverin-scaling-20261027/`](../results/70b/dspark/beverin-scaling-20261027/).
 Large model/optimizer files remain at the recorded cluster run paths.
+
+## ALPS image reproducer test (2026-10-31)
+
+CSCS suggested its [ALPS vLLM ROCm image](https://github.com/eth-cscs/alps-extended-images/pkgs/container/alps-extended-images%2Fvllm-rocm)
+during the hipBLASLt support investigation. Job **710006** completed all four
+comparisons on **nid002346**, using the same GPUs **2,3**, two ranks, and
+`OMP_NUM_THREADS=1`. The probes are unchanged from job 694440: random BF16
+1024×1024 local tensors with plain, replicated, and sharded DTensor matmuls.
+
+| Image | Default backend | Forced rocBLAS |
+|---|---:|---:|
+| Original vLLM v0.31 | 470.237 ms | 0.396 ms |
+| CSCS ALPS vLLM ROCm | **0.615 ms** | 0.424 ms |
+
+These are sharded-operation wall-time medians across both ranks and iterations
+1–4; iteration 0 is excluded. All 120 samples are present. Both images report
+`_BlasBackend.Cublaslt` by default; the rocBLAS control explicitly selects
+`cublas`, as in the existing workaround. The large slowdown is absent with
+the ALPS image's default settings. The complete image and network defaults
+change together, so this does not identify the native cause or a specific
+library fix. Full DSpark training, extraction, save/resume, and multi-node
+operation have not been validated with this image.
+
+The tested `alps7-dev` image is pinned to OCI digest
+`sha256:7d95232cbc7511be5672d272f7a567ea52a3c5fbd5310ce0903956f0f37b5cc7`.
+Its cached Beverin path is
+`/capstor/scratch/cscs/faruk_zahiragic/container-images/alps-vllm-rocm-7d95232cbc75.sqsh`.
+The runtime reports PyTorch `2.13.0+rocm10.0.0` and vLLM `0.31.0`.
+The [image identity record](../results/70b/dspark/beverin-alps-image-20261031/deployments/710006/image/identity.json)
+and [imported-file checksum](../results/70b/dspark/beverin-alps-image-20261031/deployments/710006/alps-image.sha256)
+retain the exact source revision and image hashes.
+
+Required launch settings from the successful test:
+
+- Clear `ROCR_VISIBLE_DEVICES`, `GPU_DEVICE_ORDINAL`, and `HIP_VISIBLE_DEVICES`
+  before setting `CUDA_VISIBLE_DEVICES=2,3`. The ALPS image aborts on conflicting
+  masks that the older image only warns about.
+- Keep the image's bundled communication stack: set EDF annotations
+  `com.hooks.netstack.source="host"`, `com.hooks.cxi.enabled="false"`, and
+  `com.hooks.aws_ofi_nccl.enabled="false"` to prevent external library injection.
+- Pass `srun --network=disable_rdzv_get` for the ALPS image and retain its normal
+  Bash initialization. Its resolved defaults include `NCCL_P2P_DISABLE=1`.
+
+Runtime source commit: `b66244a5c9ac797afee93eaa60d2981e9964d5ff`, branch
+`experiment/beverin-alps-vllm-dtensor-20261031`. The
+[comparison launcher](../methods/dspark/beverin/alps_compare/run.sbatch) records
+commands and provenance. Import job 709993 failed on a GHCR HTTP/2 transfer;
+the launcher now uses verified ranged downloads for large layers. Job 710005
+imported the image but hit the conflicting-mask startup failure. Both failed
+attempts are preserved separately from the successful job.
+
+For future reproduction, use the [full experiment notes](../results/70b/dspark/beverin-alps-image-20261031/README.txt)
+and [successful timing summary](../results/70b/dspark/beverin-alps-image-20261031/deployments/710006/summary.json).
+The associated result tree retains raw logs, samples, package lists, resolved
+environments, launch commands, source bundles, image build recipes/patches,
+Slurm accounting, and `SHA256SUMS`.
 
 ## Memory budget for the planned 16-node layout (estimate, not measured)
 
