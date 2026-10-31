@@ -1,0 +1,20 @@
+{
+  "workstream": "adaptation",
+  "state": "complete",
+  "channel_id": "C0C2QMYCQ5B",
+  "message_link": "https://swissai-initiative.slack.com/archives/C0C2QMYCQ5B/p1793467082269699",
+  "message_ts": "1793467082.269699",
+  "posted_at": "2026-10-31T17:18:02.269Z",
+  "text": "**Apertus 1.5 8B — domain adaptation: bounded EAGLE recovery concluded.**\n\nWe tested whether updating the drafter on domain traces produces meaningful serving gains after update cost and forgetting. All **19 original curves and three preselected head confirmations** completed.\n\n• **Multilingual: useful as a specialist.** At draft k3/C1, throughput **267→312–313 tok/s (+17% in both GPU-swapped repeats)**; median decode **3.41→2.78–2.79 ms/token**; p95 request **1.24→1.11–1.15 s**. Under load, competitive k3 gains 11–15%, with 7–14 ms extra median TTFT in some cells.\n• **Summarization: C1 only.** **221→251 tok/s (+14%)**, **4.13→3.55 ms/token**, p95 **1.58→1.41 s**. C64/C256 gains fail the full benefit rule. Larger matched-k7 percentages use a weaker baseline; adapted k3 is the stronger throughput/decode choice.\n• **Chat: do not implement this head.** Only ~3–8% throughput gain, with insufficient repeated decode benefit. Better development acceptance did not establish substantial serving benefit.\n\nSelected training-loop lower bounds are **~2.0/~2.7 GPUh** for multilingual/summarization. Charging all recovery traces and all curves of each domain gives **15.8/23.9 GPUh**, amortized after **~104M/~160M output tokens** at matched k3/C1. The entire recovery used **55.47 GPUh**, including serving benchmarks and failed attempts. These are experimental/search costs, not a measured recurring production-update cost. OPB forgetting and TTFT/tail regressions prevent blanket default-head replacement.\n\n**336 raw cells, 153,600 successful measured requests, zero failed warmups, 56 calibrated correctness gates passed.** Promotion required ≥10% throughput and decode-latency improvement in both swaps. These seeded fixed-concurrency stand-in workloads retain the original completion caps; the controls do not prove losslessness/full-answer quality. No deployment. The original conditional DSpark repeat still needs verified compatible data/port/provenance; broad #10/A3 remains open.\n\n[Context, results and verdict](https://github.com/swiss-ai/apertus-speculative-decoding/blob/00a22fda5c9277df1233da25324377bf84e209d8/docs/drafter-updates.md) · [All absolute tradeoffs, raw measurements, configs, hashes, patches and provenance](https://github.com/swiss-ai/apertus-speculative-decoding/blob/00a22fda5c9277df1233da25324377bf84e209d8/results/8b/drafter-updates/recovery-20261030-cache/README.md).",
+  "artifact_revision": "00a22fda5c9277df1233da25324377bf84e209d8",
+  "scientific_source_revision": "7f0a41dcc0a3c5d433b83dac80075ee0516a694e",
+  "canvas_id": "F0C6431UBTP",
+  "scope": "Original bounded EAGLE only; broad10/A3 and conditional DSpark port/data follow-up remain open.",
+  "canvas_url": "https://swissai-initiative.slack.com/docs/T0627JS49GT/F0C6431UBTP",
+  "canvas_entry": "* [x] **Bounded 8B EAGLE adaptation — Useful specialists; reject chat.** k3/C1: multilingual +17% (3.41→2.79 ms/token), summarization +14% (4.13→3.55). Chat and high-load summarization fail the benefit rule. OPB forgetting and 16–24 GPUh experimental setup/domain favor persistent traffic; #10/A3 remain open. [Verdict, costs and provenance](https://swissai-initiative.slack.com/archives/C0C2QMYCQ5B/p1793467082269699).",
+  "canvas_verified": true,
+  "unrelated_sections_preserved": true,
+  "broad_10_a3_left_open": true,
+  "related_stale_sentence_corrected": "Same-architecture swap entry now points to the bounded EAGLE adaptation result; EAGLE/DSpark switching remains unproven.",
+  "completed_at": "2026-10-31T17:20:41.454Z"
+}
