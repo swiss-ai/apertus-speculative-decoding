@@ -79,6 +79,8 @@ def prepare(deployment, repo, alps, upstream):
             "probe_sha256": sha(probe), "environment_sha256": sha(cell / "environment.toml"),
             "local_shape": [1024, 1024], "dtype": "bfloat16", "ranks": 2,
             "visible_gpus": "2,3", "samples_per_placement_per_rank": 5,
+            "cleared_visibility_variables": ["ROCR_VISIBLE_DEVICES", "GPU_DEVICE_ORDINAL", "HIP_VISIBLE_DEVICES"],
+            "slurm_network": "disable_rdzv_get" if is_alps else None,
             "summary_excludes_iterations": [0], "source_overlays": [],
             "inputs": "Unseeded random tensors as in original probe; no corpus or model weights",
             "network": "image-bundled stack; external injection disabled" if is_alps else "original Beverin netstack hooks",

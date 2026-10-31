@@ -58,7 +58,9 @@ failed=0
 for cell in upstream-default upstream-rocblas alps-default alps-rocblas; do
     cell_dir="$deployment/cells/$cell"
     printf 'Running %s at %s\n' "$cell" "$(date -u +%FT%TZ)"
-    command=(srun --input=none --kill-on-bad-exit=1 -N1 -n1 --ntasks-per-node=1
+    network=()
+    if [[ "$cell" == alps-* ]]; then network=(--network=disable_rdzv_get); fi
+    command=(srun "${network[@]}" --input=none --kill-on-bad-exit=1 -N1 -n1 --ntasks-per-node=1
         --environment="$cell_dir/environment.toml" --export=ALL
         bash "$tools/inside.sh" "$tools" "$cell_dir" "$deployment")
     printf '%q ' "${command[@]}" > "$cell_dir/command.txt"
