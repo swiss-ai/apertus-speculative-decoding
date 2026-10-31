@@ -397,6 +397,7 @@ def test_confirmation_only_uses_frozen_results_and_fresh_attempt_without_trainin
             env = kwargs["env"]
             assert Path(env["TMPDIR"]).is_relative_to(root / "submission-tmp")
             assert env["TMPDIR"] != "/tmp"
+            assert env["SWEEP_TIME"] == "12:00:00"
             output = Path(env["SWEEP_OUTPUT"])
             assert output == old / "repair-test"
             report = output / "paired/paired/confirmation-summary.json"
@@ -442,6 +443,8 @@ def test_confirmation_only_uses_frozen_results_and_fresh_attempt_without_trainin
             "--confirmation-only",
             "--confirmation-attempt",
             "repair-test",
+            "--confirmation-wall-time",
+            "12:00:00",
         ]
     )
     assert (old / "environment.toml").read_text() == "old failed setup\n"
@@ -449,7 +452,27 @@ def test_confirmation_only_uses_frozen_results_and_fresh_attempt_without_trainin
     state = json.loads((root / "receipts/campaign.json").read_text())
     assert state["state"] == "complete"
     assert state["confirmations"]["adapt-chat-n500-r0"]["attempt"] == "repair-test"
+    assert state["confirmation_schedule"]["frozen_wall_budget"] == "24:00:00"
+    assert state["confirmation_schedule"]["requested_wall_time"] == "12:00:00"
     assert not any("submit-eagle-train" in str(call) for call in calls)
+
+
+@pytest.mark.parametrize("wall_time", ["25:00:00", "00:00:00", "12:99:00", "12h"])
+def test_confirmation_scheduling_cannot_expand_frozen_budget(tmp_path, wall_time):
+    from apertus_eagle import adaptation_recovery as recovery
+
+    repo = tmp_path / "repo"
+    config_dir = repo / "methods/eagle/configs/8b"
+    config_dir.mkdir(parents=True)
+    shutil.copy2(REPO / "methods/eagle/configs/8b/adapt-recovery-policy.json", config_dir)
+    with pytest.raises(ValueError, match="wall time|scheduling cap"):
+        recovery.main(
+            [
+                "--repo", str(repo), "--campaign-root", str(tmp_path / "campaign"),
+                "--trace-job", "123", "--overlay-root", str(tmp_path / "overlays"),
+                "--confirmation-wall-time", wall_time,
+            ]
+        )
 
 
 def test_confirmation_only_rejects_incomplete_frozen_matrix(tmp_path, monkeypatch):

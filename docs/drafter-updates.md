@@ -288,7 +288,17 @@ and repeat. No shared home files or unrelated jobs are cleaned or modified.
 | 3769227 | fresh full pools/traces after deterministic heap fix | failed after 409 s: distinct FinePDFs chunks shared source-only prompt IDs; no target generation/training began |
 | 3790165 | content-aware summarization prompt IDs; full original pools/traces, frozen source b58ee54a | failed after 1,636 s: summarization/multilingual complete (8,192+256 each, no skips, 32 renderer checks); chat JSONL reader incorrectly split U+0085 inside prompt text |
 | 3802584 | physical-line JSONL reader; chat only; source e9cc4842 | failed after 150 s during engine startup: FlashInfer sampling.lock and vLLM usage-stat writes hit home quota (errno 122); no chat output |
-| 3804324 | scratch-cache wrapper and actual image lock/config probes; chat only; source 589ddd59 | queued normal, 3 h, 4 GPUs; validated completed domains reused |
+| 3804324 | scratch-cache wrapper and actual image lock/config probes; chat only; source 589ddd59 | completed in 650 s; validated completed domains reused |
+| 3804872 / 3806293 / 3810109 | original chat / summarization / multilingual training batches | completed all 19 arms, 384 steps each; frozen development-only selection retained |
+
+The first serving submission failed before Slurm at a login-node heredoc ENOSPC;
+its raw setup is preserved. Fresh attempt `repair-20261031` used a writable owned
+scratch TMPDIR, then sbatch rejected the frozen 24-hour request because `normal`
+currently allows 12 hours. A scheduling-only cap of `12:00:00` now preserves the
+original 24-hour maximum in the immutable policy while recording the actual
+request. New attempts use fresh directories. All original prompts, concurrency
+levels, two swapped rounds, correctness checks and selection remain unchanged;
+completed training is never resubmitted by confirmation-only recovery.
 
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,

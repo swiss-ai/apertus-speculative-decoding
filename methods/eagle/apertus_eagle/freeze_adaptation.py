@@ -28,6 +28,7 @@ def freeze(
     run_id: str = "recovery-20261027",
     confirmation_only: bool = False,
     confirmation_attempt: str | None = None,
+    confirmation_wall_time: str | None = None,
 ) -> dict:
     receipts = root / "receipts"
     receipts.mkdir(parents=True, exist_ok=True)
@@ -187,6 +188,12 @@ def freeze(
         ):
             raise ValueError("Confirmation repair needs a unique simple attempt name")
         extra = f" --confirmation-only --confirmation-attempt {confirmation_attempt}"
+    if confirmation_wall_time:
+        import re
+
+        if not re.fullmatch(r"\d+:[0-5]\d:[0-5]\d", confirmation_wall_time):
+            raise ValueError("Confirmation wall time must be HH:MM:SS")
+        extra += f" --confirmation-wall-time {confirmation_wall_time}"
     script = f"""#!/bin/bash
 set -euo pipefail
 cd {snapshot}
@@ -243,6 +250,7 @@ def main() -> None:
     parser.add_argument("--run-id", default="recovery-20261027")
     parser.add_argument("--confirmation-only", action="store_true")
     parser.add_argument("--confirmation-attempt")
+    parser.add_argument("--confirmation-wall-time")
     args = parser.parse_args()
     print(
         json.dumps(
@@ -254,6 +262,7 @@ def main() -> None:
                 run_id=args.run_id,
                 confirmation_only=args.confirmation_only,
                 confirmation_attempt=args.confirmation_attempt,
+                confirmation_wall_time=args.confirmation_wall_time,
             ),
             indent=2,
         )

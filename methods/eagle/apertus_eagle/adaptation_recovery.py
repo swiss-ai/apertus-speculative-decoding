@@ -110,6 +110,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--overlay-root", type=Path)
     parser.add_argument("--confirmation-only", action="store_true")
     parser.add_argument("--confirmation-attempt")
+    parser.add_argument(
+        "--confirmation-wall-time", help="Scheduling cap; cannot exceed frozen budget"
+    )
     args = parser.parse_args(argv)
     root, repo = args.campaign_root, args.repo
     if args.confirmation_attempt and not re.fullmatch(r"[A-Za-z0-9_-]+", args.confirmation_attempt):
@@ -157,6 +160,20 @@ def main(argv: list[str] | None = None) -> None:
         return subprocess.check_output(command_argv, cwd=repo, env=env, text=True)
 
     policy = read(repo / "methods/eagle/configs/8b/adapt-recovery-policy.json")
+    confirmation_wall_time = (
+        args.confirmation_wall_time or policy["confirmation"]["wall_time_per_head"]
+    )
+
+    def wall_seconds(value: str) -> int:
+        if not re.fullmatch(r"\d+:[0-5]\d:[0-5]\d", value):
+            raise ValueError("Confirmation wall time must be HH:MM:SS")
+        hours, minutes, seconds = map(int, value.split(":"))
+        return hours * 3600 + minutes * 60 + seconds
+
+    if not 0 < wall_seconds(confirmation_wall_time) <= wall_seconds(
+        policy["confirmation"]["wall_time_per_head"]
+    ):
+        raise ValueError("Confirmation scheduling cap must be positive and within frozen budget")
     immutable_json(root / "preregistration.json", policy)
     source = read(repo / "source-manifest.json")
     if command(["git", "rev-parse", "HEAD"]).strip() != source["revision"]:
@@ -179,6 +196,14 @@ def main(argv: list[str] | None = None) -> None:
     state["source_manifest"] = str(repo / "source-manifest.json")
     state["policy_sha256"] = digest(root / "preregistration.json")
     state["short_overlay_root"] = str(short_root)
+    state["confirmation_schedule"] = {
+        "partition": policy["confirmation"]["partition"],
+        "frozen_wall_budget": policy["confirmation"]["wall_time_per_head"],
+        "requested_wall_time": confirmation_wall_time,
+        "attempt": args.confirmation_attempt,
+        "scope": "Scheduling only; full original workloads, repeats and scientific gates unchanged",
+    }
+    save()
     immutable_json(
         root / "overlay-locations.json",
         {
@@ -434,7 +459,7 @@ def main(argv: list[str] | None = None) -> None:
             immutable_json(spec_path, spec)  # JSON is a strict subset of YAML.
             confirmation_env = env | {
                 "SWEEP_PARTITION": policy["confirmation"]["partition"],
-                "SWEEP_TIME": policy["confirmation"]["wall_time_per_head"],
+                "SWEEP_TIME": confirmation_wall_time,
                 "SWEEP_OUTPUT": str(out),
                 "VLLM_PATCH_DIR": str(
                     short_root
