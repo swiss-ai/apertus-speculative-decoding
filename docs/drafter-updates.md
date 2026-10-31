@@ -9,31 +9,52 @@ updated drafter weights without a restart.
 
 ## Summary
 
-Recovery status, 31 October 2026: **all 19 original 384-step curves completed;
-multilingual and summarization serving confirm specialist gains; chat
-confirmation remains pending**. Multilingual k3/C1 improves paired throughput
-267→312–313 tok/s (17%) and median decode time 3.41→2.78–2.79 ms/token; k7/C1
-improves matched throughput 26–30%. All 40 calibrated correctness gates pass.
-Summarization k3/C1 improves 221→251 tok/s and 4.13→3.55 ms/token; its
-C64/C256 results fail the full recommendation rule. All eight summarization
-correctness gates pass. OPB regressions and some high-concurrency TTFT regressions prevent broad
-replacement. The fixed policy selected the 8k/no-replay final head
-for each domain. Development simulated accepted length improved by +0.757
-(multilingual), +0.517 (summarization), and +0.223 (chat); OPB declined by 4.92%,
-2.48%, and 1.93% respectively. These are development metrics, not serving speedup.
-The first serving submission stopped before a Slurm job was created because Bash
-could not create a heredoc temporary file (ENOSPC). Confirmation-only recovery
-uses scratch TMPDIR and fresh attempt directories; no completed training is
-re-read or restarted.
+Recovery status, 31 October 2026: **the original bounded EAGLE campaign is
+complete: all 19 curves and all three paired serving confirmations**. Keep
+adaptation in mind for persistent multilingual traffic and low-load
+summarization. Do not implement chat adaptation on this evidence; no blanket
+replacement of the default drafter is justified.
 
-| Part | Evidence | Verdict / next step |
+At draft k3/C1, multilingual throughput improves **267→312–313 tok/s (+17%)**,
+median decode time **3.41→2.78–2.79 ms/token**, and p95 request latency
+**1.24→1.11–1.15 s**. Summarization improves **221→251 tok/s (+14%)**,
+**4.13→3.55 ms/token**, and **1.58–1.59→1.414 s p95**. Its C64/C256 cells fail
+the full benefit rule. Chat gains only about 3–8% throughput with insufficient
+repeatable decode benefit and qualifies nowhere. Higher acceptance alone was
+not a serving benefit.
+
+Multilingual also has substantial matched-k gains under load, with TTFT
+tradeoffs. Compare competitive settings: unadapted k3 already outperforms
+adapted k7 at C64/C256; adapted k3 also has higher throughput and lower median decode latency than adapted k7 for summarization.
+Larger improvements against weaker k7 baselines are retained in the raw report
+but do not justify promoting dominated configurations.
+
+The selected heads use 8k traces and no replay. Development simulated accepted
+length gains are +0.757/+0.517/+0.223 for multilingual/summarization/chat; OPB
+falls 4.92%/2.48%/1.93%. These are development quantities. The selected useful
+heads take 29.7/40.8 minutes on four GPUs (training-loop lower bounds
+1.98/2.72 GPUh). Charging all recovery traces and all curves of the respective
+domain costs 15.77/23.93 GPUh, amortized at approximately 104M/160M output tokens
+at matched k3/C1. The entire recovery, including all domains, serving benchmarks
+and failed attempts, used **55.47 GPUh**. These are experimental recovery costs,
+not a measured recurring production-update cost; volume and cadence remain
+unmeasured.
+
+| Part | Evidence | Verdict |
 | --- | --- | --- |
-| Fine-tune/export infrastructure | job 3737459: 4 real optimizer steps, export tensors/logits equal on reload | Infrastructure passes; this tiny smoke establishes no adaptation benefit |
-| Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
-| Domain pools and traces | 3790165 completed summarization/multilingual; 3804324 completed repaired chat in 650 s | Verified hashes, renderer parity and overlap gates; completed domains reused unchanged |
-| Adaptation curves | All 19 completed with finite real updates and export/reload checks; original gates pass | Strong development gains for selected 8k heads; chat 500-trace final acceptance is slightly worse despite the original best-eval gate passing |
-| Serving confirmation | Multilingual 3814370 and summarization 3814755 pass 48 correctness gates across 288 raw cells; final chat 3815183 running | Multilingual specialist benefit and summarization k3/C1 benefit; reject high-load summarization gains. Overall verdict pending chat |
-| Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
+| Original four-step smoke 3737459 | Real updates and bit-exact export/reload pass; training loss 1.643→1.960; simulated acceptance 1.585→1.602 | Infrastructure passes; original loss-improvement gate fails and remains unchanged |
+| Pools/traces | Completed chat 3804324 and validated reused summarization/multilingual traces, exact hashes/renderer parity and all overlap guards | Usable original data; no regeneration of completed domains |
+| Original 19 adaptation curves | 384 steps each, finite real updates, exports/reloads and all original gates recorded | Three final heads selected by the fixed development-only rule; 500-trace chat ends below initial acceptance despite its earlier best-eval gate passing |
+| Paired serving | Jobs 3814370, 3814755, 3815183: 336 raw cells, 153,600 successful measured requests, zero failed warmups, 56 calibrated correctness gates pass | Multilingual specialist benefit; summarization k3/C1 benefit; chat rejected by the original substantial-benefit rule |
+| Existing live same-architecture swap 3722022 | 0.33–0.56 s pause versus 207 s restart | Operational prototype already completed; not rerun |
+| Scope | Original bounded EAGLE campaign complete; raw results and failures retained | Original conditional DSpark best-setting repeat still needs verified compatible data/port/provenance; no DSpark result, deployment or routing implementation claimed; broad #10/A3 remains open |
+
+The [full verdict, absolute per-cell tradeoffs and all raw/provenance capsules](../results/8b/drafter-updates/recovery-20261030-cache/README.md)
+retain all original positive, negative and failed attempts. Both same-node
+GPU-swapped repeats must improve throughput and median decode latency by at
+least 10%; sampled calibrated correctness is not a proof of losslessness or
+full-answer quality. Fixed-concurrency seeded stand-in workloads and the original
+completion caps limit the claims.
 
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
 are retained. Recovery uses a lightweight detached controller on the cluster,
@@ -48,7 +69,7 @@ records source `b58ee54a` on task branch `drafter-updates`, all 162 verified sou
 files, the unchanged original policy hash, and job 3790165 pending at 10:04 UTC
 on 29 October. The [unaltered failed-attempt capsule](../results/8b/drafter-updates/recovery-20261029/failed-trace-3769227/artifact-manifest.json)
 retains logs, exact launch/resolved environment, image digest and target contract.
-The full EAGLE workflow is staged, not scientifically completed.
+The original bounded EAGLE workflow is complete; its conditional DSpark follow-up remains dependent on compatible data/port/provenance.
 The [30 October staging receipt](../results/8b/drafter-updates/recovery-20261030/controller-staging-e9cc4842.json)
 pins source `e9cc4842` and the unchanged original scientific-policy hash. It
 records the completed-domain reuse audit, successful physical-line parsing of
@@ -300,7 +321,7 @@ and repeat. No shared home files or unrelated jobs are cleaned or modified.
 | 3814329 | first allocated confirmation, source b812627f | failed in 156 s before requests: inherited TMPDIR made vLLM AF_UNIX socket names exceed 107 bytes |
 | 3814370 | repaired multilingual confirmation, source 7f0a41dc | completed in 4,264 s; 108,544 successful measured requests, zero failed warmups, all 40 correctness gates pass |
 | 3814755 | original summarization confirmation | completed in 1,926 s; all eight correctness gates and 22,528 measured requests pass; actual 2 h scheduling cap retained |
-| 3815183 | original final chat confirmation | running on nid006274; original 12 h request retained because already allocated when inspected |
+| 3815183 | original final chat confirmation | completed in 1,603 s; all eight correctness gates and 22,528 measured requests pass; no primary cell qualifies; original 12 h request retained |
 
 The first serving submission failed before Slurm at a login-node heredoc ENOSPC;
 its raw setup is preserved. Fresh attempt `repair-20261031` used a writable owned
