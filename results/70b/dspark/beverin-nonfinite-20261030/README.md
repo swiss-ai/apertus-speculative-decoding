@@ -14,7 +14,9 @@ the original stack aborts with `HSA_STATUS_ERROR_ILLEGAL_INSTRUCTION` on
 both ranks during a production-size 43008 × 8192 zero-input case. The CSCS
 ALPS stack passes all tall-matrix cases on the same physical GPUs. This is
 one observed paired result, not proof that the same fault caused the original
-NaNs or that a full epoch is fixed. No model training has been restarted.
+NaNs or that a full epoch is fixed. The oracle includes additional input/output
+gathers, and the specific failing kernel or production operation is unresolved.
+No model training has been restarted.
 See the [targeted investigation](root-cause-20261031/README.md) for the
 controlled comparisons, exact provenance, retained cores and causal limits.
 
