@@ -9,22 +9,28 @@ on the same data, is the existing 1-layer reference
 ([system-optimizations-8b.md](system-optimizations-8b.md), "EAGLE at
 epoch 10").
 
-Status 2026-10-30: both 6,200-step training runs are complete. Held-out
-trainer EAL is **3.520 for one layer versus 4.630 for five layers**; this is not
-a serving-speed result. Initial serving validation 3790216 completed its
-captures but exceeded the calibrated prefix/edit limits for both trained
-variants. Plain restart controls matched exactly. A protocol gap (same GPUs in
-both repeats) is being diagnosed with reversed GPU placement and an existing
-DSpark e10 reference, keeping the same prompts, image and numerical limits.
+Status 2026-10-31: **closed as correctness blocked; no implementation
+recommendation**. Both 6,200-step training runs completed. Held-out trainer EAL
+is **3.520 for one layer versus 4.630 for five layers**, and trainer accepted
+length is **3.352 versus 4.466**. These are training validation metrics, not
+served acceptance or speed. Initial serving validation 3790216 failed its
+calibrated prefix/edit limits; its plain restart controls matched exactly.
 
-The first diagnostic 3802723 failed before capture because the home quota
-prevented FlashInfer sampling-lock creation. Its logs are preserved. Private
-FlashInfer/usage storage now avoids home; **3804151 → 3804152 → 3804153** is the
-fresh validation and conditionally gated benchmark/strict-review chain. Training
-is not repeated. The result remains **incomplete, with no implementation
-recommendation**. The original 5% G3 gate and separate repeatable 10% fixed-k
-throughput-plus-latency implementation screen remain unchanged. Evidence and
-receipts are in [`recovery-20261030`](../results/8b/small-drafter/recovery-20261030/README.md).
+After a separately preserved FlashInfer cache-quota startup failure, cache-safe
+counterbalanced validation **3804151** reached the calibrated correctness gate
+and failed again (496 seconds). No limits were relaxed. Its unallocated
+throughput jobs **3804152/3804153** were canceled; neither G3 nor the strict
+fixed-k >=10% throughput-plus-latency screen was evaluated. No further runs are
+being launched. Keep the profile as a cost idea, with the acceptance loss and
+correctness block attached; this experiment establishes no substantial served
+benefit or absolute time/memory savings.
+
+The final diagnostic included existing DSpark e10 and requested reversed GPU
+roles, but exact per-model/e10 outcomes and actual placement records could not
+yet be retrieved because cluster storage reads stalled. The common serving-path
+cause remains unresolved; prior-attempt metrics must not be substituted. All
+checkpoints and raw attempts remain preserved. See the
+[closure and evidence limitation](../results/8b/small-drafter/recovery-20261031/README.md).
 
 ## Summary
 
@@ -37,7 +43,7 @@ receipts are in [`recovery-20261030`](../results/8b/small-drafter/recovery-20261
 | ceiling: an N-layer drafter at the 5-layer acceptance, against DSpark e10's best k | 1 layer: +5.9% at C=64, +5.1% at C=128, +5.5% at C=256. 2 layers: +3.9-4.5%. 3 layers: +2.3-2.7%. |
 | break-even acceptance | 92-93% of the 5-layer acceptance for 1 layer (C=256: 3.49 at k=4 vs 3.78), 94% for 2 layers, 96-97% for 3 layers. |
 | untrained truncations (first N layers of e10) | 2.19 / 1.53 / 1.29 accepted tokens at k=7 for 3/2/1 layers vs 4.77: useless untrained, the warm start for training. |
-| gate G3 (>= 5% over DSpark e10's best fixed k at some C >= 128, same job) | No throughput verdict: both models trained, but calibrated serving correctness blocked the grid. One GPU-counterbalanced reference diagnostic is pending. The projected +5.5% ceiling remains an estimate. |
+| gate G3 (>= 5% over DSpark e10's best fixed k at some C >= 128, same job) | Not evaluated: original and cache-safe counterbalanced validation failed calibrated correctness; throughput jobs canceled. No implementation endorsement. The projected +5.5% ceiling remains an estimate. |
 
 In the waste-profiling cost model (`apertus_bench.waste_report`, decode
 steps only, no prefill) the ceiling of a 1-layer drafter is +8.9-9.8% at
@@ -220,7 +226,8 @@ new decision.
 | recovery validation/correctness | 3790216 | Passed preflight and completed captures, then failed calibrated prefix/edit limits. Raw evidence retained. |
 | original recovery benchmarks | 3790218/19 | Canceled after correctness failure; no throughput measurements. |
 | first GPU-counterbalanced diagnostic | 3802723 | Preflight passed; all servers failed at FlashInfer cache lock with EDQUOT before capture. Dependent 3802725/26 canceled. |
-| private-cache validation and gated benchmarks | 3804151/52/53 | Same trained weights, pinned image/flags/prompts/limits, reversed physical GPU roles and existing e10 reference. Private runtime storage; no training rerun. |
+| private-cache counterbalanced validation | 3804151 | Failed calibrated correctness after 496 s; no startup failure or limit changes. Exact reference/model reports remain on cluster; retrieval stalled on storage. |
+| gated benchmarks and strict review | 3804152/53 | Canceled while pending dead dependencies; no allocations or throughput measurements. Recovery closed correctness blocked. |
 
 The first queued continuation (3769344/45/46) was canceled while still waiting
 on dependencies so the v2 jobs could use short, job-private pyxis overlay paths.

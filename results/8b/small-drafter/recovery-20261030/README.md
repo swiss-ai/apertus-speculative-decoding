@@ -96,7 +96,7 @@ are transferred through this workstream's scratch, under the same global
 `/tmp/apertus-recovery-20261027/sync.lock`. No other agents' home data or frozen
 overlays are removed or modified.
 
-## Active continuation after storage repair
+## Continuation after storage repair (now closed)
 
 **3804151 → 3804152 → 3804153** reuses completed training 3790212.
 Source 296ed4f0 freezes the GPU-reversed four-config diagnostic and owned runtime
@@ -111,6 +111,15 @@ were checked. The source/engine still requires the original image digest.
 `submission-3804151.tar.gz` has SHA-256
 `a7c6c6ba0b66fbc698eb23ab630ec7d6c327bafc7878932ecaf3729ecbae8b1a`.
 No new training, losslessness claim or throughput verdict is implied.
+
+Final status 2026-10-31: **3804151 failed calibrated correctness** after
+496 seconds; this was a real gate failure after the cache repair, not another
+startup failure. Its dead-dependent **3804152/53 were canceled** before
+allocation. The recovery is closed **correctness blocked**, without a speed or
+implementation endorsement. Exact final e10/model metrics and actual GPU
+records remain on cluster; small report reads stalled in Lustre during final
+collection. See the [terminal closure](../recovery-20261031/README.md), which
+keeps that retrieval limitation separate from the confirmed scientific block.
 
 While home remains over quota, the preserved `sync-through-scratch.sh` performs
 an incremental bundle transfer only for this worktree. Invoke it under the
