@@ -10,7 +10,12 @@ updated drafter weights without a restart.
 ## Summary
 
 Recovery status, 31 October 2026: **all 19 original 384-step curves completed;
-serving verdict pending**. The fixed policy selected the 8k/no-replay final head
+multilingual serving confirms a substantial specialist gain; summarization/chat
+confirmations remain pending**. Multilingual k3/C1 improves paired throughput
+267→312–313 tok/s (17%) and median decode time 3.41→2.78–2.79 ms/token; k7/C1
+improves matched throughput 26–30%. All 40 calibrated correctness gates pass.
+OPB regressions and some high-concurrency TTFT regressions prevent broad
+replacement. The fixed policy selected the 8k/no-replay final head
 for each domain. Development simulated accepted length improved by +0.757
 (multilingual), +0.517 (summarization), and +0.223 (chat); OPB declined by 4.92%,
 2.48%, and 1.93% respectively. These are development metrics, not serving speedup.
@@ -23,9 +28,9 @@ re-read or restarted.
 | --- | --- | --- |
 | Fine-tune/export infrastructure | job 3737459: 4 real optimizer steps, export tensors/logits equal on reload | Infrastructure passes; this tiny smoke establishes no adaptation benefit |
 | Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
-| Domain pools and traces | 3790165: all pools validate; summarization/multilingual traces complete; chat hit a JSONL Unicode-separator reader bug | Verified completed-domain hashes and renderer parity; reuse those traces, regenerate chat only. All overlap gates retained. |
+| Domain pools and traces | 3790165 completed summarization/multilingual; 3804324 completed repaired chat in 650 s | Verified hashes, renderer parity and overlap gates; completed domains reused unchanged |
 | Adaptation curves | All 19 completed with finite real updates and export/reload checks; original gates pass | Strong development gains for selected 8k heads; chat 500-trace final acceptance is slightly worse despite the original best-eval gate passing |
-| Serving confirmation | Three frozen heads selected; first submission hit transient temporary-file ENOSPC before any serving job | Repair scratch TMPDIR and resume original paired controls; no implementation recommendation yet |
+| Serving confirmation | Multilingual 3814370: both swapped rounds, 240 cells, 40 correctness gates pass; summarization 3814755 queued | Multilingual specialist benefit; compare competitive k settings and amortization. Overall verdict pending remaining heads |
 | Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
 
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
@@ -290,6 +295,9 @@ and repeat. No shared home files or unrelated jobs are cleaned or modified.
 | 3802584 | physical-line JSONL reader; chat only; source e9cc4842 | failed after 150 s during engine startup: FlashInfer sampling.lock and vLLM usage-stat writes hit home quota (errno 122); no chat output |
 | 3804324 | scratch-cache wrapper and actual image lock/config probes; chat only; source 589ddd59 | completed in 650 s; validated completed domains reused |
 | 3804872 / 3806293 / 3810109 | original chat / summarization / multilingual training batches | completed all 19 arms, 384 steps each; frozen development-only selection retained |
+| 3814329 | first allocated confirmation, source b812627f | failed in 156 s before requests: inherited TMPDIR made vLLM AF_UNIX socket names exceed 107 bytes |
+| 3814370 | repaired multilingual confirmation, source 7f0a41dc | completed in 4,264 s; 108,544 successful measured requests, zero failed warmups, all 40 correctness gates pass |
+| 3814755 | original summarization confirmation | queued normal; actual 2 h scheduling cap recorded separately; full original workload retained |
 
 The first serving submission failed before Slurm at a login-node heredoc ENOSPC;
 its raw setup is preserved. Fresh attempt `repair-20261031` used a writable owned
@@ -328,7 +336,7 @@ replacement lock. All historical raw scientific artifacts remain unchanged.
 
 Results/root:
 `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`.
-Controller: `receipts/start-controller-589ddd593f62.sh`; log: `receipts/controller.log`.
+Controller: `receipts/start-controller-7f0a41dcc0a3.sh`; log: `receipts/controller.log`.
 Previous recovery trees and frozen sources remain intact. The current
 receipt retains all trace job IDs and their compute cost. Completed traces are
 linked for read-only reuse; only chat has a fresh generation output directory.

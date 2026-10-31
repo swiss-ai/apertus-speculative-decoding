@@ -1,6 +1,6 @@
 # T5 bounded adaptation recovery
 
-All 19 original curves completed. Serving confirmation is still in progress; no implementation recommendation or serving speedup is established.
+All 19 original curves completed. The multilingual head completed serving confirmation with substantial specialist gains. The overall campaign remains in progress: summarization and chat confirmations are pending.
 
 The original deterministic development-only rule selected the final 8k/no-replay head per domain. No held-out serving result entered selection. The simulated acceptance metric measures trainer rollouts, not served output tokens per target forward pass.
 
@@ -38,6 +38,12 @@ The [lossless training capsule](training-curves-complete-20261031b.tgz) contains
 
 Earlier failed attempts are preserved. [Serving startup failure3814329](failed-confirmation-3814329.json) has a [46-file raw capsule](failed-confirmation-3814329.tgz): inherited long scratch TMPDIR caused vLLM AF_UNIX socket paths over107bytes before any requests. The fresh repair uses short job/round/arm runtime TMPDIR and explicit VLLM_RPC_BASE_PATH; all four on-node socket bind probes passed at96/97bytes. Failed allocation cost remains included.
 
-Remote complete artifact root: `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`. Machine status: `receipts/campaign.json`. Latest confirmation job3814370 is running on `nid006973`. The controller sequences only the original selected heads and closes with `verdict.json`/`verdict.md`.
+Multilingual job 3814370 completed in 4,264 s. All 40 calibrated correctness gates passed; all six primary k3/k7 × C1/64/256 cells satisfy the original matched-k benefit rule. At k3/C1, throughput is 267→312–313 tok/s, median decode time 3.41→2.78–2.79 ms/token. At k7/C1, matched throughput improves 26–30%, 254–259→325–329 tok/s; decode time falls 3.49–3.55→2.38–2.41 ms/token. OPB regressions and high-concurrency TTFT tradeoffs prevent broad replacement.
+
+The [full paired summary](multilingual-confirmation-summary.json) retains every absolute cell metric. The [configuration review](multilingual-configuration-review.json) adds a descriptive comparison to stronger already measured unadapted k settings: at C64/256, unadapted k3 outperforms adapted k7. These supplementary cross-k comparisons use separate GPU pairs; the original matched-k verdicts remain unchanged. The recovery cost of all traces plus all multilingual curves is 15.77 GPUh; the selected head's training-loop lower bound is 1.98 GPUh. At C1, observed savings versus the stronger unadapted k3 baseline amortize those recovery costs after about 80–85M output tokens with adapted k7, or 104M with matched k3. Selected training alone gives much smaller lower bounds. These are one-time experimental recovery costs, not a measured recurring production-update cost.
+
+The [raw capsule manifest](confirmation-3814370-capsule/capsule-manifest.json) links 25 MiB binary parts of the byte-identical complete archive (SHA256 `b8ec1db68d6f4af4b7043a3e787329838ed733ac35d1dde875ae5701bba3a5ad`). It contains 1,785 raw measurement, capture, metric-snapshot and provenance files. The [integrity audit](confirmation-3814370-capsule/integrity-audit.json) verifies all member hashes, 240 complete cells and all 108,544 successful measured requests, zero failed warmups, exact corpus hashes, full prompt passes and required EAGLE provenance. Reproduce with `python3 verify-capsule.py confirmation-3814370-capsule`.
+
+Remote complete artifact root: `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`. Machine status: `receipts/campaign.json`. Summarization job 3814755 is queued with a recorded scheduling-only 2 h cap; chat follows automatically. The controller sequences only the original selected heads and closes with `verdict.json`/`verdict.md`.
 
 Scope: original bounded EAGLE adaptation only. This does not conclude broad action#10/A3, implement routing, deploy a head, or establish any DSpark adaptation result. A strong qualifying EAGLE serving result only records the original conditional DSpark best-setting follow-up, dependent on a verified compatible port/data/provenance.
