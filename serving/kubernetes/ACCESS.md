@@ -1,4 +1,40 @@
-# One-time Breithorn access setup
+# Breithorn access for this deployment
+
+## Current route: export the user's existing session
+
+The user verified `get pods` and `create pods/exec` in `rob-poc`: both `yes`.
+Creating Roles and RoleBindings returned `no`. A new machine account is **not**
+a prerequisite for the deployment. Use the existing login now; the Kubernetes
+Deployment's uptime does not depend on the exported session's lifetime.
+
+Run on the laptop/WSL terminal where kubectl already works. These lines are short
+to avoid the command-wrapping errors seen earlier. The script reads the selected
+context and executes its existing credential plugin; it creates no access
+objects or workloads. It saves mode-0600 `~/breithorn-session.kubeconfig` and
+prints its expiry, never the token. The normal kubeconfig is preserved.
+
+```bash
+J=faruk_zahiragic@ela.cscs.ch
+C=faruk_zahiragic@clariden-ln001.cscs.ch
+D=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-kubernetes-access
+scp -J "$J" "$C:$D/export-login.py" ~/breithorn-export.py
+python3 ~/breithorn-export.py
+scp -J "$J" ~/breithorn-session.kubeconfig "$C:$D/dspark-agent.config"
+ssh -J "$J" "$C" "chmod 600 '$D/dspark-agent.config'"
+```
+
+If a command fails, stop and inspect its error. Tell the agent `uploaded` after
+the upload succeeds. The agent can retrieve the file and inspect the live
+cluster before any workload changes. Other required read permissions should be
+checked with the actual credentials; the two confirmed checks do not establish
+access to all Argo resources or nodes.
+
+This is a temporary session without refresh credentials. Reauthentication may
+be required after it expires; do not promise permanent unattended access.
+Remove the temporary scratch copy after staging, and keep credentials out of
+chat, Git, logs and argv.
+
+## Optional: dedicated machine account (administrator required)
 
 Run these steps on the computer where you already administer Breithorn using
 kubectl. The website administrator role is separate from Kubernetes API access.

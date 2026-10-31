@@ -47,7 +47,11 @@ before calling discovery fixed.
 
 ## Access needed once
 
-Follow [ACCESS.md](ACCESS.md) for exact commands. An administrator can use
+Follow [ACCESS.md](ACCESS.md) for exact commands. The user's existing login has
+pod read/exec access and can be exported with `export-login.py` to proceed now.
+This exports an expiring session; no new account or RoleBinding is needed.
+Other live read permissions remain to be verified with the actual credential.
+Optionally, an administrator can use
 `setup-access.py` to create a dedicated, namespace-scoped account and a long-lived
 ServiceAccount token if permitted by cluster policy. This avoids routine expiry;
 it is not an automatically renewing OIDC login. The script has not been run
