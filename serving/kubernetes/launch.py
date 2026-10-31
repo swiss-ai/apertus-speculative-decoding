@@ -28,9 +28,16 @@ def verify_files(root, files):
             raise ValueError(f"asset hash mismatch: {path}")
 
 
-def opentela_command(binary, config_dir, spec, labels, seed):
+def engine_script(run, argv):
     import shlex
 
+    path = run / "engine.sh"
+    path.write_text("#!/bin/sh\nexec " + shlex.join(argv) + "\n")
+    path.chmod(0o700)
+    return path
+
+
+def opentela_command(binary, config_dir, spec, labels, seed, entrypoint):
     # The frozen pilot binary is sai-v0.0.7. Its verified CLI supports a private
     # config root and seed, but not the newer ephemeral-identity/datadir flags.
     command = [
@@ -49,7 +56,11 @@ def opentela_command(binary, config_dir, spec, labels, seed):
     ]
     for key, value in labels.items():
         command += ["--label", f"{key}={value}"]
-    return command + ["--subprocess", shlex.join(spec["engine_argv"])]
+    # The frozen wrapper splits on whitespace without interpreting shell quotes.
+    # Keep JSON and other complex arguments inside a real shell script instead.
+    if any(char.isspace() for char in str(entrypoint)):
+        raise ValueError("The OpenTela entrypoint path must not contain whitespace")
+    return command + ["--subprocess", "/bin/sh " + str(entrypoint)]
 
 
 def serve(runtime=Path("/runtime"), assets=Path("/assets"), logs=Path("/logs")):
@@ -118,7 +129,10 @@ def serve(runtime=Path("/runtime"), assets=Path("/assets"), logs=Path("/logs")):
         "source_revision": spec["source_revision"],
         "framework_args": shlex.join(spec["engine_argv"][3:]),
     }
-    command = opentela_command(binary, config_dir, spec, labels, uuid.uuid4().int % (2**31 - 1) + 1)
+    entrypoint = engine_script(run, spec["engine_argv"])
+    command = opentela_command(
+        binary, config_dir, spec, labels, uuid.uuid4().int % (2**31 - 1) + 1, entrypoint
+    )
     (run / "command.json").write_text(json.dumps(command, indent=2) + "\n")
     (run / "verification.json").write_text(
         json.dumps(

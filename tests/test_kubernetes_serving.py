@@ -51,9 +51,35 @@ def test_mesh_arguments_supported_by_frozen_opentela():
         },
         {"launched_by": "k8s"},
         123,
+        Path("/private/engine.sh"),
     )
     assert {arg for arg in command if arg.startswith("--")} <= supported
     assert command[command.index("--seed") + 1] == "123"
+
+
+def test_json_survives_mesh_wrapper_field_splitting(tmp_path):
+    import json
+    import subprocess
+    import sys
+
+    launch = module("launch")
+    config = {"method": "dspark", "model": "/assets/drafter", "num_speculative_tokens": 3}
+    entrypoint = launch.engine_script(
+        tmp_path,
+        [
+            sys.executable,
+            "-c",
+            "import sys; print(sys.argv[1])",
+            json.dumps(config),
+        ],
+    )
+    command = launch.opentela_command(
+        Path("/otela"), tmp_path, {"bootstrap_addr": "address"}, {}, 1, entrypoint
+    )
+    # Reproduce the frozen wrapper's naive split, then actually run its child.
+    argv = command[command.index("--subprocess") + 1].split()
+    output = subprocess.check_output(argv, text=True)
+    assert json.loads(output) == config
 
 
 def test_frozen_runtime_survives_configmap_round_trip(tmp_path):
