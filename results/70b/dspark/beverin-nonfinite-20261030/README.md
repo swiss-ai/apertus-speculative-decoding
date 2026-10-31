@@ -7,6 +7,25 @@ repeated validation of the same corrupted weights. The separate one-node
 production and Clariden jobs were not changed. Original run artifacts and
 runtime snapshots are preserved.
 
+## Bounded diagnostic result (verified 31 October)
+
+Fresh diagnostic **707140 passed 640 updates** without a numerical guard
+failure. All640 logged records and all 12,800 training metric values are
+finite; checkpoint state is 0/640/640. At counter 519 its loss was 0.559,
+CE 1.201, TV 0.233 and accuracy 0.493. A bounded sample found 0 nonfinite values
+among 11,073 BF16 values across all 62 saved tensors. This does not establish a
+full-checkpoint scan, validation quality, full-epoch stability or a fix.
+
+The original and diagnostic share recorded recipe, seed 42 and schedule,
+but their logged trajectories differ from counter 2. Different nodes,
+nondeterministic execution, online hidden-state extraction and the new
+compiler-disabled guard hooks/collectives prevent exact replay. The first
+trigger remains unproven. No follow-up experiment was submitted.
+
+Evidence and sixteen verification checks:
+`diagnostic/v2/completed-707140/`. The observer's completion notification was
+delayed 13 h 34 min; its history and the monitoring audit are retained.
+
 ## Established evidence
 
 - Last finite logged counter: **global_step=518**, loss 0.559, CE 1.206,
@@ -106,11 +125,10 @@ Raw preflight artifacts and checksums are under `preflight/` and
 `preflight/v2/`.
 
 Preliminary diagnostic **707138** was cancelled while pending, with zero
-allocation runtime, to use the capture fix. The replacement **707140** was
-submitted **2026-10-30 10:54:54 UTC** and is **pending priority** at the
-11:59 UTC check, with no allocation or training steps. Slurm’s tentative
-start moved from 13:30 UTC to **21:45 UTC**; this can change. The foreground
-observer remains active through queue delays and the eventual job end.
+allocation runtime, to use the capture fix. The replacement **707140** was submitted 2026-10-30 10:54:54 UTC and ran
+16:42:17–20:31:35 UTC that day, exiting 0 at its 640-step bound. The foreground
+observer subsequently stopped after its terminal notification; no new
+monitor was installed. See the verified result above.
 
 The fresh run is `opb-thinkoff-32n-nan-debug-20261030-v2`, using immutable
 `repo-556a464d/` (full runtime and launcher commit

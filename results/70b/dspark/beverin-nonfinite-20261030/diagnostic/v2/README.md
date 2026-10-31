@@ -10,7 +10,9 @@ checks, synchronized all-rank batch/RNG capture and a capture barrier are
 enabled. This replaces job 707138, cancelled before allocation. No corrupted
 weights are reused. Exact commands, source/configuration and submission
 state are retained here. Compute provenance populates in the separate run.
-Results remain pending.
+Results are verified in `completed-707140/`: all 640 records finite, final
+checkpoint640, no numerical failure, and a bounded checkpoint sample finite.
+The original NaN trigger remains unidentified.
 
 `watch_diagnostic.py` runs in the foreground for job 707140 only. Its live
 `--once` check passed. It uses the existing explicit chat queue for allocation
@@ -28,3 +30,7 @@ plus bounded conclusions. `one-node-reference-20261030T113306Z.json` records
 an independent read-only health comparison: the untouched one-node run was
 finite at step 29,637, with loss 0.441 and latest save 28,730. Its different
 batch, LR and schedule prevent a causal comparison with the failing run.
+
+The foreground observer has ended after its terminal callback. Its completion
+observation was delayed 13 h 34 min, documented in completed-707140/monitoring-audit.json.
+No monitor or cluster job was changed during read-only verification.
