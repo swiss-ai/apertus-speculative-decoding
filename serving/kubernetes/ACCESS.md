@@ -2,6 +2,37 @@
 
 ## Current route: export the user's existing session
 
+Device-login recovery was attempted on 2026-10-31. Dex advertises the device
+grant and accepted the initial request, but the user received
+`Unregistered redirect_uri ("/device/callback")` during browser approval.
+**No session was acquired.** The unused pending request was discarded. Do not
+send the user through this broken route again without a confirmed configuration
+fix. Do not modify shared Dex configuration as part of this model deployment.
+
+The agent's Clariden SSH connection works; the user's laptop SCP was rejected
+with `Permission denied (publickey)`. Do not make laptop SSH recovery a
+prerequisite. The helper is now downloadable anonymously over HTTPS:
+
+```bash
+B=https://gist.githubusercontent.com/FarukZahiragic
+G=f7f39e7388740c313c167f06a236afbf
+R=bfbae756f4a37f11e7ce9f7c53ae17be14dd4fb7
+curl -fsSL "$B/$G/raw/$R/export-login.py" -o ~/breithorn-export.py
+python3 ~/breithorn-export.py
+```
+
+Only helper source code was published to this unlisted gist; no credentials,
+model weights or benchmark data. The anonymous download was verified byte for
+byte, SHA256 `c15407f25f584595dd29c303ac172ca289dc609a9e368c0952498c09fc74bc54`.
+
+The user can upload the resulting `breithorn-session.kubeconfig` through
+https://console.mlp.cscs.ch/, Clariden, File Navigator, directory
+`/iopsstor/scratch/cscs/faruk_zahiragic/apertus-kubernetes-access`.
+This directory was verified mode 0700. The agent can retrieve that filename
+through its own Clariden connection; do not insist on renaming it. Set file mode
+0600 and do not print it. CSCS documents browser uploads/downloads at
+https://docs.cscs.ch/access/hpc-console/.
+
 The user verified `get pods` and `create pods/exec` in `rob-poc`: both `yes`.
 Creating Roles and RoleBindings returned `no`. A new machine account is **not**
 a prerequisite for the deployment. Use the existing login now; the Kubernetes
