@@ -63,9 +63,11 @@ EOF
   if [[ "$rc" != 0 ]]; then failed=1; fi
 done
 python3 - "$deployment" <<'VERIFY'
-import json,sys
+import json,sys,os
 from pathlib import Path
 root=Path(sys.argv[1]); summary={}
+expected_shapes={tuple(map(int,value.split('x'))) for value in os.environ.get('MUON_ORACLE_SHAPES','16x80 8192x40960').split()}
+assert len(expected_shapes)==2
 for name in ['upstream','alps']:
     cell=root/name
     code=int((cell/'exit-code.txt').read_text())
@@ -73,6 +75,7 @@ for name in ['upstream','alps']:
     reports=[json.loads(path.read_text()) for path in paths]
     passed=(code==0 and len(reports)==2 and sorted(r.get('rank') for r in reports)==[0,1]
             and all(r.get('status')=='passed' and len(r.get('cases',[]))==12
+                    and {tuple(c.get('shape',[])) for c in r['cases']}==expected_shapes
                     and all(c.get('status')=='passed' and c.get('input_nonfinite')==0
                             and c.get('input_mismatches')==0
                             and all(v==0 for v in c.get('nonfinite',{}).values())
@@ -81,7 +84,8 @@ for name in ['upstream','alps']:
                             and c.get('clamp_relative_error',float('inf'))<=.02
                             for c in r['cases']) for r in reports))
     summary[name]={'passed':passed,'exit_code':code,'rank_count':len(reports),
-                   'cases_per_rank':[len(r.get('cases',[])) for r in reports]}
+                   'cases_per_rank':[len(r.get('cases',[])) for r in reports],
+                   'expected_shapes':[list(shape) for shape in sorted(expected_shapes)]}
 (root/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
 print(json.dumps(summary)); raise SystemExit(0 if all(r['passed'] for r in summary.values()) else 1)
 VERIFY

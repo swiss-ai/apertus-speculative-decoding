@@ -1,10 +1,12 @@
-# Standalone DTensor Muon normalization/iteration oracle (prepared, not launched)
+# Standalone DTensor Muon normalization/iteration oracle
 
 This tests the remaining configured math path without loading any model,
 corpus or optimizer and without a training loop. The planned allocation is
 one Beverin node, at most20minutes, two ranks on physical GPUs2/3, sequential
 original and ALPS image cells (360-second timeout each), no automatic retry.
-GPU launch requires parent review; no job has been submitted.
+Wide-only GPU job710498 completed225seconds with both image cells passing.
+Its shape list never executes M>N transpose. The distinct tall-only branch
+is prepared under tall-only/ and requires final review before submission.
 
 Each rank constructs identical known BF16 global input, takes its row shard,
 checks exact reconstruction, and calls the actual installed private
