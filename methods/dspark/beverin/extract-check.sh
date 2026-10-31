@@ -41,6 +41,7 @@ t1=$(date +%s)
 python3 "${REPO_ROOT}/methods/dspark/train/check_hidden_states.py" \
   --endpoint "http://localhost:${PORT}/v1" --target "${TARGET_MODEL}" --rows "${CHECK_ROWS}" \
   --layers "$(wc -w <<< "${LAYERS}")" --device "cuda:${CHECK_GPU:-2}" --n "${CHECK_N:-16}" \
+  --min-agreement "${MIN_AGREEMENT:-0.5}" \
   2>&1 | tee "${RUN}/hs-check.log"
 stamp "check took $(( $(date +%s) - t1 )) s"
 ls "${RUN}"

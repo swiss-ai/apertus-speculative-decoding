@@ -64,6 +64,11 @@ def install():
 
         Trainer.maybe_save_checkpoint = save
 
+    if os.environ.get("BEVERIN_CHECKPOINT_RING", "0") == "1":
+        from checkpoint_ring import install as install_checkpoint_ring
+
+        install_checkpoint_ring(Trainer, torch)
+
     profile_steps = int(os.environ.get("BEVERIN_PROFILE_STEPS", "0"))
     if profile_steps:
         original_step = Trainer._optimizers_step
@@ -99,6 +104,11 @@ def install():
 
         Trainer._optimizers_step = step
 
+    if os.environ.get("BEVERIN_FAULT_INJECT", "0") == "1":
+        from fault_inject import install as install_fault_inject
+
+        install_fault_inject(Trainer, torch)
+
     if os.environ.get("BEVERIN_SINGLE_EPOCH", "0") == "1":
         import torch.distributed as dist
         from speculators.train.trainer import root_logger
@@ -123,4 +133,8 @@ def install():
         "blas_backend": str(torch.backends.cuda.preferred_blas_library()),
         "single_epoch": os.environ.get("BEVERIN_SINGLE_EPOCH", "0"),
         "numerical_guard": os.environ.get("BEVERIN_NUMERICAL_GUARD", "0"),
+        "checkpoint_ring": os.environ.get("BEVERIN_CHECKPOINT_RING", "0"),
+        "rollback": os.environ.get("BEVERIN_ROLLBACK", "0"),
+        "fault_inject": os.environ.get("BEVERIN_FAULT_INJECT", "0"),
+        "alps": os.environ.get("BEVERIN_ALPS", "0"),
     }), flush=True)

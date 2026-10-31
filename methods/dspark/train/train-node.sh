@@ -158,7 +158,12 @@ extra=()
 # stop), when under 30 min remain before DSPARK_STOP_AT, or after MAX_ATTEMPTS.
 # A node failure (Slurm NODE_FAIL) still ends the job.
 rc=1
-for attempt in $(seq 1 "${MAX_ATTEMPTS:-10}"); do
+attempt_limit="${MAX_ATTEMPTS:-10}"
+if [ "${BEVERIN_ROLLBACK:-0}" = 1 ]; then
+  # Budgets in rollback.py allow at most 3 numerical and 2 crash resumes.
+  attempt_limit=8
+fi
+for attempt in $(seq 1 "${attempt_limit}"); do
   tag="${JOB}"
   [ "${attempt}" -gt 1 ] && tag="${JOB}.a${attempt}"
   if ! health "${PORT}"; then
@@ -166,7 +171,13 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS:-10}"); do
     stop_server "${server}" || true
     start_server || { rc=1; break; }
   fi
-  rm -rf "${HS:?}"/*
+  if [ "${BEVERIN_ROLLBACK:-0}" = 1 ] || [ "${BEVERIN_CHECKPOINT_RING:-0}" = 1 ]; then
+    python3 "${REPO_ROOT}/methods/dspark/beverin/rollback.py" prepare \
+      --checkpoints "${CKPT}" --node-rank "${NODE_RANK}" --token "${JOB}-prepare-a${attempt}" \
+      --log "${LOG}/train-${JOB}-node0.log" --job-id "${JOB}" --stop-at "${DSPARK_STOP_AT:-0}" \
+      || { rc=66; break; }
+  fi
+  rm -rf "${HS:?}"/* || true
   stall_monitor "${tag}" &
   monitor=$!
   t0=$(date +%s)
@@ -189,7 +200,31 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS:-10}"); do
   kill "${monitor}" 2> /dev/null || true
   stamp "torchrun rc=${rc} (attempt ${attempt}) wall=$(( $(date +%s) - t0 ))s; checkpoints: $(ls "${CKPT}" 2> /dev/null | tail -3 | tr '\n' ' ')"
   grep -oE "val/eal_epoch=[0-9.]+" "${LOG}/train-${tag}-node${NODE_RANK}.log" | tail -3 | paste -sd" " || true
-  if [ "${BEVERIN_NUMERICAL_GUARD:-0}" = 1 ] && {
+  if [ "${BEVERIN_ROLLBACK:-0}" = 1 ]; then
+    action_token="${JOB}-decide-a${attempt}"
+    if [ "${NODE_RANK}" = 0 ]; then
+      python3 "${REPO_ROOT}/methods/dspark/beverin/rollback.py" decide \
+        --checkpoints "${CKPT}" --return-code "${rc}" --log "${LOG}/train-${tag}-node0.log" \
+        --job-id "${JOB}" --stop-at "${DSPARK_STOP_AT:-0}" --token "${action_token}" || true
+    fi
+    action="$(python3 "${REPO_ROOT}/methods/dspark/beverin/rollback.py" wait-action \
+      --checkpoints "${CKPT}" --token "${action_token}" --timeout 600 || true)"
+    case "${action}" in
+      proceed) break ;;
+      rollback)
+        rm -rf "${HS:?}/"* || true
+        stamp "ROLLBACK: hidden-state cache cleared; resuming from the verified checkpoint"
+        sleep 30
+        continue
+        ;;
+      *)
+        stamp "ROLLBACK_TERMINAL: ${action:-unknown}"
+        rc=65
+        break
+        ;;
+    esac
+  fi
+  if [ "${BEVERIN_NUMERICAL_GUARD:-0}" = 1 ] && [ "${BEVERIN_ROLLBACK:-0}" != 1 ] && {
     [ -s "${CKPT}/numerical-failure.json" ] ||
     grep -qE 'BEVERIN_NUMERICAL_FAILURE|Final validation did not return finite loss and metrics' \
       "${LOG}/train-${tag}-node0.log";

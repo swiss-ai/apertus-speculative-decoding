@@ -68,9 +68,17 @@ def audit(work, run_id, job_id, phase, return_code=0, completion_skip=False):
                      "scheduler_state_dict.pt", "training_state.json"):
             if not (checkpoint / name).is_file() or not (checkpoint / name).stat().st_size:
                 errors.append("missing or empty checkpoint artifact: " + name)
+        marker_path = checkpoint / "verified-finite.json"
+        try:
+            marker = json.loads(marker_path.read_text())
+        except (OSError, ValueError):
+            marker = None
+        if (not isinstance(marker, dict) or marker.get("finite") is not True
+                or int(marker.get("global_step", -1)) != int(state.get("global_step", -2))):
+            errors.append("checkpoint lacks a matching verified-finite marker")
         shutil.copy2(str(checkpoint / "training_state.json"),
                      str(deployment / "final-training-state.json"))
-    for name in ("train_command.txt", "speculators.patch", "run.yaml"):
+    for name in ("train_command.txt", "speculators.patch", "run.yaml", "rollback-ledger.json"):
         source = run / "checkpoints" / name
         if source.is_file():
             shutil.copy2(str(source), str(deployment / name))

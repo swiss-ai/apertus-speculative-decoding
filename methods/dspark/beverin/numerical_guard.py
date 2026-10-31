@@ -37,11 +37,110 @@ class Guard:
         self.rng = {}
         self.device = next(trainer.model.parameters()).device
 
+    def optimizer_state(self):
+        """Floating optimizer state, including CPU float ``step`` counters.
+
+        Integer step counters cannot be NaN and are skipped. Float step counters
+        stay on whatever device the optimizer stored them on.
+        """
+        named = []
+        for index, optimizer in enumerate(getattr(self.trainer, "optimizers", None) or []):
+            label = "%s%d" % (type(optimizer).__name__, index)
+            state = getattr(optimizer, "state", {}) or {}
+            for param_index, slot in enumerate(state.values()):
+                if not isinstance(slot, dict):
+                    continue
+                for key, value in slot.items():
+                    if not self.torch.is_tensor(value) or not value.is_floating_point():
+                        continue
+                    named.append(("%s/%d/%s" % (label, param_index, key), value))
+        return named
+
+    def load_continuity(self):
+        from rollback import load_ledger
+        pending = load_ledger(str(self.root)).get("pending_continuity")
+        self._pending = pending if isinstance(pending, dict) else None
+        self._losses = []
+        self._continuity_started = False
+
+    def observe_continuity(self, output):
+        pending = getattr(self, "_pending", None)
+        if not pending:
+            return
+        if not self._continuity_started:
+            self._continuity_started = True
+            self._check_resume_position(pending)
+        value = self._loss_scalar(output)
+        if value is None:
+            return
+        self._losses.append(value)
+        if len(self._losses) >= int(pending.get("window") or 20):
+            self._check_loss_window(pending)
+            self._clear_continuity()
+
+    def _check_resume_position(self, pending):
+        expected = int(pending["expected_global_step"])
+        if int(self.trainer.global_step) != expected:
+            self._fail_continuity("continuity-step")
+        expected_rates = [float(value) for value in pending.get("learning_rates") or []]
+        if not expected_rates:
+            return
+        actual = []
+        for optimizer in getattr(self.trainer, "optimizers", None) or []:
+            for group in getattr(optimizer, "param_groups", None) or []:
+                if "lr" in group:
+                    actual.append(float(group["lr"]))
+        if len(actual) != len(expected_rates) or any(
+                abs(got - want) > 1e-5 + 1e-4 * abs(want)
+                for got, want in zip(actual, expected_rates)):
+            self._fail_continuity("continuity-lr")
+
+    def _check_loss_window(self, pending):
+        pre = pending.get("pre_median_loss")
+        if pre is None:
+            return
+        ordered = sorted(self._losses)
+        mid = len(ordered) // 2
+        median = ordered[mid] if len(ordered) % 2 else 0.5 * (ordered[mid - 1] + ordered[mid])
+        if median > float(pending.get("loss_ratio") or 1.3) * float(pre):
+            self._fail_continuity("continuity-loss")
+
+    def _fail_continuity(self, phase):
+        bad = self.torch.tensor(float("nan"), device=self.device)
+        self.check([(phase, bad)], phase)
+
+    def _clear_continuity(self):
+        from rollback import load_ledger, save_ledger
+        if self.trainer.rank == 0:
+            ledger = load_ledger(str(self.root))
+            ledger["pending_continuity"] = None
+            save_ledger(str(self.root), ledger)
+        self._pending = None
+
+    def _loss_scalar(self, output):
+        torch = self.torch
+        if not (isinstance(output, (tuple, list)) and len(output) >= 2 and torch.is_tensor(output[1])):
+            return None
+        local = float(output[1].detach().float().item())
+        value = torch.tensor([local], dtype=torch.float32, device=self.device)
+        if self.trainer.is_distributed and torch.distributed.is_available() and torch.distributed.is_initialized():
+            torch.distributed.all_reduce(value, op=torch.distributed.ReduceOp.SUM)
+            value = value / torch.distributed.get_world_size()
+        return float(value.item())
+
     def check(self, values, phase):
         torch, trainer = self.torch, self.trainer
-        values = [(name, value.detach().to_local() if hasattr(value, "to_local")
-                   else value.detach()) for name, value in values]
-        flags = [torch.isfinite(value).all() for _, value in values]
+        local_values = []
+        flags = []
+        for name, value in values:
+            if not hasattr(value, "is_floating_point") or not value.is_floating_point():
+                continue
+            local = value.detach()
+            if hasattr(local, "to_local"):
+                local = local.to_local()
+            local_values.append((name, local))
+            flags.append(torch.isfinite(local).all().to(device=self.device))
+        values = local_values
         ok = torch.stack(flags).all() if flags else torch.ones(
             (), dtype=torch.bool, device=self.device)
         rank = trainer.rank
@@ -106,6 +205,7 @@ def install(Trainer, torch):
         result = original_setup(self)
         guard = self._beverin_numerical_guard = Guard(self, torch)
         guard.check(guard.parameters(), "loaded-parameters")
+        guard.load_continuity()
 
         @torch.compiler.disable
         def before(_module, _args, kwargs):
@@ -118,6 +218,7 @@ def install(Trainer, torch):
         @torch.compiler.disable
         def after(_module, _args, output):
             guard.check(list(tensors(output)), "forward-loss-and-metrics")
+            guard.observe_continuity(output)
 
         self.model.register_forward_pre_hook(before, with_kwargs=True)
         self.model.register_forward_hook(after)
@@ -144,7 +245,20 @@ def install(Trainer, torch):
             guard.check([(name, param.grad) for name, param in self.model.named_parameters()
                          if param.grad is not None], "backward-gradients")
             result = original_clip(parameters, *clip_args, **clip_kwargs)
-            guard.check([("total_grad_norm", result)], "gradient-norm")
+            norm = result.detach() if torch.is_tensor(result) else torch.tensor(float(result))
+            try:
+                shown = float(norm.detach().float().cpu()) if torch.is_tensor(norm) else float(norm)
+            except (TypeError, ValueError):
+                shown = float("nan")
+            if not (shown == shown) or shown in (float("inf"), float("-inf")):
+                shown_json = "nan" if shown != shown else ("-inf" if shown < 0 else "inf")
+            else:
+                shown_json = shown
+            if self.rank == 0:
+                print("BEVERIN_GRAD_NORM " + json.dumps({
+                    "global_step": int(self.global_step), "grad_norm": shown_json,
+                }), flush=True)
+            guard.check([("total_grad_norm", norm)], "gradient-norm")
             return result
 
         torch.nn.utils.clip_grad_norm_ = clip
@@ -169,6 +283,11 @@ def install(Trainer, torch):
 
         def setup_optimizer(self):
             result = original_setup_optimizer(self)
+            guard = getattr(self, "_beverin_numerical_guard", None)
+            if guard is not None:
+                state = guard.optimizer_state()
+                if state:
+                    guard.check(state, "loaded-optimizer")
             if os.environ.get("BEVERIN_CHECK_ACTIVATIONS", "0") == "1":
                 for optimizer in self.optimizers:
                     def optimizer_hook(opt, _args, _kwargs):

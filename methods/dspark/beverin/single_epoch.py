@@ -38,6 +38,13 @@ def validated_artifacts(checkpoints, expected_steps):
     state = json.loads((checkpoint / "training_state.json").read_text())
     if state != {"epoch": 0, "local_step": 0, "global_step": expected_steps}:
         return None
+    marker_path = checkpoint / "verified-finite.json"
+    try:
+        marker = json.loads(marker_path.read_text())
+    except (OSError, ValueError):
+        return None
+    if marker.get("finite") is not True or int(marker.get("global_step", -1)) != int(expected_steps):
+        return None
     try:
         metrics = json.loads((checkpoint / "val_metrics.json").read_text())
     except (ValueError, OSError):

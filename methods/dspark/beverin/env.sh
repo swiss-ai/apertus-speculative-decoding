@@ -9,7 +9,9 @@ export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
 # ROCm torch counts 4 devices but creates 2, and the trainer's manual_seed_all
 # fails (job 693749). The scripts select GPUs with CUDA_VISIBLE_DEVICES alone
 # (CSCS's vLLM-on-AMD tutorial likewise unsets ROCR_VISIBLE_DEVICES).
-unset ROCR_VISIBLE_DEVICES
+# Slurm also exports HIP_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Any one of
+# them left set makes ROCm disagree with CUDA_VISIBLE_DEVICES about the count.
+unset ROCR_VISIBLE_DEVICES HIP_VISIBLE_DEVICES GPU_DEVICE_ORDINAL
 export HF_HOME="${WORK}/hf_home" HF_HUB_OFFLINE=1
 # JIT caches node-local, as on Clariden (/tmp is RAM-backed tmpfs on MI300A,
 # i.e. it shares the 4x128 GB HBM with the GPUs; keep it small).

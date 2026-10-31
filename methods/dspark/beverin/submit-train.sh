@@ -16,31 +16,56 @@ WORK="${WORK:-/iopsstor/scratch/cscs/${USER}/beverin-feasibility}"
 NODES="${NODES:-16}"
 TIME="${TIME:-24:00:00}"
 CHAIN="${CHAIN:-1}"
-EDF="${EDF:-${REPO_ROOT}/methods/dspark/beverin/env-vllm031.toml}"
 LOG_ROOT="${WORK}/logs"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "${LOG_ROOT}"
+# ALPS is opt-in so historical launches keep the old image and checkpoint cadence.
+SRUN_NETWORK=""
+# shellcheck disable=SC1091
+. "${REPO_ROOT}/methods/dspark/beverin/alps_image.sh"
+if [ "${BEVERIN_ALPS:-0}" = 1 ]; then
+  EDF="${EDF:-${REPO_ROOT}/methods/dspark/beverin/env-vllm-alps.toml}"
+  CKPT_FREQ="${CKPT_FREQ:-0.015625}"
+  export BEVERIN_ALPS=1
+  export BEVERIN_CHECKPOINT_RING="${BEVERIN_CHECKPOINT_RING:-1}"
+  export BEVERIN_ROLLBACK="${BEVERIN_ROLLBACK:-1}"
+  export DSPARK_CXI_EAGER="${DSPARK_CXI_EAGER:-1}"
+  export BEVERIN_MILESTONE_INTERVAL="${BEVERIN_MILESTONE_INTERVAL:-512}"
+  export BEVERIN_RING_KEEP="${BEVERIN_RING_KEEP:-2}"
+  SRUN_NETWORK="--network=disable_rdzv_get"
+  image_in_edf="$(sed -n 's|^image = "\(.*\)"|\1|p' "${EDF}")"
+  if [ "${image_in_edf}" != "${ALPS_SQUASHFS}" ]; then
+    echo "EDF image is not the pinned ALPS squashfs: ${image_in_edf}" >&2
+    exit 1
+  fi
+else
+  EDF="${EDF:-${REPO_ROOT}/methods/dspark/beverin/env-vllm031.toml}"
+  CKPT_FREQ="${CKPT_FREQ:-0.0625}"
+fi
 
 # Clariden 16-node settings (opb-thinkoff-16n), overridable for pilots.
 export DSPARK_DIR="${WORK}" SPECULATORS="${SPECULATORS:-${WORK}/speculators}"
 export SIDE_DEPS="${SIDE_DEPS:-${WORK}/py312/pydeps}"
 export DATA="${DATA:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b/data}"
-export RUN_ID SEQ="${SEQ:-8192}" ANCHORS="${ANCHORS:-512}" LR="${LR:-6e-4}" EPOCHS="${EPOCHS:-10}"
-export CKPT_FREQ="${CKPT_FREQ:-0.0625}" DSPARK_DTENSOR_ALLGATHER="${DSPARK_DTENSOR_ALLGATHER:-1}"
+export RUN_ID NODES SEQ="${SEQ:-8192}" ANCHORS="${ANCHORS:-512}" LR="${LR:-6e-4}" EPOCHS="${EPOCHS:-10}"
+export CKPT_FREQ DSPARK_DTENSOR_ALLGATHER="${DSPARK_DTENSOR_ALLGATHER:-1}"
 export LAYERS="${LAYERS:-1 20 39 58 77}"
 export EXTRACT_MEM="${EXTRACT_MEM:-0.62}" EXTRACT_FLAGS="${EXTRACT_FLAGS-}"
 export PY_PRELUDE="${REPO_ROOT}/methods/dspark/beverin/apertus15_run.py"
 
 pass_env() {
   local v
-  for v in DSPARK_DIR SPECULATORS SIDE_DEPS DATA RUN_ID SEQ ANCHORS LR EPOCHS CKPT_FREQ DSPARK_DTENSOR_ALLGATHER \
+  for v in DSPARK_DIR SPECULATORS SIDE_DEPS DATA RUN_ID NODES SEQ ANCHORS LR EPOCHS CKPT_FREQ DSPARK_DTENSOR_ALLGATHER \
            LAYERS EXTRACT_MEM EXTRACT_FLAGS PY_PRELUDE MAX_STEPS MAX_ATTEMPTS WORKERS PREFETCH STALL_MINUTES \
            PYTORCH_HIP_ALLOC_CONF BEVERIN_REDUCE_DTYPE BEVERIN_SEGMENT_STEPS BEVERIN_PILOT_RESUME \
            BEVERIN_EMPTY_CACHE_ON_SAVE BEVERIN_PROFILE_STEPS BEVERIN_NCCL_PROTO \
            BEVERIN_NCCL_MIN_NCHANNELS BEVERIN_NCCL_NCHANNELS_PER_NET_PEER BEVERIN_FI_MR_CACHE_MONITOR \
            NCCL_DEBUG NCCL_DEBUG_SUBSYS DATA_PROVENANCE EXTRACT_START_ATTEMPTS BEVERIN_BLAS_BACKEND \
            BEVERIN_SINGLE_EPOCH BEVERIN_EXPECTED_EPOCH_STEPS BEVERIN_CHECK_ACTIVATIONS \
-           BEVERIN_CAPTURE_BAD_BATCH; do
+           BEVERIN_CAPTURE_BAD_BATCH BEVERIN_ALPS BEVERIN_CHECKPOINT_RING BEVERIN_ROLLBACK \
+           BEVERIN_FAULT_INJECT BEVERIN_FAULT_STEP BEVERIN_FAULT_CORRUPT_WRITE \
+           BEVERIN_MILESTONE_INTERVAL BEVERIN_RING_KEEP BEVERIN_DISABLE_INTERRUPT_SAVE \
+           DSPARK_CXI_EAGER TARGET_MODEL; do
     if [ -n "${!v+x}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -93,16 +118,44 @@ if [ "\${BEVERIN_SINGLE_EPOCH:-0}" = 1 ]; then
   fi
   [ "\${guard_rc}" = 1 ] || exit "\${guard_rc}"
 fi
-sha256sum "$(sed -n 's|^image = "\(.*\)"|\1|p' "${EDF}")" > "\${BEVERIN_DEPLOYMENT}/container.sha256" &
-image_hash_pid=\$!
+IMAGE_PATH="$(sed -n 's|^image = "\(.*\)"|\1|p' "${EDF}")"
+if [ "${BEVERIN_ALPS:-0}" = 1 ]; then
+  sha256sum "\${IMAGE_PATH}" > "\${BEVERIN_DEPLOYMENT}/container.sha256"
+  got=\$(awk '{print \$1}' "\${BEVERIN_DEPLOYMENT}/container.sha256")
+  if [ "\${got}" != "${ALPS_SQUASHFS_SHA256}" ]; then
+    echo "ALPS image hash mismatch: \${got}" >&2
+    exit 1
+  fi
+  echo "${ALPS_OCI}" > "\${BEVERIN_DEPLOYMENT}/image-oci.txt"
+  image_hash_pid=""
+else
+  sha256sum "\${IMAGE_PATH}" > "\${BEVERIN_DEPLOYMENT}/container.sha256" &
+  image_hash_pid=\$!
+fi
 # The trainer saves and exits STOP_MARGIN s before the time limit
 # (speculators-deadline-stop.patch).
 export DSPARK_STOP_AT=\$(( \$(date +%s) + ${LIMIT_S} - ${STOP_MARGIN:-2400} ))
 export HEAD_NODE=\$(scontrol show hostnames "\${SLURM_JOB_NODELIST}" | head -1)
 rc=0
-srun --ntasks-per-node=1 --environment=${EDF} --export=ALL \\
+# shellcheck disable=SC2086
+srun ${SRUN_NETWORK} --ntasks-per-node=1 --environment=${EDF} --export=ALL \\
   bash "\${REPO_ROOT}/methods/dspark/beverin/train-node.sh" || rc=\$?
-wait "\${image_hash_pid}"
+if [ -n "\${image_hash_pid}" ]; then wait "\${image_hash_pid}"; fi
+if [ "${BEVERIN_POST_SCAN:-0}" = 1 ] && [ "\${rc}" = 0 ]; then
+  # shellcheck disable=SC2086
+  srun ${SRUN_NETWORK} --ntasks=1 --environment=${EDF} --export=ALL \\
+    python3 "\${REPO_ROOT}/methods/dspark/beverin/scan_checkpoint.py" \\
+    --checkpoint "\${WORK}/runs/\${RUN_ID}/checkpoints/0" \\
+    --output "\${BEVERIN_DEPLOYMENT}/finiteness-scan.json" --hash || rc=\$?
+fi
+if [ -n "${BEVERIN_STABLE_STEP:-}" ] && [ "\${rc}" = 0 ]; then
+  stable="\${WORK}/runs/\${RUN_ID}/stable/step-${BEVERIN_STABLE_STEP:-}"
+  if [ ! -e "\${stable}" ]; then
+    mkdir -p "\${WORK}/runs/\${RUN_ID}/stable"
+    cp -a "\${WORK}/runs/\${RUN_ID}/checkpoints/0" "\${stable}"
+    echo "STABLE_CHECKPOINT \${stable}"
+  fi
+fi
 audit_rc=0
 python3 "\${REPO_ROOT}/methods/dspark/beverin/audit_train.py" finish \\
   --work "\${WORK}" --run-id "\${RUN_ID}" --job-id "\${SLURM_JOB_ID}" --return-code "\${rc}" || audit_rc=\$?

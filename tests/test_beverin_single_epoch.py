@@ -21,6 +21,8 @@ def checkpoint(root, step=4, local=0):
         (folder / name).write_text("preserved-" + name)
     (folder / "training_state.json").write_text(json.dumps(
         {"epoch": 0, "local_step": local, "global_step": step}))
+    (folder / "verified-finite.json").write_text(json.dumps(
+        {"finite": True, "global_step": step, "epoch": 0, "local_step": local}))
 
 
 def trainer_type():
