@@ -37,13 +37,20 @@ The stream never overwrites existing local files. Until its manifest closes,
 this local controller-v5 copy is incomplete and must not be used as final input.
 
 Lustre intermittently blocks remote tar in cl_sync_io_wait on even small source
-metadata files. The live stream is preserved; no corrupted/failed copy is known.
+metadata files. The first archive stream failed at the next tar header after107 summaries.
+collection-attempt1-failure.json preserves the exact error and evidence limits.
+All finished member byte hashes were reconstructed (gzip CRC checked), with
+original mode/mtime explicitly unavailable for this interrupted legacy collector.
+resume_controller_v5.py now excludes those completed source paths, preserves
+them in place, and journals each newly completed file before the next header.
+Partial v2 writes use separate names; no finished file is overwritten.
+The source EOF cause remains unestablished; Lustre waiting was directly observed.
 Latest bounded observation and process IDs are in the persistent receipt:
 `/home/projects/apertus-speculative-decoding-recovery-control/receipts/layouts.json`.
 
 ## Durable CPU continuation
 
-Detached local finish_cpu_review.sh waits for the existing collector PID, then:
+Detached local finish_cpu_review.sh waits for the resumed collector PID, then:
 
 1. Requires a successful complete manifest with exact inspected byte total,
    267 summaries and unique source paths.
