@@ -1,0 +1,30 @@
+{
+  "status": "prepared_not_deployed",
+  "recorded_at": "2026-10-31T12:26:25.838248+00:00",
+  "source_revision": "aa6673862e79ba726ea57aa15576481f7c5cbf30",
+  "gitops_revision": "02a8a4d99adf12f1a19557b7f7b47224a9c56d8c",
+  "branch": "serving/dspark-e10-kubernetes",
+  "gitops_checkout": "/home/projects/rob-poc-dspark-kubernetes",
+  "cluster": "breithorn",
+  "namespace": "rob-poc",
+  "replicas": 0,
+  "kubernetes_access": "No configured context locally or on Clariden",
+  "existing_slurm_serving": "3791982 TIMEOUT; no serving replacement queued or running",
+  "tests": "3 passed: corrupt asset rejected, missing asset rejected, ConfigMap round-trip and corrupt overlay rejected",
+  "offline_validation": "Five manifest objects, Application path, immutable image/config references, ConfigMap payload size and byte-identical benchmark overlays verified",
+  "live_checks": "Not performed; deployment and asset transfer have not been launched",
+  "remaining": [
+    "Configure reusable Kubernetes identity and kubeconfig",
+    "Inspect live resources/quota/GPU and confirm production bootstrap",
+    "Stage assets through GitOps helper and verify hashes",
+    "Enable one replica through GitOps, verify Argo health and gateway completions"
+  ],
+  "manifest_sha256": {
+    "applications/vllm-apertus-dspark-e10.yaml": "a22d28eb15f0604d75fed8aebc47160d15b018478e747f9e048e9fc2279440ef",
+    "swissai-research-platform/models/vllm-apertus-dspark-e10/configmap.yaml": "959a2f5526c7fab0d96cc219918eb534c3f9de87bf27e6f1994aa7725a8d3178",
+    "swissai-research-platform/models/vllm-apertus-dspark-e10/deployment.yaml": "c5ac9a3f7312bf956a3dae9d805525ff5d964a7a7354444f80e767adafd2c5aa",
+    "swissai-research-platform/models/vllm-apertus-dspark-e10/pvc.yaml": "493e65e7419d69fb425f98c0dc52a38870b4da739fcdef6181b8252b3cc05704",
+    "swissai-research-platform/models/vllm-apertus-dspark-e10/service.yaml": "f8704f7e62fd1888c0ec1afe40f4f3fd2a03317cb1902c63dcea0c1a580e2572",
+    "swissai-research-platform/models/vllm-apertus-dspark-e10/stage-pod.yaml": "23d664e8d8f849dc30ce3ecc47bfaffd8e5f50ad077f527e479dffc367166195"
+  }
+}
