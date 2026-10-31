@@ -32,3 +32,11 @@ BF16 reference tolerances are explicit; tiny dense CPU mask oracles
 verify the closed-form reference with and without padded anchors. These are
 kernel tests, not a recreation of the missing failed batch, learned weights,
 full compiled model, FSDP interactions or full training stability.
+
+Initial GPU job710459 failed before any numerical case: Dynamo could not import
+the dynamically loaded `captured_mask` module. That harness failure is preserved
+separately and is not evidence about attention correctness. The corrected loader
+registers the module in `sys.modules` before execution. Both causal-mask fixtures
+then passed the **default compiled mask builder** on CPU, as well as the dense
+analytical oracle; see `cpu-oracle-compiled.json`. The independent small GPU math
+reference also records its own finiteness separately from the tested outputs.

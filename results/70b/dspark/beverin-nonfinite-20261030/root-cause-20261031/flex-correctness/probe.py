@@ -18,6 +18,8 @@ from torch.nn.attention.flex_attention import create_block_mask, create_mask, fl
 def mask_module(path):
     spec = importlib.util.spec_from_file_location("captured_mask", path)
     module = importlib.util.module_from_spec(spec)
+    # Dynamo imports a callable's defining module when constructing guards.
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -62,9 +64,15 @@ def verify_cpu(module):
         reference = (mask.double() / mask.sum(-1, keepdim=True)).sum(0) * groups
         expected = expected_v_gradient(docs, anchors, starts, block, groups)
         torch.testing.assert_close(expected.double(), reference, rtol=1e-6, atol=1e-6)
+        # Exercise Dynamo's module imports and the compiled mask builder too;
+        # an eager dense-mask oracle alone missed this in GPU job710459.
+        compiled_builder = torch.compile(create_block_mask)
+        sparse = compiled_builder(mod, B=None, H=None, Q_LEN=q_len, KV_LEN=kv_len, device="cpu")
+        assert sparse.shape[-2] >= q_len and sparse.shape[-1] >= kv_len
         records.append({"padded": padded, "q_len": q_len, "kv_len": kv_len,
                         "zero_attention_columns": int((~mask.any(0)).sum()),
-                        "oracle_max_error": float((expected - reference).abs().max())})
+                        "oracle_max_error": float((expected - reference).abs().max()),
+                        "compiled_mask_builder_passed": True})
     return records
 
 
@@ -171,13 +179,15 @@ def run_gpu(module, path):
         gradients = torch.autograd.grad(actual, (q, k, v), torch.ones_like(actual))
         record = {"padded_anchors": padded, "fixture": "small-fp32-math-reference",
                   "query_heads": 8, "kv_heads": 2, "q_len": q_len, "kv_len": kv_len,
-                  "relative_l2_error": {}, "nonfinite": {}}
+                  "relative_l2_error": {}, "nonfinite": {}, "reference_nonfinite": {}}
         result["cases"].append(record)
         try:
             for name, value, expected in zip(("output", "dq", "dk", "dv"),
                                              (actual, *gradients), (reference, *reference_gradients)):
                 record["nonfinite"][name] = int((~torch.isfinite(value)).sum())
+                record["reference_nonfinite"][name] = int((~torch.isfinite(expected)).sum())
                 assert record["nonfinite"][name] == 0, record
+                assert record["reference_nonfinite"][name] == 0, record
                 error = torch.linalg.vector_norm(value.float() - expected) / torch.linalg.vector_norm(expected).clamp_min(1e-12)
                 record["relative_l2_error"][name] = float(error)
                 assert error <= .03, record
