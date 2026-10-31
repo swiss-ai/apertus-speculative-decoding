@@ -35,6 +35,10 @@ upstream=/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm
 reference=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["reference"])' "$tools/image/identity.json")
 printf 'enroot import -o %q %q\n' "${image}.part-${SLURM_JOB_ID}" "docker://${reference}" > "$deployment/import-command.txt"
 if [[ ! -f "$image" ]]; then
+    parts=/capstor/scratch/cscs/faruk_zahiragic/container-images/alps-layer-parts
+    cache=/ritom/scratch/cscs/faruk_zahiragic/.enroot
+    printf 'python3 %q %q %q %q\n' "$tools/prefetch.py" "$tools/image/manifest.json" "$parts" "$cache" > "$deployment/prefetch-command.txt"
+    python3 "$tools/prefetch.py" "$tools/image/manifest.json" "$parts" "$cache" > "$deployment/prefetch.log" 2>&1
     ENROOT_MAX_PROCESSORS=32 ENROOT_MAX_CONNECTIONS=4 \
         enroot import -o "${image}.part-${SLURM_JOB_ID}" "docker://${reference}" > "$deployment/import.log" 2>&1
     test ! -e "$image"
