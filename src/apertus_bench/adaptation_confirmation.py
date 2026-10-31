@@ -217,6 +217,7 @@ def provenance(output: Path, selection_path: Path, policy_path: Path, environmen
                     "SLURMD_NODENAME",
                     "CUDA_VISIBLE_DEVICES",
                     "PYTHONPATH",
+                    "TMPDIR",
                 )
                 if key in os.environ
             },

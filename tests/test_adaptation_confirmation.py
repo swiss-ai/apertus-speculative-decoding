@@ -343,3 +343,142 @@ def test_between_arm_validation_distinguishes_deadline_from_infrastructure(tmp_p
     (run / "checkpoints/resume").mkdir(parents=True)
     (run / "training-incomplete.json").write_text("{}")
     assert validation.inspect(cfg, "id")[0] == 4
+
+
+def test_confirmation_only_uses_frozen_results_and_fresh_attempt_without_training(
+    tmp_path, monkeypatch
+):
+    from apertus_eagle import adaptation_recovery as recovery
+    from apertus_eagle.adaptation_decision import immutable_json
+
+    repo, root = tmp_path / "repo", tmp_path / "campaign"
+    (repo / "methods/eagle/configs/8b").mkdir(parents=True)
+    shutil.copy2(
+        REPO / "methods/eagle/configs/8b/adapt-recovery-policy.json",
+        repo / "methods/eagle/configs/8b",
+    )
+    immutable_json(repo / "source-manifest.json", {"revision": "frozen", "files": {}})
+    (root / "data/adapt-data").mkdir(parents=True)
+    immutable_json(root / "data/adapt-data/manifest.json", {})
+    workload = repo / "workloads/8b"
+    workload.mkdir(parents=True)
+    for name in ("opb-heldout.jsonl", "eagle-8b-test.jsonl"):
+        (workload / name).write_text("{}\n")
+    matrix = {}
+    templates = sorted((REPO / "methods/eagle/configs/8b/adapt").glob("adapt-*.yaml"))
+    for domain in ("chat", "summ", "mult"):
+        for path in templates:
+            if path.stem.startswith("adapt-" + domain + "-"):
+                matrix[path.stem] = curve(passed=path.stem == "adapt-chat-n500-r0")
+    immutable_json(root / "adaptation-matrix-v1.json", matrix)
+    immutable_json(root / "selection.json", select_heads(matrix, POLICY))
+    originals = {
+        name: (root / name).read_bytes() for name in ("adaptation-matrix-v1.json", "selection.json")
+    }
+    old = root / "confirmations/adapt-chat-n500-r0"
+    old.mkdir(parents=True)
+    (old / "environment.toml").write_text("old failed setup\n")
+    immutable_json(
+        root / "receipts/campaign.json",
+        {
+            "workstream": "adaptation",
+            "state": "needs_repair",
+            "job_ids": ["123"],
+            "batches": {domain: {"job_ids": []} for domain in ("chat", "summ", "mult")},
+        },
+    )
+    calls = []
+
+    def command(argv, **kwargs):
+        calls.append(argv)
+        if argv[:2] == ["git", "rev-parse"]:
+            return "frozen\n"
+        if argv[:2] == ["bash", "serving/node-sweep.sh"]:
+            env = kwargs["env"]
+            assert Path(env["TMPDIR"]).is_relative_to(root / "submission-tmp")
+            assert env["TMPDIR"] != "/tmp"
+            output = Path(env["SWEEP_OUTPUT"])
+            assert output == old / "repair-test"
+            report = output / "paired/paired/confirmation-summary.json"
+            report.parent.mkdir(parents=True)
+            strong = paired_metrics(level(), level(120.0, 16.0))
+            immutable_json(
+                report,
+                {
+                    "name": "adapt-chat-n500-r0",
+                    "correctness_passed": True,
+                    "cells": [
+                        {
+                            "label": "chat",
+                            "role": "domain",
+                            "k": 3,
+                            "concurrency": 1,
+                            "pairs": [strong, strong],
+                        }
+                    ],
+                },
+            )
+            return "job=42 output=confirmation\n"
+        assert argv[0] == "sacct", f"Training or unexpected command: {argv}"
+        if argv[-1].endswith("AllocNodes,State,ExitCode"):
+            return "123|100|1|COMPLETED|0:0|\n42|100|1|COMPLETED|0:0|\n"
+        return "42|COMPLETED|0:0|\n"
+
+    def no_training_reads(*_args):
+        raise AssertionError("Confirmation repair must not re-read completed arms")
+
+    monkeypatch.setattr(recovery.subprocess, "check_output", command)
+    monkeypatch.setattr(recovery, "curve_report", no_training_reads)
+    recovery.main(
+        [
+            "--repo",
+            str(repo),
+            "--campaign-root",
+            str(root),
+            "--trace-job",
+            "123",
+            "--overlay-root",
+            str(tmp_path / "overlays"),
+            "--confirmation-only",
+            "--confirmation-attempt",
+            "repair-test",
+        ]
+    )
+    assert (old / "environment.toml").read_text() == "old failed setup\n"
+    assert all((root / name).read_bytes() == content for name, content in originals.items())
+    state = json.loads((root / "receipts/campaign.json").read_text())
+    assert state["state"] == "complete"
+    assert state["confirmations"]["adapt-chat-n500-r0"]["attempt"] == "repair-test"
+    assert not any("submit-eagle-train" in str(call) for call in calls)
+
+
+def test_confirmation_only_rejects_incomplete_frozen_matrix(tmp_path, monkeypatch):
+    from apertus_eagle import adaptation_recovery as recovery
+    from apertus_eagle.adaptation_decision import immutable_json
+
+    repo, root = tmp_path / "repo", tmp_path / "campaign"
+    (repo / "methods/eagle/configs/8b").mkdir(parents=True)
+    shutil.copy2(
+        REPO / "methods/eagle/configs/8b/adapt-recovery-policy.json",
+        repo / "methods/eagle/configs/8b",
+    )
+    immutable_json(repo / "source-manifest.json", {"revision": "frozen", "files": {}})
+    immutable_json(root / "adaptation-matrix-v1.json", {"one": {"state": "incomplete"}})
+    immutable_json(root / "selection.json", {"selected": []})
+    monkeypatch.setattr(recovery.subprocess, "check_output", lambda *_args, **_kwargs: "frozen\n")
+    with pytest.raises(RuntimeError, match="all original 19 completed curves"):
+        recovery.main(
+            [
+                "--repo",
+                str(repo),
+                "--campaign-root",
+                str(root),
+                "--trace-job",
+                "123",
+                "--overlay-root",
+                str(tmp_path / "overlays"),
+                "--confirmation-only",
+                "--confirmation-attempt",
+                "repair-test",
+            ]
+        )

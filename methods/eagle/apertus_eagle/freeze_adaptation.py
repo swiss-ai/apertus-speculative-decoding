@@ -26,6 +26,8 @@ def freeze(
     *,
     source_only: bool = False,
     run_id: str = "recovery-20261027",
+    confirmation_only: bool = False,
+    confirmation_attempt: str | None = None,
 ) -> dict:
     receipts = root / "receipts"
     receipts.mkdir(parents=True, exist_ok=True)
@@ -138,7 +140,22 @@ def freeze(
             },
         )
     previous = read(receipts / "campaign.json")
-    if previous.get("state") != "waiting" or previous.get("current_job") != trace_job:
+    if confirmation_only:
+        if previous.get("state") != "needs_repair":
+            raise RuntimeError("Confirmation repair requires a stopped needs_repair controller")
+        if (
+            not (root / "adaptation-matrix-v1.json").is_file()
+            or not (root / "selection.json").is_file()
+        ):
+            raise RuntimeError("Completed curves and frozen selection are required")
+        if any(batch.get("active_job") for batch in previous.get("batches", {}).values()):
+            raise RuntimeError("A training batch is still active")
+        for entry in previous.get("confirmations", {}).values():
+            if entry.get("job_id") and entry.get("state") != "complete":
+                raise RuntimeError(
+                    "Inspect an already submitted serving job before controller repair"
+                )
+    elif previous.get("state") != "waiting" or previous.get("current_job") != trace_job:
         raise RuntimeError("Replace only our trace-waiting controller; inspect current stage first")
     old_pid = previous["pid"]
     process = Path(f"/proc/{old_pid}/cmdline")
@@ -160,16 +177,27 @@ def freeze(
     fcntl.flock(controller_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     controller_lock.close()
     launcher = receipts / ("start-controller-" + revision[:12] + ".sh")
+    controller_tmp = root / "submission-tmp" / ("controller-" + revision[:12])
+    controller_tmp.mkdir(parents=True, exist_ok=True)
+    extra = ""
+    if confirmation_only:
+        if (
+            not confirmation_attempt
+            or not confirmation_attempt.replace("-", "").replace("_", "").isalnum()
+        ):
+            raise ValueError("Confirmation repair needs a unique simple attempt name")
+        extra = f" --confirmation-only --confirmation-attempt {confirmation_attempt}"
     script = f"""#!/bin/bash
 set -euo pipefail
 cd {snapshot}
 export PYTHONPATH={snapshot}/methods/eagle:{snapshot}/src
 export PATH=/users/faruk_zahiragic/venvs/sml-apertus/bin:$PATH
 export PYTHONDONTWRITEBYTECODE=1
+export TMPDIR={controller_tmp}
 exec python3 -u -m apertus_eagle.adaptation_recovery \\
   --repo {snapshot} \\
   --campaign-root {root} \\
-  --trace-job {trace_job} --run-id {run_id} --poll-seconds 120
+  --trace-job {trace_job} --run-id {run_id} --poll-seconds 120{extra}
 """
     if launcher.exists():
         if launcher.read_text() != script:
@@ -213,6 +241,8 @@ def main() -> None:
     parser.add_argument("--trace-job")
     parser.add_argument("--source-only", action="store_true")
     parser.add_argument("--run-id", default="recovery-20261027")
+    parser.add_argument("--confirmation-only", action="store_true")
+    parser.add_argument("--confirmation-attempt")
     args = parser.parse_args()
     print(
         json.dumps(
@@ -222,6 +252,8 @@ def main() -> None:
                 args.trace_job,
                 source_only=args.source_only,
                 run_id=args.run_id,
+                confirmation_only=args.confirmation_only,
+                confirmation_attempt=args.confirmation_attempt,
             ),
             indent=2,
         )

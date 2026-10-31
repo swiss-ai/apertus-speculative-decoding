@@ -9,29 +9,23 @@ updated drafter weights without a restart.
 
 ## Summary
 
-Recovery status, 30 October 2026: **no domain-adaptation serving verdict yet**.
-The four-step fine-tune smoke trained and exported correctly; its original
-scientific loss-improvement gate remains failed. Full trace generation failed
-before generation. The first recovery also stopped during pool preparation on
-colliding prompt IDs from repeated FinePDFs source IDs; a content-aware identity
-fix passed in **3790165**: all pools validate, and summarization/multilingual
-each generated 8,192 pool plus 256 dev traces. Chat stopped because the JSONL
-reader split a Unicode NEL inside a valid JSON string. A physical-line reader
-fix passed its input preflight. Chat-only **3802584** then failed during engine
-startup: home quota (errno 122) prevented the FlashInfer sampling lock and
-vLLM usage-stat writes. Cache/config paths now point into owned scratch,
-with actual image-runtime lock/config probes before model loading. The completed
-domains and all prompt pools remain unchanged and will be reused.
-Chat-only replacement **3804324** is queued; the actual-image cache preflight
-has not run yet.
-No recovery training or serving measurements have run yet.
+Recovery status, 31 October 2026: **all 19 original 384-step curves completed;
+serving verdict pending**. The fixed policy selected the 8k/no-replay final head
+for each domain. Development simulated accepted length improved by +0.757
+(multilingual), +0.517 (summarization), and +0.223 (chat); OPB declined by 4.92%,
+2.48%, and 1.93% respectively. These are development metrics, not serving speedup.
+The first serving submission stopped before a Slurm job was created because Bash
+could not create a heredoc temporary file (ENOSPC). Confirmation-only recovery
+uses scratch TMPDIR and fresh attempt directories; no completed training is
+re-read or restarted.
 
 | Part | Evidence | Verdict / next step |
 | --- | --- | --- |
 | Fine-tune/export infrastructure | job 3737459: 4 real optimizer steps, export tensors/logits equal on reload | Infrastructure passes; this tiny smoke establishes no adaptation benefit |
 | Smoke scientific gates | held-out simulated accepted length 1.585 to 1.602; training loss 1.643 to 1.960 | Loss-improvement gate fails; retained unchanged |
 | Domain pools and traces | 3790165: all pools validate; summarization/multilingual traces complete; chat hit a JSONL Unicode-separator reader bug | Verified completed-domain hashes and renderer parity; reuse those traces, regenerate chat only. All overlap gates retained. |
-| Adaptation curves / serving | 19 original finite 384-step configurations, then selected paired serving checks | Await traces; no implementation recommendation before substantial repeatable serving gain |
+| Adaptation curves | All 19 completed with finite real updates and export/reload checks; original gates pass | Strong development gains for selected 8k heads; chat 500-trace final acceptance is slightly worse despite the original best-eval gate passing |
+| Serving confirmation | Three frozen heads selected; first submission hit transient temporary-file ENOSPC before any serving job | Repair scratch TMPDIR and resume original paired controls; no implementation recommendation yet |
 | Live same-architecture swap | completed job 3722022, 0.33–0.56 s pause versus 207 s restart | Operational prototype works; adaptation and cross-architecture gains remain unproven |
 
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)

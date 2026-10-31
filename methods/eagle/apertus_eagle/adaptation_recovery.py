@@ -16,6 +16,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -107,8 +108,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--run-id", default="recovery-20261027")
     parser.add_argument("--poll-seconds", type=int, default=120)
     parser.add_argument("--overlay-root", type=Path)
+    parser.add_argument("--confirmation-only", action="store_true")
+    parser.add_argument("--confirmation-attempt")
     args = parser.parse_args(argv)
     root, repo = args.campaign_root, args.repo
+    if args.confirmation_attempt and not re.fullmatch(r"[A-Za-z0-9_-]+", args.confirmation_attempt):
+        parser.error("--confirmation-attempt must be a simple unique name")
     short_root = args.overlay_root or Path(
         f"/iopsstor/scratch/cscs/{os.environ['USER']}/t5-"
         + hashlib.sha256(str(root).encode()).hexdigest()[:8]
@@ -138,8 +143,17 @@ def main(argv: list[str] | None = None) -> None:
         state.update(updates, updated_at=stamp())
         write_state(state_path, state)
 
-    def command(command_argv: list[str], env: dict[str, str] | None = None) -> str:
+    def command(
+        command_argv: list[str],
+        env: dict[str, str] | None = None,
+        stderr_path: Path | None = None,
+    ) -> str:
         print(json.dumps({"at": stamp(), "argv": command_argv}), flush=True)
+        if stderr_path is not None:
+            with stderr_path.open("x") as handle:
+                return subprocess.check_output(
+                    command_argv, cwd=repo, env=env, text=True, stderr=handle
+                )
         return subprocess.check_output(command_argv, cwd=repo, env=env, text=True)
 
     policy = read(repo / "methods/eagle/configs/8b/adapt-recovery-policy.json")
@@ -150,6 +164,18 @@ def main(argv: list[str] | None = None) -> None:
     for name, sha in source["files"].items():
         if digest(repo / name) != sha:
             raise RuntimeError(f"Frozen source changed: {name}")
+    if args.confirmation_only:
+        matrix_path, selection_path = root / "adaptation-matrix-v1.json", root / "selection.json"
+        if not matrix_path.is_file() or not selection_path.is_file():
+            raise RuntimeError(
+                "Confirmation-only mode requires completed curves and frozen selection"
+            )
+        recorded = read(matrix_path)
+        if len(recorded) != 19 or any(row["state"] != "complete" for row in recorded.values()):
+            raise RuntimeError("Confirmation-only mode requires all original 19 completed curves")
+        state.setdefault("completed_training_source_manifest", state.get("source_manifest"))
+        state["completed_curves_matrix_sha256"] = digest(matrix_path)
+        state["frozen_selection_sha256"] = digest(selection_path)
     state["source_manifest"] = str(repo / "source-manifest.json")
     state["policy_sha256"] = digest(root / "preregistration.json")
     state["short_overlay_root"] = str(short_root)
@@ -180,24 +206,39 @@ def main(argv: list[str] | None = None) -> None:
                 save(state="waiting", current_job=job, status_error=str(error))
             time.sleep(max(args.poll_seconds, 30))
 
-    save(
-        state="waiting", next_action="Wait for trace generation, then the original bounded curves."
-    )
-    if wait(args.trace_job) != "COMPLETED":
+    if not args.confirmation_only:
         save(
-            state="needs_repair",
-            next_action="Inspect the trace job before any training submission.",
+            state="waiting",
+            next_action="Wait for trace generation, then the original bounded curves.",
         )
-        return
+        if wait(args.trace_job) != "COMPLETED":
+            save(
+                state="needs_repair",
+                next_action="Inspect the trace job before any training submission.",
+            )
+            return
     env = os.environ.copy()
     env["DRAFTER_DATA_ROOT"] = str(root / "data")
+    submission_tmp = root / "submission-tmp" / (args.confirmation_attempt or "initial")
+    submission_tmp.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryFile(dir=submission_tmp) as handle:
+        handle.write(b"owned submission temporary write probe\n")
+        handle.flush()
+    env["TMPDIR"] = str(submission_tmp)
+    state["submission_tmp"] = str(submission_tmp)
     if not (root / "data/adapt-data/manifest.json").exists():
+        if args.confirmation_only:
+            raise RuntimeError("Confirmation-only resume requires existing prepared training data")
         output = command(["bash", "methods/eagle/launch/drafter-adapt-data.sh"], env)
         (receipts / "prepare-data.log").write_text(output)
 
-    templates = sorted((repo / "methods/eagle/configs/8b/adapt").glob("adapt-*.yaml"))
+    templates = (
+        []
+        if args.confirmation_only
+        else sorted((repo / "methods/eagle/configs/8b/adapt").glob("adapt-*.yaml"))
+    )
     templates = [path for path in templates if path.name != "adapt-smoke.yaml"]
-    if len(templates) != 19:
+    if not args.confirmation_only and len(templates) != 19:
         raise RuntimeError(f"Expected the original 19 configurations, found {len(templates)}")
     cfg_dir = root / "configs"
     cfg_dir.mkdir(exist_ok=True)
@@ -227,13 +268,13 @@ def main(argv: list[str] | None = None) -> None:
             "sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
         }
     frozen = root / "configuration-manifest.json"
-    if not frozen.exists():
+    if not args.confirmation_only and not frozen.exists():
         frozen.write_text(json.dumps(manifest, indent=2) + "\n")
 
     # Cases are independent. The existing on-node driver continues after a
     # scientific gate failure, while every full gate result remains recorded.
-    all_reports = {}
-    for domain, configs in groups.items():
+    all_reports = recorded if args.confirmation_only else {}
+    for domain, configs in [] if args.confirmation_only else groups.items():
         batch = state["batches"].setdefault(domain, {"job_ids": []})
         while True:
             reports = {}
@@ -246,6 +287,8 @@ def main(argv: list[str] | None = None) -> None:
                 )
                 reports[name] = report
                 if report["state"] == "incomplete":
+                    if args.confirmation_only:
+                        raise RuntimeError(f"Confirmation-only mode cannot start training: {name}")
                     remaining.append(config)
                 elif report["state"] != "complete":
                     save(
@@ -340,7 +383,9 @@ def main(argv: list[str] | None = None) -> None:
     for selected in selection["selected"]:
         name = selected["name"]
         spec_dir = root / "confirmation-configs"
-        spec_dir.mkdir(exist_ok=True)
+        if args.confirmation_attempt:
+            spec_dir /= args.confirmation_attempt
+        spec_dir.mkdir(parents=True, exist_ok=True)
         selected = selected | {"workloads": workload_entries(repo, root, selected["domain"])}
         selected["corpus_sha256"] = {
             w["workloads_file"]: digest(Path(w["workloads_file"])) for w in selected["workloads"]
@@ -348,7 +393,11 @@ def main(argv: list[str] | None = None) -> None:
         selected_path = spec_dir / (name + "-selection.json")
         immutable_json(selected_path, selected)
         out = root / "confirmations" / name
+        if args.confirmation_attempt:
+            out /= args.confirmation_attempt
         receipt = state["confirmations"].setdefault(name, {})
+        if receipt.get("job_id") and receipt.get("attempt") != args.confirmation_attempt:
+            raise RuntimeError(f"Existing receipted confirmation must not be replaced: {name}")
         report_path = out / "paired" / "paired" / "confirmation-summary.json"
         if not receipt.get("job_id"):
             if out.exists():
@@ -387,16 +436,46 @@ def main(argv: list[str] | None = None) -> None:
                 "SWEEP_PARTITION": policy["confirmation"]["partition"],
                 "SWEEP_TIME": policy["confirmation"]["wall_time_per_head"],
                 "SWEEP_OUTPUT": str(out),
-                "VLLM_PATCH_DIR": str(short_root / ("s-" + selected["domain"])),
-                "SML_ENV_DIR": str(root / "serving-environments" / name),
+                "VLLM_PATCH_DIR": str(
+                    short_root
+                    / (
+                        "s-"
+                        + selected["domain"]
+                        + (
+                            "-" + hashlib.sha256(args.confirmation_attempt.encode()).hexdigest()[:6]
+                            if args.confirmation_attempt
+                            else ""
+                        )
+                    )
+                ),
+                "SML_ENV_DIR": str(
+                    root / "serving-environments" / name / (args.confirmation_attempt or "initial")
+                ),
                 "EXTRA_MOUNTS": "",
                 "SWEEP_PATCHES": "",
                 "ENV_SOURCE": str(repo / "methods/eagle/configs/train-env.toml"),
             }
-            submitted = command(["bash", "serving/node-sweep.sh", str(spec_path)], confirmation_env)
-            (receipts / f"submit-confirm-{name}.txt").write_text(submitted)
+            label = f"submit-confirm-{name}-{args.confirmation_attempt or 'initial'}"
+            try:
+                submitted = command(
+                    ["bash", "serving/node-sweep.sh", str(spec_path)],
+                    confirmation_env,
+                    stderr_path=receipts / (label + ".stderr.txt"),
+                )
+            except subprocess.CalledProcessError as error:
+                with (receipts / (label + ".failed.stdout.txt")).open("x") as handle:
+                    handle.write(error.output or "")
+                raise
+            with (receipts / (label + ".txt")).open("x") as handle:
+                handle.write(submitted)
             job = re.findall(r"job=(\d+) output=", submitted)[-1]
-            receipt.update(job_id=job, output=str(out), report=str(report_path))
+            receipt.update(
+                job_id=job,
+                output=str(out),
+                report=str(report_path),
+                attempt=args.confirmation_attempt,
+                submission_tmp=str(submission_tmp),
+            )
             state["job_ids"].append(job)
             save(state="waiting", next_action=f"Wait for paired serving confirmation: {name}")
         terminal = wait(receipt["job_id"])
