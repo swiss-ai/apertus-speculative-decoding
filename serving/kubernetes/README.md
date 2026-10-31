@@ -47,10 +47,16 @@ before calling discovery fixed.
 
 ## Access needed once
 
-Install a reusable kubeconfig at `/home/agent/.kube/config` for Breithorn,
-namespace `rob-poc`, with a dedicated machine identity and unattended credential
-renewal. Include the cluster CA; TLS verification remains enabled. Cluster admins
-manage the account/RBAC. The serving API key does not grant Kubernetes access.
+Follow [ACCESS.md](ACCESS.md) for exact commands. An administrator can use
+`setup-access.py` to create a dedicated, namespace-scoped account and a long-lived
+ServiceAccount token if permitted by cluster policy. This avoids routine expiry;
+it is not an automatically renewing OIDC login. The script has not been run
+against Breithorn. Upload its private kubeconfig to Clariden at
+`/iopsstor/scratch/cscs/faruk_zahiragic/apertus-kubernetes-access/dspark-agent.config`; the agent can retrieve it from
+there, install the persistent workspace copy, and remove the temporary scratch
+copy after staging. The Clariden home directory is currently at quota. Include the
+cluster CA; TLS verification remains enabled. Cluster admins manage the
+account/RBAC. The serving API key does not grant Kubernetes access.
 Use explicit context and namespace in every cluster command. GitOps changes need
 GitHub access (already available), cluster inspection needs get/list/watch for
 pods, deployments, services, ConfigMaps, PVCs, events, quotas, nodes (for GPU
