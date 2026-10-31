@@ -1,0 +1,8 @@
+
+WARNING: FI_CXI_RDZV_PROTO=alt_read is configured, but the Slurm network is
+not set to disable rendezvous GET. Performance/stability may be impacted.
+
+Expected Slurm launch:
+  srun --network=disable_rdzv_get ...
+or
+  SLURM_NETWORK=disable_rdzv_get srun ...

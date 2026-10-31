@@ -1,0 +1,19 @@
+
+WARNING: FI_CXI_RDZV_PROTO=alt_read is configured, but the Slurm network is
+not set to disable rendezvous GET. Performance/stability may be impacted.
+
+Expected Slurm launch:
+  srun --network=disable_rdzv_get ...
+or
+  SLURM_NETWORK=disable_rdzv_get srun ...
+
+Context:
+  SLURM_NETWORK=<unset>
+  FI_PROVIDER=cxi
+  FI_CXI_RDZV_PROTO=alt_read
+
+F1031 12:35:28.252492  111219 agent.cpp:251] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+*** Check failure stack trace: ***
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-alps-dtensor-cf5ddb6a/methods/dspark/beverin/alps_compare/inside.sh: line 9: 111219 Aborted                 (core dumped) python3 "$tools/records.py" diagnose "$cell"
+srun: error: nid002356: task 0: Exited with exit code 134
+srun: Terminating StepId=710005.3
