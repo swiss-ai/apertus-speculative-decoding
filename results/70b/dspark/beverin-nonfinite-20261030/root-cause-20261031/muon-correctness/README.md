@@ -1,56 +1,48 @@
-# Standalone DTensor Muon normalization/iteration oracle
+# Standalone DTensor Muon oracle
 
-This tests the remaining configured math path without loading any model,
-corpus or optimizer and without a training loop. The planned allocation is
-one Beverin node, at most20minutes, two ranks on physical GPUs2/3, sequential
-original and ALPS image cells (360-second timeout each), no automatic retry.
-Wide-only GPU job710498 completed225seconds with both image cells passing.
-Its shape list never executes M>N transpose. The distinct tall-only branch
-is prepared under tall-only/ and requires final review before submission.
+These tests compare the exact native Muon normalization and five-step
+Newton–Schulz function with dense GPU references. No model, corpus, optimizer
+training or learning-rate update is loaded. The unchanged probe uses cloned
+BF16 inputs, forced rocBLAS and the production all-gather/chunk redistribution
+workaround. It checks complete outputs, norm placements, finite values and
+raw-update relative L2 error, so BF16 parameter rounding cannot hide an update.
 
-Each rank constructs identical known BF16 global input, takes its row shard,
-checks exact reconstruction, and calls the actual installed private
-`torch.optim._muon._zeropower_via_newtonschulz` on a cloned DTensor and a
-separate cloned ordinary dense GPU tensor. This preserves the original
-function's norm/clamp/in-place normalization and all five Newton-Schulz
-iterations: coefficients(3.4445,-4.7750,2.0315), eps1e-7. The production
-all-gather/chunk shard-redistribution workaround and forced rocBLAS are active.
-No manually computed norm replaces the function's native calculation.
+The coefficients are `(3.4445, -4.7750, 2.0315)`, epsilon `1e-7`; raw-update
+relative L2 tolerance is 5% and norm tolerance is 2%. Fixtures are zero, tiny
+random, random, skewed random and two rank-one controls. The GPU path calls
+the installed private function directly without substituting a measured norm.
+Its canonical source hash is
+`99e2359a95e1a914345207e49f072a658866333f4458b7b45faafa35c628f7c4`.
 
-Shapes are16x80 and the captured FC global8192x40960. With two ranks, the
-large local shape is4096x40960; original64-rank local shape128x40960 is not
-replayed. Fixtures are zero, tiny random(1e-12), random, rank-skewed random,
-rank-one uniform ones, and signed rank-one outer product. Rank-one cases
-amplify an incorrect local norm into an observable Newton-Schulz failure;
-wide random gradients alone can miss that mechanism.
+| Test | Shapes | Outcome |
+|---|---|---|
+| CPU preflight, pinned function on host 2.15 | `16x80` | Both ranks passed; rank-one errors zero |
+| Native wide, job 710498 | `16x80`, `8192x40960` | Both images passed; maximum update error 0.236% |
+| CPU tall and placement trace | `80x16` | Both ranks passed; final maximum update error 3.309% |
+| Native tall, job 710518 | `80x16`, `43008x8192` | Original aborted; ALPS passed on the same GPUs |
 
-Checks record local/materialized global norms, placements before/after
-clamp, full output nonfinite counts, raw update relative L2 error<=5%,
-max absolute error, and exactly zero output for zero input. Norm/clamp
-relative error must be<=2% (BF16), and dense reference must also remain
-finite. These compare raw NS updates so BF16 parameter rounding cannot
-conceal a wrong small update. Local mismatch decisions remain authoritative
-if the diagnostic flag collective is itself wrong. Any rank failure or
-cell timeout fails the batch summary; there are no retries.
+The wide shapes never execute the initial transpose. Tall gate/up weights do:
+row sharding becomes column sharding, Gram and Gram-update use Partial(sum),
+and nonunit-beta addmm follows a distinct redistribution path. The native tall
+comparison therefore addresses a real coverage gap. See the
+[tall reproducer report](tall-only/README.md).
 
-The final CPU/Gloo preflight in cpu-preflight-production used the exact
-pinned2.13 function AST with host torch2.15.0+cpu and production shard flip.
-All6cases on both ranks passed; rank-one differences were exactly zero.
-The largest raw update difference was2.393% for rank-skewed random, where
-BF16 materialized norm840 differs from dense844 (0.474%). This is below the
-explicit5% tolerance and demonstrates why strict bitwise equality is not
-required. Raw logs, native source captures, exact function, hashes and
-per-rank JSON are retained. Earlier preflights are preserved separately.
-CPU dispatch is not the complete native2.13 runtime.
+The original tall oracle suffered one observed illegal-instruction abort;
+this is not a reproduction of the historical NaN or proof of a specific
+production optimizer fault. The oracle adds reconstruction/output gathers,
+and both native libraries and P2P/SHM transport differ between images. No
+further job was launched. One-node production and Clariden were untouched.
 
-source-audit retains exact image _pointwise_ops.py from read-only squashfs
-extraction. Both images and the CPU2.15 host have identical bytes:
-SHA256b25444743c8c707cf30aaa3e27a9b2d850a59f6309ed93eca4a466244b3a73db.
-This removes a source-difference claim for that file; it does not prove
-identity of the entire dispatcher/norm strategy framework. The GPU probe
-also preserves native pointwise/math strategy source and actual Muon
-function per rank, torch Git revision, full argv, source branch/revision,
-resolved nonsecret environment, images and Slurm/node identity.
+The final CPU preflight is in `cpu-preflight-production/`, earlier preflights
+remain separate, and the tall source/trace is in `cpu-tall/`. CPU execution
+uses the pinned 2.13 function AST with host torch 2.15, not the complete 2.13
+dispatcher. The exact pointwise strategy file matches both images and the CPU
+host; matrix/placement/redistribution files match the two images but differ
+from the host. See `source-audit/` for exact bytes and hashes.
 
-Passing would constrain deterministic errors for these inputs at two ranks;
-it cannot establish the original519 trigger or64-rank training stability.
+Wide runtime `cdf9adb5c1c511b1aad5a1c9b306c2ba30b22563` and tall runtime
+`0030d3123e3bf7b8fa4f6c41e3615ab57b45203c` remain immutable. Exact source,
+launch argv, environment, image hashes, native function/strategy sources,
+Slurm/node identity and raw results are co-located with each test. CPU norm
+rounding can amplify through the five iterations; bitwise equality is not
+required except where explicitly checked.

@@ -1,234 +1,157 @@
 # Independent pinned-code audit, 31 October 2026
 
-The original initiating fault is **not yet established**. The experiments
-below demonstrate or exclude specific mechanisms; they do not turn a plausible
-path into a proven cause. No further training run was launched. The separately
-authorized communication/GEMM probe loads no model and has no optimizer.
+The historical first NaN remains unproven. A short paired test did expose a
+concrete native failure in the original stack: both ranks aborted during a
+tall-Muon oracle, while ALPS passed on the same node and GPUs. This is one
+observed paired result, not proof of the historical cause or a specific
+production optimizer fault. No model training was restarted.
 
-## A concrete two-update corruption cascade
+## Demonstrated corruption cascade
 
-An inline CPU test used the exact image2.13 `torch/nn/utils/clip_grad.py` source
-retained in `diagnostic/v2/source-audit/image/`, with host torch2.15.0+cpu
-and AdamW. It used BF16 parameters: a32x2 embedding and a2x2 second parameter.
-With all gradients finite except one `Inf` at embedding[7,0]:
+A CPU test executed the exact image 2.13 `clip_grad.py` body using host torch
+2.15 and AdamW. BF16 parameters were a 32×2 embedding and a 2×2 second tensor.
+With one Inf gradient at embedding[7,0], clipping returned Inf, created one
+NaN through Inf×0 and zeroed otherwise finite gradients. AdamW made exactly
+that embedding element NaN. Tokens `[0,1,7,2,3]` then had one bad shared-feature
+position and four finite positions. On the next update, one NaN gradient
+made the common norm NaN; clipping and AdamW corrupted all 64 embedding and
+all four other parameter values.
 
-1. The pinned clip returned `Inf`, leaving exactly one gradient NaN
-   (`Inf*0`) and zeroing the otherwise finite gradients.
-2. AdamW updated exactly that one embedding element to NaN; all four values
-   in the other parameter stayed finite. A token sequence[0,1,7,2,3] then
-   had one bad shared-feature position and four finite positions.
-3. On the next update, a single NaN gradient made the common norm NaN.
-   Clipping and AdamW then made all64 embedding elements and all4 other
-   elements nonfinite.
+This demonstrates a possible bad-backward/update at 518 → mixed forward at
+519 → complete collapse at 520. It does not establish that an Inf gradient
+actually appeared at 518 or what generated it. Finite forward metrics at
+518 do not clear that step's backward/update. Metrics are also all-reduced
+and logged after the optimizer, so even the inference from NaN confidence
+prediction to local NaN logits assumes a correct metric collective.
 
-This demonstrates the518 bad-backward/update →519 mixed forward →520 total
-collapse mechanism. A finite forward metric at518 does **not** prove that
-backward or its optimizer update remained finite. It does not establish
-whether518 actually had an Inf gradient, nor what generated one. The first
-nonfinite could instead have appeared in519 forward or a collective.
+Pinned `train/trainer.py:528–547` performs forward, backward, unchecked norm
+clipping and both optimizer steps. Image `clip_grad.py:164–181` applies the
+common coefficient to every gradient. DSpark's sparse-use Markov embedding
+feeds both vocabulary bias and confidence, allowing one bad row to affect
+only some positions initially. Root's independent loss controls found finite
+CE/TV/BCE math for zero masks and large finite inputs; target-only NaNs did
+not reproduce the complete confidence/CE pattern. These controls do not
+exonerate native collectives or large finite input corruption.
 
-Source locations: pinned `train/trainer.py:528-547` performs forward,
-backward, unchecked norm clipping and both optimizer steps; image
-`clip_grad.py:164-181` computes the shared coefficient and multiplies every
-gradient. DSpark `model_definitions.py:35-46` defines the sparse-use Markov
-embedding; `dspark/core.py` feeds it to both vocabulary bias and confidence.
-An affected embedding row can localize the first damage to a few token
-positions while most greedy accuracy remains normal.
+## NormPartial and Muon alias controls
 
-The recorded metrics are themselves all-reduced and logged after the update.
-A communication fault could corrupt the metric vector as well as gradients
-or parameters. Therefore even the inference from NaN confidence prediction
-to local NaN confidence logits requires a correct metric all-reduce. Root's
-pure loss controls test formulas, not communication correctness.
+A two-rank Gloo test ran the pinned 2.13 clipping body on host torch 2.15.
+Direct DTensor norms had `_NormPartial(2)` with local values 5 and 12 and
+materialized norm 13. The clip function returned Replicate with norm 13 on
+both ranks and the expected clipped values. NaN and overflow controls
+propagated as expected. The `_NormPartial` class AST matched, but norm strategy
+registration differed between versions. This did not demonstrate a hidden
+local-norm bug in the clipping path.
 
-## Earlier NormPartial concern is not demonstrated for clipping
+Both installed images use `grad.bfloat16()` in Muon. The known alias bug
+requires the non-Nesterov branch; the configured true branch uses the
+out-of-place `grad.lerp(buf, momentum)`. Reading only ZIP/pickle metadata from
+the original optimizer established the actual saved setting: `data.pkl` was
+14,449 bytes, `nesterov` appeared at offset 12,649, and NEWTRUE at 12,667.
+No optimizer tensor storage was loaded. Root's CPU control reproduced the
+false-branch alias issue and preserved momentum for the configured true
+branch. That known bug is not a supported explanation for this run.
 
-A four-value, two-rank Gloo CPU test executed the exact image2.13 clipping
-module on host torch2.15.0+cpu. Direct DTensor.norm() had `_NormPartial(2)`:
-local norms5 and12, materialized global norm13. The clip function's returned
-norm was **Replicate**, with local/global13 on both ranks; it clipped to the
-expected3/13,4/13,0,12/13. A NaN gradient on rank1 yielded replicated NaN and
-all post-clip gradients NaN. A large finite-gradient overflow yielded Inf and
-zero gradients. Thus `.to_local()` of the returned norm did not hide the
-global value in this tested path. The `_NormPartial` class AST is identical
-between the pinned2.13 image and host2.15. Their norm strategy registration
-has changed, so this is not an execution of the complete2.13 dispatch stack.
-
-Pinned2.13 `_math_ops.py:279-291` also forces partial input to replicated
-placements before a nonlinear norm reduction when reduction operators
-mismatch. The norm-of-stacked-individual-norms in `clip_grad.py:105-107` is
-therefore distinct from checking a direct unresolved partial norm. Do not
-present the earlier guard.to_local concern as the original failure cause.
-
-## Muon alias fix does not match the saved production setting
-
-Both installed images use `grad.bfloat16()` rather than the newer copy=True
-variant. But pinned `_muon.py:333-336` uses out-of-place `grad.lerp(buf,momentum)`
-when Nesterov is true. Reading only the ZIP metadata of the original saved
-13GB optimizer file establishes the actual setting without loading tensors:
-
-- member `optimizer_state_dict/data.pkl`:14,449bytes;
-- `nesterov` key at pickle offset12649;
-- opcode `NEWTRUE` at12667.
-
-This agrees with the builder/default. Root's separate CPU alias test confirms
-buffer aliasing for nesterov=False and preserved momentum for the configured
-True case. That test uses host CPU kernels, but the known false-case alias
-bug is not a supported explanation for this run.
-
-## Exact original versus ALPS image evidence
-
-Read-only `unsquashfs -cat` of installed Python source gave:
+## Exact image/source comparison
 
 | Item | Original | ALPS |
 |---|---|---|
-| torch git |733fca1901cfa5094481cfa9dfc8f8483e18f491|6596a0dea537c1c78520c73cc6678214781a9d06|
-| torch label |2.13.0+git733fca1|2.13.0+rocm10.0.0|
-| ROCm /HIP |7.2.3 /7.2.53211|10.0.0 /7.15.26333|
-| Muon source SHA256 |4d003aba2d0c7fcc24875845802e45edb4475a51a037e2caaa7b46c3944c0dae|identical|
-| flex/flex_attention.py SHA256 |0e849dfeb3488b6838323285c7d23ef9c9bb2191ac5ce94893696bd7b117db21|identical|
+| torch Git revision | `733fca1901cfa5094481cfa9dfc8f8483e18f491` | `6596a0dea537c1c78520c73cc6678214781a9d06` |
+| torch label | `2.13.0+git733fca1` | `2.13.0+rocm10.0.0` |
+| ROCm / HIP | 7.2.3 / 7.2.53211 | 10.0.0 / 7.15.26333 |
+| RCCL in tested processes | 2.27.7 | 2.30.4 |
 
-The common lowering defaults `PRESCALE_QK=False`,
-`ROWS_GUARANTEED_SAFE=False` at lines754-757. This excludes a claim that ALPS
-changed this Python lowering or the Muon algorithm. It does not establish
-identity of every Triton template or native compiler/library. Existing job
-710006 establishes a default-backend speed improvement, not a NaN fix;
-failed production already forced rocBLAS.
+Installed Muon, FlexAttention lowering/templates, clipping, norm-strategy,
+pointwise-strategy, matrix-strategy, placement and redistribution files were
+byte-identical between the images. Exact copies and hashes are retained in
+the source audits. Native libraries and compilers differ. The common Flex
+lowering defaults are `PRESCALE_QK=False` and `ROWS_GUARANTEED_SAFE=False`;
+the forward template includes a zero-normalizer safety path. No source-level
+NaN trigger was proven there.
 
-The ALPS source archive at source revisionbf992658020317ca9c4564aa6593ddad7dc42240
-contains `10-rccl-p2p-workaround.sh`. Its comment documents failures with
-bundled RCCL2.30.4 under enroot/Beverin kernel6.4, worked around by
-NCCL_P2P_DISABLE=1. The documented outcomes are invalid-device-pointer
-failures/hangs, not a demonstration of silent NaNs on this workload.
-The original run's saved node0 environment has `NCCL_P2P_LEVEL=NVL` and
-no `NCCL_P2P_DISABLE`; original logs identify RCCL2.27.7-HEAD:96a25b5 and
-HIP7.2.53211. Thus the ALPS workaround is a credible communication lead,
-but is not direct evidence that the older injected RCCL silently corrupted
-this run. P2P allowed is not proof which transport a channel selected.
+The ALPS hook documents an RCCL P2P workaround on Beverin and disables P2P.
+The original environment allowed P2P (`NCCL_P2P_LEVEL=NVL`, disable unset).
+That documentation described crashes/hangs, not the historical silent NaN.
+Earlier job 710006 showed a default BLAS performance difference; the failed
+training already forced rocBLAS, so that speed difference is not a NaN fix.
 
-## Bounded discriminating correctness test
+## Completed bounded correctness checks
 
-`comm-correctness/` contains the reviewed non-training probe. It resets
-rank/iteration/index-encoded buffers and checks **every output value** for
-all-gather, reduce-scatter, production functional shard flip and reverse,
-a packed FP32 metric-vector all-reduce, and structured DTensor GEMM. Values
-are bounded<=63 and sums<=156, exactly representable BF16. GEMM has +/-1
-inputs and analytical +/-K outputs. No cumulative reduction can overflow.
-Local mismatch flags remain authoritative even if the diagnostic flag
-all-reduce is itself corrupt. First bad rank/index/expected/observed and
-finite/nonfinite counts are retained; cell timeout is failure, never success.
+| Test | Verified outcome |
+|---|---|
+| Communication/GEMM, 710311 | Three configurations passed all 18,432 exact rank checks; no nonfinite values or mismatches |
+| Attention harness, 710459 | Failed before any numerical case: dynamically loaded mask missing from `sys.modules` |
+| Corrected attention, 710467 | Both images passed eight forward/backward cases each; no nonfinite values |
+| Wide native Muon, 710498 | Both images passed 12 cases per rank; maximum raw-update L2 error 0.236% |
+| Tall native Muon, 710518 | Original aborted on both ranks; ALPS passed all 12 cases per rank on the same GPUs |
 
-CPU/Gloo4-rank tiny-shape preflight passed192 checks with exact references;
-the source hash in cpu-preflight-summary.json matches the committed probe.
-The approved GPU allocation is limited to two nodes/20minutes with three
-240-second cells: original default P2P, original P2P disabled, ALPS bundled
-default. All use GPUs2,3 and rocBLAS; both complete image hashes are checked
-before cells. Passing cannot rule out64-rank, larger-buffer or longer-lived
-faults, but a mismatch would directly identify incorrect data independently
-of DSpark loss and LR. This is a correctness discriminator, not another
-attempt to train through the failure.
+Communication checks reset bounded BF16/FP32 rank/index/iteration inputs and
+compare every output for all-gather, reduce-scatter, shard flip/round-trip,
+packed metric all-reduce and structured DTensor GEMM. Original P2P/IPC and
+P2P-disabled SHM were both actually exercised. There were 57,982,255,104
+comparisons including repeated buffers/values, not independent fault trials.
+Four ranks for seconds do not clear the original topology or lifetime.
 
-## Additional exact template comparisons
+The corrected attention oracle used the exact causal 2048-token sliding
+window, Q4096/KV12288, GQA64:8, head dimension 128 and padded anchors. It
+checked production-size zero/constant-value invariants and smaller random
+FP32 math references. Maximum reference L2 error was 0.305%; maximum dV mass
+error was 0.07185%. The two images used separate compiler caches. This did
+not reproduce a deterministic padded-anchor fault, but does not recreate
+the original fused model graph, input values or FSDP overlap.
 
-Both images also have byte-identical installed sources:
+The wide Muon test used shapes 16×80 and 8192×40960, cloned BF16 inputs,
+forced rocBLAS and the production redistribution workaround. Rank-one
+updates were bitwise equal; norm rounding differed by at most 0.637%, and
+raw-update error was 0.216% original / 0.236% ALPS. Both shapes avoid the
+initial transpose, leaving a real branch gap.
 
-- flex/templates/flex_attention.py.jinja:
-  ec886f040afa1d8b9a12281d443851382899f94eb5624daa2e657821b6249bed;
-- flex/templates/flex_backwards.py.jinja:
-  c40d87e7c6334cbb73aba4d388bef1195619c648ef438718875440e8c54f10b6;
-- torch/nn/utils/clip_grad.py:
-  5e30dac17eb0311ab1a12e46ed2484decb66165427644d2601d13570ab0ee4d7;
-- torch/distributed/tensor/_ops/_math_ops.py:
-  3f6ad29c5164e418ee6c6f7f5ca7eab6d82214abc7697dc3edf373d496a3eb2d.
+## Tall branch and native failure
 
-The forward template initializes m_i=-Inf/l_i=0 at112-114 and substitutes
-l_i=1 for a zero normalizer at193-198. This is an explicit fully-masked-row
-safety path; it does not validate every internal Triton branch or backward
-write. Production Q/KV lengths4096/12288 are multiples128 and score_mod=None,
-so the externally identified nonmultiple-length + score-modifier failure
-configuration does not directly match. A padded-anchor forward/backward
-oracle can test the actual configuration without loading the drafter.
+The checkpoint header confirms gate/up weights 43008×8192 in all five
+layers. A tiny CPU test and manual trace observed row shard → transpose to
+column shard → Gram Partial(sum) → nonunit-beta Gram-update Partial(sum) →
+column-sharded update. CPU results passed, including rank-one controls;
+random final L2 error was 3.309%. CPU torch 2.15 is not the full image 2.13
+runtime.
 
-## Verified communication/GEMM outcome
+Job 710518 therefore tested 80×16 and 43008×8192 using the unchanged native
+private-function probe. Original and ALPS ran sequentially on nid002488,
+physical GPUs 2/3, PCI IDs `202000`/`302000`. The source revision was
+`0030d3123e3bf7b8fa4f6c41e3615ab57b45203c`, with one attempt and no requeue.
+Both complete image hashes were asserted. The private function hash was
+`99e2359a95e1a914345207e49f072a658866333f4458b7b45faafa35c628f7c4`.
 
-Job **710311** completed all three configurations in 229 seconds on
-nid002484/nid002486. All 12 rank reports have exactly 1,536 successful
-checks, and every check has zero nonfinite values and zero mismatches:
-18,432 total checks / 57,982,255,104 element comparisons, including repeated
-buffers/values. Original default actually used P2P/IPC (144 channel log
-lines); original P2P-disabled and ALPS default used SHM. Both complete image
-hashes were checked before running. RCCL versions were 2.27.7 and 2.30.4.
-The raw 59-file collection, exact comparison counts and independently
-executable verifier are in comm-correctness/results-710311/.
+The original passed six small cases per rank, then aborted during the first
+large zero-gradient case: both ranks received SIGABRT and ROCm reported
+`HSA_STATUS_ERROR_ILLEGAL_INSTRUCTION`, code `0x2a`. No large-case numerical
+comparison completed. The ALPS cell passed every case with finite outputs;
+its maximum raw-update L2 error was 3.774%, below the explicit 5% BF16 bound.
+The large zero case matched the dense reference exactly.
 
-This narrows the evidence: no deterministic error was found in these small
-fresh/reused BF16/FP32 collectives, packed metrics reductions, shard
-redistribution, or structured rocBLAS GEMM. Four ranks for seconds do not
-rule out rare or 64-rank/large-model/overlap-dependent corruption. The test
-does not justify claiming that P2P or ALPS is the cause/fix of the old NaN.
+This observed abort does not require a learning rate or training instability:
+there was no optimizer training, and the first large input was zero. However,
+the oracle adds input reconstruction and final-update `full_tensor()` gathers,
+which are not guaranteed in production Muon. Its last visible 672 MiB
+collective does not identify the faulting operation. Original P2P/IPC versus
+ALPS SHM is also confounded with native library/compiler changes. The local
+shape with two ranks differs from the original 64-rank geometry.
 
-## Attention oracle harness outcome
+## Bounded core conclusion
 
-Job **710459** ran one node for 199 seconds, two images sequentially.
-Both exited before any attention case because Dynamo could not import the
-dynamically loaded module `captured_mask`. The harness had not registered
-it in sys.modules. This is setup failure, not nonfinite output, a gradient
-reference mismatch, or evidence that the production attention kernel is
-unsupported. All 27 raw files, image checks, both tracebacks and zero-case
-result records are preserved in flex-correctness/results-710459/.
-No automatic retry was submitted.
+Four CPU/GPU cores remain remote. Only 355,356 bytes of headers, notes,
+queue metadata and loader metadata were read, below the 4 MiB cap. Each GPU
+note identifies exactly one COMPUTE_AQL queue with illegal-instruction mask
+`0x8`; the other queues have no exception. Read/write pointers, retained or
+pending dispatch metadata and code-object URIs were recovered, but there
+is no uniquely established active dispatch, instruction PC or kernel symbol.
+Provisional offset-16 entry addresses are unvalidated and explicitly rejected.
+There were no wave/register reads, debugger core sessions or full-core scans.
 
-## Remaining causal limits
-
-The first bad training value is unobserved: finite logged forward metrics
-at 518 do not clear backward/update 518. Metrics are logged after the
-optimizer and metric all-reduce, so local feature corruption cannot be
-inferred independently of communication correctness. Even finite extraction
-checks would not exclude a huge finite input (for example ~1e38) that
-overflows the FC dot product, then produces Inf*0 in normalization. The
-original input ranges, batch, RNG and pre-failure checkpoint were not retained.
-Neither the demonstrated clipping cascade nor passing short tests establishes
-the initiating fault. No further training was launched.
-
-## Verified attention oracle outcome
-
-After the import-registration fix passed default-Inductor CPU mask preflight,
-fresh job **710467** ran on nid002410 for 271 seconds. Both original and
-ALPS images passed all eight forward/backward cases (16 total), with zero
-nonfinite output/dQ/dK/dV values. The six production-size causal/sliding
-padded/unpadded fixtures had zero output error, maximum dV mass relative
-error 0.00071847. The two smaller random-QKV math-reference comparisons
-had maximum relative L2 error 0.00304610 (0.305%, tolerance3%). Both complete
-image hashes were checked; separate per-image compiler caches were used.
-All 27 raw files/40,037 bytes are retained and verified in
-flex-correctness/results-710467/. No further job was submitted.
-
-This did not reproduce a deterministic padded-anchor/masked-tile fault in
-either image. It does not validate the exact fused model graph, original
-input values, FSDP overlap or optimizer; original first-trigger remains
-unproven. An untested specific math path is image2.13 DTensor Muon: BF16
-global norm/clamp, in-place normalization and five Newton-Schulz
-GEMM/addmm iterations. Our CPU2.15 dispatch and GPU linear-GEMM checks do
-not execute that full native2.13 path. This is a coverage limit, not evidence
-that Muon caused the original NaN. No additional test has been submitted.
-
-## Native wide Muon and tall-branch distinction
-
-Job710498 completed225seconds: bothimages2ranks×12widecases passed.
-Global shapes16x80 and8192x40960,6fixtures including two rank-one controls.
-AllrawNSoutputsfinite, rankoneoutputsbitwiseequal; maximumrelativeL2error
-0.216%original/0.236%ALPS. BF16normroundingdiffersfromdense byatmost0.637%,
-within2%bound; allindependentrow-shardclampsyieldReplicate. Exactprivate
-MuonfunctionSHA99e2359a95e1a914345207e49f072a658866333f4458b7b45faafa35c628f7c4
-matchedbothimages.43rawfiles/719,865bytes retainedinMuonresults-710498.
-
-The native test did NOT execute M>N transpose: captured gate/up matrices
-are43008x8192. CPUtiny80x16 exactfunction plusproductionredistribution
-passedall6fixtures/2ranks; randomupdateL2error3.309%, rankone0. Separate
-CPUmanualtracing observesShard0→transposeShard1→GramPartial(sum)→
-nonunit-betaGramUpdatePartial(sum)→orthoShard1. This is distinct native
-coverage. source-audit shows bothimagesbyteidentical _matrix_ops.py,
-placement_types.py,_redistribute.py; host2.15versionsdiffer. No causal
-source mismatch is proven. A separately approved tall-only native job710518
-usesfresh0030d312runtime andexplicit80x16/43008x8192; its results are not
-inferred from these wide/CPU passes. No model training was launched.
+The paired result establishes one native execution failure in the original
+tall-Muon oracle workload and a same-GPU ALPS pass. It does not establish
+the historical 519 trigger, a specific kernel, or ALPS training stability.
+The original pre-failure inputs, RNG, parameter state and checkpoint were
+not retained. No further job or experiment was launched, no external message
+was sent, and one-node production and Clariden were untouched. Full evidence
+and source/launch provenance are linked from the individual test directories.

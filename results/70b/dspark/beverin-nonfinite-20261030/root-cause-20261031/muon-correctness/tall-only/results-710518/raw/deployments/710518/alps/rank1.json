@@ -1,0 +1,673 @@
+{
+  "rank": 1,
+  "world_size": 2,
+  "local_rank": 1,
+  "argv": [
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-0030d312/results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/muon-correctness/probe.py",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/muon-tall-correctness-20261031T163340Z/deployments/710518/alps",
+    "--device",
+    "cuda",
+    "--shapes",
+    "80x16",
+    "43008x8192"
+  ],
+  "torch": "2.13.0+rocm10.0.0",
+  "torch_git": "6596a0dea537c1c78520c73cc6678214781a9d06",
+  "hip": "7.15.26333",
+  "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+  "device": "cuda:1",
+  "source_revision": "0030d3123e3bf7b8fa4f6c41e3615ab57b45203c",
+  "source_branch": "fix/beverin-nonfinite-diagnosis-20261030",
+  "probe_sha256": "bfd9286b827baaa44cae17cf6e42a976507b6934f880b37c453ed92f70e6ee63",
+  "function_sha256": "99e2359a95e1a914345207e49f072a658866333f4458b7b45faafa35c628f7c4",
+  "function_source_override": null,
+  "coefficients": [
+    3.4445,
+    -4.775,
+    2.0315
+  ],
+  "eps": 1e-07,
+  "steps": 5,
+  "production_shard_flip": true,
+  "relative_tolerance": 0.05,
+  "seed": 20261031,
+  "blas": "_BlasBackend.Cublas",
+  "cases": [
+    {
+      "shape": [
+        80,
+        16
+      ],
+      "local_shape": [
+        40,
+        16
+      ],
+      "fixture": "zero",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 0.0,
+        "materialized": 0.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 1.0011717677116394e-07,
+        "materialized": 1.0011717677116394e-07,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 0.0,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 0.0,
+      "difference_l2": 0.0,
+      "relative_l2_error": 0.0,
+      "max_abs_error": 0.0,
+      "actual_nonzero": 0,
+      "seconds": 6.571105819894001,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        80,
+        16
+      ],
+      "local_shape": [
+        40,
+        16
+      ],
+      "fixture": "tiny-random",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 2.580691216280684e-11,
+        "materialized": 3.5925040720030665e-11,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 1.0011717677116394e-07,
+        "materialized": 1.0011717677116394e-07,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 3.5925040720030665e-11,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 0.1742844581604004,
+      "difference_l2": 1.1944189282075968e-07,
+      "relative_l2_error": 6.853272751999086e-07,
+      "max_abs_error": 1.1920928955078125e-07,
+      "actual_nonzero": null,
+      "seconds": 0.0177245968952775,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        80,
+        16
+      ],
+      "local_shape": [
+        40,
+        16
+      ],
+      "fixture": "random",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 25.875,
+        "materialized": 36.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 36.0,
+        "materialized": 36.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 36.0,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 3.638803720474243,
+      "difference_l2": 0.08565551042556763,
+      "relative_l2_error": 0.023539469838291853,
+      "max_abs_error": 0.0126953125,
+      "actual_nonzero": null,
+      "seconds": 0.0062379969749599695,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        80,
+        16
+      ],
+      "local_shape": [
+        40,
+        16
+      ],
+      "fixture": "rank-skewed-random",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 828.0,
+        "materialized": 828.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 828.0,
+        "materialized": 828.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 828.0,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 3.6713156700134277,
+      "difference_l2": 0.06682800501585007,
+      "relative_l2_error": 0.01820274011349333,
+      "max_abs_error": 0.015625,
+      "actual_nonzero": null,
+      "seconds": 0.006242516916245222,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        80,
+        16
+      ],
+      "local_shape": [
+        40,
+        16
+      ],
+      "fixture": "rank-one-ones",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 25.25,
+        "materialized": 35.75,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 35.75,
+        "materialized": 35.75,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 35.75,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 0.6856693029403687,
+      "difference_l2": 0.0,
+      "relative_l2_error": 0.0,
+      "max_abs_error": 0.0,
+      "actual_nonzero": null,
+      "seconds": 0.010271694045513868,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        80,
+        16
+      ],
+      "local_shape": [
+        40,
+        16
+      ],
+      "fixture": "rank-one-signed",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 47.25,
+        "materialized": 67.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 67.0,
+        "materialized": 67.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 67.0,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 0.7042760848999023,
+      "difference_l2": 0.0,
+      "relative_l2_error": 0.0,
+      "max_abs_error": 0.0,
+      "actual_nonzero": null,
+      "seconds": 0.0807991090696305,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        43008,
+        8192
+      ],
+      "local_shape": [
+        21504,
+        8192
+      ],
+      "fixture": "zero",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 0.0,
+        "materialized": 0.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 1.0011717677116394e-07,
+        "materialized": 1.0011717677116394e-07,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 0.0,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 0.0,
+      "difference_l2": 0.0,
+      "relative_l2_error": 0.0,
+      "max_abs_error": 0.0,
+      "actual_nonzero": 0,
+      "seconds": 0.729787286138162,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        43008,
+        8192
+      ],
+      "local_shape": [
+        21504,
+        8192
+      ],
+      "fixture": "tiny-random",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 1.3271346688270569e-08,
+        "materialized": 1.8742866814136505e-08,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 1.0011717677116394e-07,
+        "materialized": 1.0011717677116394e-07,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 1.8742866814136505e-08,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 78.24958038330078,
+      "difference_l2": 0.11617421358823776,
+      "relative_l2_error": 0.0014846624482734026,
+      "max_abs_error": 0.0001220703125,
+      "actual_nonzero": null,
+      "seconds": 0.37483020895160735,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        43008,
+        8192
+      ],
+      "local_shape": [
+        21504,
+        8192
+      ],
+      "fixture": "random",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 13248.0,
+        "materialized": 18688.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 18688.0,
+        "materialized": 18688.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 18816.0,
+      "norm_relative_error": 0.006802721088435374,
+      "clamp_relative_error": 0.006802721088435374,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 73.16976165771484,
+      "difference_l2": 1.3784078359603882,
+      "relative_l2_error": 0.01883849017314726,
+      "max_abs_error": 0.0008544921875,
+      "actual_nonzero": null,
+      "seconds": 0.3720016481820494,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        43008,
+        8192
+      ],
+      "local_shape": [
+        21504,
+        8192
+      ],
+      "fixture": "rank-skewed-random",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 423936.0,
+        "materialized": 423936.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 423936.0,
+        "materialized": 423936.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 423936.0,
+      "norm_relative_error": 0.0,
+      "clamp_relative_error": 0.0,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 78.37770080566406,
+      "difference_l2": 0.531264066696167,
+      "relative_l2_error": 0.006778255310313652,
+      "max_abs_error": 0.000732421875,
+      "actual_nonzero": null,
+      "seconds": 0.3706297338940203,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        43008,
+        8192
+      ],
+      "local_shape": [
+        21504,
+        8192
+      ],
+      "fixture": "rank-one-ones",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 13248.0,
+        "materialized": 18688.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 18688.0,
+        "materialized": 18688.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 18816.0,
+      "norm_relative_error": 0.006802721088435374,
+      "clamp_relative_error": 0.006802721088435374,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 0.7115522623062134,
+      "difference_l2": 0.026851030066609383,
+      "relative_l2_error": 0.03773585088406923,
+      "max_abs_error": 1.430511474609375e-06,
+      "actual_nonzero": null,
+      "seconds": 0.31002905103378,
+      "status": "passed"
+    },
+    {
+      "shape": [
+        43008,
+        8192
+      ],
+      "local_shape": [
+        21504,
+        8192
+      ],
+      "fixture": "rank-one-signed",
+      "input_nonfinite": 0,
+      "input_placements": [
+        "Shard(dim=0)"
+      ],
+      "input_mismatches": 0,
+      "stage": "raw-newton-schulz-dense-reference",
+      "norm_before_clamp": {
+        "placements": [
+          "_NormPartial(2)"
+        ],
+        "local": 25472.0,
+        "materialized": 36096.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "norm_after_clamp": {
+        "placements": [
+          "Replicate()"
+        ],
+        "local": 36096.0,
+        "materialized": 36096.0,
+        "dtype": "torch.bfloat16",
+        "finite": true
+      },
+      "dense_norm": 35840.0,
+      "norm_relative_error": 0.007142857142857143,
+      "clamp_relative_error": 0.007142857142857143,
+      "output_placements": [
+        "Shard(dim=0)"
+      ],
+      "nonfinite": {
+        "dense": 0,
+        "dtensor": 0
+      },
+      "reference_l2": 0.7018430829048157,
+      "difference_l2": 0.007962730713188648,
+      "relative_l2_error": 0.011345457278330914,
+      "max_abs_error": 7.152557373046875e-07,
+      "actual_nonzero": null,
+      "seconds": 0.35736550600267947,
+      "status": "passed"
+    }
+  ],
+  "status": "passed",
+  "native_sources": {
+    "pointwise_ops": {
+      "path": "/opt/venv/lib/python3.12/site-packages/torch/distributed/tensor/_ops/_pointwise_ops.py",
+      "sha256": "b25444743c8c707cf30aaa3e27a9b2d850a59f6309ed93eca4a466244b3a73db"
+    },
+    "math_ops": {
+      "path": "/opt/venv/lib/python3.12/site-packages/torch/distributed/tensor/_ops/_math_ops.py",
+      "sha256": "3f6ad29c5164e418ee6c6f7f5ca7eab6d82214abc7697dc3edf373d496a3eb2d"
+    }
+  }
+}

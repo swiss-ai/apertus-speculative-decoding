@@ -1,0 +1,85 @@
+{
+  "job": "710518",
+  "job_status": "FAILED",
+  "classification": "original-native-illegal-instruction_ALPS-finite-pass",
+  "historical_nan_reproduced": false,
+  "raw_files_verified": 43,
+  "raw_bytes": 621779,
+  "excluded_large_core_files": [
+    {
+      "path": "deployments/710518/core_nid002488_173742",
+      "bytes": 2944090112,
+      "reason": "metadata-only: exceeds10MiB lightweight collection bound"
+    },
+    {
+      "path": "deployments/710518/core_nid002488_173742.gpu",
+      "bytes": 11266127984,
+      "reason": "metadata-only: exceeds10MiB lightweight collection bound"
+    },
+    {
+      "path": "deployments/710518/core_nid002488_173743",
+      "bytes": 2943954944,
+      "reason": "metadata-only: exceeds10MiB lightweight collection bound"
+    },
+    {
+      "path": "deployments/710518/core_nid002488_173743.gpu",
+      "bytes": 11266127984,
+      "reason": "metadata-only: exceeds10MiB lightweight collection bound"
+    }
+  ],
+  "cells": {
+    "upstream": {
+      "rank_count": 2,
+      "recorded_cases_per_rank": [
+        6,
+        6
+      ],
+      "torch": "2.13.0+git733fca1",
+      "torch_git": "733fca1901cfa5094481cfa9dfc8f8483e18f491",
+      "hip": "7.2.53211",
+      "recorded_nonfinite": 0,
+      "max_recorded_relative_l2_error": 0.023539469838291853,
+      "transport_channel_log_counts": {
+        "P2P/IPC": 128
+      },
+      "bus_ids": [
+        "202000",
+        "302000"
+      ],
+      "result": "two-rank SIGABRT; first large zero case incomplete",
+      "failure_is_numerical_assertion": false,
+      "first_uncompleted_case_inferred_from_source": {
+        "shape": [
+          43008,
+          8192
+        ],
+        "fixture": "zero"
+      }
+    },
+    "alps": {
+      "rank_count": 2,
+      "recorded_cases_per_rank": [
+        12,
+        12
+      ],
+      "torch": "2.13.0+rocm10.0.0",
+      "torch_git": "6596a0dea537c1c78520c73cc6678214781a9d06",
+      "hip": "7.15.26333",
+      "recorded_nonfinite": 0,
+      "max_recorded_relative_l2_error": 0.03773585088406923,
+      "transport_channel_log_counts": {
+        "SHM": 64
+      },
+      "bus_ids": [
+        "202000",
+        "302000"
+      ],
+      "result": "all tall cases passed",
+      "max_large_shape_relative_l2_error": 0.03773585088406923,
+      "large_zero_relative_l2_errors": [
+        0.0,
+        0.0
+      ]
+    }
+  }
+}

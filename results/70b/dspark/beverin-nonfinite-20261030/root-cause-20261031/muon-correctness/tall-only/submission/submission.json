@@ -1,0 +1,27 @@
+{
+  "utc": "2026-10-31T16:33:41.369479Z",
+  "job_id": "710518",
+  "runtime_revision": "0030d3123e3bf7b8fa4f6c41e3615ab57b45203c",
+  "branch": "fix/beverin-nonfinite-diagnosis-20261030",
+  "runtime": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-0030d312",
+  "run": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/muon-tall-correctness-20261031T163340Z",
+  "source_archive_sha256": "61ce272c5f8643dd3f8d23eed3591d25609f4d7a72e28b2dd458d560b94d9684",
+  "submission_command": [
+    "sbatch",
+    "--parsable",
+    "--no-requeue",
+    "--export=ALL,MUON_ORACLE_SHAPES=80x16 43008x8192",
+    "--chdir=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-0030d312",
+    "--output=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/muon-tall-correctness-20261031T163340Z/job-%j.out",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-0030d312/results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/muon-correctness/run.sbatch",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-0030d312",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/muon-tall-correctness-20261031T163340Z"
+  ],
+  "jobs_before": "707011|eagle-8b-e31-opb-thinkon|PENDING|\n707010|eagle-8b-e31-opb-thinkon|PENDING|\n707009|eagle-8b-e31-opb-thinkon|PENDING|\n707008|eagle-8b-e31-opb-thinkon|PENDING|\n707007|eagle-8b-e31-opb-thinkon|PENDING|\n707006|eagle-8b-e31-opb-thinkon|PENDING|\n707005|eagle-8b-e31-opb-thinkon|PENDING|\n707004|eagle-8b-e31-opb-thinkon|PENDING|\n707003|eagle-8b-e31-opb-thinkon|RUNNING|nid[002410,002486]\n694478|dspark-70b-opb-thinkoff-1n-beverin|RUNNING|nid002504\n",
+  "nodes": 1,
+  "time_limit": "00:20:00",
+  "MUON_ORACLE_SHAPES": "80x16 43008x8192",
+  "attempts": 1,
+  "purpose": "non-training tall transpose/Partial-addmm native DTensor Muon versus dense oracle; no model/corpus/optimizer training",
+  "scontrol": "JobId=710518 JobName=bev-muon-correctness\n   UserId=faruk_zahiragic(1186) GroupId=infra01(65603) MCS_label=N/A\n   Priority=198687 Nice=10000 Account=infra01 QOS=normal\n   JobState=PENDING Reason=None Dependency=(null)\n   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0\n   RunTime=00:00:00 TimeLimit=00:20:00 TimeMin=N/A\n   SubmitTime=17:33:41 EligibleTime=17:33:41\n   AccrueTime=Unknown\n   StartTime=Unknown EndTime=Unknown Deadline=N/A\n   SuspendTime=None SecsPreSuspend=0 LastSchedEval=17:33:41 Scheduler=Main\n   Partition=mi300 AllocNode:Sid=172.28.9.44:114065\n   ReqNodeList=(null) ExcNodeList=(null)\n   NodeList=\n   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*\n   ReqTRES=cpu=1,mem=513000M,node=1,billing=1,gres/gpu=4\n   AllocTRES=(null)\n   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*\n   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0\n   Features=(null) DelayBoot=00:00:00\n   OverSubscribe=NO Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)\n   Command=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-0030d312/results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/muon-correctness/run.sbatch\n   WorkDir=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-0030d312\n   StdErr=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/muon-tall-correctness-20261031T163340Z/job-710518.out\n   StdIn=/dev/null\n   StdOut=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/muon-tall-correctness-20261031T163340Z/job-710518.out\n   TresPerNode=gres/gpu:4\n   \n\n"
+}
