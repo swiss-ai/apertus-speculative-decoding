@@ -1,0 +1,881 @@
+{
+  "rank": 0,
+  "local_rank": 0,
+  "world_size": 4,
+  "seed": 20261031,
+  "iterations": 2,
+  "shapes": [
+    [
+      4,
+      16
+    ]
+  ],
+  "argv": [
+    "results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/comm-correctness/probe.py",
+    "--cpu",
+    "--output",
+    "results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/comm-correctness/cpu-preflight",
+    "--iterations",
+    "2",
+    "--shapes",
+    "4x16"
+  ],
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "probe_source_sha256": "abd09ab60742c501f36846601d0d9924081306d8e862dd6dd0584cd1060573db",
+  "source_revision": null,
+  "source_branch": null,
+  "torch": "2.15.0+cpu",
+  "hip": null,
+  "torch_git_revision": "d0f2af8b66b20da4baa50644c0cd3f887a2eae2e",
+  "nccl_or_rccl_version": null,
+  "blas": null,
+  "environment": {},
+  "checks": [
+    {
+      "operation": "all_gather",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "reused",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "reused",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "all_gather",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "reused",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "reused",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "all_gather",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "fresh",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "fresh",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "all_gather",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "fresh",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "fresh",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "all_gather",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "reused",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "reused",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "all_gather",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "reused",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "reused",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "all_gather",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "fresh",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "fresh",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "all_gather",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 256,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "reduce_scatter",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_flip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "shard_roundtrip",
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "packed_metric_all_reduce",
+      "mode": "fresh",
+      "shape": [
+        64
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 64,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    },
+    {
+      "operation": "structured_dtensor_gemm",
+      "mode": "fresh",
+      "shape": [
+        16,
+        16,
+        128
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "elements": 2048,
+      "nonfinite": 0,
+      "mismatches": 0,
+      "local_mismatch_detected": false,
+      "global_bad_flag": 0
+    }
+  ],
+  "buffer_addresses": [
+    {
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "addresses": [
+        714378240,
+        714380992,
+        714384384,
+        714379648
+      ]
+    },
+    {
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "addresses": [
+        714378240,
+        714380992,
+        714384384,
+        714379648
+      ]
+    },
+    {
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 0,
+      "addresses": [
+        721738240,
+        724254528,
+        724037184,
+        719514560
+      ]
+    },
+    {
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.bfloat16",
+      "iteration": 1,
+      "addresses": [
+        717760192,
+        714417920,
+        722444608,
+        718009280
+      ]
+    },
+    {
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "addresses": [
+        716221824,
+        714539648,
+        724027648,
+        716181120
+      ]
+    },
+    {
+      "mode": "reused",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "addresses": [
+        716221824,
+        714539648,
+        724027648,
+        716181120
+      ]
+    },
+    {
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 0,
+      "addresses": [
+        718198080,
+        723932480,
+        723974848,
+        718272768
+      ]
+    },
+    {
+      "mode": "fresh",
+      "shape": [
+        4,
+        16
+      ],
+      "dtype": "torch.float32",
+      "iteration": 1,
+      "addresses": [
+        721678848,
+        723973760,
+        723919616,
+        719551616
+      ]
+    }
+  ],
+  "status": "passed",
+  "elapsed_seconds": 0.6531755819742102,
+  "total_checks": 48,
+  "total_elements_checked": 20480
+}
