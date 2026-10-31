@@ -7,6 +7,17 @@ repeated validation of the same corrupted weights. The separate one-node
 production and Clariden jobs were not changed. Original run artifacts and
 runtime snapshots are preserved.
 
+## Latest component-test finding (31 October)
+
+A non-training, two-image Muon test now exposes a concrete native failure:
+the original stack aborts with `HSA_STATUS_ERROR_ILLEGAL_INSTRUCTION` on
+both ranks during a production-size 43008 × 8192 zero-input case. The CSCS
+ALPS stack passes all tall-matrix cases on the same physical GPUs. This is
+one observed paired result, not proof that the same fault caused the original
+NaNs or that a full epoch is fixed. No model training has been restarted.
+See the [targeted investigation](root-cause-20261031/README.md) for the
+controlled comparisons, exact provenance, retained cores and causal limits.
+
 ## Bounded diagnostic result (verified 31 October)
 
 Fresh diagnostic **707140 passed 640 updates** without a numerical guard
@@ -20,7 +31,8 @@ The original and diagnostic share recorded recipe, seed 42 and schedule,
 but their logged trajectories differ from counter 2. Different nodes,
 nondeterministic execution, online hidden-state extraction and the new
 compiler-disabled guard hooks/collectives prevent exact replay. The first
-trigger remains unproven. No follow-up experiment was submitted.
+trigger remains unproven. Subsequent work uses component correctness tests
+without a model, dataset or training loop, as documented above.
 
 Evidence and sixteen verification checks:
 `diagnostic/v2/completed-707140/`. The observer's completion notification was

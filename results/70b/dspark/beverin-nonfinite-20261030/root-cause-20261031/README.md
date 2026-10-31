@@ -5,6 +5,43 @@ user requested a cause rather than another training retry, and specifically
 asked that CSCS's ALPS vLLM image be considered. Production and Clariden jobs
 remain outside the scope of any modifications.
 
+## Latest finding: native abort in the original stack
+
+Non-training job **710518** distinguishes the two image configurations on
+the same Beverin node and physical GPUs 2/3. The original image aborts both
+ranks with `HSA_STATUS_ERROR_ILLEGAL_INSTRUCTION` (code `0x2a`, SIGABRT)
+during the first production-size **43008 × 8192** zero-input Muon case.
+The six preceding small tall-matrix cases passed. The CSCS ALPS image then
+passes all twelve tall-matrix cases per rank, including exactly zero output
+for the large zero input. All its checked outputs are finite; the largest
+raw Newton–Schulz relative L2 difference from its dense reference is 3.774%
+(explicit BF16 tolerance 5%).
+
+This is a native execution failure without a model, corpus, training loop
+or learning rate. It gives an evidence-backed reason to prefer the CSCS
+stack for further controlled validation. It is **one observed paired failure**,
+not reproduction of the original step-519 NaN, and does not yet identify
+the failing kernel or prove a fix for full-model training. Python Muon code
+is identical in both images. Native libraries, PyTorch revisions and the
+transport configuration differ: original P2P/IPC versus ALPS SHM.
+
+The test calls the installed private Muon Newton–Schulz function unchanged,
+with the production shard-redistribution workaround and forced rocBLAS.
+The tall shape matches each production MLP gate/up matrix and exercises
+the transpose/column-shard path omitted by the earlier wide-matrix test.
+The native failure is inferred to occur in this large zero-input case
+from the saved successful cases and source order; it is not an assertion
+reporting nonfinite output. Asynchronous errors prevent assigning the fault
+to the last collective printed in the log.
+
+Exact source, image hashes, environment, rank reports, logs and an independent
+artifact verifier are retained in
+[`muon-correctness/tall-only/results-710518/`](muon-correctness/tall-only/results-710518/).
+The four large CPU/GPU core files remain intact remotely; their identities
+are recorded without copying or hashing their full contents. Bounded fault
+metadata is under `muon-correctness/tall-only/core-metadata/`.
+No language-model training has been restarted.
+
 ## What the original evidence can establish
 
 The original first **logged** NaN is counter 519. Metrics come from the forward
@@ -76,7 +113,7 @@ the old stack. This is a concrete transport candidate to test, not a cause
 assigned to the failed run. `alps-image-comparison/` preserves the image
 identity, build hook, runtime environment and original comparison summary.
 
-## Bounded correctness test
+## Bounded correctness tests completed
 
 `comm-correctness/` contains a non-training, two-node/20-minute test of three
 cells on the same nodes: original image/default P2P policy, original image with
@@ -85,13 +122,32 @@ Both BF16 and FP32 fresh/reused tensors are checked against bounded analytical
 values for gather, reduce-scatter, shard redistribution, packed metric reduction
 and structured DTensor GEMM. Every output element is checked; inputs do not grow
 through repeated reductions. Runtime logs must establish actual transport use.
-Each cell has a hard timeout and there is no automatic retry.
+Each cell has a hard timeout and there is no automatic retry. Job **710311**
+passed all three configurations: 18,432 checks and 57,982,255,104 element
+comparisons, including repeated buffers and values. This did not reproduce
+silent corruption in those operations. Four ranks over a short interval do
+not cover every 64-rank topology, overlap or lifetime-dependent fault.
 
-This tests a specific backend/transport candidate at low cost. Passing it cannot
-exclude every intermittent kernel fault or establish full-model training
-stability. A reproduced mismatch would be preserved with its exact operation,
-rank, expected/observed value, image hash and transport logs before any fix is
-claimed.
+| Test | Job | Original stack | CSCS ALPS stack |
+| --- | --- | --- | --- |
+| Known-value communication and structured GEMM, four ranks/two nodes | 710311 | Passed, both default P2P and P2P disabled | Passed |
+| Causal sliding FlexAttention, padded/unpadded anchors, output and backward | 710467 | 8/8 cases passed | 8/8 cases passed |
+| Exact Muon function, wide matrices through 8192 × 40960, two ranks | 710498 | 12/12 cases per rank passed | 12/12 cases per rank passed |
+| Exact Muon function, tall matrices through 43008 × 8192, two ranks | 710518 | Native illegal-instruction abort in first large case | 12/12 cases per rank passed |
+
+Attention job 710459 was a harness import error before any numerical case;
+it is preserved separately and is not counted as a numerical failure. The
+corrected attention test's worst small random-reference relative L2 error
+was 0.305% (3% tolerance), with no nonfinite output or gradients. Its six
+large analytical cases use production Q=4096/KV=12288, head dimension 128,
+GQA 64:8 and causal sliding window 2048. Wide Muon's largest relative L2
+errors were 0.216% (original) and 0.236% (ALPS); all outputs were finite.
+
+Each test retains raw evidence and an executable verifier in its result
+directory. These tests narrow specific hypotheses; they do not establish
+held-out drafter quality or a healthy full epoch. In particular, the CSCS
+pass and original native abort change multiple native-stack components
+together and cannot isolate a particular library or transport defect.
 
 ## Upstream reports checked for applicability
 
@@ -104,4 +160,5 @@ claimed.
 - [RCCL corruption report 6565](https://github.com/ROCm/legacy-rocm-build/issues/6565)
   reports incorrect gather/scatter results with RCCL 2.27.7, but on gfx1100
   hardware. It is not evidence that the same defect affects gfx942 MI300A.
-  The pending microtest checks the relevant operations on the actual hardware.
+  The completed communication test above checks the relevant operations on
+  the actual hardware without reproducing that reported corruption.
