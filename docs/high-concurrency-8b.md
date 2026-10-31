@@ -1,19 +1,19 @@
 # Final-checkpoint 8B serving-layout campaign
 
-Status on 2026-10-31: all original bounded layout measurements are terminal.
-TP2DP2 3804065 completed all 120 cells with passing gates. Thinking-off P/D
-3806226 completed all 147 cells; nine fail the unchanged 99% request-success
-rule. Together with two thinking-on P/D failures, 11 reliability exclusions
-remain preserved. No further GPU work or repeat-for-a-pass is planned.
+Status on 2026-10-31: the original bounded layout recovery and CPU screening
+review are complete. All intended grids were measured; no further GPU work or
+repeat-for-a-pass is planned. The strict view contains 1,040 unique cells,
+803 comparisons and 743 eligible screening pairs, with no missing stage analyses.
+All 1,040 raw successful-request usage re-sums pass. Eleven new P/D reliability
+cells remain rejected by the unchanged 99% rule (two thinking-on, nine off).
 
-Final CPU review is pending the complete hash-preserving evidence transfer;
-Lustre source reads currently delay collection. The detached local finish
-script will run the unchanged packager and raw-request review after the full
-267-cell manifest closes. See
-`results/8b/layout-recovery-20261031/README.md` and the durable layouts receipt.
-The TP4/thinking-on findings below are already reviewed; TP2DP2/P/D-off final
-verdicts and publication remain pending. Scientific implementation promotion
-remains unestablished without the original confirmation/correctness gates.
+Keep TP4 speculation as a load-specific candidate with explicit memory costs;
+k3 is useful within TP2DP2 at moderate load. These measurements establish no
+P/D adoption advantage for this decode-heavy grid and no blanket layout change.
+Calibrated output correctness, deployment-repeat confidence, open-loop sustainable
+capacity and independent load-generator sufficiency remain unestablished here.
+Broader study/delivery item #6 is still open. Primary closure and evidence index:
+[31 Oct final review](../results/8b/layout-recovery-20261031/README.md).
 
 ## Current TP4 verdict
 
@@ -55,7 +55,7 @@ rerun. Earlier valid DP4/TP4 arms and failed attempts remain preserved.
 
 ## Thinking-on P/D verdict
 
-NIXL now serves correctly, and all 63 intended cells were produced. At C1024,
+NIXL now starts and completes requests, and all 63 intended cells were produced. At C1024,
 plain 1-prefill/3-decode P/D is 18–30% slower than same-job plain DP4. Adding
 DSpark k3 improves P/D itself 26–30%, but versus plain DP4 the eligible clean
 Arena-Hard gain is only 3.8%, while OPB loses 8.9%. The contaminated C1024
@@ -76,6 +76,69 @@ warnings arose in background usage-reporting threads; no causal link to request
 failures is claimed. P/D counters cover the first decode instance only; the
 report never extrapolates its preemptions into whole-node totals.
 
+## TP2DP2 verdict
+
+The original TP2DP2 k3/k5 grid completed all 120 cells with passing gates. At
+C128, k3 improves throughput 44–50% over paired plain across the three workloads.
+OPB p95 request latency falls 7.41→6.09s with DSpark and 7.41→5.39s with EAGLE.
+Arena-Hard p95 falls 6.02–6.09→4.24–4.58s. Those are substantial screening
+effects if this layout is otherwise needed; they do not establish superiority
+over speculative DP4.
+
+| TP2DP2 OPB C1024 | Plain → spec tok/s | p95 E2E seconds | Logical KV tokens | Mean resident GiB/node |
+|---|---:|---:|---:|---:|
+| DSpark off k3 | 22,036 → 24,578 | 31.24 → 28.61 | 2,152,000 → 1,648,470 | 319.4 → 336.2 |
+| EAGLE k3 | 22,036 → 24,600 | 31.24 → 28.12 | 2,152,000 → 2,044,672 | 319.4 → 336.6 |
+
+At C128 OPB, sampled resident memory is 319.4→330.4/330.9GiB (DSpark/EAGLE);
+by C1024 it is about 17GiB higher than plain. DSpark loses 23.4% logical KV,
+EAGLE 5.0%. C1024 throughput gains are only4–14% across workloads, including
+small clean-Arena effects. k5 adds no consistent under-load benefit; k3 generally
+performs better there. At C1/4, DSpark k5 does beat k3 by 15–23%, but this saves
+only about 0.18–0.27s p95 for an extra 9.6–15.4GiB sampled resident memory. That
+narrow tradeoff does not justify a general k5 implementation recommendation.
+
+There is configured capacity headroom relative to historical DP4: TP2DP2 DSpark
+k3 has 1.648M logical KV tokens versus 1.371M for DP4 k3 (about 20% more), with
+OPB C1024 throughput 24.58k versus 29.60k and resident 336.2 versus 318.3GiB.
+These are different allocations/configurations: this is a descriptive capacity/
+throughput tradeoff, not a controlled layout effect. No preemption or capacity-
+limited serving win was demonstrated at these points; extra configured KV alone
+is not evidence to promote the layout.
+
+## Thinking-off P/D verdict
+
+All147 intended cells completed; nine reliability failures remain excluded.
+Plain P/D never shows a substantial throughput gain over same-job plain DP4:
+1p3d is 0.51–0.55x DP4 at C1024, 2p2d 0.48–0.49x. Adding a drafter improves
+P/D itself, but at C1024 eligible 1p3d points are only 0.66–0.70x plain DP4;
+2p2d is 0.53–0.57x. Low-load speculative P/D gains versus plain DP4 include
+the drafter benefit and do not isolate disaggregation's value over speculative
+DP4. Do not implement P/D on the strength of these comparisons.
+
+On clean Arena-Hard C1024, plain DP4 delivers 28,956tok/s with 43.55s p95 E2E.
+1p3d DSpark delivers 20,096tok/s with 68.39s p95 (24.85s longer), while sampled
+resident memory falls only 315.5→312.5GiB (about 3.0GiB saved). TTFT p95 worsens
+38.74→65.58s even though p95 inter-token time improves 14.21→6.42ms. EAGLE is
+similar: 20,323tok/s,67.11s p95. 2p2d DSpark falls to 16,024tok/s and 82.34s
+p95 for about 3.0GiB resident saving. The memory savings do not compensate for
+these throughput and request-latency losses.
+
+P/D raw counters and observed KV capacity cover the first decode instance only.
+Startup role logs separately show1p3d DSpark decode capacity 1,028,367 tokens
+and total role pools 1,371,156; the prefill pool cannot be used as extra decode
+capacity. We do not subtract a single decode engine from whole-node DP4,
+extrapolate preemptions, or claim that resident memory equals live KV bytes.
+
+The nine thinking-off rejected cells contain 354 failed requests: 239 HTTP500 and
+115 ReadError. They occur across 1p3d and 2p2d, plain and both drafters, mostly
+OPB C128–1024 plus one contaminated Arena C512 point. Proxy logs show upstream
+prefill and decode connection reads failing. Exact transport root cause remains
+unestablished; neither a harness bug nor a compute-capacity threshold is proven.
+All 11 new P/D exclusions (including the earlier two thinking-on cells) are
+listed with raw hashes in qualified-findings.json. No success threshold was
+relaxed and no cell was retried for a pass.
+
 ## Recovery and provenance
 
 Original EAGLE/DSpark TP4 engine deaths were CUDA OOMs. Recovery reserves extra
@@ -88,8 +151,8 @@ preflight 3782518 passed with the pinned factory module and
 and CUDA graphs. Full recovered jobs 3789188, 3798373 and 3800281 then passed.
 
 P/D 3800861 completed with the two strict reliability rejections above. The
-controller stopped as designed. Independent original layouts continue without
-promoting those false gates. A subsequent submission attempt hit home quota
+controller stopped as designed. Independent original layouts subsequently
+completed without promoting those false gates. A subsequent submission attempt hit home quota
 before sbatch; its files are preserved. Only owned patch/config runtime paths
 were moved to scratch for the fresh continuation; shared HOME/caches/installs
 and frozen engine source remain unchanged.
@@ -100,9 +163,10 @@ all 75 source hashes were verified. Every deployment retains image/checkpoint/
 corpus identity, launch command, source patch, environment, Slurm/node identity,
 requests and raw metric snapshots. V2 collection preserved 3.181GB original
 bytes as 1.098GB lossless stored artifacts with both hashes. No weights/corpora
-were duplicated. The frozen source remains preserved; collection/postprocessing does not modify it.
+were duplicated. The frozen source remains preserved; collection and
+postprocessing do not modify it.
 
-The strict CPU report in
+The earlier strict CPU report in
 `results/8b/layout-recovery-20261030/completed-v2-review-v1/` covers 773 historical
 and recovered cells, 497 comparisons and 455 eligible screening pairs. Raw usage
 sums, metric continuity, matching corpus/generation/prompts and sampled resident
@@ -110,5 +174,6 @@ memory are explicit. Output equivalence, deployment-level confidence intervals,
 open-loop capacity and load-generator sufficiency remain separate original
 scientific gates. Only substantial repeatable benefit warrants implementation.
 
-The current continuation, exact source/runtime freeze and remaining collection/
-review commands are in `results/8b/layout-recovery-20261030/README.md`.
+The final strict review and qualified closure are in
+`results/8b/layout-recovery-20261031/`. Source/runtime freeze and historical
+continuation instructions remain in `results/8b/layout-recovery-20261030/README.md`.

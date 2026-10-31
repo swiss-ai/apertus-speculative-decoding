@@ -2,7 +2,7 @@
 
 31 Oct update: both remaining jobs are terminal (120 TP2DP2 +147 PD-off cells).
 Nine additional PD-off reliability rejections are retained. Final collection/CPU
-review status and durable continuation are in ../layout-recovery-20261031/README.md.
+review is complete; qualified verdict and evidence are in ../layout-recovery-20261031/README.md.
 
 Historical status on 2026-10-30: preflight 3782518 and all three full TP4 recoveries
 (3789188, 3798373, 3800281) passed their preserved gates. Thinking-on P/D 3800861
