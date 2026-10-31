@@ -1,0 +1,159 @@
+{
+  "torch": "2.13.0+rocm10.0.0",
+  "torch_git": "6596a0dea537c1c78520c73cc6678214781a9d06",
+  "hip": "7.15.26333",
+  "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+  "device": "_CudaDeviceProperties(name='AMD Instinct MI300A', major=9, minor=4, gcnArchName='gfx942:sramecc+:xnack-', total_memory=131072MB, multi_processor_count=228, uuid=61613932-6265-3234-6561-613938613261, pci_bus_id=2, pci_device_id=0, pci_domain_id=2, L2_cache_size=4MB)",
+  "argv": [
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-e9da7e87/results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/flex-correctness/probe.py",
+    "--mask-source",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-e9da7e87/results/70b/dspark/beverin-nonfinite-20261030/pinned-source/models/dflash/attention.py",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/flex-correctness-v2-20261031T160612Z/deployments/710467/alps/result.json"
+  ],
+  "mask_sha256": "166ddad80b67096f36bd490869cde2c650d5d35a5c3c4e7d940d561da8256bde",
+  "configuration": {
+    "context": 8192,
+    "anchors": 512,
+    "block": 8,
+    "sliding_window": 2048,
+    "sliding_window_non_causal": false,
+    "compiled_mask_builder": true,
+    "query_heads": 64,
+    "kv_heads": 8,
+    "head_dim": 128
+  },
+  "cases": [
+    {
+      "padded_anchors": false,
+      "fixture": "uniform",
+      "seconds": 5.5412742421031,
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "max_output_error": 0.0,
+      "dv_mass_max_relative_error": 0.0007184743881225586
+    },
+    {
+      "padded_anchors": false,
+      "fixture": "random-zero-v",
+      "seconds": 0.020762280910275877,
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "max_output_error": 0.0,
+      "dv_mass_max_relative_error": 3.552436828613281e-05
+    },
+    {
+      "padded_anchors": false,
+      "fixture": "saturated-constant-v",
+      "seconds": 0.020716859959065914,
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "max_output_error": 0.0,
+      "dv_mass_max_relative_error": 0.0001163482666015625
+    },
+    {
+      "padded_anchors": true,
+      "fixture": "uniform",
+      "seconds": 0.013482775073498487,
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "max_output_error": 0.0,
+      "dv_mass_max_relative_error": 0.00019502639770507812
+    },
+    {
+      "padded_anchors": true,
+      "fixture": "random-zero-v",
+      "seconds": 0.014024887001141906,
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "max_output_error": 0.0,
+      "dv_mass_max_relative_error": 5.0127506256103516e-05
+    },
+    {
+      "padded_anchors": true,
+      "fixture": "saturated-constant-v",
+      "seconds": 0.013946849037893116,
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "max_output_error": 0.0,
+      "dv_mass_max_relative_error": 8.845329284667969e-05
+    },
+    {
+      "padded_anchors": false,
+      "fixture": "small-fp32-math-reference",
+      "query_heads": 8,
+      "kv_heads": 2,
+      "q_len": 256,
+      "kv_len": 512,
+      "relative_l2_error": {
+        "output": 0.0019572267774492502,
+        "dq": 0.0025352363009005785,
+        "dk": 0.0022609492298215628,
+        "dv": 0.0016938212793320417
+      },
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "reference_nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      }
+    },
+    {
+      "padded_anchors": true,
+      "fixture": "small-fp32-math-reference",
+      "query_heads": 8,
+      "kv_heads": 2,
+      "q_len": 256,
+      "kv_len": 512,
+      "relative_l2_error": {
+        "output": 0.0016163575928658247,
+        "dq": 0.0030461002606898546,
+        "dk": 0.002893095137551427,
+        "dv": 0.0017548652831465006
+      },
+      "nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      },
+      "reference_nonfinite": {
+        "output": 0,
+        "dq": 0,
+        "dk": 0,
+        "dv": 0
+      }
+    }
+  ],
+  "status": "passed"
+}

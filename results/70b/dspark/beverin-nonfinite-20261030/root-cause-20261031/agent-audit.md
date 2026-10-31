@@ -189,3 +189,25 @@ overflows the FC dot product, then produces Inf*0 in normalization. The
 original input ranges, batch, RNG and pre-failure checkpoint were not retained.
 Neither the demonstrated clipping cascade nor passing short tests establishes
 the initiating fault. No further training was launched.
+
+## Verified attention oracle outcome
+
+After the import-registration fix passed default-Inductor CPU mask preflight,
+fresh job **710467** ran on nid002410 for 271 seconds. Both original and
+ALPS images passed all eight forward/backward cases (16 total), with zero
+nonfinite output/dQ/dK/dV values. The six production-size causal/sliding
+padded/unpadded fixtures had zero output error, maximum dV mass relative
+error 0.00071847. The two smaller random-QKV math-reference comparisons
+had maximum relative L2 error 0.00304610 (0.305%, tolerance3%). Both complete
+image hashes were checked; separate per-image compiler caches were used.
+All 27 raw files/40,037 bytes are retained and verified in
+flex-correctness/results-710467/. No further job was submitted.
+
+This did not reproduce a deterministic padded-anchor/masked-tile fault in
+either image. It does not validate the exact fused model graph, original
+input values, FSDP overlap or optimizer; original first-trigger remains
+unproven. An untested specific math path is image2.13 DTensor Muon: BF16
+global norm/clamp, in-place normalization and five Newton-Schulz
+GEMM/addmm iterations. Our CPU2.15 dispatch and GPU linear-GEMM checks do
+not execute that full native2.13 path. This is a coverage limit, not evidence
+that Muon caused the original NaN. No additional test has been submitted.
