@@ -17,6 +17,7 @@ import time
 from pathlib import Path
 
 from apertus_eagle.adaptation_decision import digest, immutable_json, read
+from apertus_eagle.adaptation_recovery import write_state
 
 
 def freeze(
@@ -29,6 +30,7 @@ def freeze(
     confirmation_only: bool = False,
     confirmation_attempt: str | None = None,
     confirmation_wall_time: str | None = None,
+    repair_confirmation_job: str | None = None,
 ) -> dict:
     receipts = root / "receipts"
     receipts.mkdir(parents=True, exist_ok=True)
@@ -141,6 +143,7 @@ def freeze(
             },
         )
     previous = read(receipts / "campaign.json")
+    repaired_attempts = []
     if confirmation_only:
         if previous.get("state") != "needs_repair":
             raise RuntimeError("Confirmation repair requires a stopped needs_repair controller")
@@ -151,11 +154,36 @@ def freeze(
             raise RuntimeError("Completed curves and frozen selection are required")
         if any(batch.get("active_job") for batch in previous.get("batches", {}).values()):
             raise RuntimeError("A training batch is still active")
-        for entry in previous.get("confirmations", {}).values():
+        for name, entry in list(previous.get("confirmations", {}).items()):
             if entry.get("job_id") and entry.get("state") != "complete":
-                raise RuntimeError(
-                    "Inspect an already submitted serving job before controller repair"
+                job = entry["job_id"]
+                if job != repair_confirmation_job:
+                    raise RuntimeError(
+                        "Inspect an already submitted serving job before controller repair"
+                    )
+                observed_failure = subprocess.check_output(
+                    ["sacct", "-X", "-n", "-P", "-j", job,
+                     "--format=JobIDRaw,State,ExitCode"], text=True
                 )
+                status = next(
+                    row.split("|")[1].split()[0].rstrip("+")
+                    for row in observed_failure.splitlines() if row.startswith(job + "|")
+                )
+                failure = Path(entry["report"]).parent / "failure.json"
+                if status not in {"FAILED", "TIMEOUT", "CANCELLED", "NODE_FAIL", "OUT_OF_MEMORY"}:
+                    raise RuntimeError(
+                        "Only an inspected terminal failed confirmation can be repaired"
+                    )
+                if not failure.is_file():
+                    raise RuntimeError("Preserved confirmation failure report is required")
+                repaired_attempts.append({
+                    "name": name, **entry, "observed_slurm": observed_failure,
+                    "failure": read(failure), "failure_path": str(failure),
+                    "previous_controller_source": previous["source_manifest"],
+                })
+                del previous["confirmations"][name]
+        if repair_confirmation_job and not repaired_attempts:
+            raise RuntimeError("Explicit failed confirmation is not present in campaign receipt")
     elif previous.get("state") != "waiting" or previous.get("current_job") != trace_job:
         raise RuntimeError("Replace only our trace-waiting controller; inspect current stage first")
     old_pid = previous["pid"]
@@ -177,6 +205,11 @@ def freeze(
     controller_lock = (receipts / "controller.lock").open("a")
     fcntl.flock(controller_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     controller_lock.close()
+    for entry in repaired_attempts:
+        immutable_json(receipts / f"failed-confirmation-{entry['job_id']}.json", entry)
+        previous.setdefault("failed_confirmation_attempts", []).append(entry)
+    if repaired_attempts:
+        write_state(receipts / "campaign.json", previous)
     launcher = receipts / ("start-controller-" + revision[:12] + ".sh")
     controller_tmp = root / "submission-tmp" / ("controller-" + revision[:12])
     controller_tmp.mkdir(parents=True, exist_ok=True)
@@ -251,6 +284,7 @@ def main() -> None:
     parser.add_argument("--confirmation-only", action="store_true")
     parser.add_argument("--confirmation-attempt")
     parser.add_argument("--confirmation-wall-time")
+    parser.add_argument("--repair-confirmation-job")
     args = parser.parse_args()
     print(
         json.dumps(
@@ -263,6 +297,7 @@ def main() -> None:
                 confirmation_only=args.confirmation_only,
                 confirmation_attempt=args.confirmation_attempt,
                 confirmation_wall_time=args.confirmation_wall_time,
+                repair_confirmation_job=args.repair_confirmation_job,
             ),
             indent=2,
         )

@@ -13,9 +13,11 @@ import asyncio
 import os
 import platform
 import shutil
+import socket
 import subprocess
 import sys
 import tomllib
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +34,25 @@ from apertus_bench.eagle import validate_eagle_head
 from apertus_bench.node_sweep import REPO_ROOT, build_plan, run_plan
 from apertus_bench.runtime_caches import prepare as prepare_runtime_caches
 from apertus_bench.workloads import load_prompts
+
+
+def prepare_runtime_ipc(root: Path) -> dict[str, Any]:
+    """Probe a short job-private AF_UNIX path before loading another target."""
+    path = root / str(uuid.uuid4())  # Exact suffix shape used by pinned vLLM.
+    if len(str(path).encode()) > 107:
+        raise ValueError("Runtime IPC path exceeds Linux sockaddr_un's 107-byte limit")
+    root.mkdir(parents=True, exist_ok=False, mode=0o700)
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as probe:
+        try:
+            probe.bind(str(path))
+        finally:
+            path.unlink(missing_ok=True)
+    return {
+        "environment": {"TMPDIR": str(root), "VLLM_RPC_BASE_PATH": str(root)},
+        "socket_path_bytes": len(str(path).encode()),
+        "socket_bind_probe_passed": True,
+        "inherited_submission_tmpdir": os.environ.get("TMPDIR"),
+    }
 
 
 def round_spec(selection: dict[str, Any], policy: dict[str, Any], repeat: str) -> dict[str, Any]:
@@ -236,6 +257,15 @@ async def run(output: Path, selection: dict[str, Any], policy: dict[str, Any]) -
         for arm in plan.arms:
             cache_report = prepare_runtime_caches(round_out / arm.name / "runtime-cache")
             arm.env.update(cache_report["environment"])
+            ipc_root = (
+                Path("/iopsstor/scratch/cscs")
+                / os.environ["USER"]
+                / ("t5-" + os.environ["SLURM_JOB_ID"])
+                / f"{repeat}-{arm.name}"
+            )
+            ipc_report = prepare_runtime_ipc(ipc_root)
+            cache_report["runtime_ipc"] = ipc_report
+            arm.env.update(ipc_report["environment"])
             report_path = round_out / arm.name / "runtime-cache-preflight.json"
             immutable_json(report_path, cache_report)
             arm.metadata.update(

@@ -300,6 +300,17 @@ request. New attempts use fresh directories. All original prompts, concurrency
 levels, two swapped rounds, correctness checks and selection remain unchanged;
 completed training is never resubmitted by confirmation-only recovery.
 
+Serving attempt `repair-20261031b` submitted job 3814329 (156 s, failed before
+requests): vLLM inherited the long submission TMPDIR and its ZeroMQ socket name
+exceeded Linux's 107-byte AF_UNIX limit. Serving now uses a short private
+`/iopsstor/scratch/cscs/$USER/t5-$SLURM_JOB_ID/<round>-<arm>` directory for TMPDIR
+and the pinned image's explicit `VLLM_RPC_BASE_PATH`. A real socket-bind probe
+checks the UUID-shaped path before model startup. Its paths and probe are saved
+with runtime provenance. Inspected failed jobs remain in raw artifacts, receipt
+history and allocation accounting; an explicit terminal-job check is required
+before a fresh attempt. Completed confirmation reports are hash-verified and
+reused if a later independent head needs infrastructure repair.
+
 Recovery code: `apertus_eagle.adaptation_smoke` assesses infrastructure without
 rewriting gates. `apertus_eagle.adaptation_recovery` waits for the trace job,
 prepares nested input subsets, renders immutable copies of the original configs

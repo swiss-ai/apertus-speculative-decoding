@@ -407,6 +407,16 @@ def main(argv: list[str] | None = None) -> None:
     state.setdefault("confirmations", {})
     for selected in selection["selected"]:
         name = selected["name"]
+        receipt = state["confirmations"].setdefault(name, {})
+        if receipt.get("state") == "complete":
+            retained_report = Path(receipt["report"])
+            if digest(retained_report) != receipt.get("report_sha256"):
+                raise RuntimeError(f"Completed confirmation report changed: {name}")
+            report = read(retained_report)
+            if report["name"] != name or not report["correctness_passed"]:
+                raise RuntimeError(f"Invalid completed confirmation: {name}")
+            confirmations.append(report)
+            continue
         spec_dir = root / "confirmation-configs"
         if args.confirmation_attempt:
             spec_dir /= args.confirmation_attempt
@@ -420,7 +430,6 @@ def main(argv: list[str] | None = None) -> None:
         out = root / "confirmations" / name
         if args.confirmation_attempt:
             out /= args.confirmation_attempt
-        receipt = state["confirmations"].setdefault(name, {})
         if receipt.get("job_id") and receipt.get("attempt") != args.confirmation_attempt:
             raise RuntimeError(f"Existing receipted confirmation must not be replaced: {name}")
         report_path = out / "paired" / "paired" / "confirmation-summary.json"
@@ -517,6 +526,7 @@ def main(argv: list[str] | None = None) -> None:
             )
             return
         receipt["state"] = "complete"
+        receipt["report_sha256"] = digest(report_path)
         confirmations.append(report)
         save(state="collecting")
     jobs = ",".join(state["job_ids"])

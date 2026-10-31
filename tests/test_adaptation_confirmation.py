@@ -1,6 +1,7 @@
 import copy
 import json
 import shutil
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -12,11 +13,27 @@ from apertus_eagle.adaptation_decision import (
     workload_entries,
 )
 
-from apertus_bench.adaptation_confirmation import collect_report, round_spec
+from apertus_bench.adaptation_confirmation import collect_report, prepare_runtime_ipc, round_spec
 from apertus_bench.node_sweep import build_plan
 
 REPO = Path(__file__).resolve().parents[1]
 POLICY = json.loads((REPO / "methods/eagle/configs/8b/adapt-recovery-policy.json").read_text())
+
+
+def test_runtime_ipc_probes_real_socket_with_short_private_path(monkeypatch):
+    monkeypatch.setenv("TMPDIR", "/long/submission/temporary/directory")
+    with tempfile.TemporaryDirectory(dir="/tmp", prefix="t5-") as base:
+        root = Path(base) / "a-base-k3"
+        report = prepare_runtime_ipc(root)
+        assert report["socket_bind_probe_passed"]
+        assert report["socket_path_bytes"] <= 107
+        assert report["environment"] == {"TMPDIR": str(root), "VLLM_RPC_BASE_PATH": str(root)}
+        assert report["inherited_submission_tmpdir"] == "/long/submission/temporary/directory"
+        assert not list(root.iterdir())
+        with pytest.raises(FileExistsError):
+            prepare_runtime_ipc(root)
+        with pytest.raises(ValueError, match="107-byte"):
+            prepare_runtime_ipc(root / ("x" * 100))
 
 
 def curve(gain=0.5, opb=3.0, passed=True):
@@ -455,6 +472,69 @@ def test_confirmation_only_uses_frozen_results_and_fresh_attempt_without_trainin
     assert state["confirmation_schedule"]["frozen_wall_budget"] == "24:00:00"
     assert state["confirmation_schedule"]["requested_wall_time"] == "12:00:00"
     assert not any("submit-eagle-train" in str(call) for call in calls)
+    # A later infrastructure repair reuses complete reports without another deployment.
+    state["state"] = "needs_repair"
+    (root / "receipts/campaign.json").write_text(json.dumps(state))
+    submissions = sum(call[:2] == ["bash", "serving/node-sweep.sh"] for call in calls)
+    recovery.main(
+        [
+            "--repo", str(repo), "--campaign-root", str(root), "--trace-job", "123",
+            "--overlay-root", str(tmp_path / "overlays"), "--confirmation-only",
+            "--confirmation-attempt", "later-repair", "--confirmation-wall-time", "12:00:00",
+        ]
+    )
+    assert sum(call[:2] == ["bash", "serving/node-sweep.sh"] for call in calls) == submissions
+
+
+@pytest.mark.parametrize("job_state", ["RUNNING", "FAILED"])
+def test_freeze_repairs_only_explicit_inspected_failed_job(tmp_path, monkeypatch, job_state):
+    import os
+    from types import SimpleNamespace
+
+    from apertus_eagle import freeze_adaptation as frozen
+    from apertus_eagle.adaptation_decision import immutable_json
+
+    repo, root = tmp_path / "repo", tmp_path / "campaign"
+    revision = "a" * 40
+    snapshot = root / "runtime" / ("source-" + revision[:12])
+    (snapshot / "methods/eagle/configs/8b").mkdir(parents=True)
+    immutable_json(snapshot / "source-manifest.json", {"revision": revision, "files": {}})
+    immutable_json(snapshot / "methods/eagle/configs/8b/adapt-recovery-policy.json", POLICY)
+    immutable_json(root / "adaptation-matrix-v1.json", {})
+    immutable_json(root / "selection.json", {})
+    report = root / "confirmations/failed/paired/paired/confirmation-summary.json"
+    immutable_json(report.parent / "failure.json", {"error": "socket path too long"})
+    entry = {"job_id": "42", "report": str(report), "output": str(report.parents[2])}
+    immutable_json(root / "receipts/campaign.json", {
+        "state": "needs_repair", "pid": 999999999, "job_ids": ["123", "42"],
+        "source_manifest": "/original/source-manifest.json", "confirmations": {"head": entry},
+    })
+
+    def command(argv, **kwargs):
+        if argv[:3] == ["git", "-C", str(repo)]:
+            return revision + "\n" if "rev-parse" in argv else ""
+        assert argv[0] == "sacct"
+        return f"42|{job_state}|1:0|\n" if "42" in argv else "123|COMPLETED|0:0|\n"
+
+    monkeypatch.setattr(frozen.subprocess, "check_output", command)
+    monkeypatch.setattr(frozen.subprocess, "Popen", lambda *a, **kw: SimpleNamespace(
+        pid=os.getpid(), poll=lambda: None,
+    ))
+    monkeypatch.setattr(frozen.time, "sleep", lambda _: None)
+    kwargs = {"confirmation_only": True, "confirmation_attempt": "repair",
+              "repair_confirmation_job": "42", "confirmation_wall_time": "12:00:00"}
+    if job_state == "RUNNING":
+        with pytest.raises(RuntimeError, match="terminal failed"):
+            frozen.freeze(repo, root, "123", **kwargs)
+        assert json.loads((root / "receipts/campaign.json").read_text())["confirmations"]
+    else:
+        frozen.freeze(repo, root, "123", **kwargs)
+        state = json.loads((root / "receipts/campaign.json").read_text())
+        assert state["confirmations"] == {}
+        assert state["job_ids"] == ["123", "42"]  # Failed allocation remains in compute cost.
+        saved = json.loads((root / "receipts/failed-confirmation-42.json").read_text())
+        assert saved["failure"]["error"] == "socket path too long"
+        assert saved["report"] == str(report)
 
 
 @pytest.mark.parametrize("wall_time", ["25:00:00", "00:00:00", "12:99:00", "12h"])
