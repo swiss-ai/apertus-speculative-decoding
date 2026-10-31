@@ -1,0 +1,107 @@
+{
+  "raw_files_verified": 59,
+  "raw_bytes": 14498343,
+  "cells": {
+    "upstream-default": {
+      "rank_count": 4,
+      "checks": 6144,
+      "elements_checked": 19327418368,
+      "checks_by_operation": {
+        "all_gather": 1024,
+        "reduce_scatter": 1024,
+        "shard_flip": 1024,
+        "shard_roundtrip": 1024,
+        "packed_metric_all_reduce": 1024,
+        "structured_dtensor_gemm": 1024
+      },
+      "nonfinite": 0,
+      "mismatches": 0,
+      "rccl": [
+        2,
+        27,
+        7
+      ],
+      "torch": "2.13.0+git733fca1",
+      "torch_git": "733fca1901cfa5094481cfa9dfc8f8483e18f491",
+      "p2p_disable": null,
+      "transport_log_line_counts": {
+        "NET/": 288,
+        "P2P/IPC": 144
+      },
+      "rank_elapsed_seconds": [
+        20.420819362974726,
+        20.41988343995763,
+        19.028429572994355,
+        19.028320713026915
+      ]
+    },
+    "upstream-p2p-disabled": {
+      "rank_count": 4,
+      "checks": 6144,
+      "elements_checked": 19327418368,
+      "checks_by_operation": {
+        "all_gather": 1024,
+        "reduce_scatter": 1024,
+        "shard_flip": 1024,
+        "shard_roundtrip": 1024,
+        "packed_metric_all_reduce": 1024,
+        "structured_dtensor_gemm": 1024
+      },
+      "nonfinite": 0,
+      "mismatches": 0,
+      "rccl": [
+        2,
+        27,
+        7
+      ],
+      "torch": "2.13.0+git733fca1",
+      "torch_git": "733fca1901cfa5094481cfa9dfc8f8483e18f491",
+      "p2p_disable": "1",
+      "transport_log_line_counts": {
+        "NET/": 48,
+        "SHM": 24
+      },
+      "rank_elapsed_seconds": [
+        11.097179231990594,
+        11.036876450001728,
+        10.792143170023337,
+        10.791160854045302
+      ]
+    },
+    "alps-default": {
+      "rank_count": 4,
+      "checks": 6144,
+      "elements_checked": 19327418368,
+      "checks_by_operation": {
+        "all_gather": 1024,
+        "reduce_scatter": 1024,
+        "shard_flip": 1024,
+        "shard_roundtrip": 1024,
+        "packed_metric_all_reduce": 1024,
+        "structured_dtensor_gemm": 1024
+      },
+      "nonfinite": 0,
+      "mismatches": 0,
+      "rccl": [
+        2,
+        30,
+        4
+      ],
+      "torch": "2.13.0+rocm10.0.0",
+      "torch_git": "6596a0dea537c1c78520c73cc6678214781a9d06",
+      "p2p_disable": "1",
+      "transport_log_line_counts": {
+        "NET/": 288,
+        "SHM": 144
+      },
+      "rank_elapsed_seconds": [
+        13.52659315202618,
+        13.526482872024644,
+        12.272155575046781,
+        12.271109160967171
+      ]
+    }
+  },
+  "total_checks": 18432,
+  "total_element_comparisons": 57982255104
+}
