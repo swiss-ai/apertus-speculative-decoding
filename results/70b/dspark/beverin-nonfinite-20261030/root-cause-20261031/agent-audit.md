@@ -211,3 +211,24 @@ global norm/clamp, in-place normalization and five Newton-Schulz
 GEMM/addmm iterations. Our CPU2.15 dispatch and GPU linear-GEMM checks do
 not execute that full native2.13 path. This is a coverage limit, not evidence
 that Muon caused the original NaN. No additional test has been submitted.
+
+## Native wide Muon and tall-branch distinction
+
+Job710498 completed225seconds: bothimages2ranks×12widecases passed.
+Global shapes16x80 and8192x40960,6fixtures including two rank-one controls.
+AllrawNSoutputsfinite, rankoneoutputsbitwiseequal; maximumrelativeL2error
+0.216%original/0.236%ALPS. BF16normroundingdiffersfromdense byatmost0.637%,
+within2%bound; allindependentrow-shardclampsyieldReplicate. Exactprivate
+MuonfunctionSHA99e2359a95e1a914345207e49f072a658866333f4458b7b45faafa35c628f7c4
+matchedbothimages.43rawfiles/719,865bytes retainedinMuonresults-710498.
+
+The native test did NOT execute M>N transpose: captured gate/up matrices
+are43008x8192. CPUtiny80x16 exactfunction plusproductionredistribution
+passedall6fixtures/2ranks; randomupdateL2error3.309%, rankone0. Separate
+CPUmanualtracing observesShard0→transposeShard1→GramPartial(sum)→
+nonunit-betaGramUpdatePartial(sum)→orthoShard1. This is distinct native
+coverage. source-audit shows bothimagesbyteidentical _matrix_ops.py,
+placement_types.py,_redistribute.py; host2.15versionsdiffer. No causal
+source mismatch is proven. A separately approved tall-only native job710518
+usesfresh0030d312runtime andexplicit80x16/43008x8192; its results are not
+inferred from these wide/CPU passes. No model training was launched.
