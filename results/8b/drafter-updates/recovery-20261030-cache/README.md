@@ -1,10 +1,59 @@
-# T5 bounded adaptation recovery
+# T5 bounded EAGLE adaptation: final verdict
 
-All 19 original curves completed. Multilingual and summarization heads completed serving confirmation with specialist gains. The overall campaign remains in progress: final chat confirmation is running.
+**Keep workload-specific adaptation in mind for persistent multilingual traffic and low-load summarization. Do not implement chat adaptation from these results. No blanket replacement of the general drafter.**
 
-The original deterministic development-only rule selected the final 8k/no-replay head per domain. No held-out serving result entered selection. The simulated acceptance metric measures trainer rollouts, not served output tokens per target forward pass.
+The original 19 final exported heads completed 384 steps each. The preregistered development-only rule selected one 8k/no-replay head per domain. All three selected heads completed both same-node GPU-swapped serving rounds. No training, sampling, correctness or promotion gate was relaxed. This is Apertus 1.5 8B, thinking off, target TP1, fixed T=0.7/top-p=0.8/sampling-top-k=20, natural EOS within the original completion caps.
 
-| Original arm | Final development gain | OPB change | Reported training wall (min) |
+The clearest competitive matched configuration is draft k3/C1 for both useful domains:
+
+| Domain | Throughput, tok/s, base→adapted | Median decode, ms/token | p95 request, seconds | Implementation verdict |
+| --- | --- | --- | --- | --- |
+| Multilingual | 267→312–313 (+17% both swaps) | 3.41→2.78–2.79 | 1.24→1.11–1.15 | Substantial specialist benefit |
+| Summarization | 221→251 (+14% both swaps) | 4.13→3.55 | 1.58–1.59→1.414 | Useful at C1; C64/C256 fail the full benefit rule |
+| Chat | All six settings gain only about 3–8% throughput | About 0–6% change; not consistently enough | No qualifying repeated latency/throughput combination | Do not implement from this experiment |
+
+The fixed rule requires at least 10% throughput **and** 10% lower median decode latency in **both** swapped repeats, successful requests/warmups and calibrated correctness. Multilingual meets that matched-k rule in all six primary k3/k7 × C1/64/256 cells. Under load, the competitive k3 choice gains roughly 11–15% throughput, but can add 7–14 ms median TTFT; retain that conditional tradeoff. Summarization qualifies only at C1; its high-load gains are insufficient. Chat qualifies nowhere, despite its positive development-acceptance result.
+
+Larger matched-k percentages need context. Multilingual k7/C1 reaches 325–329 tok/s, a 26–30% gain over its weaker k7 baseline, with 2.38–2.41 ms/token. Against the stronger unadapted k3 setting, its gain is about 22%, with roughly 4 ms extra TTFT and slightly higher p95 request time. At C64/256, unadapted k3 already outperforms adapted k7. For summarization, adapted k3 has higher throughput and lower median decode latency than adapted k7 even at C1. Recommendations therefore use competitive operating points rather than every individually improved setting. The [supplementary multilingual configuration review](multilingual-configuration-review.json) preserves the cross-k comparisons; these use separate GPU pairs and supplement the original matched-k tests.
+
+OPB forgetting remains material to the decision: development accepted length falls 4.92% for multilingual, 2.48% for summarization and 1.93% for chat. Measured OPB/tail/TTFT regressions also occur in the serving grid. A domain-specific deployment can benefit substantially; these results do not justify replacing the default head for a general traffic mix.
+
+**Absolute compute and amortization.**
+
+| Domain | Selected training-loop wall, 4 GPUs | Training-only lower bound | All recovery traces + all curves of this domain | Conservative amortization, matched k3/C1 |
+| --- | ---: | ---: | ---: | ---: |
+| mult | 29.7 min | 1.98 GPUh | 15.77 GPUh | 104.4M output tokens |
+| summ | 40.8 min | 2.72 GPUh | 23.93 GPUh | 159.5M output tokens |
+| chat | 19.2 min | 1.28 GPUh | 13.26 GPUh | No qualifying benefit |
+
+The full EAGLE recovery, including all curves, failed recovery attempts, trace generation and all serving confirmations, allocated **55.47 GPUh**. Domain setup in the table charges all recovery traces plus every curve of that domain; it excludes other domains and the serving-measurement campaign. At matched k3/C1, multilingual saves 544–546 GPU-seconds per million output tokens and summarization 540–547. Selected training alone amortizes after about 13M/18M tokens, before capture/startup/export; charging the entire recovery instead gives 367M/370M tokens. These are experimental recovery/search costs and lower bounds, **not a measured recurring production-update cost**. Accounting covers the 11 recovery jobs; original pre-recovery smoke/live-swap jobs are excluded. Production traffic volume, update cadence, engineering cost and monetary tariffs were not measured.
+
+**Every primary serving cell.** A/B are the two physical-GPU-swapped deployment repeats. Complete absolute metrics, acceptance, cost and regressions for all 84 conditions are in [verdict.json](verdict.json) and the [168-comparison CSV](serving-absolute-cells.csv).
+
+| Head | Draft k | C | tok/s base A/B→adapt A/B | TPOT ms base A/B→adapt A/B | TTFT p50 delta A/B, ms | Request p95 base A/B→adapt A/B, s | Original matched-k rule |
+| --- | ---: | ---: | --- | --- | --- | --- | --- |
+| mult | 3 | 1 | 267.0/267.5→312.4/313.1 | 3.415/3.411→2.784/2.791 | +0.6/+0.3 | 1.243/1.243→1.108/1.149 | yes |
+| mult | 3 | 64 | 6864.5/6959.7→7717.7/7708.1 | 7.540/7.507→6.520/6.566 | +8.1/+7.4 | 2.843/2.821→2.633/2.657 | conditional |
+| mult | 3 | 256 | 8644.4/8827.1→9935.4/9754.2 | 25.325/24.726→20.959/21.354 | +2.2/+14.3 | 9.811/9.580→8.709/8.993 | conditional |
+| mult | 7 | 1 | 254.1/258.8→329.4/325.3 | 3.546/3.485→2.375/2.408 | +1.3/+0.4 | 1.533/1.411→1.280/1.296 | yes |
+| mult | 7 | 64 | 4781.7/4936.8→6093.3/5854.7 | 10.833/10.446→7.722/8.057 | +1.2/-9.8 | 4.587/4.459→3.826/3.937 | yes |
+| mult | 7 | 256 | 5921.3/6042.6→7442.1/7270.9 | 36.331/35.609→26.312/26.729 | +9.0/+22.0 | 15.800/15.311→13.573/13.830 | conditional |
+| summ | 3 | 1 | 221.4/221.1→251.4/251.5 | 4.138/4.123→3.550/3.548 | +3.0/-2.5 | 1.582/1.591→1.414/1.414 | yes |
+| summ | 3 | 64 | 1800.9/1802.9→1896.2/1876.6 | 31.958/31.396→31.026/30.774 | +12.8/-19.6 | 12.097/12.123→11.871/11.570 | no |
+| summ | 3 | 256 | 1919.8/1905.0→1976.2/1991.1 | 75.728/75.847→72.310/72.099 | -215.5/-394.0 | 43.324/43.457→41.936/41.588 | no |
+| summ | 7 | 1 | 195.9/195.5→239.3/239.5 | 4.597/4.603→3.732/3.731 | +2.1/-2.9 | 1.804/1.807→1.381/1.383 | conditional |
+| summ | 7 | 64 | 1550.5/1522.5→1662.0/1710.7 | 36.292/37.160→34.490/33.847 | +32.1/-34.2 | 13.821/14.332→13.604/13.386 | no |
+| summ | 7 | 256 | 1665.1/1636.3→1745.5/1786.3 | 85.082/86.897→81.165/79.160 | -527.6/-1150.9 | 50.302/51.232→46.856/45.897 | no |
+| chat | 3 | 1 | 253.6/254.7→266.6/265.9 | 3.312/3.294→3.249/3.298 | +4.1/-2.5 | 1.339/1.335→1.244/1.245 | no |
+| chat | 3 | 64 | 4296.8/4281.0→4525.1/4536.0 | 11.386/11.565→11.329/11.198 | +5.7/+6.5 | 4.791/4.757→4.526/4.533 | no |
+| chat | 3 | 256 | 5077.5/5052.8→5233.0/5228.3 | 41.382/41.398→41.339/41.077 | +16.8/+11.6 | 17.720/17.797→16.460/16.520 | no |
+| chat | 7 | 1 | 235.5/236.1→253.3/252.7 | 3.517/3.499→3.320/3.334 | -1.3/-1.6 | 1.575/1.571→1.476/1.479 | no |
+| chat | 7 | 64 | 3300.0/3338.4→3575.9/3508.9 | 14.456/14.351→13.862/14.215 | +0.5/+6.3 | 6.685/6.580→6.151/6.263 | no |
+| chat | 7 | 256 | 3908.2/3959.8→4175.7/4114.1 | 52.409/51.455→49.784/50.562 | -3.4/+8.0 | 24.104/23.802→21.545/21.971 | no |
+
+**All 19 training curves.** All original scientific gates remain recorded; the original held-out-improvement gate uses the best evaluation. The 500-trace chat arms finish below their starting acceptance despite an earlier improvement. Only final heads were eligible for the fixed serving selection. Replay generally reduces OPB forgetting but was not separately serving-confirmed here; these alternatives receive no implementation recommendation.
+
+| Original arm | Final development accepted-length gain | OPB change | Reported training wall, min |
 | --- | ---: | ---: | ---: |
 | adapt-chat-n2k-r0 | +0.1087 | -3.35% | 19.28 |
 | adapt-chat-n2k-r20 | +0.1305 | -2.50% | 17.85 |
@@ -26,28 +75,19 @@ The original deterministic development-only rule selected the final 8k/no-replay
 | adapt-summ-n8k-r0 | +0.5169 | -2.48% | 40.82 |
 | adapt-summ-n8k-r20 | +0.4979 | -1.68% | 38.61 |
 
-![Original development curves](development-curves.png)
+![Development curves; simulation only](development-curves.png)
 
-[Full development evaluations](development-curves-derived.json) retain all points. Only final heads were eligible for serving selection; intermediate evaluations are descriptive. All original training scientific gates are retained. The 500-trace chat arms finish below initial development acceptance even though their original best-evaluation improvement gate passes. Replay generally reduces forgetting; it was not used to filter specialist selection.
+[All development points](development-curves-derived.json) retain the exact curves. Simulation was used only for development selection; it is not serving acceptance or speed.
 
-The preregistered serving review requires at least 10% throughput and 10% median decode-latency improvement in both GPU-swapped repeats, calibrated correctness, and successful measured requests/warmups. Every original held-out prompt pass, k3/k7, and C1/64/256 remains included. TTFT/tail/OPB regressions restrict recommendations to explicit conditional tradeoffs. Full trace and domain-training allocations enter conservative break-even cost; no monetary tariff is assumed.
+**Evidence and reproducibility.** All 336 raw cells, 153,600 measured requests and 56 calibrated correctness gates passed; failed warmups=0. All member hashes, target/checkpoint/source identities, corpus digests and complete prompt passes were independently audited. The controls do not prove losslessness or full-answer quality. These are seeded fixed-concurrency benchmarks on stand-in domain traces, with the original completion caps; they do not establish production capacity or a universal update policy.
 
-Training as-run source: `589ddd593f62255f9217c1b40e5502808cc7bb94`. Current repaired serving source: `7f0a41dcc0a3c5d433b83dac80075ee0516a694e`, frozen separately. Original policy SHA256: `64c9844f6cd526e6c693f85a5f75cc0d5d7d3f605112b14c3ae1c70a969ef44c`.
+- [Training capsule](training-curves-complete-20261031b.tgz): 208 files, configs/provenance/train summaries/full histories/evals/export reports/raw logs; [manifest](collection-manifest.json).
+- [Multilingual raw capsule](confirmation-3814370-capsule/capsule-manifest.json): 1,785 files; [audit](confirmation-3814370-capsule/integrity-audit.json); [paired summary](multilingual-confirmation-summary.json).
+- [Summarization raw capsule](confirmation-3814755-capsule/capsule-manifest.json): 410 files, including exact scheduling override; [audit](confirmation-3814755-capsule/integrity-audit.json); [paired summary](summarization-confirmation-summary.json).
+- [Chat raw capsule](confirmation-3815183-capsule/capsule-manifest.json): 409 files; [audit](confirmation-3815183-capsule/integrity-audit.json); [paired summary](chat-confirmation-summary.json).
+- [Final 29-file closure/provenance capsule](final-eagle-recovery-20261031.tgz), SHA256 d68c7818f14b33807cda0fe6b1dac0a03becf90e98a9171731c5cb45eab4f81f; [manifest](final-artifact-manifest.json), [final controller receipt](campaign-final.json), [Slurm allocations](allocation-accounting.txt), [as-run source manifest](serving-source-manifest.json), [unchanged policy](preregistration.json).
+- [Preserved 3814329 startup failure](failed-confirmation-3814329.json) and raw capsule; earlier trace/data/quota failures and the original four-step smoke scientific failure remain unchanged in their associated recovery trees.
 
-The [lossless training capsule](training-curves-complete-20261031b.tgz) contains 208 configurations, summaries, histories, export reports, source manifests, launch/image/target provenance and compressed raw training logs. SHA256 `f8504b3dae900caea63474dd027d591b292dd8e1cc94109742ea9c86a1e43f24`; each member is verified against [its collection manifest](collection-manifest.json). Checkpoints and restricted prompt corpora remain on the cluster.
+Raw parts are at most 25 MiB each; reconstruct with the command in each capsule manifest, then verify with `python3 verify-capsule.py confirmation-JOB-capsule`. Caches, weights and restricted source corpora remain on the cluster. Training source 589ddd593f62255f9217c1b40e5502808cc7bb94; serving/controller source 7f0a41dcc0a3c5d433b83dac80075ee0516a694e. Scientific policy SHA256 64c9844f6cd526e6c693f85a5f75cc0d5d7d3f605112b14c3ae1c70a969ef44c. Remote complete root: `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`.
 
-Earlier failed attempts are preserved. [Serving startup failure3814329](failed-confirmation-3814329.json) has a [46-file raw capsule](failed-confirmation-3814329.tgz): inherited long scratch TMPDIR caused vLLM AF_UNIX socket paths over107bytes before any requests. The fresh repair uses short job/round/arm runtime TMPDIR and explicit VLLM_RPC_BASE_PATH; all four on-node socket bind probes passed at96/97bytes. Failed allocation cost remains included.
-
-Multilingual job 3814370 completed in 4,264 s. All 40 calibrated correctness gates passed; all six primary k3/k7 × C1/64/256 cells satisfy the original matched-k benefit rule. At k3/C1, throughput is 267→312–313 tok/s, median decode time 3.41→2.78–2.79 ms/token. At k7/C1, matched throughput improves 26–30%, 254–259→325–329 tok/s; decode time falls 3.49–3.55→2.38–2.41 ms/token. OPB regressions and high-concurrency TTFT tradeoffs prevent broad replacement.
-
-The [full paired summary](multilingual-confirmation-summary.json) retains every absolute cell metric. The [configuration review](multilingual-configuration-review.json) adds a descriptive comparison to stronger already measured unadapted k settings: at C64/256, unadapted k3 outperforms adapted k7. These supplementary cross-k comparisons use separate GPU pairs; the original matched-k verdicts remain unchanged. The recovery cost of all traces plus all multilingual curves is 15.77 GPUh; the selected head's training-loop lower bound is 1.98 GPUh. At C1, observed savings versus the stronger unadapted k3 baseline amortize those recovery costs after about 80–85M output tokens with adapted k7, or 104M with matched k3. Selected training alone gives much smaller lower bounds. These are one-time experimental recovery costs, not a measured recurring production-update cost.
-
-The [raw capsule manifest](confirmation-3814370-capsule/capsule-manifest.json) links 25 MiB binary parts of the byte-identical complete archive (SHA256 `b8ec1db68d6f4af4b7043a3e787329838ed733ac35d1dde875ae5701bba3a5ad`). It contains 1,785 raw measurement, capture, metric-snapshot and provenance files. The [integrity audit](confirmation-3814370-capsule/integrity-audit.json) verifies all member hashes, 240 complete cells and all 108,544 successful measured requests, zero failed warmups, exact corpus hashes, full prompt passes and required EAGLE provenance. Reproduce with `python3 verify-capsule.py confirmation-3814370-capsule`.
-
-Summarization job 3814755 completed in 1,926 s with all eight correctness gates passing. Only C1 satisfies the full serving-benefit rule. The competitive k3 setting improves 221→251 tok/s, 4.13→3.55 ms/token, and p95 request latency 1.58→1.414 s. Higher-load improvements do not qualify. Adapted k3 also outperforms adapted k7, whose larger matched-k gain uses a weaker baseline. Selected-head training is 2.72 GPUh; all traces plus all summarization curves cost 23.93 GPUh (about 160M output tokens to amortize at k3/C1), a recovery/search cost rather than a measured recurring production-update cost.
-
-The [summarization paired summary](summarization-confirmation-summary.json), [complete raw capsule](confirmation-3814755-capsule/capsule-manifest.json), and [integrity audit](confirmation-3814755-capsule/integrity-audit.json) retain all 48 cells, 22,528 successful measured requests, zero failed warmups and exact source/corpus/target/checkpoint identities. The archive contains 410 files and its exact scheduling-only override, SHA256 `85088ac5ec4a886d533cc472fc66aee36af24f9212940abcbad7c8a5fb86ce08`.
-
-Remote complete artifact root: `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache`. Machine status: `receipts/campaign.json`. Final chat job 3815183 is running on nid006274; its original 12 h request was already allocated and was retained. The controller sequences only the original selected heads and closes with `verdict.json`/`verdict.md`.
-
-Scope: original bounded EAGLE adaptation only. This does not conclude broad action#10/A3, implement routing, deploy a head, or establish any DSpark adaptation result. A strong qualifying EAGLE serving result only records the original conditional DSpark best-setting follow-up, dependent on a verified compatible port/data/provenance.
+**Scope completed:** original bounded EAGLE recovery, including all 19 curves and three serving confirmations. Existing same-architecture live swap was already complete and was not rerun. The substantial EAGLE result triggers only the original conditional DSpark best-setting dependency: verify compatible data/port/provenance before that repeat. No DSpark adaptation run or result, routing implementation or deployment is claimed. Broad canvas #10/A3 remains open.
