@@ -56,25 +56,29 @@ case "${MODE}" in
 import json, sys
 path = sys.argv[1]
 with open(path, "w") as handle:
-    for i in range(32):
+    for i in range(8):
         handle.write(json.dumps({
             "id": "pilot-%d" % i,
             "messages": [{"role": "user", "content": "Explain checkpoint %d in three short sentences." % i}],
         }) + "\n")
 PY
-    export DSPARK_DIR="${WORK}" LIMIT=32 BUDGET_SECONDS=3000 HEALTH_SECONDS=1800
+    export DSPARK_DIR="${WORK}" LIMIT=8 BUDGET_SECONDS=3000 HEALTH_SECONDS=3600
     # shellcheck disable=SC1091
     . "${REPO_ROOT}/methods/dspark/train/common.sh"
     # shellcheck disable=SC1091
     . "${REPO_ROOT}/methods/dspark/beverin/env.sh"
-    tp4=0
-    TP=4 IN="${prompts}" OUT="${BEVERIN_DEPLOYMENT}/tp4.jsonl" \
-      bash "${REPO_ROOT}/methods/dspark/train/regen-part.sh" || tp4=$?
-    tp2=0
-    TP=2 IN="${prompts}" OUT="${BEVERIN_DEPLOYMENT}/tp2.jsonl" \
-      bash "${REPO_ROOT}/methods/dspark/train/regen-part.sh" || tp2=$?
-    echo "STAGE_A3_REGEN tp4=${tp4} tp2=${tp2}"
-    [ "${tp4}" = 0 ] || [ "${tp2}" = 0 ]
+    # Job 710632 was TP4 at gpu-memory-utilization 0.90 with CUDA graphs. The
+    # 70B loaded, then the host OOM killer fired during JIT warmup. This retry
+    # is one TP2 x DP2 server at the memory fraction the extraction servers
+    # already ran, with eager mode and a small batch.
+    export GPU_MEMORY_UTILIZATION=0.62 MAX_NUM_SEQS=16 CONCURRENCY=8
+    export VLLM_EXTRA="--enforce-eager"
+    echo "STAGE_A3_SETTINGS tp=2 dp=2 mem=0.62 seqs=16 concurrency=8 eager=1 limit=8"
+    rc=0
+    TP=2 IN="${prompts}" OUT="${BEVERIN_DEPLOYMENT}/tp2-eager.jsonl" \
+      bash "${REPO_ROOT}/methods/dspark/train/regen-part.sh" || rc=$?
+    echo "STAGE_A3_REGEN rc=${rc}"
+    exit "${rc}"
     ;;
   *)
     echo "unknown mode ${MODE}" >&2

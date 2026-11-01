@@ -72,7 +72,7 @@ case "${STAGE}" in
     export SIDE_DEPS="${SIDE_DEPS:-${WORK}/py312/pydeps}"
     export DATA="${DATA:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b/data}"
     export DATA_PROVENANCE="${DATA_PROVENANCE:-${WORK}/provenance/data-20261025}"
-    export NODES=32 CHAIN=1 MAX_ATTEMPTS=1 EXTRACT_START_ATTEMPTS=1
+    export NODES=32 CHAIN=1 MAX_ATTEMPTS=1 EXTRACT_START_ATTEMPTS=1 EXTRACT_HEALTH_SECONDS=7200
     export STOP_MARGIN=2400 SBATCH_EXTRA=--no-requeue
     export SEQ=8192 ANCHORS=512 EPOCHS=1 LR=8.48528137423857e-4
     export CKPT_FREQ=0.015625 DSPARK_DTENSOR_ALLGATHER=1
@@ -109,8 +109,10 @@ case "${STAGE}" in
   data)
     RUN_ID="${RUN_ID:-expansion-corpus-${STAMP}}"
     STAGE_NODES=1
-    id="$(submit_one "dspark-expansion-${STAMP}" "06:00:00" \
-      "srun --network=disable_rdzv_get --ntasks-per-node=1 --environment=${EDF} --export=ALL bash ${RUNTIME}/methods/dspark/beverin/data_expansion/run.sh" \
+    EXPANSION_OUT="${EXPANSION_OUT:-${WORK}/expansion/alps-1epoch-20261031-r2}"
+    test ! -e "${EXPANSION_OUT}"
+    id="$(submit_one "dspark-expansion-${STAMP}" "08:00:00" \
+      "export EXPANSION_OUT=${EXPANSION_OUT}; srun --network=disable_rdzv_get --ntasks-per-node=1 --environment=${EDF} --export=ALL bash ${RUNTIME}/methods/dspark/beverin/data_expansion/run.sh" \
       "#SBATCH --nice=10000")"
     echo "${id}" | tee "${CAMPAIGN}/data.jobid"
     ;;

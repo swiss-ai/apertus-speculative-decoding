@@ -4,9 +4,15 @@ set -euo pipefail
 : "${REPO_ROOT:?}" "${WORK:?}"
 # shellcheck disable=SC1091
 . "${REPO_ROOT}/methods/dspark/beverin/env.sh"
-OUT="${WORK}/expansion/alps-1epoch-20261031"
+OUT="${EXPANSION_OUT:-${WORK}/expansion/alps-1epoch-20261031}"
 BENCH="${OUT}/benchmarks"
 mkdir -p "${BENCH}"
+PREV_BENCH="${WORK}/expansion/alps-1epoch-20261031/benchmarks/prompts.jsonl"
+PREV_PLAN="${WORK}/expansion/alps-1epoch-20261031/sample-plan.json"
+if [ -s "${PREV_BENCH}" ]; then
+  cp "${PREV_BENCH}" "${BENCH}/prompts.jsonl"
+  echo "reused benchmark prompts $(wc -l < "${BENCH}/prompts.jsonl")"
+else
 python3 - "${BENCH}" <<'PY'
 import json, sys
 from pathlib import Path
@@ -49,10 +55,18 @@ print("benchmark prompts", len(prompts))
 if not prompts:
     raise SystemExit(2)
 PY
-python3 "${REPO_ROOT}/methods/dspark/beverin/data_expansion/build.py" \
-  --sft-dir /capstor/store/cscs/swissai/infra01/datasets/Apertus-1.5-SFT-mix-pretrain-v1/data \
-  --opb-jsonl "/iopsstor/scratch/cscs/${USER}/apertus-dspark70b/open-perfectblend_apertus15-70b_thinking-off_seed0.jsonl" \
-  --finepdf-root /capstor/store/cscs/swissai/infra01/datasets \
-  --tokenizer /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B \
-  --output "${OUT}" --require-benchmarks --benchmark-jsonl "${BENCH}/prompts.jsonl"
+fi
+build_args=(
+  --sft-dir /capstor/store/cscs/swissai/infra01/datasets/Apertus-1.5-SFT-mix-pretrain-v1/data
+  --opb-jsonl "/iopsstor/scratch/cscs/${USER}/apertus-dspark70b/open-perfectblend_apertus15-70b_thinking-off_seed0.jsonl"
+  --finepdf-root /capstor/store/cscs/swissai/infra01/datasets
+  --tokenizer /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+  --output "${OUT}"
+  --require-benchmarks
+  --benchmark-jsonl "${BENCH}/prompts.jsonl"
+)
+if [ -s "${PREV_PLAN}" ]; then
+  build_args+=(--plan-json "${PREV_PLAN}")
+fi
+python3 "${REPO_ROOT}/methods/dspark/beverin/data_expansion/build.py" "${build_args[@]}"
 echo "EXPANSION_BUILD_DONE ${OUT}"

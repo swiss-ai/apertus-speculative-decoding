@@ -20,6 +20,9 @@ export VLLM_CACHE_ROOT=/tmp/bev-cache/vllm TRITON_CACHE_DIR=/tmp/bev-cache/trito
   TORCH_EXTENSIONS_DIR=/tmp/bev-cache/torch_extensions MIOPEN_USER_DB_PATH=/tmp/bev-cache/miopen \
   MIOPEN_CUSTOM_CACHE_DIR=/tmp/bev-cache/miopen
 export VLLM_ENGINE_READY_TIMEOUT_S=3600
+# ~/.config is on a 50 GB VAST home quota that is already full. vLLM's usage
+# telemetry appends there and raised EDQUOT (errno 122) on the 32-node job.
+export VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
 mkdir -p "${WORK}/logs" /tmp/bev-cache
 # curl in the ROCm image fails to load (libldap_r-2.4.so.2 missing; job 693716),
 # so probe the server with Python.

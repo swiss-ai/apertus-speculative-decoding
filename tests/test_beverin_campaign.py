@@ -12,7 +12,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "methods/dspark/beverin"))
 sys.path.insert(0, str(REPO / "methods/dspark/beverin/data_expansion"))
 from blas_decision import choose
-from dedupe import Index
+from dedupe import BoundedIndex, Index
 from epoch_decision import decide, doubling_gain, parse_curve
 from monitor_campaign import assess, format_heartbeat, heartbeat_due, parse_log, remote_script
 from quotas import allocate, classify
@@ -52,8 +52,13 @@ class CampaignTests(unittest.TestCase):
         self.assertLessEqual(sum(plan["multilingual"].values()), 300000)
         self.assertEqual(classify("finepdfs-edu"), "summarization")
         index = Index()
-        index.add("one two three four five six seven eight nine ten eleven twelve thirteen fourteen", "a")
-        self.assertEqual(index.duplicate("one two three four five six seven eight nine ten eleven twelve thirteen fourteen")[0], "exact")
+        text = "one two three four five six seven eight nine ten eleven twelve thirteen fourteen"
+        index.add(text, "a")
+        self.assertEqual(index.duplicate(text)[0], "exact")
+        bounded = BoundedIndex()
+        bounded.add(text, "a")
+        self.assertEqual(bounded.duplicate(text)[0], "exact")
+        self.assertIsNone(bounded.duplicate("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron"))
 
     def test_decision_does_not_launch_epoch_two(self):
         rows = [(step, 1.0, 2.0 + (0.1 if step > 3000 else 0.0)) for step in range(1900, 4100, 10)]
@@ -89,6 +94,7 @@ class CampaignTests(unittest.TestCase):
             env["PATH"] = str(stub_dir) + os.pathsep + env["PATH"]
             env["WORK"] = str(work)
             env["BEVERIN_ALPS"] = "1"
+            env["EXTRACT_HEALTH_SECONDS"] = "7200"
             env["RUN_ID"] = "render-alps"
             env["NODES"] = "1"
             env["CHAIN"] = "1"
@@ -105,6 +111,7 @@ class CampaignTests(unittest.TestCase):
             self.assertIn("MAX_ATTEMPTS=1", text)
             self.assertIn("416216c9de21d110fbb7cb12cef90923af51e04c955d7d7dffa9786f125a4928", text)
             self.assertIn("BEVERIN_CHECKPOINT_RING=1", text)
+            self.assertIn("EXTRACT_HEALTH_SECONDS=7200", text)
             self.assertIn("BEVERIN_ROLLBACK=1", text)
             env["BEVERIN_ALPS"] = "0"
             env["RUN_ID"] = "render-old"

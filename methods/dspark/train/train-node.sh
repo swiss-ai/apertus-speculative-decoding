@@ -74,7 +74,11 @@ start_server() {
     --gpu-memory-utilization "${EXTRACT_MEM:-0.92}" --max-model-len 8192 \
     >> "${LOG}/extract-${JOB}-node${NODE_RANK}.log" 2>&1 &
   server=$!
-  if ! wait_health "${PORT}" "${server}" 2400; then
+  # 32 nodes reading the 70B at once took about 40 minutes in job 710883, and
+  # the previous 2400s cap killed servers that became healthy in the same minute.
+  health_wait="${EXTRACT_HEALTH_SECONDS:-7200}"
+  stamp "waiting up to ${health_wait}s for the extraction server"
+  if ! wait_health "${PORT}" "${server}" "${health_wait}"; then
     stamp "EXTRACTION_SERVER_FAILED"
     grep -E "Error|Traceback" "${LOG}/extract-${JOB}-node${NODE_RANK}.log" | tail -5
     return 1

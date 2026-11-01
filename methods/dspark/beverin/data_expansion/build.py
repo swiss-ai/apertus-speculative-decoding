@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from dedupe import Index
+from dedupe import BoundedIndex
 from quotas import PRIORITY, PROBE_PER_DOMAIN, PROMPT_TOKEN_LIMIT, SUMMARY_TOKEN_LIMIT, allocate, classify
 
 
@@ -57,7 +57,16 @@ def row_source(row):
     return "unknown"
 
 
-def load_opb(path, index, limit=None):
+def heartbeat(output, message):
+    print(message, flush=True)
+    if output is None:
+        return
+    path = Path(output) / "progress.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(message + "\n")
+
+
+def load_opb(path, index, limit=None, output=None):
     added = 0
     with open(path, "r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
@@ -72,6 +81,9 @@ def load_opb(path, index, limit=None):
                 continue
             index.add(text, row.get("primary_id") or row.get("id") or added)
             added += 1
+            if added % 100000 == 0:
+                heartbeat(output, "opb indexed %d" % added)
+    heartbeat(output, "opb indexed %d done" % added)
     return added
 
 
@@ -84,18 +96,23 @@ def token_count(tokenizer, text):
 def iter_parquet(directory):
     import pyarrow.parquet as pq
     for path in sorted(Path(directory).rglob("*.parquet")):
+        print("parquet %s" % path, flush=True)
         table = pq.ParquetFile(path)
         for batch in table.iter_batches(batch_size=1024):
             for row in batch.to_pylist():
                 yield row
 
 
-def reservoir(path, plan, seed):
+def reservoir(path, plan, seed, output=None):
     rng = random.Random(seed)
     kept = {domain: {source: [] for source in sources} for domain, sources in plan.items()}
     targets = {domain: dict(sources) for domain, sources in plan.items()}
     seen = {domain: {source: 0 for source in sources} for domain, sources in plan.items()}
+    scanned = 0
     for row in iter_parquet(path):
+        scanned += 1
+        if scanned % 200000 == 0:
+            heartbeat(output, "reservoir scanned %d" % scanned)
         source = row_source(row)
         domain = classify(source)
         quota = targets.get(domain, {}).get(source)
@@ -114,6 +131,7 @@ def reservoir(path, plan, seed):
             slot = rng.randrange(seen[domain][source])
             if slot < quota:
                 bucket[slot] = item
+    heartbeat(output, "reservoir done scanned %d" % scanned)
     return kept
 
 
@@ -133,27 +151,38 @@ def _load_jsonl_prompts(paths, index, prefix):
     return added
 
 
+def _finepdf_dirs(root):
+    root = Path(root)
+    if "finepdf" in root.name.lower():
+        return [root]
+    if not root.is_dir():
+        return []
+    return [child for child in sorted(root.iterdir()) if child.is_dir() and "finepdf" in child.name.lower()]
+
+
 def load_finepdfs(root, limit_rows):
     rows = []
     languages = ("eng_Latn", "deu_Latn", "fra_Latn", "ita_Latn")
-    for path in sorted(Path(root).rglob("*")):
-        if not path.is_file() or not any(lang in str(path) for lang in languages):
-            continue
-        if path.suffix == ".parquet":
-            iterator = iter_parquet(path.parent) if False else _parquet_file(path)
-        elif path.suffix == ".jsonl":
-            iterator = _jsonl_rows(path)
-        else:
-            continue
-        for row in iterator:
+    for base in _finepdf_dirs(root):
+        print("finepdf %s" % base, flush=True)
+        for path in base.rglob("*"):
             if len(rows) >= limit_rows:
                 return {"finepdfs-edu": rows}
-            text = row_prompt(row)
-            if text.strip():
-                rows.append({"source": "finepdfs-edu", "domain": "summarization", "prompt": text,
-                             "id": "pdf-%d" % len(rows)})
-        if len(rows) >= limit_rows:
-            break
+            if not path.is_file() or not any(lang in str(path) for lang in languages):
+                continue
+            if path.suffix == ".parquet":
+                iterator = _parquet_file(path)
+            elif path.suffix == ".jsonl":
+                iterator = _jsonl_rows(path)
+            else:
+                continue
+            for row in iterator:
+                if len(rows) >= limit_rows:
+                    return {"finepdfs-edu": rows}
+                text = row_prompt(row)
+                if text.strip():
+                    rows.append({"source": "finepdfs-edu", "domain": "summarization", "prompt": text,
+                                 "id": "pdf-%d" % len(rows)})
     return {"finepdfs-edu": rows}
 
 
@@ -207,15 +236,19 @@ def _write_jsonl(path, rows):
             }, ensure_ascii=False) + "\n")
 
 
-def filter_rows(kept, index, tokenizer, token_limit):
+def filter_rows(kept, index, tokenizer, token_limit, output=None):
     dropped = {"exact": 0, "near": 0, "length": 0, "internal": 0}
     accepted = {}
+    seen = 0
     for domain, sources in kept.items():
         accepted[domain] = {}
         limit = SUMMARY_TOKEN_LIMIT if domain == "summarization" else token_limit
         for source, rows in sources.items():
             chosen = []
             for row in rows:
+                seen += 1
+                if seen % 50000 == 0:
+                    heartbeat(output, "filtered %d dropped %s" % (seen, dropped))
                 kind = index.duplicate(row["prompt"])
                 if kind:
                     dropped[kind[0]] += 1
@@ -226,6 +259,7 @@ def filter_rows(kept, index, tokenizer, token_limit):
                 index.add(row["prompt"], row["id"])
                 chosen.append(row)
             accepted[domain][source] = chosen
+    heartbeat(output, "filtered %d done dropped %s" % (seen, dropped))
     return accepted, dropped
 
 
@@ -238,22 +272,32 @@ def main():
     parser.add_argument("--finepdf-root", type=Path)
     parser.add_argument("--benchmark-jsonl", type=Path, nargs="*", default=[])
     parser.add_argument("--require-benchmarks", action="store_true")
+    parser.add_argument("--plan-json", type=Path)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--opb-limit", type=int)
     args = parser.parse_args()
     if args.require_benchmarks and not args.benchmark_jsonl:
         raise SystemExit("benchmark decontamination files are required")
     started = time.time()
-    counts = {}
-    for row in iter_parquet(args.sft_dir):
-        counts[row_source(row)] = counts.get(row_source(row), 0) + 1
-    plan = allocate(counts)
-    (args.output).mkdir(parents=True, exist_ok=True)
-    (args.output / "source-counts.json").write_text(json.dumps(counts, indent=2, sort_keys=True))
+    args.output.mkdir(parents=True, exist_ok=True)
+    if args.plan_json:
+        plan = json.loads(args.plan_json.read_text())
+        heartbeat(args.output, "using existing sample plan %s" % args.plan_json)
+    else:
+        counts = {}
+        scanned = 0
+        for row in iter_parquet(args.sft_dir):
+            counts[row_source(row)] = counts.get(row_source(row), 0) + 1
+            scanned += 1
+            if scanned % 200000 == 0:
+                heartbeat(args.output, "counted %d" % scanned)
+        plan = allocate(counts)
+        (args.output / "source-counts.json").write_text(json.dumps(counts, indent=2, sort_keys=True))
+        heartbeat(args.output, "counted %d done" % scanned)
     (args.output / "sample-plan.json").write_text(json.dumps(plan, indent=2, sort_keys=True))
-    sampled = reservoir(args.sft_dir, plan, args.seed)
-    index = Index()
-    opb_rows = load_opb(args.opb_jsonl, index, args.opb_limit)
+    sampled = reservoir(args.sft_dir, plan, args.seed, args.output)
+    index = BoundedIndex()
+    opb_rows = load_opb(args.opb_jsonl, index, args.opb_limit, args.output)
     bench_rows = _load_jsonl_prompts(args.benchmark_jsonl, index, "bench")
     if args.finepdf_root:
         sampled["summarization"] = load_finepdfs(args.finepdf_root, 30000)
@@ -261,7 +305,7 @@ def main():
     if args.tokenizer:
         from transformers import AutoTokenizer
         tokenizer = AutoTokenizer.from_pretrained(str(args.tokenizer), trust_remote_code=True)
-    filtered, dropped = filter_rows(sampled, index, tokenizer, PROMPT_TOKEN_LIMIT)
+    filtered, dropped = filter_rows(sampled, index, tokenizer, PROMPT_TOKEN_LIMIT, args.output)
     written = write_outputs(filtered, args.output, PROBE_PER_DOMAIN)
     provenance = {
         "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -275,6 +319,8 @@ def main():
         "written": written,
         "epoch1_training_data": "unchanged",
         "seed": args.seed,
+        "near_dup_method": "minhash-8 of 13-gram crc32, Jaccard estimate >= 0.5; exact sha256 unchanged",
+        "plan_json": str(args.plan_json) if args.plan_json else "counted",
     }
     (args.output / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
     print("EXPANSION_CORPUS " + json.dumps(written))
