@@ -65,6 +65,16 @@ confirmation harness is in `src/apertus_bench/{drafter_swap,drafter_reload,adapt
 training tools in `methods/eagle/apertus_eagle/`, configs in
 `methods/eagle/configs/8b/adapt/`, and evidence under `results/8b/drafter-updates/`.
 
+The [8B shallow DSpark drafter study](docs/small-drafter.md) asked whether a 1-3
+layer DSpark drafter wins under load by costing less per step. Each removed layer
+saves 1.35-2.2 ms of draft time at 256 requests, but the trained 1-layer drafter
+loses acceptance (held-out EAL 3.52 versus 4.63) and twice failed the calibrated
+greedy correctness gate in serving, so the study closed as correctness blocked
+with no speed or implementation claim. The depth serving overlay is
+`serving/patches/vllm-apertus-dspark-num-layers.patch`, the truncation, training
+campaign and cost models are in `methods/dspark/`, and evidence is under
+`results/8b/small-drafter/` and `results/8b/sweeps/small-trunc-*`.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.

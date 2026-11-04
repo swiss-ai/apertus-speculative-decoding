@@ -53,6 +53,11 @@ and both control kinds are specified in `../docs/protocol.md`.
   restricted served captures and stay on Clariden; each capsule's
   `removed-restricted-parts.json` gives their hashes and location. The live-swap
   smoke is `8b/sweeps/drafter-swap-smoke-*`.
+- `8b/small-drafter/`: shallow DSpark drafter study. Phase-A depth cost and
+  ceiling models, the dated recovery directories with submission receipts,
+  preserved failures and the strict review, and `recovery-20261031/` with the
+  correctness-blocked closure and the retrieved gate reports of job 3804151.
+  Truncation sweeps are `8b/sweeps/small-trunc-*`.
 
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
   n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every
