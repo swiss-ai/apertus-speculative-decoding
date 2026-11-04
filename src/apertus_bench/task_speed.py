@@ -401,14 +401,21 @@ def acceptance_curve(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return curves
 
 
+# Other users' requests finishing inside a live cell are tolerated up to this share
+# of the cell's generated tokens (their load can shift throughput by about as much).
+FOREIGN_TOKEN_SHARE = 0.02
+
+
 def traffic_guard(
-    before: str, after: str, model: str, requests: int
+    before: str, after: str, model: str, requests: int, completion_tokens: int | None = None
 ) -> tuple[bool, str | None, dict[str, Any]]:
-    """Whether a live cell measured only our requests.
+    """Whether a live cell measured (essentially) only our requests.
 
     The engine must be idle when the cell starts, and its finished-request
-    counter must advance by exactly the measured requests. A counter that goes
-    down means the engine restarted inside the cell.
+    counter must advance by the measured requests. Extra finished requests are
+    tolerated when they generated at most FOREIGN_TOKEN_SHARE of the cell's
+    tokens (``completion_tokens`` known); fewer finished requests than sent, or a
+    counter that goes down (engine restart), always invalidate the cell.
     """
     first, last = parse_load_sample(before, model), parse_load_sample(after, model)
     detail = {"before": first, "after": last, "requests": requests}
@@ -421,9 +428,18 @@ def traffic_guard(
     detail["finished_delta"] = done
     if done < 0:
         return False, "counters went down (engine restart)", detail
-    if done != requests:
-        return False, f"{done:g} requests finished, {requests} sent (foreign traffic)", detail
-    return True, None, detail
+    if done == requests:
+        return True, None, detail
+    if done > requests and completion_tokens:
+        generated = _counter(after, "vllm:generation_tokens_total", model) - _counter(
+            before, "vllm:generation_tokens_total", model
+        )
+        share = max(0.0, generated - completion_tokens) / completion_tokens
+        detail["foreign_requests"] = done - requests
+        detail["foreign_token_share"] = share
+        if share <= FOREIGN_TOKEN_SHARE:
+            return True, f"tolerated {done - requests:g} foreign requests ({share:.1%})", detail
+    return False, f"{done:g} requests finished, {requests} sent (foreign traffic)", detail
 
 
 def _counter(text: str, name: str, model: str) -> float:

@@ -279,6 +279,7 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
                         (cell / "metrics_after.prom").read_text(),
                         model,
                         requests,
+                        summary["tokens"]["completion"],
                     )
                     failed = summary["requests"]["attempted"] - summary["requests"]["successful"]
                     if ok and summary["requests"]["success_rate"] < 0.99:

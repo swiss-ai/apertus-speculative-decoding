@@ -332,7 +332,8 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
     (corpus_dir / "corpus-manifest.json").write_text(json.dumps(manifest))
 
     model = live.model_ids()["dspark"]
-    state = {"done": 0, "foreign": 1}  # one foreign request lands in the first cell
+    # One foreign request (100 generated tokens) lands in the first measured cell.
+    state = {"done": 0, "generated": 0, "foreign": 1}
 
     def scrape():
         label = f'{{engine="0",model_name="{model}"}}'
@@ -341,6 +342,8 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
             f"# TYPE vllm:num_requests_waiting gauge\nvllm:num_requests_waiting{label} 0\n"
             "# TYPE vllm:request_success counter\n"
             f"vllm:request_success_total{label} {state['done']}\n"
+            "# TYPE vllm:generation_tokens counter\n"
+            f"vllm:generation_tokens_total{label} {state['generated']}\n"
             "# TYPE vllm:spec_decode_num_drafts counter\n"
             f"vllm:spec_decode_num_drafts_total{label} {state['done'] * 2}\n"
             "# TYPE vllm:spec_decode_num_draft_tokens counter\n"
@@ -372,11 +375,13 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
             # are the idle waits around the warmup, 3 is "before", 4 is "after".
             if len(scrapes) == 4 and state["foreign"]:
                 state["done"] += state.pop("foreign")
+                state["generated"] += 100
             return scrape()
         raise AssertionError(argv)
 
     async def handler(request):
         state["done"] += 1
+        state["generated"] += 2
         events = [
             {"choices": [{"delta": {"content": "a"}}]},
             {"choices": [{"delta": {"content": "b"}, "finish_reason": "stop"}]},
@@ -437,3 +442,24 @@ def test_inline_and_separate_warmups_pair():
     dm["extra"]["separate_warmup"] = "8"
     with pytest.raises(ValueError, match="warmup"):
         task_speed.validate_pair(plain, draft, pm, dm, ())
+
+
+def test_traffic_guard_tolerates_small_foreign_load():
+    def scrape(done, generated):
+        label = f'{{engine="0",model_name="{MODEL}"}}'
+        return (
+            _metrics(done=done)
+            + "# TYPE vllm:generation_tokens counter\n"
+            + f"vllm:generation_tokens_total{label} {generated}\n"
+        )
+
+    ok, reason, detail = task_speed.traffic_guard(
+        scrape(10, 0), scrape(43, 10_150), MODEL, 32, completion_tokens=10_000
+    )
+    assert ok and "tolerated" in reason and detail["foreign_token_share"] == pytest.approx(0.015)
+    ok, reason, _ = task_speed.traffic_guard(
+        scrape(10, 0), scrape(43, 10_300), MODEL, 32, completion_tokens=10_000
+    )
+    assert not ok and "foreign" in reason
+    ok, _, _ = task_speed.traffic_guard(scrape(10, 0), scrape(41, 9_000), MODEL, 32, 10_000)
+    assert not ok  # fewer finished than sent is never tolerated
