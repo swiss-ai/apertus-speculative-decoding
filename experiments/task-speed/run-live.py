@@ -92,7 +92,37 @@ class KubeMetrics:
         return _Response(text)
 
 
+class PodFile:
+    """In-cluster mode: the pod object captured with kubectl outside the client pod
+    (the client pod has no Kubernetes credentials). Re-read at the end, so the
+    operator refreshes it to prove the pod did not change."""
+
+    def __init__(self, path: Path):
+        self.path = path
+
+    def pod(self) -> dict:
+        return json.loads(self.path.read_text())
+
+
+class HttpMetrics:
+    """In-cluster mode: read the Service's /metrics directly (no credentials)."""
+
+    def __init__(self, url: str):
+        import httpx
+
+        self.url = url
+        self.client = httpx.AsyncClient(timeout=20)
+        self.http = self
+
+    async def get(self, _url: str):
+        response = await self.client.get(self.url)
+        response.raise_for_status()
+        return response
+
+
 def api_key(args) -> str:
+    if args.api_key_file:
+        return args.api_key_file.read_text().strip()
     value = os.environ.get(args.api_key_env)
     if value:
         return value
@@ -156,11 +186,13 @@ async def window(args) -> None:
     out = root / name
     out.mkdir(exist_ok=True)  # resumable: a window may span several jobs
     model = model_ids()[args.variant]
-    kube = Kube(args)
+    kube = PodFile(args.pod_json) if args.metrics_url else Kube(args)
     pod = kube.pod()
     forward = None
     base_url = GATEWAY
-    if args.direct:
+    if args.direct and args.metrics_url:
+        base_url = args.metrics_url.removesuffix("/metrics")  # the Service, in-cluster
+    elif args.direct:
         forward, base_url = port_forward(kube, pod["metadata"]["name"])
     try:
         await measure(args, suite, manifest, root, corpus, route, name, out, model, kube, pod,
@@ -203,7 +235,9 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
     run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
     (out / f"identity-{run_id}.json").write_text(json.dumps(identity, indent=2) + "\n")
     deadline = time.monotonic() + 60 * args.budget_minutes if args.budget_minutes else None
-    metrics = KubeMetrics(kube, identity["pod"])
+    metrics = (
+        HttpMetrics(args.metrics_url) if args.metrics_url else KubeMetrics(kube, identity["pod"])
+    )
     extra = {
         "deployment_id": f"k8s-{identity['pod_uid']}",
         "checkpoint_sha256": annotations["apertus.swissai/checkpoint-sha256"],
@@ -269,7 +303,7 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
                     summary = await run_cell(
                         client, prompts, corpus, cell,
                         CellSettings(label, concurrency, requests, 0, 1, generation),
-                        variant_record, "kubectl-exec://pod/metrics", model,
+                        variant_record, args.metrics_url or "kubectl-exec://pod/metrics", model,
                         {**extra, "separate_warmup": str(concurrency)},
                         metrics_interval=args.metrics_interval, tolerate_warmup_failures=True,
                         metrics_client=metrics,
@@ -350,6 +384,12 @@ def main() -> None:
     parser.add_argument("--budget-minutes", type=float, help="stop starting cells after this")
     parser.add_argument("--metrics-interval", type=float, default=5.0)
     parser.add_argument("--timeout-seconds", type=float, default=900.0)
+    parser.add_argument(
+        "--metrics-url",
+        help="in-cluster mode: the Service's /metrics (client runs in a pod next to the model)",
+    )
+    parser.add_argument("--pod-json", type=Path, help="in-cluster mode: kubectl get pod -o json")
+    parser.add_argument("--api-key-file", type=Path, help="private file holding the gateway key")
     parser.add_argument("--kubectl", default="kubectl")
     parser.add_argument("--context", default="breithorn-oidc")
     parser.add_argument("--namespace", default="rob-poc")

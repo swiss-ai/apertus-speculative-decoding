@@ -406,7 +406,7 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
         concurrencies=[1], retries=2, budget_minutes=None, metrics_interval=None,
         timeout_seconds=5,
         kubectl="kubectl", context="c", namespace="n", api_key_env="CSCS_SERVING_API",
-        sml_python="python3",
+        sml_python="python3", metrics_url=None, pod_json=None, api_key_file=None,
     )  # fmt: skip
     asyncio.run(live.window(args))
     (record,) = json.loads((tmp_path / "live" / "windows.json").read_text())
@@ -464,3 +464,77 @@ def test_traffic_guard_tolerates_small_foreign_load():
     assert not ok and "foreign" in reason
     ok, _, _ = task_speed.traffic_guard(scrape(10, 0), scrape(41, 9_000), MODEL, 32, 10_000)
     assert not ok  # fewer finished than sent is never tolerated
+
+
+def test_live_window_in_cluster_mode_reads_service_metrics(tmp_path, monkeypatch):
+    """The client pod has no kubectl: pod identity from a file, metrics over HTTP."""
+    import argparse
+    import asyncio
+
+    import httpx
+    import yaml
+
+    live = _live_module()
+    inputs, suite = _suite(tmp_path, src=[_row(f"opb-{i}", "opb") for i in range(2)])
+    suite["slices"] = [{"label": "opb", "class": "id", "source": "src", "workload": "opb"}]
+    suite["concurrencies"] = [1]
+    suite_path = tmp_path / "suite.yaml"
+    suite_path.write_text(yaml.safe_dump(suite))
+    (tmp_path / "c").mkdir()
+    manifest = task_speed.build_corpus(suite, inputs, tmp_path / "c" / "corpus.jsonl")
+    (tmp_path / "c" / "corpus-manifest.json").write_text(json.dumps(manifest))
+    model = live.model_ids()["plain"]
+    state = {"done": 0}
+    pod = {
+        "metadata": {"name": "p", "uid": "u", "annotations": {
+            "apertus.swissai/variant": "plain", "apertus.swissai/checkpoint-sha256": "c",
+            "apertus.swissai/source-revision": "r"}},
+        "spec": {"nodeName": "nid006597"},
+        "status": {"containerStatuses": [{"restartCount": 0}]},
+    }  # fmt: skip
+    (tmp_path / "pod.json").write_text(json.dumps(pod))
+    (tmp_path / "key").write_text("key\n")
+    urls = []
+
+    async def metrics_get(self, url):
+        urls.append(self.url)
+        label = f'{{engine="0",model_name="{model}"}}'
+        text = (
+            f"# TYPE vllm:num_requests_running gauge\nvllm:num_requests_running{label} 0\n"
+            "# TYPE vllm:request_success counter\n"
+            f"vllm:request_success_total{label} {state['done']}\n"
+        )
+        return httpx.Response(200, text=text, request=httpx.Request("GET", self.url))
+
+    async def handler(request):
+        state["done"] += 1
+        events = [
+            {"choices": [{"delta": {"content": "a"}, "finish_reason": "stop"}]},
+            {"choices": [], "usage": {"prompt_tokens": 3, "completion_tokens": 1}},
+        ]
+        body = "".join(f"data: {json.dumps(e)}\n\n" for e in events) + "data: [DONE]\n\n"
+        return httpx.Response(200, text=body)
+
+    class Client(live.StreamingChatClient):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            assert self.http.headers["Authorization"] == "Bearer key"
+            self.http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+
+    monkeypatch.setattr(live.HttpMetrics, "get", metrics_get)
+    monkeypatch.setattr(live, "StreamingChatClient", Client)
+    monkeypatch.setattr(live, "Kube", None)  # must not be used in-cluster
+    url = "http://svc.rob-poc.svc:8080/metrics"
+    args = argparse.Namespace(
+        suite=suite_path, corpus=tmp_path / "c" / "corpus.jsonl", output=tmp_path / "live",
+        window="P1", variant="plain", round=1, direct=False, slices=None, concurrencies=None,
+        retries=0, budget_minutes=None, metrics_interval=None, timeout_seconds=5,
+        kubectl="kubectl", context="c", namespace="n", api_key_env="UNSET_KEY_ENV",
+        sml_python="python3", metrics_url=url, pod_json=tmp_path / "pod.json",
+        api_key_file=tmp_path / "key",
+    )  # fmt: skip
+    asyncio.run(live.window(args))
+    (record,) = json.loads((tmp_path / "live" / "windows.json").read_text())
+    assert record["status"] == "ok" and set(urls) == {url}
+    metadata = json.loads((tmp_path / "live/P1/opb/opb/c1/metadata.json").read_text())
+    assert metadata["metrics_url"] == url and metadata["extra"]["node"] == "nid006597"
