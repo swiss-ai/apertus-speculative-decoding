@@ -85,8 +85,6 @@ resume_controller_v5.py now excludes those completed source paths, preserves
 them in place, and journals each newly completed file before the next header.
 Partial v2 writes use separate names; no finished file is overwritten.
 The source EOF cause remains unestablished; Lustre waiting was directly observed.
-Latest bounded observation and process IDs are in the persistent receipt:
-`/home/projects/apertus-speculative-decoding-recovery-control/receipts/layouts.json`.
 
 ## Preserved CPU continuation
 

@@ -53,8 +53,7 @@ modified. The pip report/log and source-identity environment manifest retain
 this dependency and the existing PyYAML6.0.3 identity.
 
 Initial recovery allocation: preflight **3769354**, launched by durable remote
-controller PID69249 on clariden1. Its detailed initial state is retained in
-`controller-first-observation.json`. This is an infrastructure preflight, not
+controller PID69249 on clariden1. This is an infrastructure preflight, not
 a final speedup verdict. The controller will register all further job IDs at
 the same durable state path. The local parent monitor reads that registry.
 The final pre-launch source check is explicitly suffixed `efad15a1`; earlier

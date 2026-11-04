@@ -78,7 +78,8 @@ The private original-scope wrapper is commit 358ea55d, SHA256
 4b831ca38d5c18d242163ab6f21d2abf8a0b3b0e53d029ab1f52f3aa6f8aaa02.
 Scratch bootstrap is commit ee15d3b3, SHA256
 a73da7bd29be2ffd0c5cb0cf73ef3cc396f867d1eb195ce89e0c72110ca7b10e.
-continuation-freeze-v4.json and launch-controller-v5.sh preserve full commands,
+controller-v4/continuation-freeze-v4.json and controller-v5/launch-controller-v5.sh
+preserve full commands,
 branch/revisions and file identity. Every new submit-command.txt also records
 SWEEP_SOURCE_BRANCH, SWEEP_CONTROLLER_WRAPPER_SHA, SWEEP_CONTROLLER_BOOTSTRAP_SHA
 and SWEEP_CONTROLLER_FREEZE. Five focused continuation/cache checks, Ruff,
@@ -106,17 +107,16 @@ a rejected stage. The final review combines these 267 cells with the 773 already
 reviewed; request counts are not independent deployment repeats.
 
 ```bash
-cd /home/projects/apertus-speculative-decoding-highconc
-/home/projects/apertus-speculative-decoding/.venv/bin/python \
+python \
   results/8b/layout-recovery-20261030/prepare_final_review.py \
   --controller-state results/8b/layout-recovery-20261030/controller-v5/state.json \
-  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc=/home/projects/apertus-speculative-decoding-highconc \
+  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc="$PWD" \
   --output results/8b/layout-recovery-20261030/remaining-review-inputs-v1
-/home/projects/apertus-speculative-decoding/.venv/bin/python \
+python \
   results/8b/layout-recovery-20261027/review-helper-v1/review.py \
   --analysis results/8b/layout-recovery-20261030/completed-v2-review-v1/review.json \
   --analysis results/8b/layout-recovery-20261030/remaining-review-inputs-v1/remaining-analysis.json \
-  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc=/home/projects/apertus-speculative-decoding-highconc \
+  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc="$PWD" \
   --verify-requests \
   --output results/8b/layout-recovery-20261030/final-review-v1
 ```

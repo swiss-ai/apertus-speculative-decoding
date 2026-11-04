@@ -57,11 +57,11 @@ needed. Follow the frozen CPU helper guide in
 controller-v2 state path in its local command:
 
 ```bash
-/home/projects/apertus-speculative-decoding/.venv/bin/python \
+python \
   results/8b/layout-recovery-20261027/review-helper-v1/review.py \
   --analysis results/8b/layout-recovery-20261027/historical-analysis.json \
   --controller-state results/8b/layout-recovery-20261028/controller-v2/state.json \
-  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc=/home/projects/apertus-speculative-decoding-highconc \
+  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc="$PWD" \
   --verify-requests \
   --output results/8b/layout-recovery-20261028/final-review-v1
 ```

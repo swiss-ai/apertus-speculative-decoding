@@ -68,15 +68,13 @@ do not silently pool them with original 0.8-budget deployments.
    totals were already independently checked in historical-analysis.json.
 
 ```bash
-cd /home/projects/apertus-speculative-decoding-highconc
-cd results/8b/layout-recovery-20261027/review-helper-v1
-sha256sum -c manifest.sha256
-cd /home/projects/apertus-speculative-decoding-highconc
-/home/projects/apertus-speculative-decoding/.venv/bin/python \
+# from the repository root
+(cd results/8b/layout-recovery-20261027/review-helper-v1 && sha256sum -c manifest.sha256)
+python \
   results/8b/layout-recovery-20261027/review-helper-v1/review.py \
   --analysis results/8b/layout-recovery-20261027/historical-analysis.json \
   --controller-state results/8b/layout-recovery-20261027/controller-v1/state.json \
-  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc=/home/projects/apertus-speculative-decoding-highconc \
+  --path-map /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc="$PWD" \
   --verify-requests \
   --output results/8b/layout-recovery-20261027/final-review-v1
 ```
