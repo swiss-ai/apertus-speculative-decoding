@@ -35,14 +35,45 @@ def controlled_pairs(roots: list[Path]) -> dict[str, dict[str, Path]]:
 
 
 def live_pairs(root: Path) -> dict[str, dict[str, Path]]:
-    """Rounds of the live campaign: each pairs a plain and a DSpark window."""
+    """Rounds of the live campaign: each pairs a plain and a DSpark gateway window."""
     windows = json.loads((root / "windows.json").read_text())
     rounds: dict[str, dict[str, Path]] = {}
     for window in windows:
-        if window.get("status") != "ok":
+        if window.get("status") != "ok" or window.get("route") != "gateway":
             continue
         rounds.setdefault(f"round-{window['round']}", {})[window["variant"]] = root / window["name"]
     return {name: arms for name, arms in rounds.items() if set(arms) == {"plain", "dspark"}}
+
+
+def gateway_overhead(root: Path) -> list[dict]:
+    """Gateway minus direct latency, per cell measured both ways in one window."""
+    rows = []
+    for direct in sorted(root.glob("*-direct")):
+        gateway = root / direct.name.removesuffix("-direct")
+        for summary_path in sorted(direct.glob("*/*/c*/summary.json")):
+            relative = summary_path.relative_to(direct)
+            other = gateway / relative
+            if relative.parts[0] == "rejected" or not other.exists():
+                continue
+            via_direct = json.loads(summary_path.read_text())
+            via_gateway = json.loads(other.read_text())
+            rows.append(
+                {
+                    "window": gateway.name,
+                    "slice": relative.parts[0],
+                    "concurrency": int(relative.parts[2][1:]),
+                    **{
+                        f"{metric}_p50_ms_added": via_gateway["latency_ms"][metric]["p50"]
+                        - via_direct["latency_ms"][metric]["p50"]
+                        for metric in ("ttft", "e2e")
+                    },
+                    "tokens_s_gateway_over_direct": via_gateway["tokens"][
+                        "output_tokens_per_second"
+                    ]
+                    / via_direct["tokens"]["output_tokens_per_second"],
+                }
+            )
+    return rows
 
 
 def fmt(value, spec=".2f", suffix=""):
@@ -150,6 +181,19 @@ def render(suite, result) -> str:
             lines += [f"- {r}" for r in data["rejected"]]
             lines += ["", f"**Missing cells: {len(data['missing'])}.**"]
         lines.append("")
+    if result.get("gateway_overhead"):
+        lines += ["## Gateway overhead (gateway minus direct, same window)", ""]
+        lines += [
+            "| Window | Slice | C | TTFT p50 added (ms) | E2E p50 added (ms) | tokens/s ratio |",
+            "|---|---|---|---|---|---|",
+        ]
+        for row in result["gateway_overhead"]:
+            lines.append(
+                f"| {row['window']} | {row['slice']} | {row['concurrency']} | "
+                f"{row['ttft_p50_ms_added']:.0f} | {row['e2e_p50_ms_added']:.0f} | "
+                f"{row['tokens_s_gateway_over_direct']:.2f} |"
+            )
+        lines.append("")
     if result.get("transfer"):
         lines += ["## Live ÷ controlled speedup", ""]
         header = "| Slice | " + " | ".join(f"C={c}" for c in concurrencies) + " |"
@@ -184,6 +228,7 @@ def main() -> None:
         result["controlled"] = analyse(suite, controlled_pairs(args.controlled), CONTROLLED_MATCH)
     if args.live:
         result["live"] = analyse(suite, live_pairs(args.live), LIVE_MATCH)
+        result["gateway_overhead"] = gateway_overhead(args.live)
     if args.controlled and args.live:
         controlled = {(r["slice"], r["concurrency"]): r for r in result["controlled"]["rows"]}
         result["transfer"] = [

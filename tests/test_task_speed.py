@@ -269,7 +269,9 @@ def test_report_combines_controlled_and_live(tmp_path, monkeypatch):
     windows = []
     for name, variant, rnd in (("D1", "dspark", 1), ("P1", "plain", 1), ("P2", "plain", 2),
                                ("D2", "dspark", 2)):  # fmt: skip
-        windows.append({"name": name, "variant": variant, "round": rnd, "status": "ok"})
+        windows.append(
+            {"name": name, "variant": variant, "round": rnd, "status": "ok", "route": "gateway"}
+        )
         for label, speedup in (("opb", 2.0), ("lang-amh", 0.9)):
             rate = 100.0 * (speedup if variant == "dspark" else 1.0)
             _write(
@@ -277,6 +279,12 @@ def test_report_combines_controlled_and_live(tmp_path, monkeypatch):
                 _summary(rate, spec if variant == "dspark" else None),
                 _metadata(route="gateway"),
             )
+    # A direct-route window of D1 must not enter the pairs, only the overhead table.
+    windows.append({"name": "D1-direct", "variant": "dspark", "round": 1, "status": "ok",
+                    "route": "direct"})  # fmt: skip
+    fast = _summary(250.0, spec)
+    fast["latency_ms"]["ttft"]["p50"] = 0.25
+    _write(live / "D1-direct" / "opb" / "opb" / "c1", fast, _metadata(route="direct"))
     (live / "windows.json").write_text(json.dumps(windows))
     out = tmp_path / "report"
     argv = ["x", "--suite", str(suite_path), "--controlled", str(controlled), "--live", str(live)]
@@ -288,5 +296,124 @@ def test_report_combines_controlled_and_live(tmp_path, monkeypatch):
     assert ratios["opb"] == pytest.approx(2.0 / (2.2 * 1.01), rel=1e-3)
     report = (out / "REPORT.md").read_text()
     assert "| opb | id |" in report and "Live ÷ controlled" in report
+    (overhead,) = result["gateway_overhead"]
+    assert overhead["window"] == "D1" and overhead["ttft_p50_ms_added"] == pytest.approx(0.75)
+    assert overhead["tokens_s_gateway_over_direct"] == pytest.approx(0.8)
     # lang-amh's interval [1.0, 1.02] sits inside the ±5% band.
     assert json.loads((out / "select.json").read_text()) == {"select": {}}
+
+
+def _live_module():
+    import importlib.util
+
+    path = ROOT / "experiments/task-speed/run-live.py"
+    spec = importlib.util.spec_from_file_location("run_live", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
+    import argparse
+    import asyncio
+
+    import httpx
+    import yaml
+
+    live = _live_module()
+    rows = [_row(f"opb-{i}", "opb") for i in range(4)]
+    inputs, suite = _suite(tmp_path, src=rows)
+    suite["slices"] = [{"label": "opb", "class": "id", "source": "src", "workload": "opb"}]
+    suite_path = tmp_path / "suite.yaml"
+    suite_path.write_text(yaml.safe_dump(suite))
+    corpus_dir = tmp_path / "controlled"
+    corpus_dir.mkdir()
+    manifest = task_speed.build_corpus(suite, inputs, corpus_dir / "corpus.jsonl")
+    (corpus_dir / "corpus-manifest.json").write_text(json.dumps(manifest))
+
+    model = live.model_ids()["dspark"]
+    state = {"done": 0, "foreign": 1}  # one foreign request lands in the first cell
+
+    def scrape():
+        label = f'{{engine="0",model_name="{model}"}}'
+        return (
+            f"# TYPE vllm:num_requests_running gauge\nvllm:num_requests_running{label} 0\n"
+            f"# TYPE vllm:num_requests_waiting gauge\nvllm:num_requests_waiting{label} 0\n"
+            "# TYPE vllm:request_success counter\n"
+            f"vllm:request_success_total{label} {state['done']}\n"
+            "# TYPE vllm:spec_decode_num_drafts counter\n"
+            f"vllm:spec_decode_num_drafts_total{label} {state['done'] * 2}\n"
+            "# TYPE vllm:spec_decode_num_draft_tokens counter\n"
+            f"vllm:spec_decode_num_draft_tokens_total{label} {state['done'] * 6}\n"
+            "# TYPE vllm:spec_decode_num_accepted_tokens counter\n"
+            f"vllm:spec_decode_num_accepted_tokens_total{label} {state['done'] * 4}\n"
+        )
+
+    pod = {
+        "metadata": {
+            "name": "pod-a",
+            "uid": "uid-a",
+            "annotations": {
+                "apertus.swissai/checkpoint-sha256": "7a70",
+                "apertus.swissai/source-revision": "rev",
+            },
+        },
+        "spec": {"nodeName": "nid006597"},
+        "status": {"startTime": "t", "containerStatuses": [{"restartCount": 0, "imageID": "i"}]},
+    }
+    scrapes = []
+
+    def kube_run(self, *argv, timeout=60):
+        if argv[:2] == ("get", "pods"):
+            return json.dumps({"items": [pod]})
+        if argv[0] == "exec":
+            scrapes.append(1)
+            # The foreign request finishes between the before and after scrape of
+            # the first measured cell (scrape 1 is wait_idle's, 2 is "before").
+            if len(scrapes) == 3 and state["foreign"]:
+                state["done"] += state.pop("foreign")
+            return scrape()
+        raise AssertionError(argv)
+
+    async def handler(request):
+        state["done"] += 1
+        events = [
+            {"choices": [{"delta": {"content": "a"}}]},
+            {"choices": [{"delta": {"content": "b"}, "finish_reason": "stop"}]},
+            {"choices": [], "usage": {"prompt_tokens": 3, "completion_tokens": 2}},
+        ]
+        body = "".join(f"data: {json.dumps(e)}\n\n" for e in events) + "data: [DONE]\n\n"
+        return httpx.Response(200, text=body)
+
+    class Client(live.StreamingChatClient):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            assert self.http.headers["Authorization"] == "Bearer key"
+            self.http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+
+    monkeypatch.setattr(live.Kube, "run", kube_run)
+    monkeypatch.setattr(live, "StreamingChatClient", Client)
+    monkeypatch.setenv("CSCS_SERVING_API", "key")
+    args = argparse.Namespace(
+        suite=suite_path, corpus=corpus_dir / "corpus.jsonl", output=tmp_path / "live",
+        window="D1", variant="dspark", round=1, direct=False, slices=None,
+        concurrencies=[1], retries=2, metrics_interval=None, timeout_seconds=5,
+        kubectl="kubectl", context="c", namespace="n", api_key_env="CSCS_SERVING_API",
+        sml_python="python3",
+    )  # fmt: skip
+    asyncio.run(live.window(args))
+    (record,) = json.loads((tmp_path / "live" / "windows.json").read_text())
+    assert record["status"] == "ok" and record["cells"] == [
+        {"slice": "opb", "concurrency": 1, "valid": True, "attempts": 2}
+    ]
+    window = tmp_path / "live" / "D1"
+    assert (window / "rejected" / "opb-c1-attempt-0" / "guard.json").exists()
+    guard = json.loads((window / "opb/opb/c1/guard.json").read_text())
+    assert guard["valid"] and guard["finished_delta"] == 2  # requests_for(suite, 1)
+    summary = json.loads((window / "opb/opb/c1/summary.json").read_text())
+    assert summary["speculative_decoding"]["mean_acceptance_length"] == 3.0
+    metadata = json.loads((window / "opb/opb/c1/metadata.json").read_text())
+    assert metadata["extra"]["route"] == "gateway" and metadata["extra"]["node"] == "nid006597"
+    with pytest.raises(RuntimeError, match="toggle first"):
+        args.window, args.variant = "P1", "plain"
+        asyncio.run(live.window(args))
