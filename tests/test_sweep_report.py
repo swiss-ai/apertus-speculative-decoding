@@ -78,3 +78,17 @@ def test_pool_sums_counters_across_labels(tmp_path: Path) -> None:
     assert list(pooled["eagle"]) == [1]
     assert pooled["eagle"][1]["output_tokens_per_second"] == 100.0
     assert pooled["eagle"][1]["mean_acceptance_length"] == pytest.approx(1 + 240 / 110)
+
+
+def test_frontier_keeps_points_no_other_beats_on_both(tmp_path: Path) -> None:
+    from apertus_bench.sweep_report import frontier
+
+    def level(c: int, throughput: float, tpot: float) -> dict:
+        return {"concurrency": c, "output_tokens_per_second": throughput, "tpot_p50_ms": tpot}
+
+    # tp4: fast per user at low load; dp4: more throughput under load.
+    _write(tmp_path, "tp4", "opb", [level(4, 1000.0, 2.5), level(256, 9000.0, 20.0)])
+    _write(tmp_path, "dp4", "opb", [level(4, 700.0, 5.0), level(256, 12000.0, 16.0)])
+    points = frontier(collect([tmp_path], "opb"))
+    assert [(name, c) for name, c, _, _ in points] == [("tp4", 4), ("dp4", 256)]
+    assert points[0][3] == pytest.approx(400.0)

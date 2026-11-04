@@ -1,0 +1,117 @@
+{
+  "job_id": "3769354",
+  "slurm_state": "FAILED",
+  "exit_code": "1:0",
+  "elapsed_seconds": 504,
+  "node": "nid007240",
+  "stress_cells_produced": 0,
+  "native_import_check": {
+    "successful_imports_inferred_from_sequential_traceback": [
+      "nixl_meta_utils",
+      "nixl",
+      "nixl._api",
+      "nixl_cu13"
+    ],
+    "failed_checker_module": "vllm.distributed.kv_transfer.kv_connector.v1.nixl_connector",
+    "pinned_factory_module": "vllm.distributed.kv_transfer.kv_connector.v1.nixl",
+    "repair": "Use registered module and require exported NixlConnector; retain partial import identity report if any later import fails"
+  },
+  "serving_failures": [
+    {
+      "arm": "plain-tp4",
+      "source": "results/8b/layout-recovery-20261027/controller-v1/runs/preflight-20261027T185603Z/plain-tp4/replica.out",
+      "sha256": "b4f39b7ae6df5b625ce235c00c4b9e458a7a0337550adfbba274062c01c61ed1",
+      "errors": [
+        {
+          "line": 182,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 183,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 208,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 209,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        }
+      ],
+      "oom_observed": false
+    },
+    {
+      "arm": "eagle-k7-tp4",
+      "source": "results/8b/layout-recovery-20261027/controller-v1/runs/preflight-20261027T185603Z/eagle-k7-tp4/replica.out",
+      "sha256": "bb38996e1d86aa7e4729f8a540a66df3067831f099ac4ef2681a30cb5efae57c",
+      "errors": [
+        {
+          "line": 203,
+          "text": "Capturing CUDA graphs (FULL):  88%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a | 42/48 [00:02<00:00, 17.67it/s]Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 209,
+          "text": "Capturing CUDA graphs (FULL):  96%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c| 46/48 [00:02<00:00, 18.05it/s]Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 213,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 225,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        }
+      ],
+      "oom_observed": false
+    },
+    {
+      "arm": "dspark-off-k7-tp4",
+      "source": "results/8b/layout-recovery-20261027/controller-v1/runs/preflight-20261027T185603Z/dspark-off-k7-tp4/replica.out",
+      "sha256": "50dd48b8fc0b7e1b10a0367e69f425987d047e5dd7b828fba52a1fa8b0b24919",
+      "errors": [
+        {
+          "line": 214,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 215,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 218,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        },
+        {
+          "line": 230,
+          "text": "Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'"
+        }
+      ],
+      "oom_observed": false
+    }
+  ],
+  "pinned_image_source_evidence": {
+    "image_sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5",
+    "factory_lines177_179": [
+      "NixlConnector",
+      "vllm.distributed.kv_transfer.kv_connector.v1.nixl",
+      "NixlConnector"
+    ],
+    "custom_all_reduce_cuh_lines455_456": [
+      "CUDACHECK(cudaIpcGetMemHandle(",
+      "(cudaIpcMemHandle_t*)&handles[i * handle_sz], base_ptr));"
+    ],
+    "matches_original_successful_oct22_oct24_image": true
+  },
+  "interpretation": "Expandable graph allocations failed CUDA IPC export after capture. No readiness, workload timing or C1024 OOM-relief result was obtained. NativeallocatorFalse remedy awaits fresh allocated-node preflight.",
+  "repair": {
+    "gpu_memory_utilization": 0.7,
+    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:False",
+    "applied_equally_to_plain_and_speculative": true,
+    "custom_allreduce_and_CUDA_graphs_retained": true,
+    "new_controller": "controller-v2",
+    "new_preflight_job_id": "3782518"
+  },
+  "scientific_completion": "pending_scientific_review",
+  "recorded_at": "2026-10-28T12:30:51.012271+00:00"
+}

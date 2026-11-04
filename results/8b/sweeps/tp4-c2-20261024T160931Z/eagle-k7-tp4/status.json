@@ -1,0 +1,56 @@
+{
+  "arm": "eagle-k7-tp4",
+  "deployment_id": "tp4-c2-3738048-eagle-k7-tp4",
+  "env": {},
+  "error": "RuntimeError: a server exited with 0 during tests",
+  "finished": "2026-10-24T20:20:47+0200",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "port": 8101,
+  "ready_seconds": 195.3,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-eagle-k7-tp4",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "4",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "1024",
+    "--speculative-config",
+    "{\"draft_tensor_parallel_size\": 4, \"method\": \"eagle3\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-10-24T20:13:02+0200",
+  "status": "failed",
+  "tests": {
+    "arena-hard-clean": {
+      "exit_code": 1
+    },
+    "opb": {
+      "exit_code": 1
+    }
+  }
+}

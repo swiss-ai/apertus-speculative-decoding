@@ -1,0 +1,76 @@
+# Sampling and top-k on one GPU, thinking off: greedy, Apertus' default
+# (T 0.7 / top-p 0.8 / top-k 20), and T 1.0 (Yu's protocol) with top-k
+# none / 50 / 20 / 5; top_p 1.0 and top_k -1 are explicit so the model's
+# generation defaults do not apply. No seed: seeded requests take vLLM's
+# per-request sampling path, which would distort the sampler cost under load.
+# normal, SWEEP_TIME 06:00:00.
+name: topk-off
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - label: opb-greedy
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {}
+  - label: arena-hard-clean-greedy
+    workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {}
+  - label: opb-default
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 0.7, top_p: 0.8, top_k: 20}
+  - label: arena-hard-clean-default
+    workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 0.7, top_p: 0.8, top_k: 20}
+  - label: opb-t1-kall
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: -1}
+  - label: arena-hard-clean-t1-kall
+    workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: -1}
+  - label: opb-t1-k50
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 50}
+  - label: arena-hard-clean-t1-k50
+    workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 50}
+  - label: opb-t1-k20
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 20}
+  - label: arena-hard-clean-t1-k20
+    workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 20}
+  - label: opb-t1-k5
+    workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 32, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 5}
+  - label: arena-hard-clean-t1-k5
+    workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [8, 64, 256]
+    generation: {temperature: 1.0, top_p: 1.0, top_k: 5}
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-off-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
+  - {name: dspark-off-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - {name: eagle-k3, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3}
+  - {name: eagle-k7, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 7}

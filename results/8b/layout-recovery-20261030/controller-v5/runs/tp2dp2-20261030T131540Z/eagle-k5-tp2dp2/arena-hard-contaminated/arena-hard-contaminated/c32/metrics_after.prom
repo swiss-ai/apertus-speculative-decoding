@@ -1,0 +1,822 @@
+# HELP http_request_size_bytes Content length of incoming requests by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_request_size_bytes summary
+http_request_size_bytes_count{handler="/v1/chat/completions"} 22803.0
+http_request_size_bytes_sum{handler="/v1/chat/completions"} 3.4010007e+07
+http_request_size_bytes_count{handler="/v1/models"} 1.0
+http_request_size_bytes_sum{handler="/v1/models"} 0.0
+# HELP http_response_size_bytes Content length of outgoing responses by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_response_size_bytes summary
+http_response_size_bytes_count{handler="/v1/chat/completions"} 22803.0
+http_response_size_bytes_sum{handler="/v1/chat/completions"} 698.0
+http_response_size_bytes_count{handler="/v1/models"} 1.0
+http_response_size_bytes_sum{handler="/v1/models"} 552.0
+# HELP vllm:request_prompt_tokens Number of prefill tokens processed.
+# TYPE vllm:request_prompt_tokens histogram
+vllm:request_prompt_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3.885444e+06
+vllm:request_prompt_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4602.0
+vllm:request_prompt_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8345.0
+vllm:request_prompt_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9747.0
+vllm:request_prompt_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10440.0
+vllm:request_prompt_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11045.0
+vllm:request_prompt_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prompt_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prompt_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prompt_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prompt_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prompt_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3.874782e+06
+vllm:request_prompt_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4658.0
+vllm:request_prompt_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8428.0
+vllm:request_prompt_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9780.0
+vllm:request_prompt_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10448.0
+vllm:request_prompt_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11029.0
+vllm:request_prompt_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prompt_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prompt_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prompt_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prompt_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_generation_tokens Number of generation tokens processed.
+# TYPE vllm:request_generation_tokens histogram
+vllm:request_generation_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5.963188e+06
+vllm:request_generation_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 40.0
+vllm:request_generation_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 60.0
+vllm:request_generation_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 60.0
+vllm:request_generation_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 340.0
+vllm:request_generation_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 731.0
+vllm:request_generation_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1595.0
+vllm:request_generation_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 6075.0
+vllm:request_generation_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10185.0
+vllm:request_generation_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_generation_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_generation_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_generation_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_generation_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_generation_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_generation_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5.927158e+06
+vllm:request_generation_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 41.0
+vllm:request_generation_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 55.0
+vllm:request_generation_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 55.0
+vllm:request_generation_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 339.0
+vllm:request_generation_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 724.0
+vllm:request_generation_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1626.0
+vllm:request_generation_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 6091.0
+vllm:request_generation_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10235.0
+vllm:request_generation_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_generation_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_generation_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_generation_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_generation_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_generation_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:iteration_tokens_total Histogram of number of tokens per engine_step.
+# TYPE vllm:iteration_tokens_total histogram
+vllm:iteration_tokens_total_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9.848632e+06
+vllm:iteration_tokens_total_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 18829.0
+vllm:iteration_tokens_total_bucket{engine="0",le="8.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 92744.0
+vllm:iteration_tokens_total_bucket{engine="0",le="16.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 98048.0
+vllm:iteration_tokens_total_bucket{engine="0",le="32.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 101885.0
+vllm:iteration_tokens_total_bucket{engine="0",le="64.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 108821.0
+vllm:iteration_tokens_total_bucket{engine="0",le="128.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 114565.0
+vllm:iteration_tokens_total_bucket{engine="0",le="256.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 119742.0
+vllm:iteration_tokens_total_bucket{engine="0",le="512.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 123827.0
+vllm:iteration_tokens_total_bucket{engine="0",le="1024.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 126571.0
+vllm:iteration_tokens_total_bucket{engine="0",le="2048.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 127252.0
+vllm:iteration_tokens_total_bucket{engine="0",le="4096.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 127544.0
+vllm:iteration_tokens_total_bucket{engine="0",le="8192.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 127753.0
+vllm:iteration_tokens_total_bucket{engine="0",le="16384.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 127849.0
+vllm:iteration_tokens_total_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 127851.0
+vllm:iteration_tokens_total_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 127851.0
+vllm:iteration_tokens_total_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9.80194e+06
+vllm:iteration_tokens_total_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 20668.0
+vllm:iteration_tokens_total_bucket{engine="1",le="8.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 95958.0
+vllm:iteration_tokens_total_bucket{engine="1",le="16.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 101811.0
+vllm:iteration_tokens_total_bucket{engine="1",le="32.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 106041.0
+vllm:iteration_tokens_total_bucket{engine="1",le="64.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 113296.0
+vllm:iteration_tokens_total_bucket{engine="1",le="128.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 119051.0
+vllm:iteration_tokens_total_bucket{engine="1",le="256.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 123801.0
+vllm:iteration_tokens_total_bucket{engine="1",le="512.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 128277.0
+vllm:iteration_tokens_total_bucket{engine="1",le="1024.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 130886.0
+vllm:iteration_tokens_total_bucket{engine="1",le="2048.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 131534.0
+vllm:iteration_tokens_total_bucket{engine="1",le="4096.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 131848.0
+vllm:iteration_tokens_total_bucket{engine="1",le="8192.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 132030.0
+vllm:iteration_tokens_total_bucket{engine="1",le="16384.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 132132.0
+vllm:iteration_tokens_total_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 132135.0
+vllm:iteration_tokens_total_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 132135.0
+# HELP vllm:request_max_num_generation_tokens Histogram of maximum number of requested generation tokens.
+# TYPE vllm:request_max_num_generation_tokens histogram
+vllm:request_max_num_generation_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5.963188e+06
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 40.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 60.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 60.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 340.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 731.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1595.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 6075.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10185.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_max_num_generation_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_max_num_generation_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5.927158e+06
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 41.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 55.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 55.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 339.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 724.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1626.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 6091.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10235.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_max_num_generation_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_params_n Histogram of the n request parameter.
+# TYPE vllm:request_params_n histogram
+vllm:request_params_n_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_n_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_n_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_n_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_n_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_n_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_n_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_n_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_n_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_params_max_tokens Histogram of the max_tokens request parameter.
+# TYPE vllm:request_params_max_tokens histogram
+vllm:request_params_max_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9.047625e+06
+vllm:request_params_max_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.0
+vllm:request_params_max_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.0
+vllm:request_params_max_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 40.0
+vllm:request_params_max_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 220.0
+vllm:request_params_max_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 267.0
+vllm:request_params_max_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 711.0
+vllm:request_params_max_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2746.0
+vllm:request_params_max_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4592.0
+vllm:request_params_max_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_max_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_max_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_max_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_max_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_max_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_params_max_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9.043529e+06
+vllm:request_params_max_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 41.0
+vllm:request_params_max_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 267.0
+vllm:request_params_max_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 300.0
+vllm:request_params_max_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 750.0
+vllm:request_params_max_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2747.0
+vllm:request_params_max_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4614.0
+vllm:request_params_max_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_max_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_max_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_max_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_max_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_params_max_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:time_to_first_token_seconds Histogram of time to first token in seconds.
+# TYPE vllm:time_to_first_token_seconds histogram
+vllm:time_to_first_token_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9037.669031858444
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.001",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.005",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.02",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 381.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.04",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1292.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.06",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1853.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.08",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2488.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2912.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.25",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5091.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7906.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8754.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8974.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10165.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11186.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="160.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="640.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="2560.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:time_to_first_token_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8496.53215098381
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.001",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.005",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.02",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 395.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.04",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1259.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.06",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1824.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.08",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2283.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2882.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.25",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5666.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8443.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8877.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9133.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10280.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11277.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="160.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="640.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="2560.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:time_to_first_token_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:inter_token_latency_seconds Histogram of inter-token latency in seconds.
+# TYPE vllm:inter_token_latency_seconds histogram
+vllm:inter_token_latency_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 85203.18107997172
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 205028.0
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 435762.0
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 924043.0
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.211607e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.486254e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.559129e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.575171e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.580634e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:inter_token_latency_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 80155.99352102668
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 218059.0
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 431188.0
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 985331.0
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.250914e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.50415e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.555304e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.566387e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.571127e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+vllm:inter_token_latency_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+# HELP vllm:request_time_per_output_token_seconds Histogram of time_per_output_token_seconds per request.
+# TYPE vllm:request_time_per_output_token_seconds histogram
+vllm:request_time_per_output_token_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 192.1489410498677
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3885.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9278.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11150.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11333.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11373.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11384.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_time_per_output_token_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 183.5929069086774
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3801.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9746.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11159.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11328.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11369.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11381.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_time_per_output_token_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:e2e_request_latency_seconds Histogram of e2e request latency in seconds.
+# TYPE vllm:e2e_request_latency_seconds histogram
+vllm:e2e_request_latency_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 94229.70023059845
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 161.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 342.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 693.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 925.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1459.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1956.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2401.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4211.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7318.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9495.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11145.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11400.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:e2e_request_latency_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 88644.64606189728
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 134.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 352.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 707.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 899.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1431.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1919.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2359.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4378.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7526.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9947.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11315.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:e2e_request_latency_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_queue_time_seconds Histogram of time spent in WAITING phase for request.
+# TYPE vllm:request_queue_time_seconds histogram
+vllm:request_queue_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4673.46287326864
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9118.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9392.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9652.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9686.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10155.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10338.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10666.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11396.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_queue_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4407.556628998485
+vllm:request_queue_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9235.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9354.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9595.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9698.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10200.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10418.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10683.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_queue_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_inference_time_seconds Histogram of time spent in RUNNING phase for request.
+# TYPE vllm:request_inference_time_seconds histogram
+vllm:request_inference_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 88631.9804271831
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 169.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 361.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 727.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 954.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1525.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2037.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2500.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4422.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7709.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9831.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11260.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11400.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_inference_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 83347.36603385315
+vllm:request_inference_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 147.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 370.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 725.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 921.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1491.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1998.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2484.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4624.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7929.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10287.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11351.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_inference_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_prefill_time_seconds Histogram of time spent in PREFILL phase for request.
+# TYPE vllm:request_prefill_time_seconds histogram
+vllm:request_prefill_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3428.799347211374
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 6898.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8695.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11310.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11317.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3191.372512826463
+vllm:request_prefill_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7372.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8814.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11310.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11324.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_decode_time_seconds Histogram of time spent in DECODE phase for request.
+# TYPE vllm:request_decode_time_seconds histogram
+vllm:request_decode_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 85203.18107997172
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 221.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 449.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 832.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1078.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1658.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2196.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2679.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4649.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7878.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9990.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11280.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11400.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_decode_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 80155.99352102668
+vllm:request_decode_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 205.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 472.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 821.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1062.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1623.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2162.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2673.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4823.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8127.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10405.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11366.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_decode_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP vllm:request_prefill_kv_computed_tokens Histogram of new KV tokens computed during prefill (excluding cached tokens).
+# TYPE vllm:request_prefill_kv_computed_tokens histogram
+vllm:request_prefill_kv_computed_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3.885444e+06
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4602.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8345.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9747.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10440.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11045.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_kv_computed_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11402.0
+vllm:request_prefill_kv_computed_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3.874782e+06
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4658.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8428.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 9780.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 10448.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11029.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+vllm:request_prefill_kv_computed_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 11401.0
+# HELP http_request_duration_highr_seconds Latency with many buckets but no API specific labels. Made for more accurate percentile calculations. 
+# TYPE http_request_duration_highr_seconds histogram
+http_request_duration_highr_seconds_sum 183267.87567435077
+http_request_duration_highr_seconds_bucket{le="0.01"} 1.0
+http_request_duration_highr_seconds_bucket{le="0.025"} 2.0
+http_request_duration_highr_seconds_bucket{le="0.05"} 7.0
+http_request_duration_highr_seconds_bucket{le="0.075"} 25.0
+http_request_duration_highr_seconds_bucket{le="0.1"} 39.0
+http_request_duration_highr_seconds_bucket{le="0.25"} 208.0
+http_request_duration_highr_seconds_bucket{le="0.5"} 673.0
+http_request_duration_highr_seconds_bucket{le="0.75"} 1262.0
+http_request_duration_highr_seconds_bucket{le="1.0"} 1809.0
+http_request_duration_highr_seconds_bucket{le="1.5"} 2872.0
+http_request_duration_highr_seconds_bucket{le="2.0"} 3863.0
+http_request_duration_highr_seconds_bucket{le="2.5"} 4741.0
+http_request_duration_highr_seconds_bucket{le="3.0"} 5585.0
+http_request_duration_highr_seconds_bucket{le="3.5"} 6388.0
+http_request_duration_highr_seconds_bucket{le="4.0"} 7133.0
+http_request_duration_highr_seconds_bucket{le="4.5"} 7881.0
+http_request_duration_highr_seconds_bucket{le="5.0"} 8568.0
+http_request_duration_highr_seconds_bucket{le="7.5"} 11824.0
+http_request_duration_highr_seconds_bucket{le="10.0"} 14826.0
+http_request_duration_highr_seconds_bucket{le="30.0"} 22802.0
+http_request_duration_highr_seconds_bucket{le="60.0"} 22804.0
+http_request_duration_highr_seconds_bucket{le="+Inf"} 22804.0
+http_request_duration_highr_seconds_count 22804.0
+# HELP http_request_duration_seconds Latency with only few buckets by handler. Made to be only used if aggregation by handler is important. 
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_sum{handler="/v1/models",method="GET"} 0.0009520979365333915
+http_request_duration_seconds_bucket{handler="/v1/models",le="0.1",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="0.5",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="1.0",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="+Inf",method="GET"} 1.0
+http_request_duration_seconds_count{handler="/v1/models",method="GET"} 1.0
+http_request_duration_seconds_sum{handler="/v1/chat/completions",method="POST"} 183267.87472225283
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="0.1",method="POST"} 38.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="0.5",method="POST"} 672.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="1.0",method="POST"} 1808.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="+Inf",method="POST"} 22803.0
+http_request_duration_seconds_count{handler="/v1/chat/completions",method="POST"} 22803.0
+# HELP vllm:num_requests_running Number of requests in model execution batches.
+# TYPE vllm:num_requests_running gauge
+vllm:num_requests_running{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:num_requests_running{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:num_requests_waiting Number of requests waiting to be processed.
+# TYPE vllm:num_requests_waiting gauge
+vllm:num_requests_waiting{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:num_requests_waiting{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:num_requests_waiting_by_reason Number of waiting requests by reason. Reason labels: 'capacity' = waiting for scheduling capacity; 'deferred' = deferred by transient constraints (LoRA budget, KV transfer, blocked status). Sum of all reasons equals vllm:num_requests_waiting.
+# TYPE vllm:num_requests_waiting_by_reason gauge
+vllm:num_requests_waiting_by_reason{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",reason="capacity"} 0.0
+vllm:num_requests_waiting_by_reason{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",reason="capacity"} 0.0
+vllm:num_requests_waiting_by_reason{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",reason="deferred"} 0.0
+vllm:num_requests_waiting_by_reason{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",reason="deferred"} 0.0
+# HELP vllm:engine_sleep_state Engine sleep state; awake = 0 means engine is sleeping; awake = 1 means engine is awake; weights_offloaded = 1 means sleep level 1; discard_all = 1 means sleep level 2.
+# TYPE vllm:engine_sleep_state gauge
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",sleep_state="awake"} 1.0
+vllm:engine_sleep_state{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",sleep_state="awake"} 1.0
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",sleep_state="weights_offloaded"} 0.0
+vllm:engine_sleep_state{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",sleep_state="weights_offloaded"} 0.0
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",sleep_state="discard_all"} 0.0
+vllm:engine_sleep_state{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",sleep_state="discard_all"} 0.0
+# HELP vllm:kv_cache_usage_perc KV-cache usage. 1 means 100 percent usage.
+# TYPE vllm:kv_cache_usage_perc gauge
+vllm:kv_cache_usage_perc{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:kv_cache_usage_perc{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:cache_config_info Information of the LLMEngine CacheConfig
+# TYPE vllm:cache_config_info gauge
+vllm:cache_config_info{_block_size_resolved="True",block_size="16",cache_dtype="auto",calculate_kv_scales="False",enable_prefix_caching="False",engine="0",gpu_memory_utilization="0.8",hash_block_size="None",is_attention_free="False",kv_cache_dtype_skip_layers="[]",kv_cache_max_concurrency="31.19921875",kv_cache_memory_bytes="None",kv_cache_size_tokens="1022336",kv_offloading_backend="native",kv_offloading_size="None",kv_sharing_fast_prefill="False",mamba_block_size="None",mamba_cache_dtype="auto",mamba_cache_mode="none",mamba_page_size_padded="None",mamba_ssm_cache_dtype="auto",num_cpu_blocks="None",num_gpu_blocks="127792",num_gpu_blocks_override="None",prefix_caching_hash_algo="sha256",skip_page_size_padded="None",sliding_window="None",user_specified_block_size="False",user_specified_mamba_block_size="False"} 1.0
+vllm:cache_config_info{_block_size_resolved="True",block_size="16",cache_dtype="auto",calculate_kv_scales="False",enable_prefix_caching="False",engine="1",gpu_memory_utilization="0.8",hash_block_size="None",is_attention_free="False",kv_cache_dtype_skip_layers="[]",kv_cache_max_concurrency="31.19921875",kv_cache_memory_bytes="None",kv_cache_size_tokens="1022336",kv_offloading_backend="native",kv_offloading_size="None",kv_sharing_fast_prefill="False",mamba_block_size="None",mamba_cache_dtype="auto",mamba_cache_mode="none",mamba_page_size_padded="None",mamba_ssm_cache_dtype="auto",num_cpu_blocks="None",num_gpu_blocks="127792",num_gpu_blocks_override="None",prefix_caching_hash_algo="sha256",skip_page_size_padded="None",sliding_window="None",user_specified_block_size="False",user_specified_mamba_block_size="False"} 1.0
+# HELP vllm:spec_decode_num_drafts_total Number of spec decoding drafts.
+# TYPE vllm:spec_decode_num_drafts_total counter
+vllm:spec_decode_num_drafts_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.605145e+06
+vllm:spec_decode_num_drafts_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 1.594231e+06
+# HELP vllm:spec_decode_num_draft_tokens_total Number of draft tokens.
+# TYPE vllm:spec_decode_num_draft_tokens_total counter
+vllm:spec_decode_num_draft_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8.025725e+06
+vllm:spec_decode_num_draft_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 7.971155e+06
+# HELP vllm:spec_decode_num_accepted_tokens_total Number of accepted tokens.
+# TYPE vllm:spec_decode_num_accepted_tokens_total counter
+vllm:spec_decode_num_accepted_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4.366247e+06
+vllm:spec_decode_num_accepted_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 4.341091e+06
+# HELP vllm:spec_decode_num_accepted_tokens_per_pos_total Accepted tokens per draft position.
+# TYPE vllm:spec_decode_num_accepted_tokens_per_pos_total counter
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="0"} 1.274061e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="1"} 1.015018e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="2"} 824965.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="3"} 680344.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="4"} 571859.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="0"} 1.265892e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="1"} 1.008938e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="2"} 820637.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="3"} 676795.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",position="4"} 568829.0
+# HELP vllm:estimated_flops_per_gpu_total Estimated number of floating point operations per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_flops_per_gpu_total counter
+vllm:estimated_flops_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:estimated_flops_per_gpu_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:estimated_read_bytes_per_gpu_total Estimated number of bytes read from memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_read_bytes_per_gpu_total counter
+vllm:estimated_read_bytes_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:estimated_read_bytes_per_gpu_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:estimated_write_bytes_per_gpu_total Estimated number of bytes written to memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_write_bytes_per_gpu_total counter
+vllm:estimated_write_bytes_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:estimated_write_bytes_per_gpu_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:prefix_cache_queries_total Prefix cache queries, in terms of number of queried tokens.
+# TYPE vllm:prefix_cache_queries_total counter
+vllm:prefix_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:prefix_cache_queries_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:prefix_cache_hits_total Prefix cache hits, in terms of number of cached tokens.
+# TYPE vllm:prefix_cache_hits_total counter
+vllm:prefix_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:prefix_cache_hits_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:external_prefix_cache_queries_total External prefix cache queries from KV connector cross-instance cache sharing, in terms of number of queried tokens.
+# TYPE vllm:external_prefix_cache_queries_total counter
+vllm:external_prefix_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:external_prefix_cache_queries_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:external_prefix_cache_hits_total External prefix cache hits from KV connector cross-instance cache sharing, in terms of number of cached tokens.
+# TYPE vllm:external_prefix_cache_hits_total counter
+vllm:external_prefix_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:external_prefix_cache_hits_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:mm_cache_queries_total Multi-modal cache queries, in terms of number of queried items.
+# TYPE vllm:mm_cache_queries_total counter
+vllm:mm_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:mm_cache_queries_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:mm_cache_hits_total Multi-modal cache hits, in terms of number of cached items.
+# TYPE vllm:mm_cache_hits_total counter
+vllm:mm_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:mm_cache_hits_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:num_preemptions_total Cumulative number of preemption from the engine.
+# TYPE vllm:num_preemptions_total counter
+vllm:num_preemptions_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:num_preemptions_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:prompt_tokens_total Number of prefill tokens processed.
+# TYPE vllm:prompt_tokens_total counter
+vllm:prompt_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3.885444e+06
+vllm:prompt_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3.874782e+06
+# HELP vllm:prompt_tokens_by_source_total Number of prompt tokens by source.
+# TYPE vllm:prompt_tokens_by_source_total counter
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",source="local_compute"} 3.885444e+06
+vllm:prompt_tokens_by_source_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",source="local_compute"} 3.874782e+06
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",source="local_cache_hit"} 0.0
+vllm:prompt_tokens_by_source_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",source="local_cache_hit"} 0.0
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",source="external_kv_transfer"} 0.0
+vllm:prompt_tokens_by_source_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",source="external_kv_transfer"} 0.0
+# HELP vllm:prompt_tokens_cached_total Number of cached prompt tokens (local + external).
+# TYPE vllm:prompt_tokens_cached_total counter
+vllm:prompt_tokens_cached_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:prompt_tokens_cached_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:generation_tokens_total Number of generation tokens processed.
+# TYPE vllm:generation_tokens_total counter
+vllm:generation_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5.963188e+06
+vllm:generation_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 5.927158e+06
+# HELP vllm:request_success_total Count of successfully processed requests.
+# TYPE vllm:request_success_total counter
+vllm:request_success_total{engine="0",finished_reason="stop",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8298.0
+vllm:request_success_total{engine="1",finished_reason="stop",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 8424.0
+vllm:request_success_total{engine="0",finished_reason="length",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 3104.0
+vllm:request_success_total{engine="1",finished_reason="length",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 2977.0
+vllm:request_success_total{engine="0",finished_reason="abort",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="1",finished_reason="abort",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="0",finished_reason="error",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="1",finished_reason="error",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="0",finished_reason="repetition",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="1",finished_reason="repetition",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2"} 0.0
+# HELP vllm:tool_call_parser_invocations_total Total number of ToolParser invocations. Non-streaming increments once per choice; streaming increments once per delta.
+# TYPE vllm:tool_call_parser_invocations_total counter
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="no_tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="no_tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="no_tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="no_tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="no_tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-eagle-k5-tp2dp2",outcome="no_tool_call",request_type="other"} 0.0
+# HELP http_requests_total Total number of requests by method, status and handler.
+# TYPE http_requests_total counter
+http_requests_total{handler="/v1/chat/completions",method="POST",status="2xx"} 22803.0
+http_requests_total{handler="/v1/models",method="GET",status="2xx"} 1.0

@@ -1,0 +1,53 @@
+name: layout-recovery-tp4-eagle-k7
+stage: 8b
+engine:
+  max_num_batched_tokens: 16384
+  max_num_seqs: 1024
+  gpu_memory_utilization: 0.7
+loadtests:
+- workload: opb
+  workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+  concurrencies:
+  - 1
+  - 4
+  - 32
+  - 64
+  - 128
+  - 256
+  - 512
+  - 1024
+- workload: arena-hard-clean
+  workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+  concurrencies:
+  - 1
+  - 4
+  - 32
+  - 64
+  - 128
+  - 256
+  - 512
+  - 1024
+- workload: arena-hard-contaminated
+  workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+  concurrencies:
+  - 1
+  - 4
+  - 32
+  - 64
+  - 128
+  - 256
+  - 512
+  - 1024
+arms:
+- name: plain-tp4
+  method: baseline
+  tensor_parallel_size: 4
+  env:
+    PYTORCH_CUDA_ALLOC_CONF: expandable_segments:False
+- name: eagle-k7-tp4
+  method: eagle
+  drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se
+  k: 7
+  tensor_parallel_size: 4
+  env:
+    PYTORCH_CUDA_ALLOC_CONF: expandable_segments:False

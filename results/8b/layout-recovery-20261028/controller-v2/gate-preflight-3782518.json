@@ -1,0 +1,147 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "kind": "arm_status",
+      "arm": "nixl-native-import",
+      "passed": true,
+      "observed": "ok"
+    },
+    {
+      "kind": "native_dependency_imports",
+      "arm": "nixl-native-import",
+      "passed": true
+    },
+    {
+      "kind": "arm_status",
+      "arm": "plain-tp4",
+      "passed": true,
+      "observed": "ok"
+    },
+    {
+      "kind": "cell",
+      "arm": "plain-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/plain-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "passed": true,
+      "requests": {
+        "attempted": 1024,
+        "successful": 1024,
+        "failed": 0,
+        "success_rate": 1.0,
+        "requests_per_second": 57.375114311037514
+      }
+    },
+    {
+      "kind": "provenance_counter_continuity",
+      "arm": "plain-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "passed": true,
+      "errors": [],
+      "counter_delta": {
+        "enabled": false
+      },
+      "metadata_sha256": "7fce2302055d2b8f175be68dda9fa0dd277001e077357de91b1979785be62f9a",
+      "observability_limit": "Snapshots plus sampled generic counters cannot exclude every unsampled restart."
+    },
+    {
+      "kind": "arm_status",
+      "arm": "eagle-k7-tp4",
+      "passed": true,
+      "observed": "ok"
+    },
+    {
+      "kind": "cell",
+      "arm": "eagle-k7-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/eagle-k7-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "passed": true,
+      "requests": {
+        "attempted": 1024,
+        "successful": 1024,
+        "failed": 0,
+        "success_rate": 1.0,
+        "requests_per_second": 77.4260490015916
+      }
+    },
+    {
+      "kind": "provenance_counter_continuity",
+      "arm": "eagle-k7-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "passed": true,
+      "errors": [],
+      "counter_delta": {
+        "enabled": true,
+        "drafts": 25292.0,
+        "draft_tokens": 177044.0,
+        "accepted_tokens": 100807.0,
+        "acceptance_rate": 0.5693895302862565,
+        "mean_acceptance_length": 4.985726712003796,
+        "acceptance_rate_per_position": {
+          "0": 0.8382097105804207,
+          "1": 0.7064684485212716,
+          "2": 0.6076229637830144,
+          "3": 0.5338446939743793,
+          "4": 0.47481417048869207,
+          "5": 0.4309267752649059,
+          "6": 0.39383994939111183
+        }
+      },
+      "metadata_sha256": "70646075a59c007eea1dc6d8d907384a67a05f2861c0d80649f59f340a1ccd94",
+      "observability_limit": "Snapshots plus sampled generic counters cannot exclude every unsampled restart."
+    },
+    {
+      "kind": "arm_status",
+      "arm": "dspark-off-k7-tp4",
+      "passed": true,
+      "observed": "ok"
+    },
+    {
+      "kind": "cell",
+      "arm": "dspark-off-k7-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/results/8b/layout-recovery-20261028/controller-v2/runs/preflight-20261028T122755Z/dspark-off-k7-tp4/opb-memory-stress/opb/c1024/summary.json",
+      "passed": true,
+      "requests": {
+        "attempted": 1024,
+        "successful": 1024,
+        "failed": 0,
+        "success_rate": 1.0,
+        "requests_per_second": 82.39962685681816
+      }
+    },
+    {
+      "kind": "provenance_counter_continuity",
+      "arm": "dspark-off-k7-tp4",
+      "label": "opb-memory-stress",
+      "concurrency": 1024,
+      "passed": true,
+      "errors": [],
+      "counter_delta": {
+        "enabled": true,
+        "drafts": 25353.0,
+        "draft_tokens": 177471.0,
+        "accepted_tokens": 100733.0,
+        "acceptance_rate": 0.5676025942266624,
+        "mean_acceptance_length": 4.9732181595866365,
+        "acceptance_rate_per_position": {
+          "0": 0.8512207628288565,
+          "1": 0.7253579458052302,
+          "2": 0.6151145821007376,
+          "3": 0.5335857689425314,
+          "4": 0.46755807991164755,
+          "5": 0.41233779039955826,
+          "6": 0.36804322959807517
+        }
+      },
+      "metadata_sha256": "23f59a4a3d15f31faeb1405f860fe302566a18ba796a4a312df4a77d541018d8",
+      "observability_limit": "Snapshots plus sampled generic counters cannot exclude every unsampled restart."
+    }
+  ],
+  "claim_limit": "Infrastructure/completeness gate; no proof of output equivalence or repeatable deployment benefit."
+}

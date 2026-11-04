@@ -1,0 +1,17 @@
+{
+  "file": "workloads/8b/arena-hard-think.jsonl",
+  "sha256": "e934a26dbe94acf25fc7dfaa89165e11d1fa2fbc15a1b006875dfc54971f2e29",
+  "rows": 500,
+  "source": "workloads/8b/arena-hard.jsonl (sha256 in arena-hard.manifest.json)",
+  "command": "apertus-bench derive-workload arena-hard.jsonl arena-hard-think.jsonl --chat-template-kwargs '{\"enable_thinking\": true}' --id-suffix=-think --max-tokens 2048",
+  "selection": "the 500 Arena-Hard v0.1 prompts with thinking on, labels arena-hard-clean / arena-hard-contaminated kept",
+  "chat_template_kwargs": {
+    "enable_thinking": true
+  },
+  "counts": {
+    "arena-hard-clean": 371,
+    "arena-hard-contaminated": 129
+  },
+  "max_tokens_median": 2048.0,
+  "max_tokens_max": 2048
+}

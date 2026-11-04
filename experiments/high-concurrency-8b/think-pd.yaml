@@ -1,0 +1,22 @@
+# Thinking on, 1 prefill + 3 decode GPUs (the most decode-heavy traffic),
+# plain and the thinking-on DSpark drafter at k=3, against plain DP4 in the
+# same job. normal, SWEEP_TIME 05:00:00.
+name: think-pd
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-clean
+    label: arena-hard-clean-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-contaminated
+    label: arena-hard-contaminated-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/arena-hard-think.jsonl
+    concurrencies: [4, 32, 64, 128, 256, 512, 1024]
+arms:
+  - {name: plain-dp4, method: baseline, engine: {data_parallel_size: 4}}
+  - {name: pd-1p3d-plain, method: pd, serve_method: baseline, decode: {count: 3}, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}
+  - {name: pd-1p3d-dspark-on-k3, method: pd, serve_method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 3, decode: {count: 3}, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}

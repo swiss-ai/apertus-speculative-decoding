@@ -1,0 +1,55 @@
+{
+  "arm": "eagle-k3-tp4",
+  "deployment_id": "smoke-3721038-eagle-k3-tp4",
+  "env": {},
+  "finished": "2026-10-22T14:10:18+0200",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "port": 8100,
+  "ready_seconds": 226.3,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-eagle-k3-tp4",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "4",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "1024",
+    "--speculative-config",
+    "{\"draft_tensor_parallel_size\": 4, \"method\": \"eagle3\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se\", \"num_speculative_tokens\": 3}"
+  ],
+  "servers": [],
+  "started": "2026-10-22T14:06:20+0200",
+  "status": "ok",
+  "tests": {
+    "opb": {
+      "exit_code": 0
+    },
+    "opb-think": {
+      "exit_code": 0
+    }
+  }
+}
