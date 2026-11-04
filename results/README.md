@@ -38,6 +38,14 @@ and both control kinds are specified in `../docs/protocol.md`.
   under `raw/`; `analysis-v2/` supersedes the original throughput projections,
   which extrapolated to negative verification time. Restricted captures stay on
   Clariden; their hashes are in `collection/manifest.json`.
+- `8b/sweeps/{smoke,dp4-*,tp4-*,think-*,topk-*}-202610*` and
+  `8b/layout-recovery-202610{27,28,30,31}/`: serving-layout and sampling sweeps for
+  the final 8B drafters. The layout recovery directories hold the raw runs of the
+  resumed controllers (`controller-v*/runs/`), their gates and submissions, and
+  the CPU reviews; `layout-recovery-20261031/README.md` is the closure, including
+  11 rejected P/D reliability cells.
+- `8b/sampling/recovery-20261027/`: validated paired analysis (`analysis-v2/`)
+  and verdict tables (`verdict-v1/`) of the `topk-off` and `topk-think` sweeps.
 
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
   n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every

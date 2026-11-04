@@ -39,6 +39,22 @@ remains at C>=64. The simulator is `src/apertus_bench/tree_sim.py`, the candidat
 builders are in `methods/tree/`, and the evidence is under
 `results/8b/tree-drafters/`.
 
+The [8B serving-layout campaign](docs/high-concurrency-8b.md) measured the final
+DSpark and EAGLE heads under DP4, TP4, TP2DP2 and prefill/decode disaggregation,
+thinking off and on, up to C=1024. Speculation is a load-specific choice with
+material memory costs: TP4 k7 gives 1.44-2.64x paired throughput at C1024 but
+regresses Arena-Hard 28-45% at C128 and uses about 70 GiB more resident memory
+per node; TP2DP2 k3 gains 44-50% at C128. P/D is not worth implementing for this
+decode-heavy grid. Specs are in `experiments/high-concurrency-8b/`, raw sweeps
+under `results/8b/sweeps/`, and the recovered runs and reviews under
+`results/8b/layout-recovery-*/`.
+
+The [final 8B sampling sweeps](docs/sampling-final-8b.md) found no case for a
+narrower sampler top-k as a speed optimization (top-k5 changes throughput by
+-5% to +8%, top-k20/50 by at most +0.6%), while draft length should depend on
+load: short drafts help at intermediate load and k7 loses badly at high load.
+The validated analysis is in `results/8b/sampling/recovery-20261027/`.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.
@@ -98,7 +114,8 @@ methods/
 ├── tree/            offline tree / multi-drafter candidate builders (analysis only)
 └── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
 targets/<stage>/     target contracts (architecture, aux layers, hashes) and environment locks
-experiments/         one-off campaigns: smoke-70b, round-cost-70b, system-8b, drafter-kv-8b
+experiments/         one-off campaigns: smoke-70b, round-cost-70b, system-8b, drafter-kv-8b,
+                     high-concurrency-8b
 workloads/           corpora; workloads/<stage>/ holds manifests (restricted text stays on the cluster)
 results/<stage>/     raw cells and reports, by target (8b, 70b) and then method
 ```
