@@ -11,3 +11,8 @@ Branch `experiment/dspark-adaptation`. Cluster checkout
 Resume: `adapt-job.sh` skips steps with markers in `ROOT/stages/`; a step that
 left a run directory without a marker stops the job for inspection. Job log:
 `ROOT/logs/<job>.out`; per-step trainer and extraction logs in `ROOT/runs/*/logs/`.
+
+History note: the branch was rebased onto the rewritten `drafter-updates`
+(737213c7) on 2026-11-04. Job 3856327 was submitted from the pre-rewrite
+commit 01114fc6, whose rewritten equivalent is 4f43d77a; `methods/dspark/` is
+identical between the two (the rewrite only removed restricted capture archives).
