@@ -71,6 +71,14 @@ def read_rows(path: Path) -> list[dict[str, Any]]:
     return data if isinstance(data, list) else list(data.values())[0]
 
 
+def benchmark_texts(files: list[Path]) -> list[str]:
+    """The benchmark's prompts in file order, one entry per distinct prompt.
+
+    Report ids are positional over this list (``<name>-00000``, ...)."""
+    found = [t for f in files for t in map(prompt_text, read_rows(f)) if t]
+    return list(dict.fromkeys(found))
+
+
 def fetch_benchmarks(cache: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     from huggingface_hub import HfApi, snapshot_download
 
@@ -100,8 +108,7 @@ def fetch_benchmarks(cache: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]
                     and ".cache" not in p.parts
                     and any(fnmatch.fnmatch(str(p.relative_to(local)), g) for g in patterns)
                 )
-                found = [t for f in files for t in map(prompt_text, read_rows(f)) if t]
-                texts = list(dict.fromkeys(found))  # one entry per distinct prompt
+                texts = benchmark_texts(files)
             except Exception as error:  # noqa: BLE001 - try the next copy, report all
                 errors.append(f"{repo}: {type(error).__name__}: {error}")
                 continue

@@ -1,0 +1,17 @@
+# Draft-length grid on summarization and chat for EAGLE e10 (the k-grid-a/b
+# rerun on the final head; DSpark e10 is in calibrate, sched-smoke and
+# k-grid-a/b). Own plain arm.
+name: k-grid-e10-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: summarization
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: chat
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: eagle-e10-k1, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 1}
+  - {name: eagle-e10-k2, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 2}
+  - {name: eagle-e10-k3, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3}

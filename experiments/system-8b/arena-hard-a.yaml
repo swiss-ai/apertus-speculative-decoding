@@ -1,0 +1,21 @@
+# Arena-Hard v0.1 (workloads/8b/arena-hard.jsonl, cluster only, built by
+# apertus_eagle.arena_hard_workload): 371 prompts absent from the training
+# corpus and 129 contaminated (docs/benchmark-contamination.md), as two
+# cells; the full set is pooled (sweep_report --pool). DSpark e10 and
+# EAGLE e10 at k=3/5/7 over arena-hard-a/b, each with its own plain arm.
+name: arena-hard-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+  - workload: arena-hard-contaminated
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - {name: eagle-e10-k7, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 7}
+  - {name: dspark-e10-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}

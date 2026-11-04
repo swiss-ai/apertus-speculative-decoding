@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-10-27T18:39:56.088183+00:00",
+  "command": "clariden --repo /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling exec -- sacct -j 3737492,3737493 --parsable2 --noheader --format=JobIDRaw,JobName,State,ExitCode,Elapsed,AllocTRES,NodeList,Start,End",
+  "fields": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "Elapsed",
+    "AllocTRES",
+    "NodeList",
+    "Start",
+    "End"
+  ],
+  "stdout": "3737492|sweep-waste-sum-a|COMPLETED|0:0|00:12:33|billing=1,cpu=288,energy=1463547,gres/gpu=4,mem=450G,node=1|nid007503|25 Oct 06:56|25 Oct 07:08\n3737492.batch|batch|COMPLETED|0:0|00:12:33|cpu=288,gres/gpu=4,mem=450G,node=1|nid007503|25 Oct 06:56|25 Oct 07:08\n3737492.extern|extern|COMPLETED|0:0|00:12:35|billing=1,cpu=288,gres/gpu=4,mem=450G,node=1|nid007503|25 Oct 06:56|25 Oct 07:08\n3737492.0|nvidia-smi|CANCELLED by 1186|0:9|00:12:27|cpu=288,mem=450G,node=1|nid007503|25 Oct 06:56|25 Oct 07:08\n3737492.1|env|COMPLETED|0:0|00:12:24|cpu=288,mem=450G,node=1|nid007503|25 Oct 06:56|25 Oct 07:08\n3737493|sweep-waste-sum-b|COMPLETED|0:0|00:12:51|billing=1,cpu=288,energy=1460799,gres/gpu=4,mem=450G,node=1|nid005397|25 Oct 07:04|25 Oct 07:17\n3737493.batch|batch|COMPLETED|0:0|00:12:51|cpu=288,gres/gpu=4,mem=450G,node=1|nid005397|25 Oct 07:04|25 Oct 07:17\n3737493.extern|extern|COMPLETED|0:0|00:12:55|billing=1,cpu=288,gres/gpu=4,mem=450G,node=1|nid005397|25 Oct 07:04|25 Oct 07:17\n3737493.0|nvidia-smi|CANCELLED by 1186|0:9|00:12:46|cpu=288,mem=450G,node=1|nid005397|25 Oct 07:04|25 Oct 07:17\n3737493.1|env|COMPLETED|0:0|00:12:42|cpu=288,mem=450G,node=1|nid005397|25 Oct 07:04|25 Oct 07:17\n",
+  "interpretation": "Top-level jobs and serving steps completed 0:0. The nvidia-smi sampler was intentionally killed by job.sh after serving completed. Accounting queried at recovery time, not a contemporaneous launch receipt."
+}

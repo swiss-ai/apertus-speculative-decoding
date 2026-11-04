@@ -8,13 +8,17 @@ slower from C=64 on. This document records what was tried against that,
 with which runs, and what came out.
 
 Status 2026-10-09: all canvas items measured once on the current
-checkpoints; rerun the draft-length grid when EAGLE reaches its final epoch.
+checkpoints. 2026-10-21: EAGLE's final checkpoint (EAGLE e10) rerun on the
+draft-length grids, the head-to-head and the probe, and both drafters
+measured on Arena-Hard (all, clean and contaminated prompts).
 
 ## Summary
 
 | canvas item | result |
 | --- | --- |
 | system-level tricks on the current checkpoints | **Draft length is the big lever.** DSpark e10 at k=3 instead of 7: summarization never below plain (1.01-1.06x at C>=128 instead of 0.89x), chat at 0.93-1.00x instead of 0.74x, at the cost of ~10% at C=1. EAGLE e1 is best at k=3 at low load and k=1 under load (1.02x at C=256). On the in-distribution held-out prompts acceptance is higher and the best lengths are longer: DSpark k=5 (3.07x at C=1, 1.18-1.33x at C>=128), EAGLE e3 k=4. |
+| EAGLE e10 vs DSpark e10 (same data, 10 epochs each) | **Equal acceptance, DSpark cheaper to draft.** EAGLE e10 accepts within 2% of DSpark at every length on the held-out prompts (k=7: 4.74 vs 4.78), 3-4% less on chat and Arena-Hard, slightly more on summarization. Drafting k tokens costs EAGLE k drafter passes and DSpark one, so at k=7 and low load DSpark is 25-27% faster (held-out C=1: 3.42x vs 2.74x; Arena-Hard 2.92x vs 2.29x). At k=3 and under load the two are level (Arena-Hard C=128: 1.25x both; held-out C=128: EAGLE 1.43x vs 1.36x). |
+| Arena-Hard (v0.1, 371 clean + 129 contaminated prompts) | Contamination does not show: clean and contaminated prompts accept the same within 1% for both drafters. All 500 prompts: DSpark k=7 2.92x at C=1, EAGLE e10 k=7 2.29x; k=7 falls below plain from C=128 (0.80-0.83x at C=256), k=3 stays above (1.08-1.10x). |
 | DSpark scheduler on GH200 | Ported to vLLM twice. The first port (per-request lengths on the CPU, online cost fit, raw head) does not beat a fixed k=3 on summarization/chat: variable lengths broke vLLM's CUDA-graph shapes, confidences were one step stale, DSpark drafts all 7 slots. The second follows the paper (STS-calibrated head, Algorithm 1 with the section 5.2 lagged budget and top-K on the GPU, cost table profiled at engine start, full graphs for uneven decode steps). On the held-out prompts it tracks the better of k=7 and k=5 at every load (3.38x at C=1, 1.17x at C=256) but does not beat the best fixed length at any load; the remaining cost is drafting all 7 slots under load. |
 | one GPU / several GPUs / disaggregation | For throughput, four data-parallel engines per node (3.95x one GPU; speculation keeps its single-GPU pattern). For latency, TP4 + DSpark (C=4: 2.35x DP4 plain, 2.5 ms TPOT) but it saturates at 0.59x. Prefill/decode disaggregation on one node does not pay for an 8B target: 1P+1D is prefill-bound (0.54-0.74x of DP2), 3P+1D overflows the decode GPU's KV (0.11-0.16x of DP4 from C=256). |
 | tune top-k | Sampling at Apertus' T 0.7 / top-p 0.8 costs ~2% acceptance against greedy; top-k 20 vs none makes no measurable difference next to top-p 0.8. The speedups follow the greedy ones. |
@@ -28,6 +32,12 @@ C=1 gain and is within 4% of the best under load). k=7 only for
 single-stream or math/code-heavy deployments (probe 6.7 accepted tokens,
 4.2x). With EAGLE e3, k=4 on in-distribution traffic; out of
 distribution (epoch 1) k=3 at low load, k=1 under load.
+
+**With EAGLE e10:** k=3 as the general setting (never below plain on
+summarization or Arena-Hard, level with DSpark k=3 under load), k=5 for
+in-distribution traffic at low to medium load (within 7% of the best
+everywhere), k=1 for chat-heavy traffic above C~128. Where single-stream
+latency matters DSpark e10 at k=5-7 remains 15-27% faster.
 
 ## Setup
 
@@ -45,6 +55,7 @@ math/HumanEval prompts at C=8, 384 tokens.
 | --- | --- | --- |
 | DSpark e10 | `dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final` (Yu, final) | Open-PerfectBlend regenerated, thinking off |
 | EAGLE e1 | `e31-opb-thinkoff-stage1-ep1-se` (ours, epoch 1 of 10) | same corpus and split |
+| EAGLE e10 | `e31-opb-thinkoff-stage1-se` (ours, final: best of 10 epochs, step 251,955, held-out simulated acceptance length 3.99) | same corpus and split |
 
 The canvas notes that the epoch count does not change the system-level
 questions; DSpark is at its final checkpoint, EAGLE at epoch 1 until the
@@ -112,6 +123,28 @@ summarization 1.57 / 1.86 / 2.00 / 2.10 / 2.12, chat 1.65 / 2.05 / 2.29 /
 - On chat at C>=128 no setting is clearly faster than plain (best within
   ±2%); speculation pays below ~C=64 on this GPU.
 
+**EAGLE e10** (`k-grid-e10-a/b`, jobs 3709796, 3709893, 20 Oct; each
+against its own plain arm, not the calibration plain):
+
+| C | summ. k=1 | 2 | 3 | 4 | 5 | 7 | chat k=1 | 2 | 3 | 4 | 5 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1.35x | 1.48x | 1.49x | 1.47x | 1.40x | 1.29x | 1.41x | 1.59x | 1.64x | 1.64x | 1.58x | 1.49x |
+| 8 | 1.22x | 1.29x | 1.32x | 1.27x | 1.24x | 1.16x | 1.38x | 1.46x | 1.54x | 1.46x | 1.43x | 1.35x |
+| 32 | 1.13x | 1.13x | 1.17x | 1.12x | 1.07x | 1.04x | 1.22x | 1.18x | 1.28x | 1.16x | 1.11x | 1.02x |
+| 64 | 1.07x | 1.06x | 1.08x | 1.03x | 1.01x | 0.94x | 1.14x | 1.06x | 1.08x | 0.99x | 0.95x | 0.84x |
+| 128 | 1.03x | 1.01x | 1.02x | 0.99x | 0.97x | 0.90x | 1.03x | 0.98x | 0.96x | 0.90x | 0.85x | 0.75x |
+| 256 | 1.02x | 1.01x | 1.03x | 0.98x | 0.97x | 0.90x | 1.00x | 0.96x | 0.94x | 0.87x | 0.83x | 0.73x |
+
+Accepted tokens per round, k=1/2/3/4/5/7: summarization 1.56 / 1.86 /
+2.02 / 2.11 / 2.16 / 2.21, chat 1.61 / 1.98 / 2.20 / 2.34 / 2.42 / 2.53.
+Against epoch 1 EAGLE gains most at long lengths (chat k=7 at C=1 1.49x
+vs 1.36x). Against DSpark e10 at its recommended k=3 it is level on
+summarization (1.49x vs 1.47x at C=1, 1.03x vs 1.06x at C=256) and 3-6%
+behind on chat (1.64x vs 1.70x at C=1, 0.94x vs 0.97x at C=256), the
+chat gap following acceptance (2.20 vs 2.29). The best lengths are those
+of epoch 1: 3 at low load, 1 from C=128 on chat; k=3 is never below plain
+on summarization.
+
 ### Draft length on the held-out prompts
 
 The grid above uses summarization and chat, both out of distribution for
@@ -151,6 +184,34 @@ Accepted tokens per step (flat across load), k=1/2/3/4/5/7: DSpark 1.89 /
   distribution (summarization, chat), k=4-5 when it resembles the training
   data; a load-dependent length (7 at low load, 4-5 above C~32) would get
   the best of both on in-distribution traffic.
+
+**EAGLE e10** (`k-grid-opb-e/f`, jobs 3709466, 3709795, 20 Oct, each with
+its own plain arm, plain within 1% of the 10 Oct jobs). Same table:
+
+| C | EAGLE e10 k=1 | 2 | 3 | 4 | 5 | 7 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1.66x | 2.13x | 2.42x | 2.59x | 2.70x | 2.74x |
+| 8 | 1.64x | 1.96x | 2.29x | 2.40x | 2.45x | 2.50x |
+| 32 | 1.48x | 1.62x | 1.88x | 1.94x | 1.83x | 1.93x |
+| 64 | 1.41x | 1.51x | 1.70x | 1.58x | 1.58x | 1.56x |
+| 128 | 1.28x | 1.34x | 1.43x | 1.32x | 1.33x | 1.29x |
+| 256 | 1.19x | 1.24x | 1.28x | 1.22x | 1.21x | 1.15x |
+
+Accepted tokens per step, k=1/2/3/4/5/7: 1.87 / 2.60 / 3.22 / 3.72 / 4.13
+/ 4.74, within 2% of DSpark e10 at every k.
+
+- After 10 epochs on the same data EAGLE accepts as much as DSpark. What
+  still separates them is the cost of drafting: EAGLE runs one drafter
+  pass per draft token, DSpark one pass per block, so at k=7 and C=1
+  DSpark is 25% faster (3.42x vs 2.74x) on equal acceptance.
+- At short lengths drafting is cheap for both and the two are level (k=3,
+  C=1: 2.42x vs 2.46x). Under load EAGLE e10 k=3 is the fastest setting
+  of either drafter: 1.43x at C=128 and 1.28x at C=256, against DSpark's
+  best 1.36x / 1.22x (k=3). That is +5% in absolute tok/s, at the edge of
+  the between-job spread.
+- Best EAGLE e10 length: 7 at C<=8 (k=5 within 2%), 3-4 at C=32, 3 from
+  C=64. No single length is within 5% everywhere: k=5 stays within 7% of
+  the best at every load, k=3 is best from C=64 but gives up 12% at C=1.
 
 ## In-distribution check (Yu's held-out prompts)
 
@@ -192,6 +253,96 @@ Two more epochs raise EAGLE's acceptance by 4-8% (probe 6.13 -> 6.30) and its
 speedup accordingly; it still trails DSpark e10 except on summarization,
 where the two are level (2.20 vs 2.14 accepted). The load-dependence is
 unchanged: at k=7 both lose to plain under load on chat and summarization.
+
+**EAGLE at epoch 10** (`eagle-e10`, job 3709465, 20 Oct; best checkpoint,
+step 251,955, exported by the pipeline with the target's embedding shared,
+job 3709088: reload check bit-exact, offline verify plain vs EAGLE 239/240
+per run with plain/plain and EAGLE/EAGLE controls 240/240). DSpark e10 runs
+in the same job and reproduces job 3630557 within 2%. Output tok/s vs plain
+in the same job, 7 draft tokens; accepted tokens per step in brackets:
+
+| workload, C | DSpark e10 | EAGLE e3 | EAGLE e10 |
+| --- | --- | --- | --- |
+| held-out, 1 | 3.47x (4.78) | 2.66x (4.52) | 2.78x (4.74) |
+| held-out, 32 | 2.05x | 1.85x | 1.87x |
+| held-out, 128 | 1.24x | 1.21x | 1.25x |
+| chat, 1 | 1.88x (2.60) | 1.46x (2.49) | 1.48x (2.53) |
+| chat, 128 | 0.77x | 0.75x | 0.76x |
+| summarization, 1 | 1.53x (2.14) | 1.28x (2.20) | 1.29x (2.22) |
+| summarization, 128 | 0.90x | 0.90x | 0.90x |
+
+Probe (64 math/HumanEval prompts, C=8, k=7): accepted per round DSpark e10
+6.68, EAGLE e10 6.52, EAGLE e3 6.30; 5,220 / 4,262 / 4,182 tok/s (plain
+1,225). Acceptance per draft position:
+
+| drafter | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| DSpark e10 | 0.96 | 0.91 | 0.86 | 0.81 | 0.77 | 0.71 | 0.67 |
+| EAGLE e10 | 0.93 | 0.88 | 0.82 | 0.78 | 0.74 | 0.70 | 0.66 |
+| EAGLE e3 | 0.93 | 0.86 | 0.79 | 0.74 | 0.70 | 0.66 | 0.62 |
+
+Epochs 4-10 lift EAGLE's acceptance to DSpark's level on the held-out
+prompts (4.74 vs 4.78) and above it on summarization (2.22 vs 2.14); chat
+stays 3% behind (2.53 vs 2.60). The speedup gap at k=7 and low load (2.78x
+vs 3.47x held-out) is drafting cost, not acceptance: TPOT at C=8 on the
+probe is 1.60 ms for EAGLE against 1.31 ms for DSpark. At C=128 the two
+are level on every workload.
+
+## Arena-Hard (all, clean and contaminated prompts)
+
+Arena-Hard v0.1 (`lmarena-ai/arena-hard-auto` at 15f3746e, 500 prompts)
+has 129 prompts that appear in the original Open-PerfectBlend corpus,
+all from its lmsys-arena-55k source
+([benchmark-contamination.md](benchmark-contamination.md)).
+`apertus_eagle.arena_hard_workload` (job 3709099) rebuilds the overlap
+report's prompt order and labels each prompt `arena-hard-clean` (371) or
+`arena-hard-contaminated` (129), single user turn, 1,024-token cap (answers
+average ~565 tokens). `arena-hard-a/b` (jobs 3713289, 3713291, 21 Oct)
+run each half as its own cell, greedy, setup as above, each job with its
+own plain arm; the all-prompt rows pool the two cells' tokens, wall time
+and draft counters (`sweep_report --pool arena-hard=arena-hard-clean,arena-hard-contaminated`).
+
+All 500 prompts, output tok/s vs plain:
+
+| C | DSpark k=3 | DSpark k=5 | DSpark k=7 | EAGLE e10 k=3 | EAGLE e10 k=5 | EAGLE e10 k=7 | plain tok/s |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 2.26x | 2.65x | 2.92x | 2.15x | 2.30x | 2.29x | 171 |
+| 8 | 2.24x | 2.56x | 2.71x | 2.17x | 2.24x | 2.19x | 1,270 |
+| 32 | 1.92x | 1.91x | 1.83x | 1.87x | 1.75x | 1.64x | 4,036 |
+| 64 | 1.57x | 1.40x | 1.27x | 1.55x | 1.39x | 1.25x | 6,455 |
+| 128 | 1.25x | 1.07x | 0.94x | 1.25x | 1.09x | 0.96x | 9,768 |
+| 256 | 1.10x | 0.91x | 0.80x | 1.08x | 0.96x | 0.83x | 12,084 |
+
+(k=5 and EAGLE k=3/5 from `arena-hard-b`, ratios to its own plain, which is
+within 1% of `arena-hard-a`'s.)
+
+Accepted tokens per step (flat across load; pooled over all six levels):
+
+| drafter | k | all | clean | contaminated |
+| --- | --- | --- | --- | --- |
+| DSpark e10 | 3 | 2.98 | 2.97 | 2.98 |
+| DSpark e10 | 5 | 3.59 | 3.60 | 3.57 |
+| DSpark e10 | 7 | 3.93 | 3.92 | 3.93 |
+| EAGLE e10 | 3 | 2.87 | 2.87 | 2.87 |
+| EAGLE e10 | 5 | 3.48 | 3.48 | 3.50 |
+| EAGLE e10 | 7 | 3.83 | 3.82 | 3.83 |
+
+- No contamination effect: the contaminated prompts accept no more than
+  the clean ones (within 1%, either sign) for either drafter. The
+  drafters were trained on Apertus' regenerated answers, and the prompts
+  alone do not make Apertus answer like the training rows any more than on
+  unseen prompts. The clean-subset numbers can be quoted as the result.
+- Arena-Hard sits between the held-out prompts and chat (k=7: 3.9 vs 4.8
+  and 2.6 accepted). DSpark leads by 3-4% in acceptance and, at k>=5 and
+  low load, by 15-27% in speed through cheaper drafting.
+- Prompts are short, so plain serving scales far (12.1k tok/s at C=256)
+  and long drafts lose under load: k=7 is below plain from C=128, k=3
+  stays above it at every load for both drafters, and the two drafters
+  are level at k=3 from C=32.
+- Caveats: the contamination list comes from the full original corpus (a
+  superset of what either drafter trained on, since Yu's split holds out
+  10%); prompt ids are positions in the overlap report's order; decoding
+  is greedy, not the DSpark paper's T=1.0 protocol; one job per arm.
 
 ## Confidence-scheduled verification (the DSpark scheduler)
 
@@ -536,5 +687,9 @@ available.
 | `opb-check-20261009T113600Z` | 3622798 | Open-PerfectBlend held-out prompts: plain, DSpark k=7/3, EAGLE k=7 |
 | `eagle-e3-20261010T080528Z` | 3630557 | EAGLE epoch 3 vs epoch 1, DSpark e10, plain on held-out, chat, summarization |
 | `k-grid-opb-{a,b,c,d}-20261010T1454*Z` | 3632467, 3632468, 3632470, 3632471 | draft-length grid on the held-out prompts: DSpark e10 k=1/2/3, 4/5/7, EAGLE e3 k=1/2/3, 4/5/7, each with plain |
+| `eagle-e10-20261020T164330Z` | 3709465 | EAGLE e10 vs e3, DSpark e10, plain on probe, held-out, chat, summarization |
+| `k-grid-opb-{e,f}-20261020T*Z` | 3709466, 3709795 | held-out draft-length grid, EAGLE e10 k=1/2/3, 4/5/7, each with plain |
+| `k-grid-e10-{a,b}-20261020T*Z` | 3709796, 3709893 | summarization/chat draft-length grid, EAGLE e10 k=1/2/3, 4/5/7, each with plain |
+| `arena-hard-a-20261021T125236Z`, `arena-hard-b-20261021T125241Z` | 3713289, 3713291 | Arena-Hard clean/contaminated: DSpark e10 k=3/7, EAGLE e10 k=7; EAGLE e10 k=3/5, DSpark e10 k=5; each with plain |
 | `paper-calib-20261015T145635Z` | 3669651 | paper scheduler: STS calibration data (k=7, head loaded), raw-head scheduler, k=7, plain on 512 calibration prompts |
 | `paper-eval-a-20261015T153126Z`, `paper-eval-b-20261015T153130Z` | 3669829, 3669831 | paper scheduler with STS vs DSpark k=7, k=5, plain on the held-out prompts, arms on swapped GPUs |

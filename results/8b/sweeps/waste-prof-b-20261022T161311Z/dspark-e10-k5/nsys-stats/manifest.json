@@ -1,0 +1,594 @@
+{
+  "profile": {
+    "tool": "nsys",
+    "window_s": 10.0,
+    "delay_s": 8.0,
+    "levels": null,
+    "loadtests": null,
+    "nsys": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+    "trace": "cuda,nvtx,osrt",
+    "cuda_graph_trace": "node",
+    "gpu_metrics": true,
+    "gpu_metrics_frequency": 1000,
+    "nvtx": true,
+    "eager_draft": false,
+    "sample": "none",
+    "extra_args": [],
+    "stats": [
+      "cuda_gpu_kern_sum",
+      "cuda_gpu_mem_time_sum",
+      "cuda_api_sum",
+      "nvtx_sum",
+      "nvtx_gpu_proj_sum",
+      "nvtx_gpu_proj_trace",
+      "osrt_sum"
+    ],
+    "report_timeout_s": 900.0
+  },
+  "reports": [
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.1.nsys-rep",
+      "report_bytes": 33184654,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.1.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.1_cuda_api_sum.csv",
+        "dspark-e10-k5.1_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.1_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.1_gpu_metrics_summary.csv",
+        "dspark-e10-k5.1_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.1_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.1_nvtx_sum.csv",
+        "dspark-e10-k5.1_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 1,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:23:25.597568+00:00",
+        "start_latency_s": 1.882,
+        "truncated": false,
+        "open_s": 15.541,
+        "stopped_at": "2026-10-24T07:23:43.021003+00:00",
+        "counters": {
+          "prompt_tokens": 10694.0,
+          "generation_tokens": 4665.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 1222.0,
+            "draft_tokens": 6110.0,
+            "accepted_tokens": 3458.0,
+            "acceptance_rate": 0.5659574468085107,
+            "mean_acceptance_length": 3.8297872340425534,
+            "acceptance_rate_per_position": {
+              "0": 0.8281505728314239,
+              "1": 0.6587561374795418,
+              "2": 0.5417348608837971,
+              "3": 0.4386252045826514,
+              "4": 0.3625204582651391
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.2.nsys-rep",
+      "report_bytes": 27225775,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.2.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.2_cuda_api_sum.csv",
+        "dspark-e10-k5.2_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.2_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.2_gpu_metrics_summary.csv",
+        "dspark-e10-k5.2_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.2_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.2_nvtx_sum.csv",
+        "dspark-e10-k5.2_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 8,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:25:31.279863+00:00",
+        "start_latency_s": 0.499,
+        "truncated": false,
+        "open_s": 14.843,
+        "stopped_at": "2026-10-24T07:25:46.622003+00:00",
+        "counters": {
+          "prompt_tokens": 37075.0,
+          "generation_tokens": 32016.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 7638.0,
+            "draft_tokens": 38190.0,
+            "accepted_tokens": 24445.0,
+            "acceptance_rate": 0.640089028541503,
+            "mean_acceptance_length": 4.200445142707515,
+            "acceptance_rate_per_position": {
+              "0": 0.8580780308981408,
+              "1": 0.7279392511128567,
+              "2": 0.6199266823775857,
+              "3": 0.5303744435716156,
+              "4": 0.464126734747316
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.3.nsys-rep",
+      "report_bytes": 7948964,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.3.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.3_cuda_api_sum.csv",
+        "dspark-e10-k5.3_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.3_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.3_gpu_metrics_summary.csv",
+        "dspark-e10-k5.3_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.3_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.3_nvtx_sum.csv",
+        "dspark-e10-k5.3_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 32,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:26:01.443831+00:00",
+        "start_latency_s": 0.548,
+        "truncated": true,
+        "open_s": 4.96,
+        "stopped_at": "2026-10-24T07:26:06.951688+00:00",
+        "counters": {
+          "prompt_tokens": 0.0,
+          "generation_tokens": 4190.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 1124.0,
+            "draft_tokens": 5620.0,
+            "accepted_tokens": 3105.0,
+            "acceptance_rate": 0.552491103202847,
+            "mean_acceptance_length": 3.762455516014235,
+            "acceptance_rate_per_position": {
+              "0": 0.8131672597864769,
+              "1": 0.6512455516014235,
+              "2": 0.5186832740213523,
+              "3": 0.4297153024911032,
+              "4": 0.349644128113879
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.4.nsys-rep",
+      "report_bytes": 14591832,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.4.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.4_cuda_api_sum.csv",
+        "dspark-e10-k5.4_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.4_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.4_gpu_metrics_summary.csv",
+        "dspark-e10-k5.4_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.4_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.4_nvtx_sum.csv",
+        "dspark-e10-k5.4_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 64,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:26:21.071825+00:00",
+        "start_latency_s": 0.674,
+        "truncated": true,
+        "open_s": 11.967,
+        "stopped_at": "2026-10-24T07:26:33.712714+00:00",
+        "counters": {
+          "prompt_tokens": 45408.0,
+          "generation_tokens": 60565.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 14695.0,
+            "draft_tokens": 73475.0,
+            "accepted_tokens": 46027.0,
+            "acceptance_rate": 0.6264307587614835,
+            "mean_acceptance_length": 4.132153793807417,
+            "acceptance_rate_per_position": {
+              "0": 0.8555290915277305,
+              "1": 0.719020074855393,
+              "2": 0.6059203810820006,
+              "3": 0.5114664851990472,
+              "4": 0.440217761143246
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.5.nsys-rep",
+      "report_bytes": 11417068,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.5.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.5_cuda_api_sum.csv",
+        "dspark-e10-k5.5_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.5_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.5_gpu_metrics_summary.csv",
+        "dspark-e10-k5.5_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.5_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.5_nvtx_sum.csv",
+        "dspark-e10-k5.5_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 128,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:26:50.732716+00:00",
+        "start_latency_s": 0.571,
+        "truncated": false,
+        "open_s": 13.435,
+        "stopped_at": "2026-10-24T07:27:04.738644+00:00",
+        "counters": {
+          "prompt_tokens": 104160.0,
+          "generation_tokens": 89743.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 21497.0,
+            "draft_tokens": 107485.0,
+            "accepted_tokens": 68386.0,
+            "acceptance_rate": 0.6362376145508676,
+            "mean_acceptance_length": 4.181188072754338,
+            "acceptance_rate_per_position": {
+              "0": 0.8580267014001953,
+              "1": 0.7255430990370749,
+              "2": 0.6148764943945667,
+              "3": 0.5261199237102852,
+              "4": 0.4566218542122157
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.6.nsys-rep",
+      "report_bytes": 7637941,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.6.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.6_cuda_api_sum.csv",
+        "dspark-e10-k5.6_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.6_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.6_gpu_metrics_summary.csv",
+        "dspark-e10-k5.6_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.6_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.6_nvtx_sum.csv",
+        "dspark-e10-k5.6_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 256,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:27:38.619431+00:00",
+        "start_latency_s": 0.754,
+        "truncated": false,
+        "open_s": 13.075,
+        "stopped_at": "2026-10-24T07:27:52.448440+00:00",
+        "counters": {
+          "prompt_tokens": 111258.0,
+          "generation_tokens": 100022.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 23199.0,
+            "draft_tokens": 115995.0,
+            "accepted_tokens": 76954.0,
+            "acceptance_rate": 0.663425147635674,
+            "mean_acceptance_length": 4.31712573817837,
+            "acceptance_rate_per_position": {
+              "0": 0.8682270787533946,
+              "1": 0.7469287469287469,
+              "2": 0.6433466959782749,
+              "3": 0.5630846157161946,
+              "4": 0.4955386008017587
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.7.nsys-rep",
+      "report_bytes": 30716987,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.7.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.7_cuda_api_sum.csv",
+        "dspark-e10-k5.7_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.7_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.7_gpu_metrics_summary.csv",
+        "dspark-e10-k5.7_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.7_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.7_nvtx_sum.csv",
+        "dspark-e10-k5.7_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "summarization",
+        "concurrency": 1,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:28:37.702070+00:00",
+        "start_latency_s": 0.503,
+        "truncated": false,
+        "open_s": 15.078,
+        "stopped_at": "2026-10-24T07:28:53.283436+00:00",
+        "counters": {
+          "prompt_tokens": 47459.0,
+          "generation_tokens": 2999.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 1075.0,
+            "draft_tokens": 5375.0,
+            "accepted_tokens": 1924.0,
+            "acceptance_rate": 0.357953488372093,
+            "mean_acceptance_length": 2.789767441860465,
+            "acceptance_rate_per_position": {
+              "0": 0.7227906976744186,
+              "1": 0.48186046511627906,
+              "2": 0.32,
+              "3": 0.173953488372093,
+              "4": 0.09116279069767441
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.8.nsys-rep",
+      "report_bytes": 20638639,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.8.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.8_cuda_api_sum.csv",
+        "dspark-e10-k5.8_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.8_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.8_gpu_metrics_summary.csv",
+        "dspark-e10-k5.8_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.8_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.8_nvtx_sum.csv",
+        "dspark-e10-k5.8_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "summarization",
+        "concurrency": 8,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:30:35.382169+00:00",
+        "start_latency_s": 0.547,
+        "truncated": false,
+        "open_s": 14.128,
+        "stopped_at": "2026-10-24T07:30:50.057046+00:00",
+        "counters": {
+          "prompt_tokens": 127158.0,
+          "generation_tokens": 10294.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 5523.0,
+            "draft_tokens": 27615.0,
+            "accepted_tokens": 4766.0,
+            "acceptance_rate": 0.1725873619409741,
+            "mean_acceptance_length": 1.8629368097048706,
+            "acceptance_rate_per_position": {
+              "0": 0.46098135071519103,
+              "1": 0.22035125837407207,
+              "2": 0.10700706137968495,
+              "3": 0.049791779829802645,
+              "4": 0.024805359406119862
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.9.nsys-rep",
+      "report_bytes": 14232356,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.9.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.9_cuda_api_sum.csv",
+        "dspark-e10-k5.9_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.9_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.9_gpu_metrics_summary.csv",
+        "dspark-e10-k5.9_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.9_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.9_nvtx_sum.csv",
+        "dspark-e10-k5.9_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "summarization",
+        "concurrency": 32,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:31:10.591057+00:00",
+        "start_latency_s": 0.65,
+        "truncated": true,
+        "open_s": 13.058,
+        "stopped_at": "2026-10-24T07:31:24.299620+00:00",
+        "counters": {
+          "prompt_tokens": 142804.0,
+          "generation_tokens": 18043.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 9504.0,
+            "draft_tokens": 47520.0,
+            "accepted_tokens": 8564.0,
+            "acceptance_rate": 0.18021885521885522,
+            "mean_acceptance_length": 1.901094276094276,
+            "acceptance_rate_per_position": {
+              "0": 0.4770622895622896,
+              "1": 0.22737794612794612,
+              "2": 0.1118476430976431,
+              "3": 0.05608164983164983,
+              "4": 0.028724747474747476
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.10.nsys-rep",
+      "report_bytes": 7426651,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.10.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.10_cuda_api_sum.csv",
+        "dspark-e10-k5.10_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.10_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.10_gpu_metrics_summary.csv",
+        "dspark-e10-k5.10_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.10_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.10_nvtx_sum.csv",
+        "dspark-e10-k5.10_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "summarization",
+        "concurrency": 64,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:31:40.918839+00:00",
+        "start_latency_s": 0.608,
+        "truncated": false,
+        "open_s": 12.91,
+        "stopped_at": "2026-10-24T07:31:54.436853+00:00",
+        "counters": {
+          "prompt_tokens": 227302.0,
+          "generation_tokens": 17996.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 9094.0,
+            "draft_tokens": 45470.0,
+            "accepted_tokens": 8895.0,
+            "acceptance_rate": 0.19562348801407523,
+            "mean_acceptance_length": 1.978117440070376,
+            "acceptance_rate_per_position": {
+              "0": 0.5031889157686387,
+              "1": 0.25192434572245437,
+              "2": 0.125687266329448,
+              "3": 0.0641082032109083,
+              "4": 0.03320870903892677
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.11.nsys-rep",
+      "report_bytes": 7027014,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.11.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.11_cuda_api_sum.csv",
+        "dspark-e10-k5.11_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.11_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.11_gpu_metrics_summary.csv",
+        "dspark-e10-k5.11_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.11_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.11_nvtx_sum.csv",
+        "dspark-e10-k5.11_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "summarization",
+        "concurrency": 128,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:32:32.995407+00:00",
+        "start_latency_s": 0.782,
+        "truncated": false,
+        "open_s": 13.003,
+        "stopped_at": "2026-10-24T07:32:46.780242+00:00",
+        "counters": {
+          "prompt_tokens": 237455.0,
+          "generation_tokens": 22452.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 10247.0,
+            "draft_tokens": 51235.0,
+            "accepted_tokens": 12171.0,
+            "acceptance_rate": 0.2375524543768908,
+            "mean_acceptance_length": 2.187762271884454,
+            "acceptance_rate_per_position": {
+              "0": 0.5607494876549234,
+              "1": 0.31277447057675417,
+              "2": 0.17019615497218699,
+              "3": 0.09417390455743144,
+              "4": 0.049868254123158
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.12.nsys-rep",
+      "report_bytes": 6802469,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/waste-prof-b-20261022T161311Z/dspark-e10-k5/nsys/dspark-e10-k5.12.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k5.12_cuda_api_sum.csv",
+        "dspark-e10-k5.12_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k5.12_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k5.12_gpu_metrics_summary.csv",
+        "dspark-e10-k5.12_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k5.12_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k5.12_nvtx_sum.csv",
+        "dspark-e10-k5.12_osrt_sum.csv"
+      ],
+      "gpu_metrics": true,
+      "window": {
+        "loadtest": "summarization",
+        "concurrency": 256,
+        "delay_s": 8.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-24T07:34:10.647175+00:00",
+        "start_latency_s": 0.667,
+        "truncated": false,
+        "open_s": 12.787,
+        "stopped_at": "2026-10-24T07:34:24.101012+00:00",
+        "counters": {
+          "prompt_tokens": 236452.0,
+          "generation_tokens": 21335.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 9727.0,
+            "draft_tokens": 48635.0,
+            "accepted_tokens": 11569.0,
+            "acceptance_rate": 0.23787395908296494,
+            "mean_acceptance_length": 2.189369795414825,
+            "acceptance_rate_per_position": {
+              "0": 0.5598848565847641,
+              "1": 0.31294335355196873,
+              "2": 0.17148144340495527,
+              "3": 0.09468489770741235,
+              "4": 0.050375244165724274
+            }
+          }
+        }
+      }
+    }
+  ]
+}

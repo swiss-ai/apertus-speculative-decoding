@@ -1,0 +1,305 @@
+KV read cost for the DSpark paper scheduler, on top of
+vllm-apertus-dspark-draft-cut.patch (apply the confidence-verify, paper-scheduler
+and draft-cut patches first). Enabled with VLLM_DSPARK_KV_COST=1 next to
+VLLM_DSPARK_VERIFY_MODE=paper.
+
+The cost table is profiled with short contexts, as the paper assumes context
+length is marginal. Under load it is not: every step's attention streams each
+scheduled request's whole KV once, whatever is verified (~7 ms per step at
+C=256 on the held-out prompts, 230k context tokens, ~32 us per 1,000 tokens on
+GH200; the residual step time of every arm, plain included). Without it the
+draft-cut scheduler sees short steps as cheaper than they are and at C=256 cuts
+to one slot, taking 1.5x the steps of k=3 and falling 7% behind it (jobs
+3670246/7). The step now costs kv_ms_per_token * sum(context) more, with
+kv_ms_per_token profiled at engine start (target KV bytes per token over the
+measured HBM read bandwidth) or set with VLLM_DSPARK_KV_MS_PER_KTOK (ms per
+1,000 tokens).
+
+With the draft cut, the scheduler also logs every 500 steps the measured step
+interval against the table's prediction (without the KV read), per draft
+length and for steps with and without prefill, with their mean context: what
+the cost model still misses (the cut arm had ~4 ms per step at C=256 that the
+KV read does not explain).
+diff --git a/workspace/vllm/vllm/v1/core/sched/scheduler.py b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+index 5d4f50c..9eac5db 100644
+--- a/workspace/vllm/vllm/v1/core/sched/scheduler.py
++++ b/workspace/vllm/vllm/v1/core/sched/scheduler.py
+@@ -1137,6 +1137,12 @@ class Scheduler(SchedulerInterface):
+         spec_verify_budget = None
+         spec_draft_len = None
+         if isinstance(self.verify_sched, PaperVerifyScheduler):
++            if self.verify_sched.kv_cost:
++                # Context the step's attention reads (VLLM_DSPARK_KV_COST=1).
++                self.verify_sched.kv_tokens = sum(
++                    self.requests[req_id].num_computed_tokens
++                    for req_id in num_scheduled_tokens
++                )
+             spec_verify_budget, spec_draft_len = self.verify_sched.plan(
+                 scheduled_spec_decode_tokens, num_scheduled_tokens
+             )
+@@ -3056,6 +3062,19 @@ class PaperVerifyScheduler:
+     draft did not produce is extrapolated with the running mean conditional
+     confidence per slot (initialised from the STS calibration's observed
+     rates).
++
++    VLLM_DSPARK_KV_COST=1 adds the cost of reading the KV cache, which the
++    short-context cost table misses: every step's attention streams each
++    scheduled request's whole context once, whatever is verified, so the step
++    costs ``kv_ms_per_token * sum(context)`` more (``kv_ms_per_token`` from the
++    cost table, profiled at engine start, or VLLM_DSPARK_KV_MS_PER_KTOK in ms
++    per 1,000 tokens). Without it a long-context step looks cheaper than it
++    is and the scheduler verifies and drafts too few slots: under load more,
++    shorter steps each pay the full KV read. With the draft cut, the log also
++    reports, per draft length and for steps with and without prefill, the
++    measured step interval against the cost table's prediction without the KV
++    read (prefill tokens counted as verify tokens), and the mean context, to
++    check what the table still misses.
+     """
+ 
+     def __init__(
+@@ -3065,8 +3084,13 @@ class PaperVerifyScheduler:
+         log_every: int = 500,
+         draft_lengths: list[int] | None = None,
+         conditional: list[float] | None = None,
++        kv_cost: bool = False,
+     ):
+         self.num_spec_tokens = num_spec_tokens
++        # KV read per step (VLLM_DSPARK_KV_COST=1): the scheduler sets
++        # kv_tokens, the context of the step's requests, before plan().
++        self.kv_cost = kv_cost
++        self.kv_tokens = 0
+         self.profile_path = profile_path
+         self.survival: dict[str, np.ndarray] = {}
+         # Per-step draft length (None: draft every slot, as in the paper).
+@@ -3078,6 +3102,14 @@ class PaperVerifyScheduler:
+             dtype=np.float64,
+         )[:num_spec_tokens]
+         self._sum_draft_len = 0
++        self._sum_kv_tokens = 0
++        # Step-time check (draft cut): context per planned step, and per
++        # (draft length, prefill in the step) [steps, measured ms, table ms,
++        # context tokens, prefill tokens] since the last log.
++        self._kv_by_step: dict[int, int] = {}
++        self._last_output_time: float | None = None
++        self._timing: dict[tuple[int, bool], list[float]] = {}
++        self._timed_steps = 0
+         self._table: dict[str, np.ndarray] | None = None
+         self.log_every = log_every
+         self._steps = 0
+@@ -3111,15 +3143,21 @@ class PaperVerifyScheduler:
+                     observed[j] / max(observed[j - 1], 1e-6)
+                     for j in range(1, len(observed))
+                 ]
++        kv_cost = os.environ.get("VLLM_DSPARK_KV_COST", "0") == "1"
+         logger.info(
+             "DSpark confidence-scheduled verification: paper scheduler, "
+-            "cost table %s, STS %s, draft lengths %s",
++            "cost table %s, STS %s, draft lengths %s, KV read cost %s",
+             path,
+             sts_path,
+             draft_lengths or "all slots (as in the paper)",
++            "on" if kv_cost else "off (as in the paper)",
+         )
+         return cls(
+-            num_spec_tokens, path, draft_lengths=draft_lengths, conditional=conditional
++            num_spec_tokens,
++            path,
++            draft_lengths=draft_lengths,
++            conditional=conditional,
++            kv_cost=kv_cost,
+         )
+ 
+     def assign(self, running: list[Request]) -> None:
+@@ -3138,13 +3176,32 @@ class PaperVerifyScheduler:
+             )
+             for length, values in (table.get("draft_ms_by_len") or {}).items():
+                 self._table[f"draft_ms_{length}"] = np.asarray(values, dtype=np.float64)
++            override = os.environ.get("VLLM_DSPARK_KV_MS_PER_KTOK")
++            kv_ms_per_token = (
++                float(override) / 1000.0
++                if override
++                else float(table.get("kv_ms_per_token", 0.0))
++            )
++            self._table["kv_ms_per_token"] = np.float64(kv_ms_per_token)
++            if self.kv_cost:
++                logger.info(
++                    "DSpark paper scheduler: KV read %.4f ms per 1,000 context "
++                    "tokens per step (%s)",
++                    kv_ms_per_token * 1000.0,
++                    "VLLM_DSPARK_KV_MS_PER_KTOK" if override else "cost table",
++                )
+         return self._table
+ 
+     def step_ms(
+-        self, num_tokens: np.ndarray, num_reqs: int, draft_len: int | None = None
++        self,
++        num_tokens: np.ndarray,
++        num_reqs: int,
++        draft_len: int | None = None,
++        include_kv: bool = True,
+     ) -> np.ndarray:
+         """Step time of verifying ``num_tokens`` tokens for ``num_reqs``
+-        requests (drafting ``draft_len`` slots), from the profiled cost table."""
++        requests (drafting ``draft_len`` slots), from the profiled cost table,
++        plus the step's KV read with VLLM_DSPARK_KV_COST=1."""
+         table = self._load_table()
+         sizes, verify = table["verify_tokens"], table["verify_ms"]
+         num_tokens = np.asarray(num_tokens, dtype=np.float64)
+@@ -3165,7 +3222,9 @@ class PaperVerifyScheduler:
+         if draft_len is not None and f"draft_ms_{draft_len}" in table:
+             draft_ms = table[f"draft_ms_{draft_len}"]
+         draft = float(np.interp(num_reqs, table["draft_reqs"], draft_ms))
+-        return ms + draft
++        if not include_kv or not self.kv_cost:
++            return ms + draft
++        return ms + draft + self.kv_tokens * float(table["kv_ms_per_token"])
+ 
+     def _extended_rows(self, scheduled_spec: dict[str, list[int]]) -> list[np.ndarray]:
+         """Survival of every scheduled slot: the newest observed values where
+@@ -3227,6 +3286,9 @@ class PaperVerifyScheduler:
+             ]
+             _, budget = self._best(available, num_reqs, self.draft_len)
+             self._log(budget, sum(len(row) for row in available), num_reqs)
++            if len(self._kv_by_step) > 64:
++                self._kv_by_step.clear()
++            self._kv_by_step[id(scheduled_spec)] = self.kv_tokens
+         for req_id in scheduled:
+             self.drafted[req_id] = self.draft_len
+         if len(self.drafted) > 4 * max(len(self.survival), 64):
+@@ -3240,19 +3302,67 @@ class PaperVerifyScheduler:
+         self._sum_slots += num_slots
+         self._sum_reqs += num_reqs
+         self._sum_draft_len += self.draft_len
++        self._sum_kv_tokens += self.kv_tokens
+         if self._steps % self.log_every == 0:
+             logger.info(
+                 "DSpark paper scheduler: %.2f of %.2f drafts verified per "
+                 "request, %.2f slots drafted, over %d steps (%.1f decode "
+-                "requests per step)",
++                "requests per step, %.0f context tokens per step)",
+                 self._sum_budget / max(self._sum_reqs, 1),
+                 self._sum_slots / max(self._sum_reqs, 1),
+                 self._sum_draft_len / self.log_every,
+                 self.log_every,
+                 self._sum_reqs / self.log_every,
++                self._sum_kv_tokens / self.log_every,
+             )
+             self._sum_budget = self._sum_slots = self._sum_reqs = 0
+-            self._sum_draft_len = 0
++            self._sum_draft_len = self._sum_kv_tokens = 0
++
++    def _observe_timing(self, scheduler_output: SchedulerOutput) -> None:
++        """Measured step interval (with async scheduling, the time between
++        outputs while the GPU is busy) against the table."""
++        now = time.monotonic()
++        last, self._last_output_time = self._last_output_time, now
++        spec = scheduler_output.scheduled_spec_decode_tokens
++        kv_tokens = self._kv_by_step.pop(id(spec), None)
++        budget = scheduler_output.spec_verify_budget
++        draft_len = scheduler_output.spec_draft_len
++        if last is None or kv_tokens is None or budget is None or draft_len is None:
++            return
++        num_reqs = len(spec)
++        decode_tokens = sum(1 + len(tokens) for tokens in spec.values())
++        prefill = scheduler_output.total_num_scheduled_tokens - decode_tokens
++        interval_ms = (now - last) * 1000.0
++        if interval_ms > 1000.0:
++            return
++        table_ms = float(
++            self.step_ms(
++                np.array([num_reqs + budget + prefill]),
++                num_reqs,
++                draft_len,
++                include_kv=False,
++            )[0]
++        )
++        entry = self._timing.setdefault((draft_len, prefill > 0), [0.0] * 5)
++        entry[0] += 1
++        entry[1] += interval_ms
++        entry[2] += table_ms
++        entry[3] += kv_tokens
++        entry[4] += prefill
++        self._timed_steps += 1
++        if self._timed_steps % self.log_every == 0:
++            logger.info(
++                "DSpark paper scheduler step time: %s",
++                "; ".join(
++                    f"D={length}{' +prefill' if mixed else ''}: {int(n)} steps, "
++                    f"measured {ms / n:.1f} ms, table {tab / n:.1f} ms, "
++                    f"context {kv / n:.0f}, prefill {pre / n:.0f} tokens"
++                    for (length, mixed), (n, ms, tab, kv, pre) in sorted(
++                        self._timing.items()
++                    )
++                ),
++            )
++            self._timing.clear()
+ 
+     def budget(self, scheduled_spec: dict[str, list[int]]) -> int | None:
+         """Batch capacity K for the step: Algorithm 1's admission path over
+@@ -3305,6 +3415,8 @@ class PaperVerifyScheduler:
+         self, scheduler_output: SchedulerOutput, model_runner_output: ModelRunnerOutput
+     ) -> None:
+         """Keep the newest drafts' survival per request."""
++        if self.draft_lengths is not None:
++            self._observe_timing(scheduler_output)
+         survival = model_runner_output.spec_survival
+         if survival is not None:
+             for index, req_id in enumerate(model_runner_output.req_ids):
+diff --git a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+index f1d0ea4..47e548e 100644
+--- a/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/model_runner.py
+@@ -1190,7 +1190,9 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         the DSpark draft step for R requests, which drafts all slots whatever
+         is verified. The scheduler takes SPS(B) = 1 / (verify_ms(B) +
+         draft_ms(R)) for the step's R requests. Dummy batches have short
+-        contexts, as the paper assumes context length is marginal."""
++        contexts, as the paper assumes context length is marginal.
++        ``kv_ms_per_token``: what reading one context token's KV costs a step
++        (see _profile_dspark_kv_read), for VLLM_DSPARK_KV_COST=1."""
+         path = os.environ.get("VLLM_DSPARK_VERIFY_PROFILE")
+         if not path or os.path.exists(path):
+             return
+@@ -1262,6 +1264,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         if len(draft_lengths) > 1:
+             self.speculator.set_draft_len(self.num_speculative_steps)  # type: ignore[attr-defined]
+         draft_ms = draft_ms_by_len[str(self.num_speculative_steps)]
++        kv_read = self._profile_dspark_kv_read(timed)
+         self.kv_connector.set_disabled(False)
+ 
+         table = {
+@@ -1273,6 +1276,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+                 length: [round(ms, 4) for ms in values]
+                 for length, values in draft_ms_by_len.items()
+             },
++            **kv_read,
+             "max_cudagraph_capture_size": max_capture,
+             "num_speculative_tokens": self.num_speculative_steps,
+             "repeats": repeats,
+@@ -1292,6 +1296,26 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             path,
+         )
+ 
++    def _profile_dspark_kv_read(self, timed) -> dict[str, float]:
++        """Per-step cost of one context token's KV, which the short-context
++        dummy batches miss: decode attention streams each request's whole
++        context once per step, so a token costs the target's KV bytes per
++        token over the HBM read bandwidth (a 1 GiB reduction, timed)."""
++        layers = self.model_config.get_num_layers(self.parallel_config)
++        kv_heads = self.model_config.get_num_kv_heads(self.parallel_config)
++        head_size = self.model_config.get_head_size()
++        element_size = self.kv_cache_dtype.itemsize
++        bytes_per_token = 2 * layers * kv_heads * head_size * element_size
++        buffer = torch.ones(1 << 28, dtype=torch.float32, device=self.device)
++        read_ms = timed(lambda: buffer.sum())
++        read_bytes_per_ms = buffer.numel() * buffer.element_size() / read_ms
++        del buffer
++        return {
++            "kv_ms_per_token": bytes_per_token / read_bytes_per_ms,
++            "kv_bytes_per_token": bytes_per_token,
++            "hbm_read_gb_per_s": read_bytes_per_ms * 1000.0 / 1e9,
++        }
++
+     def _profile_dspark_draft(self, draft_sizes, timed, dummy_output) -> list[float]:
+         """Draft-step time for each request count at the current draft length."""
+         draft_ms = []
