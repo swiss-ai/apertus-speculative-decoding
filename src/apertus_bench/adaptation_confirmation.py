@@ -2,8 +2,10 @@
 
 The existing node-sweep launcher runs this command on four allocated GPUs.
 Round A serves base/adapt at k3 on GPUs0/1 and k7 on GPUs2/3. Round B
-reverses each pair on those same GPUs. Captures calibrate cross-deployment
-correctness; full original held-out passes measure serving performance.
+reverses each pair on those same GPUs. EAGLE by default; a selection with
+"method": "dspark" and "base_drafter" runs the same design on DSpark heads.
+Captures calibrate cross-deployment correctness; full original held-out passes
+measure serving performance.
 """
 
 from __future__ import annotations
@@ -55,6 +57,30 @@ def prepare_runtime_ipc(root: Path) -> dict[str, Any]:
     }
 
 
+def base_drafter(selection: dict[str, Any]) -> str:
+    """EAGLE e10 by default; the DSpark repeat names DSpark e10 in its selection."""
+    return selection.get("base_drafter", BASE_HEAD)
+
+
+def dspark_head_report(head: Path, expected_sha256: str | None) -> dict[str, Any]:
+    """Identity of a speculators DSpark checkpoint (served as-is by the fork)."""
+    config = read(head / "config.json")
+    if config.get("speculators_model_type") != "dspark":
+        raise ValueError(f"Not a DSpark checkpoint: {head}")
+    actual = digest(head / "model.safetensors")
+    if expected_sha256 is not None and actual != expected_sha256:
+        raise ValueError(f"DSpark checkpoint weights changed: {head}")
+    return {
+        "path": str(head),
+        "model_safetensors_sha256": actual,
+        "config_sha256": digest(head / "config.json"),
+        "num_hidden_layers": config["transformer_layer_config"]["num_hidden_layers"],
+        "aux_hidden_state_layer_ids": config["aux_hidden_state_layer_ids"],
+        "block_size": config["block_size"],
+        "draft_vocab_size": config["draft_vocab_size"],
+    }
+
+
 def round_spec(selection: dict[str, Any], policy: dict[str, Any], repeat: str) -> dict[str, Any]:
     order = policy["confirmation"][f"gpus_round_{repeat}"]
     workloads = selection["workloads"]
@@ -77,9 +103,11 @@ def round_spec(selection: dict[str, Any], policy: dict[str, Any], repeat: str) -
         "arms": [
             {
                 "name": name,
-                "method": "eagle",
+                "method": selection.get("method", "eagle"),
                 "k": int(name[-1]),
-                "drafter": BASE_HEAD if name.startswith("base") else selection["head_dir"],
+                "drafter": (
+                    base_drafter(selection) if name.startswith("base") else selection["head_dir"]
+                ),
             }
             for name in sorted(order, key=order.get)
         ],
@@ -198,15 +226,16 @@ def provenance(output: Path, selection_path: Path, policy_path: Path, environmen
         # The submitter's exact applied subset is retained in its patches.txt.
         patches.append({"path": str(path), "sha256": digest(path)})
     selection = read(selection_path)
-    for label, head in (("base", BASE_HEAD), ("adapted", selection["head_dir"])):
-        immutable_json(
-            dest / f"{label}-head-report.json",
-            validate_eagle_head(
+    for label, head in (("base", base_drafter(selection)), ("adapted", selection["head_dir"])):
+        if selection.get("method", "eagle") == "dspark":
+            report = dspark_head_report(Path(head), selection.get(f"{label}_model_sha256"))
+        else:
+            report = validate_eagle_head(
                 Path(head),
                 expected_algorithm="eagle31",
                 target_contract_path=REPO_ROOT / "targets/8b/contract.json",
-            ),
-        )
+            )
+        immutable_json(dest / f"{label}-head-report.json", report)
     corpora = {
         w["workloads_file"]: digest(Path(w["workloads_file"])) for w in selection["workloads"]
     }

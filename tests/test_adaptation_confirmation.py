@@ -146,6 +146,26 @@ def test_original_multilingual_workloads_and_no_added_variants(tmp_path):
         assert all(a.gpus == 1 for a in plan.arms)
 
 
+def test_dspark_repeat_keeps_the_design_and_swaps_only_the_drafters(tmp_path):
+    entries = workload_entries(REPO, tmp_path, "mult")
+    eagle = {"name": "adapt-mult-n8k-r0", "head_dir": "/adapt", "workloads": entries}
+    dspark = eagle | {"method": "dspark", "base_drafter": "/e10", "name": "dspark-adapt"}
+    for repeat in ("a", "b"):
+        old, new = round_spec(eagle, POLICY, repeat), round_spec(dspark, POLICY, repeat)
+        assert {k: v for k, v in old.items() if k not in ("arms", "name")} == {
+            k: v for k, v in new.items() if k not in ("arms", "name")
+        }
+        assert [a["name"] for a in old["arms"]] == [a["name"] for a in new["arms"]]
+        assert {a["method"] for a in new["arms"]} == {"dspark"}
+        assert {a["drafter"] for a in new["arms"] if a["name"].startswith("base")} == {"/e10"}
+        assert {a["drafter"] for a in new["arms"] if a["name"].startswith("adapt")} == {"/adapt"}
+        plan = build_plan(new, check_heads=False)
+        for arm, raw in zip(plan.arms, new["arms"], strict=True):
+            assert arm.bench_argv[arm.bench_argv.index("--method") + 1] == "dspark"
+            assert arm.metadata["dspark_checkpoint"] == raw["drafter"]
+            assert str(raw["k"]) in arm.bench_argv
+
+
 def make_confirmation(tmp_path):
     policy = copy.deepcopy(POLICY)
     policy["confirmation"]["k"] = [3]
