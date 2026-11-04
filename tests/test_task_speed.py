@@ -231,3 +231,62 @@ def test_traffic_guard():
     assert not ok and "foreign" in reason
     ok, reason, _ = task_speed.traffic_guard(_metrics(done=10), _metrics(done=5), MODEL, 32)
     assert not ok and "restart" in reason
+
+
+def _report_module():
+    import importlib.util
+
+    path = ROOT / "experiments/task-speed/report-task-speed.py"
+    spec = importlib.util.spec_from_file_location("report_task_speed", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_report_combines_controlled_and_live(tmp_path, monkeypatch):
+    import sys
+
+    import yaml
+
+    suite = yaml.safe_load(SUITE.read_text())
+    suite["slices"] = suite["slices"][:1] + suite["slices"][-1:]  # opb (id), lang-amh (ood)
+    suite["concurrencies"] = [1]
+    suite_path = tmp_path / "suite.yaml"
+    suite_path.write_text(yaml.safe_dump(suite))
+    spec = {"enabled": True, "draft_tokens": 30, "mean_acceptance_length": 3.0,
+            "acceptance_rate": 0.66}  # fmt: skip
+    controlled = tmp_path / "controlled-x"
+    for pair, factor in (("pair-1", 1.0), ("pair-2", 1.02)):
+        for label, speedup in (("opb", 2.2), ("lang-amh", 1.0)):
+            base = controlled / pair
+            _write(base / "plain" / label / label / "c1", _summary(100.0), _metadata())
+            _write(
+                base / "dspark" / label / label / "c1",
+                _summary(100.0 * speedup * factor, spec),
+                _metadata(),
+            )
+    live = tmp_path / "live-x"
+    windows = []
+    for name, variant, rnd in (("D1", "dspark", 1), ("P1", "plain", 1), ("P2", "plain", 2),
+                               ("D2", "dspark", 2)):  # fmt: skip
+        windows.append({"name": name, "variant": variant, "round": rnd, "status": "ok"})
+        for label, speedup in (("opb", 2.0), ("lang-amh", 0.9)):
+            rate = 100.0 * (speedup if variant == "dspark" else 1.0)
+            _write(
+                live / name / label / label / "c1",
+                _summary(rate, spec if variant == "dspark" else None),
+                _metadata(route="gateway"),
+            )
+    (live / "windows.json").write_text(json.dumps(windows))
+    out = tmp_path / "report"
+    argv = ["x", "--suite", str(suite_path), "--controlled", str(controlled), "--live", str(live)]
+    monkeypatch.setattr(sys, "argv", [*argv, "--output", str(out)])
+    _report_module().main()
+    result = json.loads((out / "paired-results.json").read_text())
+    assert len(result["controlled"]["rows"]) == 2 and len(result["live"]["rows"]) == 2
+    ratios = {t["slice"]: t["ratio"] for t in result["transfer"]}
+    assert ratios["opb"] == pytest.approx(2.0 / (2.2 * 1.01), rel=1e-3)
+    report = (out / "REPORT.md").read_text()
+    assert "| opb | id |" in report and "Live ÷ controlled" in report
+    # lang-amh's interval [1.0, 1.02] sits inside the ±5% band.
+    assert json.loads((out / "select.json").read_text()) == {"select": {}}
