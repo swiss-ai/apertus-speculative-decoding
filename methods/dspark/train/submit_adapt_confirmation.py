@@ -4,7 +4,9 @@ Login node only (stdlib). Runs only if the development report selected the
 head under the unchanged EAGLE rule. Freezes a sparse source snapshot of the
 current checkout revision (as freeze_adaptation does for EAGLE), reuses the
 workloads and corpus hashes of EAGLE confirmation 3814370, and submits the
-unchanged design through serving/node-sweep.sh on `normal`.
+unchanged design through serving/node-sweep.sh. On debug (1.5 h) each job runs
+one GPU-swapped round (--repeats a, then b) into one driver output; the
+report is written when both rounds are complete.
 
     python3 methods/dspark/train/submit_adapt_confirmation.py --root ADAPT_ROOT
 """
@@ -83,7 +85,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--attempt", default="initial")
-    parser.add_argument("--wall-time", default="12:00:00")
+    parser.add_argument("--wall-time", default="01:30:00")
+    parser.add_argument("--partition", default="debug")
+    parser.add_argument("--repeats", default="a", help="a, b or a,b (debug: one round per job)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     root = args.root
@@ -124,10 +128,15 @@ def main() -> None:
         "eagle_reference_selection": str(EAGLE_SELECTION),
     }
     selection_path = configs / f"{name}-selection.json"
-    write_new(selection_path, selection)
-    out = root / "confirmations" / args.attempt
-    if out.exists():
-        raise RuntimeError(f"confirmation output exists; use a fresh attempt: {out}")
+    if selection_path.exists():  # Later chunk of the same attempt: must be unchanged.
+        if json.loads(selection_path.read_text()) != selection:
+            raise RuntimeError("selection differs from the attempt's earlier chunk")
+    else:
+        write_new(selection_path, selection)
+    attempt = root / "confirmations" / args.attempt
+    paired = attempt / "paired"  # One driver output across the attempt's chunks.
+    chunk = args.repeats.replace(",", "")
+    out = attempt / f"job-{chunk}-{dt.datetime.now(dt.UTC):%Y%m%dT%H%M%SZ}"
     spec = {
         "name": name + "-confirmation",
         "stage": "8b",
@@ -138,14 +147,25 @@ def main() -> None:
                 "method": "command",
                 "gpus": 4,
                 "pythonpath": [str(source / "methods/eagle")],
-                "command": ["python3", "-m", "apertus_bench.adaptation_confirmation",
-                            "--selection", str(selection_path), "--policy", str(POLICY),
-                            "--environment", str(out / "environment.toml"),
-                            "--output", "{arm_dir}/paired"],  # fmt: skip
+                "command": [
+                    "python3",
+                    "-m",
+                    "apertus_bench.adaptation_confirmation",
+                    "--selection",
+                    str(selection_path),
+                    "--policy",
+                    str(POLICY),
+                    "--environment",
+                    str(out / "environment.toml"),
+                    "--output",
+                    str(paired),
+                    "--repeats",
+                    args.repeats,
+                ],  # fmt: skip
             }
         ],
     }
-    spec_path = configs / f"{name}.yaml"
+    spec_path = configs / f"{name}-{chunk}-{out.name[-16:]}.yaml"
     write_new(spec_path, spec)  # JSON is a strict subset of YAML.
     short = Path("/iopsstor/scratch/cscs") / os.environ["USER"] / ("da-" + args.attempt[:8])
     env = {
@@ -153,7 +173,7 @@ def main() -> None:
         for key, value in os.environ.items()
         if key not in {"TMPDIR", "PYTHONPATH", "VLLM_PATCH_DIR", "EXTRA_MOUNTS", "SWEEP_PATCHES"}
     } | {
-        "SWEEP_PARTITION": "normal",
+        "SWEEP_PARTITION": args.partition,
         "SWEEP_TIME": args.wall_time,
         "SWEEP_OUTPUT": str(out),
         "VLLM_PATCH_DIR": str(short),
@@ -173,8 +193,19 @@ def main() -> None:
         "policy": str(POLICY),
         "policy_sha256": POLICY_SHA256,
         "output": str(out),
-        "environment": {k: env[k] for k in ("SWEEP_PARTITION", "SWEEP_TIME", "SWEEP_OUTPUT",
-                        "VLLM_PATCH_DIR", "SML_ENV_DIR", "ENV_SOURCE")},  # fmt: skip
+        "driver_output": str(paired),
+        "repeats": args.repeats,
+        "environment": {
+            k: env[k]
+            for k in (
+                "SWEEP_PARTITION",
+                "SWEEP_TIME",
+                "SWEEP_OUTPUT",
+                "VLLM_PATCH_DIR",
+                "SML_ENV_DIR",
+                "ENV_SOURCE",
+            )
+        },  # fmt: skip
     }
     if args.dry_run:
         print(json.dumps(receipt, indent=2))
@@ -185,7 +216,7 @@ def main() -> None:
                 "returncode": result.returncode}  # fmt: skip
     jobs = re.findall(r"job=(\d+) output=", result.stdout)
     receipt["job_id"] = jobs[-1] if jobs else None
-    write_new(root / "receipts" / f"confirmation-{args.attempt}.json", receipt)
+    write_new(root / "receipts" / f"confirmation-{args.attempt}-{out.name}.json", receipt)
     print(json.dumps({k: receipt[k] for k in ("job_id", "output", "returncode")}))
     if result.returncode or not jobs:
         raise SystemExit("submission failed; see the receipt")

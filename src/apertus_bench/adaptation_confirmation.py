@@ -198,8 +198,14 @@ def collect_report(
     }
 
 
-def provenance(output: Path, selection_path: Path, policy_path: Path, environment: Path) -> None:
-    dest = output / "provenance"
+def provenance(
+    output: Path,
+    selection_path: Path,
+    policy_path: Path,
+    environment: Path,
+    name: str = "provenance",
+) -> None:
+    dest = output / name
     dest.mkdir(parents=True, exist_ok=False)
     resolved = tomllib.loads(environment.read_text())
     image = Path(resolved["image"])
@@ -275,10 +281,27 @@ def provenance(output: Path, selection_path: Path, policy_path: Path, environmen
     )
 
 
-async def run(output: Path, selection: dict[str, Any], policy: dict[str, Any]) -> None:
-    for repeat in ("a", "b"):
+def round_complete(output: Path, repeat: str) -> bool:
+    status = output / repeat / "sweep-status.json"
+    return status.is_file() and all(v == "ok" for v in read(status).values())
+
+
+async def run(
+    output: Path,
+    selection: dict[str, Any],
+    policy: dict[str, Any],
+    repeats: tuple[str, ...] = ("a", "b"),
+) -> None:
+    for repeat in repeats:
         spec = round_spec(selection, policy, repeat)
         round_out = output / repeat
+        if round_complete(output, repeat):
+            continue  # Chunked confirmation: finished in an earlier allocation.
+        if round_out.exists():
+            # A round cut by an allocation's end is kept, never reused or mixed.
+            aside = output / "incomplete" / f"{repeat}-{os.environ.get('SLURM_JOB_ID', 'local')}"
+            aside.parent.mkdir(exist_ok=True)
+            round_out.rename(aside)
         round_out.mkdir(exist_ok=False)
         os.environ["SWEEP_CACHE_ROOT"] = str(round_out / "vllm-cache")
         immutable_json(round_out / "spec.json", spec)
@@ -321,12 +344,27 @@ def main() -> None:
     parser.add_argument("--policy", type=Path, required=True)
     parser.add_argument("--environment", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--repeats",
+        default="a,b",
+        help="Rounds to run in this allocation. With fewer than both, the output may"
+        " already exist (chunked confirmation on a short partition); each allocation"
+        " records its own provenance-<job> and the report is written once both rounds"
+        " are complete.",
+    )
     args = parser.parse_args()
-    args.output.mkdir(parents=True, exist_ok=False)
+    repeats = tuple(args.repeats.split(","))
+    if not set(repeats) <= {"a", "b"} or not repeats:
+        raise SystemExit("--repeats takes a, b or a,b")
+    chunked = repeats != ("a", "b")
+    args.output.mkdir(parents=True, exist_ok=chunked)
     selection, policy = read(args.selection), read(args.policy)
     try:
-        provenance(args.output, args.selection, args.policy, args.environment)
-        asyncio.run(run(args.output, selection, policy))
+        name = "provenance-" + os.environ.get("SLURM_JOB_ID", "local") if chunked else "provenance"
+        provenance(args.output, args.selection, args.policy, args.environment, name)
+        asyncio.run(run(args.output, selection, policy, repeats))
+        if not all(round_complete(args.output, r) for r in ("a", "b")):
+            return  # The other round runs in the next allocation.
         report = collect_report(args.output, selection, policy)
         immutable_json(args.output / "confirmation-summary.json", report)
         if not report["correctness_passed"]:
