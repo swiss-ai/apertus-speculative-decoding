@@ -57,8 +57,8 @@ full-answer quality. Fixed-concurrency seeded stand-in workloads and the origina
 completion caps limit the claims.
 
 The original smoke's [unaltered artifacts and separate infrastructure assessment](../results/8b/drafter-updates/recovery-20261027/original-smoke-infrastructure.json)
-are retained. Recovery uses a lightweight detached controller on the cluster,
-not local Claude watchers. Its receipts and next action are at
+are retained. Recovery uses a lightweight detached controller on the cluster.
+Its receipts and next action are at
 `spec-exp-data/drafter-updates/recovery-20261030-cache/receipts/campaign.json`.
 It submits one owned training job at a time and cannot create new variants.
 The [initial controller staging receipt](../results/8b/drafter-updates/recovery-20261027/controller-staging-621b2050.json)
