@@ -28,13 +28,27 @@ BUSYBOX = (
 # needs verification in-cluster; the corrected DEV identity must not be used here.
 BOOTSTRAP = "/ip4/148.187.108.178/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"
 NO_PROXY = "127.0.0.1,localhost,0.0.0.0,.svc,.cluster.local"
+# Plain mode serves the same target from the same Deployment, only without the
+# drafter, under its own ID so DSpark users never silently receive plain output.
+MODEL_IDS = {
+    "dspark": "SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3",
+    "plain": "SwissAI-Research/swiss-ai/Apertus-v1.5-8B-plain-matched",
+}
 
 
 def sha(value):
     return hashlib.sha256(value.encode()).hexdigest()
 
 
-def render(output: Path, replicas: int, source_revision: str):
+def render(
+    output: Path,
+    replicas: int,
+    source_revision: str,
+    variant: str = "dspark",
+    pin_node: str | None = None,
+):
+    if variant not in MODEL_IDS:
+        raise ValueError(f"unknown variant {variant!r}")
     output.mkdir(parents=True, exist_ok=False)
     profile = json.loads((BENCH / "profile.json").read_text())
     preflight = json.loads((BENCH / "preflight.json").read_text())
@@ -57,7 +71,7 @@ def render(output: Path, replicas: int, source_revision: str):
         key = "overlay-" + source.name
         data[key] = source.read_text()
         overlays[key] = "/" + str(relative)
-    model_id = "SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3"
+    model_id = MODEL_IDS[variant]
     bare_id = model_id.removeprefix("SwissAI-Research/")
     spec = {
         "source_revision": source_revision,
@@ -99,21 +113,15 @@ def render(output: Path, replicas: int, source_revision: str):
             "/runtime/chat_template.jinja",
             "--chat-template-content-format",
             "string",
-            "--speculative-config",
-            json.dumps(
-                {
-                    "method": "dspark",
-                    "model": "/assets/drafter",
-                    "num_speculative_tokens": 3,
-                },
-                sort_keys=True,
-            ),
+            *speculative_argv(variant),
             "--host",
             "0.0.0.0",
             "--port",
             "8080",
         ],
     }
+    if variant != "dspark":
+        spec["variant"] = variant
     data["deployment.json"] = json.dumps(spec, indent=2) + "\n"
     config_name = NAME + "-" + sha(json.dumps(data, sort_keys=True))[:12]
 
@@ -193,13 +201,17 @@ def render(output: Path, replicas: int, source_revision: str):
                         "annotations": {
                             "apertus.swissai/source-revision": source_revision,
                             "apertus.swissai/checkpoint-sha256": spec["checkpoint_sha256"],
+                            **({"apertus.swissai/variant": variant} if variant != "dspark" else {}),
                         },
                     },
                     "spec": {
                         "restartPolicy": "Always",
                         "automountServiceAccountToken": False,
                         "terminationGracePeriodSeconds": 120,
-                        "nodeSelector": {"kubernetes.io/arch": "arm64"},
+                        "nodeSelector": {
+                            "kubernetes.io/arch": "arm64",
+                            **({"kubernetes.io/hostname": pin_node} if pin_node else {}),
+                        },
                         "imagePullSecrets": [{"name": "ghcr-pull-secret"}],
                         "enableServiceLinks": False,
                         "tolerations": [
@@ -298,10 +310,27 @@ def render(output: Path, replicas: int, source_revision: str):
     (output / "deployment-provenance.json").write_text(json.dumps(spec, indent=2) + "\n")
 
 
+def speculative_argv(variant):
+    if variant == "plain":
+        return []
+    config = {"method": "dspark", "model": "/assets/drafter", "num_speculative_tokens": 3}
+    return ["--speculative-config", json.dumps(config, sort_keys=True)]
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
     parser.add_argument("--replicas", type=int, choices=(0, 1), default=0)
+    parser.add_argument(
+        "--variant",
+        choices=sorted(MODEL_IDS),
+        default="dspark",
+        help="plain drops the drafter and advertises its own model ID (speed baseline)",
+    )
+    parser.add_argument(
+        "--pin-node",
+        help="add a kubernetes.io/hostname node selector so every toggle runs on one node",
+    )
     args = parser.parse_args()
     if (
         subprocess.check_output(["git", "branch", "--show-current"], cwd=ROOT, text=True).strip()
@@ -309,4 +338,4 @@ if __name__ == "__main__":
     ):
         raise SystemExit("use a task branch")
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    render(args.output, args.replicas, revision)
+    render(args.output, args.replicas, revision, args.variant, args.pin_node)

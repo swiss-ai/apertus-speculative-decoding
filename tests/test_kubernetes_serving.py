@@ -100,3 +100,64 @@ def test_frozen_runtime_survives_configmap_round_trip(tmp_path):
     (runtime / next(iter(spec["overlays"]))).write_text("changed")
     with pytest.raises(ValueError, match="asset hash mismatch"):
         launch.verify_files(runtime, spec["runtime_hashes"])
+
+
+def _flatten(value, prefix=""):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield from _flatten(item, f"{prefix}/{key}")
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from _flatten(item, f"{prefix}[{index}]")
+    else:
+        yield prefix, value
+
+
+def test_plain_render_differs_only_in_drafter_identity(tmp_path):
+    import json
+
+    prepare = module("prepare")
+    prepare.render(tmp_path / "dspark", 1, "rev", "dspark", "nid006597")
+    prepare.render(tmp_path / "plain", 1, "rev", "plain", "nid006597")
+
+    def load(variant):
+        root = tmp_path / variant
+        deployment = yaml.safe_load((root / "deployment.yaml").read_text())
+        provenance = json.loads((root / "deployment-provenance.json").read_text())
+        return deployment, provenance
+
+    (dspark, dspark_spec), (plain, plain_spec) = load("dspark"), load("plain")
+    argv = dspark_spec["engine_argv"]
+    at = argv.index("--speculative-config")
+    expected = argv[:at] + argv[at + 2 :]
+    names = expected.index("--served-model-name") + 1
+    expected[names : names + 2] = [
+        prepare.MODEL_IDS["plain"],
+        prepare.MODEL_IDS["plain"].removeprefix("SwissAI-Research/"),
+    ]
+    assert plain_spec["engine_argv"] == expected
+    assert plain_spec["variant"] == "plain" and "variant" not in dspark_spec
+    # Same frozen assets (including the drafter files, still verified) and runtime overlays.
+    assert plain_spec["asset_hashes"] == dspark_spec["asset_hashes"]
+    assert plain_spec["overlays"] == dspark_spec["overlays"]
+    differing = {
+        key
+        for key, value in dict(_flatten(dspark)).items()
+        if dict(_flatten(plain)).get(key) != value
+    } | (set(dict(_flatten(plain))) - set(dict(_flatten(dspark))))
+    template = "/spec/template"
+    assert differing == {
+        template + "/metadata/annotations/apertus.swissai/variant",
+        template + "/spec/volumes[1]/configMap/name",
+    }
+    selector = dspark["spec"]["template"]["spec"]["nodeSelector"]
+    assert selector == {"kubernetes.io/arch": "arm64", "kubernetes.io/hostname": "nid006597"}
+
+
+def test_default_dspark_render_is_unchanged_without_pin(tmp_path):
+    prepare = module("prepare")
+    prepare.render(tmp_path / "m", 1, "rev")
+    deployment = yaml.safe_load((tmp_path / "m" / "deployment.yaml").read_text())
+    template = deployment["spec"]["template"]
+    assert template["spec"]["nodeSelector"] == {"kubernetes.io/arch": "arm64"}
+    assert "apertus.swissai/variant" not in template["metadata"]["annotations"]
