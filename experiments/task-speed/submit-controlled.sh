@@ -14,6 +14,7 @@ set -euo pipefail
 
 CODE="$(cd "$(dirname "$0")/../.." && pwd)"
 SUITE="${TASK_SPEED_SUITE:-${CODE}/experiments/task-speed/suite.yaml}"
+SUITE="$(cd "$(dirname "${SUITE}")" && pwd)/$(basename "${SUITE}")"
 # The pilot whose image, overlays, chat template and checkpoints the live
 # Kubernetes Deployment was frozen from (serving/kubernetes/prepare.py BENCH).
 PILOT="${TASK_SPEED_PILOT:-/iopsstor/scratch/cscs/${USER}/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a}"
