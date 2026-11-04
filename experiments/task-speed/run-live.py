@@ -250,8 +250,8 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
                 cell = out / label / label / f"c{concurrency}"
                 if _valid(cell):
                     continue  # measured by an earlier job of this window
-                if cell.exists():  # interrupted before its guard was written
-                    cell.rename(out / "rejected" / f"{label}-c{concurrency}-{run_id}-unguarded")
+                if cell.exists():  # interrupted before its guard, or failed requests
+                    cell.rename(out / "rejected" / f"{label}-c{concurrency}-{run_id}-invalid")
                 if deadline and time.monotonic() > deadline:
                     print("budget reached; start the window again to continue", flush=True)
                     break
@@ -270,6 +270,10 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
                         model,
                         requests,
                     )
+                    failed = summary["requests"]["attempted"] - summary["requests"]["successful"]
+                    if ok and summary["requests"]["success_rate"] < 0.99:
+                        # The engine finished them, but the gateway dropped the streams.
+                        ok, reason = False, f"{failed} client-side request failures"
                     (cell / "guard.json").write_text(
                         json.dumps({"valid": ok, "reason": reason, **detail}, indent=2) + "\n"
                     )
@@ -309,8 +313,10 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
 
 
 def _valid(cell: Path) -> bool:
-    guard = cell / "guard.json"
-    return guard.exists() and json.loads(guard.read_text())["valid"]
+    guard, summary = cell / "guard.json", cell / "summary.json"
+    if not (guard.exists() and json.loads(guard.read_text())["valid"]):
+        return False
+    return json.loads(summary.read_text())["requests"]["success_rate"] >= 0.99
 
 
 def main() -> None:
