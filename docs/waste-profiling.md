@@ -444,6 +444,6 @@ The recovered pair is versioned separately in
 393 source/recovery files, request counts, matched workload/generation/order,
 arm statuses and monotone speculative counters. Earlier outputs come from
 `python -m apertus_bench.waste_report {decompose,fit,cost}` with the cost
-table `results/8b/sweeps/kv-cost-a-20261015T230650Z/dspark-e10-k7-paper-cut-kv/cost-table.json`
-(on `spec-exp-base`). Profiled reports (`.nsys-rep`, `.sqlite`) stay on the
+table `results/8b/sweeps/kv-cost-a-20261015T230650Z/dspark-e10-k7-paper-cut-kv/cost-table.json`.
+Profiled reports (`.nsys-rep`, `.sqlite`) stay on the
 cluster under `/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/<run>/<arm>/nsys/`.
