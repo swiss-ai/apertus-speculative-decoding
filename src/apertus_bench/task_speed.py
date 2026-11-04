@@ -257,8 +257,11 @@ def pair_row(plain: dict, draft: dict) -> dict[str, Any]:
         for metric in ("ttft", "tpot", "e2e"):
             for quantile in ("p50", "p95"):
                 latency[f"{arm}_{metric}_{quantile}_ms"] = summary["latency_ms"][metric][quantile]
+    tpot = [plain["latency_ms"]["tpot"]["p50"], draft["latency_ms"]["tpot"]["p50"]]
     return {
         "speedup": rates[1] / rates[0],
+        # Per-request decode speedup: insensitive to a cell's tail (one stalled stream).
+        "tpot_speedup": tpot[0] / tpot[1] if tpot[0] and tpot[1] else None,
         "plain_tokens_s": rates[0],
         "dspark_tokens_s": rates[1],
         **latency,
@@ -311,6 +314,7 @@ def cell_rows(
                     "class": entry["class"],
                     "concurrency": concurrency,
                     "speedup_geomean": statistics.geometric_mean(ratios),
+                    "tpot_speedup_geomean": _geomean([p["tpot_speedup"] for p in measured]),
                     "bootstrap_95": ci,
                     "verdict": verdict(ci),
                     "acceptance_length": statistics.fmean(lengths) if lengths else None,
@@ -318,6 +322,11 @@ def cell_rows(
                 }
             )
     return {"rows": rows, "missing": missing, "rejected": rejected, "complete": not missing}
+
+
+def _geomean(values: list[float | None]) -> float | None:
+    values = [v for v in values if v]
+    return statistics.geometric_mean(values) if values else None
 
 
 def class_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:

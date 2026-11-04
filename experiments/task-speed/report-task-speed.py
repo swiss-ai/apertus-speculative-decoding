@@ -143,6 +143,21 @@ def render(suite, result) -> str:
                 + " | ".join(speed_cell(c) for c in cells)
                 + " |"
             )
+        lines += ["", "### Per-request decode speedup (TPOT p50, plain ÷ DSpark)", ""]
+        lines += [
+            "Unaffected by a cell's slowest stream; throughput above includes queueing and tails.",
+            "",
+        ]
+        lines += ["| Slice | " + " | ".join(f"C={c}" for c in concurrencies) + " |"]
+        lines += ["|---" * (len(concurrencies) + 1) + "|"]
+        for entry in suite["slices"]:
+            cells = [rows.get((entry["label"], c)) for c in concurrencies]
+            if any(cells):
+                lines.append(
+                    f"| {entry['label']} | "
+                    + " | ".join(fmt(c and c["tpot_speedup_geomean"], ".2f", "x") for c in cells)
+                    + " |"
+                )
         lines += ["", "### Speedup against acceptance length", ""]
         lines += ["| C | Speedup ≈ a + b·length | R² | Break-even length |", "|---|---|---|---|"]
         for curve in data["curves"]:
