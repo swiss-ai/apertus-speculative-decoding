@@ -20,6 +20,16 @@ opt-in serving overlay is in `serving/draft_kv/`, its campaign tools are in
 `experiments/drafter-kv-8b/`, and raw measurements and provenance are under
 `results/8b/drafter-kv/`.
 
+The [8B wasted-compute profiling study](docs/waste-profiling.md) measured with
+Nsight Systems how much GPU time speculation wastes past saturation: at k=7 and
+C=128 about 22% of GPU time and 45-46% of the work speculation adds. A
+load-dependent k is worth about 4% geomean over the best fixed k, and the DSpark
+paper scheduler adds only 1.9-2.8% over plain at C=128-256 on summarization, too
+little to justify another serving mechanism. The opt-in NVTX overlay is
+`serving/patches/vllm-apertus-nvtx.patch`, the harness support is in
+`src/apertus_bench/{profiling,vllm_nvtx,waste_report}.py`, raw sweeps are under
+`results/8b/sweeps/` and analyses under `results/8b/waste/`.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.

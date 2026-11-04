@@ -28,6 +28,11 @@ and both control kinds are specified in `../docs/protocol.md`.
   raw cells, calibrated controls, allocation traces, failed-attempt history and
   reproducibility artifacts. Confirmation and other-head evaluations stopped
   at the negative screen.
+- `8b/waste/`: wasted-compute analyses (`decomposition`, `drafter-costs`,
+  `cost-per-token`) over the profiled sweeps `8b/sweeps/waste-prof-{a,b}-*` and
+  the Nsight smoke test `8b/sweeps/nsys-smoke-*`. `recovery-20261027/` holds the
+  paired analysis of the unprofiled summarization pair `8b/sweeps/waste-sum-{a,b}-*`
+  (scheduler +1.9%/+2.8% over plain at C=128/256) and its provenance limits.
 
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
   n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every
