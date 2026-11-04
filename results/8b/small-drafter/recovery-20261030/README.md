@@ -120,7 +120,3 @@ implementation endorsement. Exact final e10/model metrics and actual GPU
 records remain on cluster; small report reads stalled in Lustre during final
 collection. See the [terminal closure](../recovery-20261031/README.md), which
 keeps that retrieval limitation separate from the confirmed scientific block.
-
-While home remains over quota, the preserved `sync-through-scratch.sh` performs
-an incremental bundle transfer only for this worktree. Invoke it under the
-coordination lock: `flock /tmp/apertus-recovery-20261027/sync.lock bash results/8b/small-drafter/recovery-20261030/sync-through-scratch.sh`.

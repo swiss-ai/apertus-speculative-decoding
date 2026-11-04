@@ -31,8 +31,8 @@ symlinks to the retained checkpoint directory `0`.
 
 The transport archive SHA-256 is
 `752284a8e1eebb834d7fddb690ac67ff185a3509242178f5090fa6f0bd85e11f`.
-`collect-evidence.py` is the exact collection script. Do not rerun it over
-the completed collection; choose another version for later artifacts.
+The exact collection script (`collect-evidence.py`, Clariden paths hard-coded)
+is kept only in branch `small-drafter` at `73d2ecbc`.
 
 ## Automatic continuation
 
