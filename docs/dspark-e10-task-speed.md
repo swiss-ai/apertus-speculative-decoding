@@ -72,7 +72,7 @@ The plain baseline for the live pod is the same Deployment toggled to plain mode
 - It rejects and reruns any cell with other users' traffic: the engine must be idle at the start, and its finished-request counter must advance by exactly the requests sent.
 - A `--direct` port-forward pass on 3 slices measures the gateway overhead.
 
-The client runs on Clariden's `xfer` CPU partition: `setup-live-client.sh` builds an x86 Python 3.12 venv and kubectl.
+The client and kubectl run together on Clariden debug nodes. The prompt corpus includes restricted text, so it stays on the cluster. Windows resume across jobs.
 
 ## Differences from the approved plan
 

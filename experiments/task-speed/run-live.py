@@ -1,8 +1,8 @@
 """Measure one window of the deployed pod (plain or DSpark mode) through the gateway.
 
 The live campaign toggles the one Kubernetes Deployment between DSpark and
-plain mode (toggle.md) and measures each mode in a window over the same corpus
-as the controlled run: D1, P1 (round 1), then P2, D2 (round 2).
+plain mode (toggle.md) and measures each mode in a window over the same corpus as the controlled run
+(a window may span several jobs; measured cells are kept): D1, P1 (round 1), then P2, D2 (round 2).
 
   run-live.py --window D1 --variant dspark --round 1 --corpus CONTROLLED/corpus.jsonl \
       --output results/8b/task-speed/live-<stamp>
@@ -153,7 +153,7 @@ async def window(args) -> None:
     route = "direct" if args.direct else "gateway"
     name = args.window if route == "gateway" else f"{args.window}-direct"
     out = root / name
-    out.mkdir(exist_ok=False)
+    out.mkdir(exist_ok=True)  # resumable: a window may span several jobs
     model = model_ids()[args.variant]
     kube = Kube(args)
     pod = kube.pod()
@@ -196,7 +196,12 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
         "harness_revision": os.environ.get("TASK_SPEED_REVISION"),
         "started": datetime.now(UTC).isoformat(),
     }
-    (out / "identity.json").write_text(json.dumps(identity, indent=2) + "\n")
+    earlier = sorted(out.glob("identity-*.json"))
+    if earlier and json.loads(earlier[0].read_text())["pod_uid"] != identity["pod_uid"]:
+        raise RuntimeError("the pod changed since this window started; start a new window")
+    run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+    (out / f"identity-{run_id}.json").write_text(json.dumps(identity, indent=2) + "\n")
+    deadline = time.monotonic() + 60 * args.budget_minutes if args.budget_minutes else None
     metrics = KubeMetrics(kube, identity["pod"])
     extra = {
         "deployment_id": f"k8s-{identity['pod_uid']}",
@@ -221,7 +226,7 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
     )
     labels = args.slices or [entry["label"] for entry in suite["slices"]]
     concurrencies = args.concurrencies or suite["concurrencies"]
-    cells = []
+    (out / "rejected").mkdir(exist_ok=True)
     key = api_key(args) if route == "gateway" else None
     async with StreamingChatClient(
         base_url, model, key, timeout_seconds=args.timeout_seconds
@@ -231,7 +236,7 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
         prewarm = load_prompts(corpus, task_speed.PREWARM)
         for concurrency in (1, 128):
             summary = await run_cell(
-                client, prewarm, corpus, out / task_speed.PREWARM / f"c{concurrency}",
+                client, prewarm, corpus, out / task_speed.PREWARM / run_id / f"c{concurrency}",
                 CellSettings(task_speed.PREWARM, concurrency, 2 * len(prewarm) if concurrency > 1
                              else len(prewarm), 0, 1, generation),
                 variant_record, None, model, extra,
@@ -243,6 +248,13 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
             for concurrency in concurrencies:
                 requests = task_speed.requests_for(suite, concurrency)
                 cell = out / label / label / f"c{concurrency}"
+                if _valid(cell):
+                    continue  # measured by an earlier job of this window
+                if cell.exists():  # interrupted before its guard was written
+                    cell.rename(out / "rejected" / f"{label}-c{concurrency}-{run_id}-unguarded")
+                if deadline and time.monotonic() > deadline:
+                    print("budget reached; start the window again to continue", flush=True)
+                    break
                 for attempt in range(1 + args.retries):
                     await wait_idle(metrics, model)
                     summary = await run_cell(
@@ -266,17 +278,19 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
                           f"{'ok' if ok else reason}", flush=True)  # fmt: skip
                     if ok:
                         break
-                    rejected = out / "rejected" / f"{label}-c{concurrency}-attempt-{attempt}"
-                    rejected.parent.mkdir(exist_ok=True)
+                    rejected = out / "rejected" / f"{label}-c{concurrency}-{run_id}-{attempt}"
                     cell.rename(rejected)
-                cells.append({"slice": label, "concurrency": concurrency, "valid": ok,
-                              "attempts": attempt + 1})  # fmt: skip
     after = kube.pod()
     same = (
         after["metadata"]["uid"] == identity["pod_uid"]
         and [c["restartCount"] for c in after["status"].get("containerStatuses", [])]
         == identity["restarts"]
     )
+    cells = [
+        {"slice": label, "concurrency": c, "valid": _valid(out / label / label / f"c{c}")}
+        for label in labels
+        for c in concurrencies
+    ]
     record = {
         **{k: identity[k] for k in ("window", "variant", "round", "route", "pod_uid", "node")},
         "name": name,
@@ -289,8 +303,14 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
     (out / "window.json").write_text(json.dumps(record, indent=2) + "\n")
     index = root / "windows.json"
     windows = json.loads(index.read_text()) if index.exists() else []
-    index.write_text(json.dumps([*windows, record], indent=2) + "\n")
+    windows = [w for w in windows if w["name"] != name] + [record]
+    index.write_text(json.dumps(windows, indent=2) + "\n")
     print(json.dumps({k: record[k] for k in ("name", "status", "pod_unchanged")}))
+
+
+def _valid(cell: Path) -> bool:
+    guard = cell / "guard.json"
+    return guard.exists() and json.loads(guard.read_text())["valid"]
 
 
 def main() -> None:
@@ -305,6 +325,7 @@ def main() -> None:
     parser.add_argument("--slices", nargs="*")
     parser.add_argument("--concurrencies", nargs="*", type=int)
     parser.add_argument("--retries", type=int, default=2)
+    parser.add_argument("--budget-minutes", type=float, help="stop starting cells after this")
     parser.add_argument("--metrics-interval", type=float, default=5.0)
     parser.add_argument("--timeout-seconds", type=float, default=900.0)
     parser.add_argument("--kubectl", default="kubectl")

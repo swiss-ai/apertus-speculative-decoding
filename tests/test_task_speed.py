@@ -397,17 +397,24 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
     args = argparse.Namespace(
         suite=suite_path, corpus=corpus_dir / "corpus.jsonl", output=tmp_path / "live",
         window="D1", variant="dspark", round=1, direct=False, slices=None,
-        concurrencies=[1], retries=2, metrics_interval=None, timeout_seconds=5,
+        concurrencies=[1], retries=2, budget_minutes=None, metrics_interval=None,
+        timeout_seconds=5,
         kubectl="kubectl", context="c", namespace="n", api_key_env="CSCS_SERVING_API",
         sml_python="python3",
     )  # fmt: skip
     asyncio.run(live.window(args))
     (record,) = json.loads((tmp_path / "live" / "windows.json").read_text())
     assert record["status"] == "ok" and record["cells"] == [
-        {"slice": "opb", "concurrency": 1, "valid": True, "attempts": 2}
+        {"slice": "opb", "concurrency": 1, "valid": True}
     ]
     window = tmp_path / "live" / "D1"
-    assert (window / "rejected" / "opb-c1-attempt-0" / "guard.json").exists()
+    (rejected,) = (window / "rejected").iterdir()
+    assert (rejected / "guard.json").exists()
+    # A second job of the same window skips the measured cell.
+    sent = state["done"]
+    asyncio.run(live.window(args))
+    assert state["done"] - sent == 1 + 2  # only the pre-warm: one prompt at C=1, twice at C=128
+    assert len(json.loads((tmp_path / "live" / "windows.json").read_text())) == 1
     guard = json.loads((window / "opb/opb/c1/guard.json").read_text())
     assert guard["valid"] and guard["finished_delta"] == 2  # requests_for(suite, 1)
     summary = json.loads((window / "opb/opb/c1/summary.json").read_text())

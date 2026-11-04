@@ -27,7 +27,8 @@ window the DSpark ID is not listed; users of it get an error, never plain output
    and places the kubeconfig at
    `/iopsstor/scratch/cscs/$USER/apertus-kubernetes-access/kubeconfig` (mode 600).
    Check: `kubectl --context breithorn-oidc -n rob-poc auth can-i create pods/exec`.
-3. Client environment: `experiments/task-speed/setup-live-client.sh` (once).
+3. Client: runs on Clariden debug nodes with `~/venvs/apertus-bench` and the
+   staged aarch64 kubectl; kubectl and the client run there together.
 4. Corpus: the controlled run's `corpus.jsonl` (same prompts, same digest).
 5. Optional but useful: a PR adding
    `vllm-apertus-v1p5-8b-dspark-e10.rob-poc.svc:8080` to the `vllm-models`
@@ -81,7 +82,9 @@ experiments/task-speed/run-live-window.sh D1 dspark 1 \
   results/8b/task-speed/live-<stamp> results/8b/task-speed/controlled-<stamp>/corpus.jsonl
 ```
 
-The client runs on xfer (about 70–90 min for the full suite). It pre-warms
+The client runs as a debug job (about 70–90 min for the full suite; a job stops
+starting cells after 78 min, and starting the window again measures only the
+missing cells). It pre-warms
 every slice at C=1 and C=128 (any gateway throttling aborts the window), then
 runs each slice at C=1/8/32/128. A cell whose engine was busy at its start or
 which finished other users' requests moves to `rejected/` and reruns (two
