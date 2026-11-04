@@ -30,6 +30,15 @@ little to justify another serving mechanism. The opt-in NVTX overlay is
 `src/apertus_bench/{profiling,vllm_nvtx,waste_report}.py`, raw sweeps are under
 `results/8b/sweeps/` and analyses under `results/8b/waste/`.
 
+The [8B multi-drafter tree screen](docs/tree-drafters.md) (TreeGraft-style trees
+from DSpark, EAGLE and n-gram candidates, replayed offline against greedy target
+captures) found low-load headroom from a single DSpark tree but no case for
+multi-drafter serving: grafting n-gram candidates changes projected throughput by
+less than 0.1%, running both neural drafters is 10-27% slower, and no tree gain
+remains at C>=64. The simulator is `src/apertus_bench/tree_sim.py`, the candidate
+builders are in `methods/tree/`, and the evidence is under
+`results/8b/tree-drafters/`.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.
@@ -86,6 +95,7 @@ serving/             plain-target launcher, environment resolution, vLLM overlay
 methods/
 ├── draft_model/     8B draft, 70B target
 ├── ngram/           prompt lookup
+├── tree/            offline tree / multi-drafter candidate builders (analysis only)
 └── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
 targets/<stage>/     target contracts (architecture, aux layers, hashes) and environment locks
 experiments/         one-off campaigns: smoke-70b, round-cost-70b, system-8b, drafter-kv-8b

@@ -33,6 +33,11 @@ and both control kinds are specified in `../docs/protocol.md`.
   the Nsight smoke test `8b/sweeps/nsys-smoke-*`. `recovery-20261027/` holds the
   paired analysis of the unprofiled summarization pair `8b/sweeps/waste-sum-{a,b}-*`
   (scheduler +1.9%/+2.8% over plain at C=128/256) and its provenance limits.
+- `8b/tree-drafters/screen-20261024/`: offline multi-drafter tree screen (jobs
+  3737472/3737473). Raw per-shard summaries, logs and the original projection are
+  under `raw/`; `analysis-v2/` supersedes the original throughput projections,
+  which extrapolated to negative verification time. Restricted captures stay on
+  Clariden; their hashes are in `collection/manifest.json`.
 
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
   n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every
