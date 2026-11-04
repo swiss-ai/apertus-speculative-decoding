@@ -16,6 +16,8 @@ CODE="$(cd "$(dirname "$0")/../.." && pwd)"
 PYTHON="${TASK_SPEED_PYTHON:-${HOME}/venvs/apertus-bench/bin/python}"
 KUBECTL="${TASK_SPEED_KUBECTL:-/iopsstor/scratch/cscs/${USER}/apertus-kubernetes-access/kubectl}"
 export KUBECONFIG="${KUBECONFIG:-/iopsstor/scratch/cscs/${USER}/apertus-kubernetes-access/kubeconfig}"
+# kubectl credential plugins (e.g. kubectl-oidc_login) staged next to kubectl.
+export PATH="$(dirname "${KUBECTL}"):${PATH}"
 CONTEXT="${TASK_SPEED_KUBE_CONTEXT:-breithorn-oidc}"
 if [ -n "$(git -C "${CODE}" status --porcelain --untracked-files=no)" ]; then
   echo "tracked changes in ${CODE}; commit and sync first" >&2
@@ -36,7 +38,7 @@ REVISION="$(git -C "${CODE}" rev-parse HEAD)"
 nohup setsid srun -p "${TASK_SPEED_PARTITION:-debug}" -A "${TASK_SPEED_ACCOUNT:-infra01}" \
   -t "${TASK_SPEED_TIME:-01:30:00}" -N1 -n1 --job-name="task-speed-${WINDOW}" \
   env PYTHONPATH="${CODE}/src" PYTHONNOUSERSITE=1 TASK_SPEED_BRANCH="${BRANCH}" \
-  TASK_SPEED_REVISION="${REVISION}" KUBECONFIG="${KUBECONFIG}" \
+  TASK_SPEED_REVISION="${REVISION}" KUBECONFIG="${KUBECONFIG}" PATH="${PATH}" \
   "${PYTHON}" "${CODE}/experiments/task-speed/run-live.py" \
   --window "${WINDOW}" --variant "${VARIANT}" --round "${ROUND}" --output "${LIVE}" \
   --corpus "${CORPUS}" --kubectl "${KUBECTL}" --context "${CONTEXT}" \
