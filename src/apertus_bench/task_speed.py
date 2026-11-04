@@ -231,9 +231,13 @@ def validate_pair(plain: dict, draft: dict, pm: dict, dm: dict, matched_extra: t
     for key in ("workload_file_sha256", "prompt_ids"):
         if pm[key] != dm[key]:
             raise ValueError(f"unmatched {key}")
-    for key in ("workload", "concurrency", "requests", "warmup_requests", "generation"):
+    for key in ("workload", "concurrency", "requests", "generation"):
         if pm["cell"][key] != dm["cell"][key]:
             raise ValueError(f"unmatched cell {key}")
+    # Live cells run their warmup inline or as a separate cell just before (same
+    # requests on the same prompts); compare the effective warmup.
+    if _warmup(pm) != _warmup(dm):
+        raise ValueError("unmatched cell warmup_requests")
     for key in matched_extra:
         if pm["extra"].get(key) != dm["extra"].get(key):
             raise ValueError(f"unmatched {key}")
@@ -247,6 +251,10 @@ def validate_pair(plain: dict, draft: dict, pm: dict, dm: dict, matched_extra: t
     counters = draft["speculative_decoding"]
     if not counters.get("enabled") or not (counters.get("draft_tokens", 0) > 0):
         raise ValueError("drafter inactive or counters reset")
+
+
+def _warmup(metadata: dict) -> int:
+    return metadata["cell"]["warmup_requests"] or int(metadata["extra"].get("separate_warmup", 0))
 
 
 def pair_row(plain: dict, draft: dict) -> dict[str, Any]:

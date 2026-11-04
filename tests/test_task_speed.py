@@ -424,3 +424,16 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError, match="toggle first"):
         args.window, args.variant = "P1", "plain"
         asyncio.run(live.window(args))
+
+
+def test_inline_and_separate_warmups_pair():
+    plain, draft = (
+        _summary(100.0),
+        _summary(200.0, {"enabled": True, "draft_tokens": 3, "mean_acceptance_length": 2.0}),
+    )
+    pm, dm = _metadata(), _metadata(separate_warmup="1")
+    dm["cell"]["warmup_requests"] = 0
+    task_speed.validate_pair(plain, draft, pm, dm, ())
+    dm["extra"]["separate_warmup"] = "8"
+    with pytest.raises(ValueError, match="warmup"):
+        task_speed.validate_pair(plain, draft, pm, dm, ())

@@ -269,7 +269,8 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
                     summary = await run_cell(
                         client, prompts, corpus, cell,
                         CellSettings(label, concurrency, requests, 0, 1, generation),
-                        variant_record, "kubectl-exec://pod/metrics", model, extra,
+                        variant_record, "kubectl-exec://pod/metrics", model,
+                        {**extra, "separate_warmup": str(concurrency)},
                         metrics_interval=args.metrics_interval, tolerate_warmup_failures=True,
                         metrics_client=metrics,
                     )  # fmt: skip
