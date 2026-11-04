@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "workstream": "shallow_drafter",
+  "state": "correctness_blocked",
+  "closed_at": "2026-10-31T12:41:50.535094+00:00",
+  "task_branch": "small-drafter",
+  "source_revision": "296ed4f01f2d53ac1d3f300fd8f70b27ec339538",
+  "preclosure_repository_revision": "61049fd2ecec8705dd232755573ec6ca98f0335c",
+  "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2",
+  "validation_job": "3804151",
+  "validation_state": "FAILED",
+  "validation_exit_code": "1:0",
+  "validation_elapsed_s": 496,
+  "node": "nid007156",
+  "failure_kind": "calibrated_correctness",
+  "exception": "CorrectnessGateFailed: calibrated correctness exceeded the existing protocol margins",
+  "canceled_jobs": {
+    "3804152": "CANCELLED by 1186; never allocated",
+    "3804153": "CANCELLED by 1186; never allocated"
+  },
+  "cancellation_guard": "squeue confirmed 3804152 PENDING DependencyNeverSatisfied afterok 3804151(failed),3804153 PENDING Dependency afterok 3804152(unfulfilled) before scancel",
+  "training": {
+    "job_id": "3790212",
+    "state": "COMPLETED",
+    "global_step": 6200,
+    "elapsed_s": 8703,
+    "checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261029/checkpoints/epoch0_end",
+    "weights_sha256": "9d6f8f8df6dbc95716c39aa5a6fb13e6872604aa08bd942e6c4422315cc01cba",
+    "heldout_trainer_eal": 3.5199252582551424,
+    "heldout_trainer_accept_len": 3.352152455115482,
+    "control_job": "3722176",
+    "control_global_step": 6200,
+    "control_heldout_trainer_eal": 4.630155939868279,
+    "control_heldout_trainer_accept_len": 4.465678286268495,
+    "qualification": "Training validation quantities, not served acceptance, speed, latency or memory savings. Neither successful training was rerun."
+  },
+  "diagnostic": {
+    "scope": "same six fixed held-out OPB prompts, 384-token cap, T0, top_p1, seed1, k7",
+    "unchanged_margins": {
+      "prefix_fraction": 0.05,
+      "normalized_edit_distance": 0.05,
+      "completion_token_difference": 2
+    },
+    "expected_image_sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5",
+    "configured_gpu_order": {
+      "repeat-a": {
+        "plain": 0,
+        "dspark-e10-k7": 1,
+        "depth-l1-k7": 2,
+        "depth-l5-k7": 3
+      },
+      "repeat-b": {
+        "plain": 3,
+        "dspark-e10-k7": 2,
+        "depth-l1-k7": 1,
+        "depth-l5-k7": 0
+      }
+    },
+    "actual_gpu_status_read": "pending storage recovery; configured reversal is not a claim that statuses were retrieved",
+    "report_count": 12,
+    "report_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness",
+    "raw_captures": "Retained on cluster. Frozen harness checks all 16 captures (4 configurations x2 deployments x2 captures, 6 successful/comparable cases each) before calibrated treatment gates. Exact artifact/hash collection awaits storage reads.",
+    "per_model_metrics": "not yet retrieved: individual report reads are blocked in Lustre cl_sync_io_wait",
+    "reference_e10_outcome": "unknown until saved reports can be read; do not infer it from top-level failure",
+    "plain_control_outcome": "unknown for this counterbalanced attempt until saved reports can be read",
+    "previous_attempt_3790216": "Plain restart controls exact 6/6 and calibrated self-checks passed; all 8 L1/L5 comparisons failed prefix/edit. Those values must not be attributed to 3804151."
+  },
+  "performance": {
+    "G3_original_5_percent": "not evaluated; correctness prerequisite failed",
+    "strict_fixed_k_10_percent_throughput_and_latency": "not evaluated; dependent jobs canceled",
+    "absolute_throughput_latency_memory_gpu_s_per_million": "no valid trained-model comparison measured",
+    "implementation_verdict": "No implementation endorsement; correctness blocked. This is not proof of a throughput loss or a disproven optimization."
+  },
+  "common_serving_path": "Unresolved. Existing e10 reference was included to distinguish a shared path issue, but its exact outcome cannot be claimed before reading saved gate reports. No change to numerical flags or correctness limits is authorized.",
+  "retention": {
+    "weights_raw_captures_and_attempts": "preserved in original remote locations",
+    "prior_training_archive": "../recovery-20261030/training-and-failed-validation.tar.gz",
+    "prior_training_archive_sha256": "b1655fd4339f2110f63d18b7654beb311c44dea9707caf9d626c888ae6fe0770",
+    "latest_frozen_submission_archive": "../recovery-20261030/submission-3804151.tar.gz",
+    "latest_frozen_submission_archive_sha256": "a7c6c6ba0b66fbc698eb23ab630ec7d6c327bafc7878932ecaf3729ecbae8b1a"
+  },
+  "evidence_collection": {
+    "state": "blocked_cluster_storage",
+    "observation": "Two own lightweight Python readers stalled on distinct small correctness JSON file descriptors in Lustre cl_sync_io_wait, near-zero CPU. Duplicate reader terminated;SIGKILL issued to both after bounded observation. No allocation or new experiment.",
+    "pending": "compact final raw-gate/status/log/provenance collection and hashes; canonical remote campaign terminal annotation when storage permits"
+  },
+  "next_action": "Original bounded recovery scientifically stopped. No more training/validation/benchmark submissions. Resolve shared serving correctness only under separate investigation; retrieve existing evidence when cluster storage permits."
+}

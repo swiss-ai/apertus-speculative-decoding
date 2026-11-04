@@ -1,0 +1,35 @@
+{
+  "arm": "preflight",
+  "deployment_id": "repeat-a-preflight",
+  "env": {},
+  "exit_code": 0,
+  "finished": "2026-10-30T15:18:07+0100",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "port": 8100,
+  "serve_argv": [
+    "python3",
+    "{repo}/methods/dspark/train/depth_recovery.py",
+    "preflight",
+    "--candidate",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261029/checkpoints/epoch0_end",
+    "--control",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l5-scratch/checkpoints/epoch0_end",
+    "--e10",
+    "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+    "--eagle",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+    "--workload",
+    "/users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl",
+    "--output",
+    "{arm_dir}/manifest.json"
+  ],
+  "servers": [],
+  "started": "2026-10-30T15:17:25+0100",
+  "status": "ok",
+  "tests": {}
+}
