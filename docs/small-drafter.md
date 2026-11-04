@@ -25,12 +25,19 @@ being launched. Keep the profile as a cost idea, with the acceptance loss and
 correctness block attached; this experiment establishes no substantial served
 benefit or absolute time/memory savings.
 
-The final diagnostic included existing DSpark e10 and requested reversed GPU
-roles, but exact per-model/e10 outcomes and actual placement records could not
-yet be retrieved because cluster storage reads stalled. The common serving-path
-cause remains unresolved; prior-attempt metrics must not be substituted. All
-checkpoints and raw attempts remain preserved. See the
-[closure and evidence limitation](../results/8b/small-drafter/recovery-20261031/README.md).
+The final diagnostic also served the deployed DSpark e10 head, with GPU roles
+reversed between its two repeats (placement confirmed: plain/e10/L1/L5 on GPUs
+0/1/2/3, then 3/2/1/0). The evidence retrieved on 2026-11-04 shows the block is
+shared: all 12 speculative-vs-plain reports failed, including e10 k7, which
+failed by the same margin as the one-layer drafter (min prefix fraction 0.183,
+max normalized edit distance about 0.50). Plain-vs-plain controls were exact
+(6/6) within and across deployments. Each speculative arm repeated exactly within
+a deployment but diverged across the GPU-reversed deployments. The block
+therefore lies in the shared speculative serving path or in the gate's
+calibration, not in the shallow drafter. A follow-up should start from e10 under
+this harness. The case against shallow drafting rests on the trainer acceptance
+loss and the unmeasured throughput. See the
+[closure and evidence](../results/8b/small-drafter/recovery-20261031/README.md).
 
 ## Summary
 
@@ -226,7 +233,7 @@ new decision.
 | recovery validation/correctness | 3790216 | Passed preflight and completed captures, then failed calibrated prefix/edit limits. Raw evidence retained. |
 | original recovery benchmarks | 3790218/19 | Canceled after correctness failure; no throughput measurements. |
 | first GPU-counterbalanced diagnostic | 3802723 | Preflight passed; all servers failed at FlashInfer cache lock with EDQUOT before capture. Dependent 3802725/26 canceled. |
-| private-cache counterbalanced validation | 3804151 | Failed calibrated correctness after 496 s; no startup failure or limit changes. Exact reference/model reports remain on cluster; retrieval stalled on storage. |
+| private-cache counterbalanced validation | 3804151 | Failed calibrated correctness after 496 s; no startup failure or limit changes. All 12 reports failed, e10 k7 included by the same margin; plain controls exact. Evidence in `results/8b/small-drafter/recovery-20261031/evidence-3804151/`. |
 | gated benchmarks and strict review | 3804152/53 | Canceled while pending dead dependencies; no allocations or throughput measurements. Recovery closed correctness blocked. |
 
 The first queued continuation (3769344/45/46) was canceled while still waiting
