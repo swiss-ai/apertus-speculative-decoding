@@ -92,16 +92,18 @@ TPOT and multi-token stream gaps separately, as well as output length/caps,
 truncation, GPU-seconds/M, acceptance and preemptions. Original event-gap quantiles
 are retained from the summaries; their millions of event samples are not re-sorted.
 
-[analysis-v1](analysis-v1/) was the first completed validation;
-[analysis-v2](analysis-v2/) adds explicit arm identity checks and source provenance,
-with identical numerical cell/comparison values. Both are retained. Final report
+[analysis-v2](analysis-v2/) adds explicit arm identity checks and source provenance
+to the first completed validation (`analysis-v1`), with identical numerical
+cell/comparison values; v1 was dropped on merge and remains in branch
+`recovery/sampling-20261027` at `63370123`. Final report
 tables use `analysis-v2` and [verdict-v1](verdict-v1/). Every output refuses to
 overwrite an existing output directory. `views.py` additionally compares top-k
 restrictions only at T1/top-p1 with the same arm/mode/workload/load; these comparisons
 change the sampling distribution and carry no quality claim.
 
-`collect_remote.py` is the read-only original-artifact collector. It streams an
-uncompressed tar over SSH; local gzip avoids compression work on the login node.
-Collection did not sync or mutate the remote checkout. The sampling jobs were not
+The original artifacts were collected read-only by streaming an uncompressed tar
+over SSH (collector `collect_remote.py`, Clariden-specific and kept only in branch
+`recovery/sampling-20261027` at `63370123`). Collection did not sync or mutate the
+remote checkout. The sampling jobs were not
 rerun. `SHA256SUMS` covers the recovered and analysis files as stored locally;
 the original-byte hashes in the manifests remain authoritative after decompression.
