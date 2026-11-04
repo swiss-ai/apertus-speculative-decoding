@@ -46,6 +46,13 @@ and both control kinds are specified in `../docs/protocol.md`.
   11 rejected P/D reliability cells.
 - `8b/sampling/recovery-20261027/`: validated paired analysis (`analysis-v2/`)
   and verdict tables (`verdict-v1/`) of the `topk-off` and `topk-think` sweeps.
+- `8b/drafter-updates/`: online drafter adaptation. `recovery-20261030-cache/`
+  holds the 19 development curves, selection, paired serving-confirmation
+  summaries and verdict; earlier `recovery-*` directories keep the failed trace
+  attempts the report cites. The confirmation capsules' raw archives contain
+  restricted served captures and stay on Clariden; each capsule's
+  `removed-restricted-parts.json` gives their hashes and location. The live-swap
+  smoke is `8b/sweeps/drafter-swap-smoke-*`.
 
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
   n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every

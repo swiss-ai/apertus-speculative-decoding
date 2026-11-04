@@ -55,6 +55,16 @@ narrower sampler top-k as a speed optimization (top-k5 changes throughput by
 load: short drafts help at intermediate load and k7 loses badly at high load.
 The validated analysis is in `results/8b/sampling/recovery-20261027/`.
 
+The [8B online drafter adaptation study](docs/drafter-updates.md) fine-tuned the
+EAGLE e10 head on served-workload traces and swapped heads into a running server
+without a restart. Adaptation is worth keeping in mind for persistent
+multilingual traffic (+17% throughput at k3/C1) and low-load summarization (+14%),
+but chat gains are insufficient and high-load gains fail the benefit rule, so no
+blanket replacement of the default drafter is justified. The swap and
+confirmation harness is in `src/apertus_bench/{drafter_swap,drafter_reload,adaptation_confirmation}.py`,
+training tools in `methods/eagle/apertus_eagle/`, configs in
+`methods/eagle/configs/8b/adapt/`, and evidence under `results/8b/drafter-updates/`.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.
