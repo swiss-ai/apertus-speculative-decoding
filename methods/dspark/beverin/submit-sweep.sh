@@ -4,7 +4,8 @@
 # packaged runtime checkout (${WORK}/repo-<sha>) on the Beverin login node.
 #   methods/dspark/beverin/submit-sweep.sh experiments/system-70b/SPEC.yaml
 # With EXPORT_SRC and EXPORT_DEST set, the job first exports that checkpoint
-# (methods/dspark/train/export-head.sh) unless EXPORT_DEST already exists.
+# (methods/dspark/train/export-head.sh, hashes checked against EXPORT_EXPECTED)
+# unless EXPORT_DEST already exists.
 # Results go to results/<stage>/sweeps/<spec>-beverin-<stamp>/ in this checkout.
 set -euo pipefail
 BEV_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -32,7 +33,7 @@ cat > "${OUT}/job.sh" <<EOF
 set -euo pipefail
 echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} node=\${SLURM_JOB_NODELIST}"
 if [ -n "${EXPORT_SRC:-}" ] && [ ! -e "${EXPORT_DEST:-}" ]; then
-  bash "${REPO_ROOT}/methods/dspark/train/export-head.sh" "${EXPORT_SRC:-}" "${EXPORT_DEST:-}"
+  bash "${REPO_ROOT}/methods/dspark/train/export-head.sh" "${EXPORT_SRC:-}" "${EXPORT_DEST:-}" "${EXPORT_EXPECTED:-}"
 fi
 srun --nodes=1 --ntasks=1 --environment="${EDF}" bash -c '
   export REPO_ROOT="${REPO_ROOT}"
