@@ -301,10 +301,15 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
         and [c["restartCount"] for c in after["status"].get("containerStatuses", [])]
         == identity["restarts"]
     )
+    # The window's status always covers the whole suite, also after a partial job.
     cells = [
-        {"slice": label, "concurrency": c, "valid": _valid(out / label / label / f"c{c}")}
-        for label in labels
-        for c in concurrencies
+        {
+            "slice": e["label"],
+            "concurrency": c,
+            "valid": _valid(out / e["label"] / e["label"] / f"c{c}"),
+        }
+        for e in suite["slices"]
+        for c in suite["concurrencies"]
     ]
     record = {
         **{k: identity[k] for k in ("window", "variant", "round", "route", "pod_uid", "node")},
