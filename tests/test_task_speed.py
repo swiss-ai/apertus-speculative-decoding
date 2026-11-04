@@ -324,6 +324,7 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
     rows = [_row(f"opb-{i}", "opb") for i in range(4)]
     inputs, suite = _suite(tmp_path, src=rows)
     suite["slices"] = [{"label": "opb", "class": "id", "source": "src", "workload": "opb"}]
+    suite["concurrencies"] = [1]  # the window covers the whole suite
     suite_path = tmp_path / "suite.yaml"
     suite_path.write_text(yaml.safe_dump(suite))
     corpus_dir = tmp_path / "controlled"
