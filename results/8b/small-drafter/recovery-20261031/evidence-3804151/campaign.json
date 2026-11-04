@@ -1,0 +1,48 @@
+{
+  "active_job": null,
+  "error": "CorrectnessGateFailed: calibrated correctness exceeded the existing protocol margins",
+  "failure_kind": "correctness",
+  "host_launcher_also_failed": true,
+  "job_ids": [
+    "3790212",
+    "3804151",
+    "3804152",
+    "3804153"
+  ],
+  "next_action": "Original bounded recovery scientifically stopped. No more training/validation/benchmark submissions. Resolve shared serving correctness only under separate investigation; retrieve existing evidence when cluster storage permits.",
+  "source_revision": "296ed4f01f2d53ac1d3f300fd8f70b27ec339538",
+  "stage": "validate",
+  "stages": {
+    "a": {
+      "dependency": "afterok:3804151",
+      "job_id": "3804152"
+    },
+    "b": {
+      "dependency": "afterok:3804152",
+      "job_id": "3804153"
+    },
+    "validate": {
+      "dependency": "completed-training:3790212",
+      "job_id": "3804151"
+    }
+  },
+  "state": "correctness_blocked",
+  "training_job": "3790212",
+  "updated_at": "2026-10-30T14:25:21.434610+00:00",
+  "workstream": "shallow_drafter",
+  "closed_at": "2026-10-31T12:46:34.136154+00:00",
+  "active_job_ids": [],
+  "observed_job_states": {
+    "3790212": "COMPLETED",
+    "3804151": "FAILED",
+    "3804152": "CANCELLED",
+    "3804153": "CANCELLED"
+  },
+  "closure_report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/closure-20261031.json",
+  "implementation_verdict": "No implementation or speed endorsement; unchanged correctness prerequisite failed",
+  "evidence_collection": {
+    "state": "blocked_cluster_storage",
+    "observation": "Two own lightweight Python readers stalled on distinct small correctness JSON file descriptors in Lustre cl_sync_io_wait, near-zero CPU. Duplicate reader terminated;SIGKILL issued to both after bounded observation. No allocation or new experiment.",
+    "pending": "compact final raw-gate/status/log/provenance collection and hashes; canonical remote campaign terminal annotation when storage permits"
+  }
+}

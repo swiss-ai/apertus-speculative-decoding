@@ -1,0 +1,209 @@
+W1025 01:04:42.550000 79369 torch/distributed/run.py:851] 
+W1025 01:04:42.550000 79369 torch/distributed/run.py:851] *****************************************
+W1025 01:04:42.550000 79369 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W1025 01:04:42.550000 79369 torch/distributed/run.py:851] *****************************************
+usage: __main__.py [-h] [--config PATH] [--dump-config]
+                   [--speculator-type SPECULATOR_TYPE] [--dry-run]
+                   [--seed SEED] [--deterministic-cuda]
+                   [--verifier-name-or-path VERIFIER_NAME_OR_PATH]
+                   [--trust-remote-code] [--from-pretrained FROM_PRETRAINED]
+                   [--draft-config DRAFT_CONFIG] [--num-layers NUM_LAYERS]
+                   [--draft-arch {llama,qwen3}]
+                   [--draft-hidden-act DRAFT_HIDDEN_ACT]
+                   [--draft-mrope-full-head-hack | --no-draft-mrope-full-head-hack]
+                   [--target-layer-ids TARGET_LAYER_IDS [TARGET_LAYER_IDS ...]]
+                   [--token-freq-path TOKEN_FREQ_PATH]
+                   [--draft-vocab-size DRAFT_VOCAB_SIZE] [--d2t-path D2T_PATH]
+                   [--t2d-path T2D_PATH] [--mask-token-id MASK_TOKEN_ID]
+                   [--norm-before-residual | --no-norm-before-residual]
+                   [--embed-requires-grad | --no-embed-requires-grad]
+                   [--norm-before-fc | --no-norm-before-fc] [--fc-norm]
+                   [--norm-output | --no-norm-output]
+                   [--sliding-window SLIDING_WINDOW]
+                   [--full-attention-indices FULL_ATTENTION_INDICES [FULL_ATTENTION_INDICES ...]]
+                   [--sliding-window-non-causal | --no-sliding-window-non-causal]
+                   [--draft-attn-impl {simple_flex_attention,sdpa,eager}]
+                   [--data-path DATA_PATH]
+                   [--hidden-states-backend {file,fp8,mooncake}]
+                   [--total-seq-len TOTAL_SEQ_LEN]
+                   [--train-data-ratio TRAIN_DATA_RATIO]
+                   [--noise-std NOISE_STD]
+                   [--hidden-states-dtype HIDDEN_STATES_DTYPE]
+                   [--num-workers NUM_WORKERS]
+                   [--prefetch-factor PREFETCH_FACTOR]
+                   [--max-anchors MAX_ANCHORS] [--vllm-endpoint VLLM_ENDPOINT]
+                   [--on-missing {generate,skip,warn,raise}]
+                   [--on-generate {cache,delete}]
+                   [--request-timeout REQUEST_TIMEOUT]
+                   [--max-retries MAX_RETRIES]
+                   [--generation-validation-retries GENERATION_VALIDATION_RETRIES]
+                   [--max-consecutive-generation-failures MAX_CONSECUTIVE_GENERATION_FAILURES]
+                   [--loss-implementation {fused,eager}] [--loss-fn LOSS_FN]
+                   [--ttt-steps TTT_STEPS]
+                   [--ttt-step-loss-decay TTT_STEP_LOSS_DECAY]
+                   [--optimizer {adamw,muon}] [--lr LR]
+                   [--weight-decay WEIGHT_DECAY] [--muon-lr MUON_LR]
+                   [--muon-momentum MUON_MOMENTUM]
+                   [--muon-weight-decay MUON_WEIGHT_DECAY]
+                   [--muon-ns-steps MUON_NS_STEPS]
+                   [--muon-adjust-lr-fn {original,match_rms_adamw}]
+                   [--scheduler-type {linear,cosine,none}]
+                   [--scheduler-warmup-steps SCHEDULER_WARMUP_STEPS]
+                   [--scheduler-warmup-ratio SCHEDULER_WARMUP_RATIO]
+                   [--scheduler-total-steps SCHEDULER_TOTAL_STEPS]
+                   [--scheduler-num-cosine-cycles SCHEDULER_NUM_COSINE_CYCLES]
+                   [--epochs EPOCHS] [--checkpoint-freq CHECKPOINT_FREQ]
+                   [--save-best] [--no-resume-from-checkpoint]
+                   [--log-freq LOG_FREQ] [--save-path SAVE_PATH]
+                   [--fsdp-shard] [--gradient-checkpointing]
+                   [--max-steps MAX_STEPS] [--logger LOGGER]
+                   [--log-dir LOG_DIR] [--run-name RUN_NAME]
+                   [--block-size BLOCK_SIZE]
+                   [--sample-from-anchor | --no-sample-from-anchor]
+                   [--dflash-decay-gamma DFLASH_DECAY_GAMMA]
+                   [--per-position-loss-weight {fixed-exp-decay,dpace}]
+                   [--dpace-alpha DPACE_ALPHA]
+                   [--conv-kernel-size CONV_KERNEL_SIZE]
+                   [--conv-group-size CONV_GROUP_SIZE]
+                   [--selector-rank SELECTOR_RANK]
+                   [--selector-top-k SELECTOR_TOP_K]
+                   [--selector-loss-alpha SELECTOR_LOSS_ALPHA]
+                   [--markov-rank MARKOV_RANK]
+                   [--markov-head-type {vanilla,gated,rnn}]
+                   [--enable-confidence-head | --no-enable-confidence-head]
+                   [--confidence-head-with-markov | --no-confidence-head-with-markov]
+                   [--confidence-head-alpha CONFIDENCE_HEAD_ALPHA]
+                   [--num-depths NUM_DEPTHS]
+                   [--down-sample-ratio DOWN_SAMPLE_RATIO]
+                   [--down-sample-ratio-min DOWN_SAMPLE_RATIO_MIN]
+                   [--num-speculative-steps NUM_SPECULATIVE_STEPS]
+                   [--step-weight-beta STEP_WEIGHT_BETA]
+                   [--hidden-states-path HIDDEN_STATES_PATH]
+                   [--mooncake-master MOONCAKE_MASTER]
+                   [--mooncake-metadata-server MOONCAKE_METADATA_SERVER]
+                   [--mooncake-protocol {tcp,rdma}]
+                   [--mooncake-global-segment-gib MOONCAKE_GLOBAL_SEGMENT_GIB]
+                   [--mooncake-local-buffer-gib MOONCAKE_LOCAL_BUFFER_GIB]
+__main__.py: error: --from-pretrained loads a complete draft model and takes precedence over all other model-definition options, so these conflict with it (remove them): --num-layers
+usage: __main__.py [-h] [--config PATH] [--dump-config]
+                   [--speculator-type SPECULATOR_TYPE] [--dry-run]
+                   [--seed SEED] [--deterministic-cuda]
+                   [--verifier-name-or-path VERIFIER_NAME_OR_PATH]
+                   [--trust-remote-code] [--from-pretrained FROM_PRETRAINED]
+                   [--draft-config DRAFT_CONFIG] [--num-layers NUM_LAYERS]
+                   [--draft-arch {llama,qwen3}]
+                   [--draft-hidden-act DRAFT_HIDDEN_ACT]
+                   [--draft-mrope-full-head-hack | --no-draft-mrope-full-head-hack]
+                   [--target-layer-ids TARGET_LAYER_IDS [TARGET_LAYER_IDS ...]]
+                   [--token-freq-path TOKEN_FREQ_PATH]
+                   [--draft-vocab-size DRAFT_VOCAB_SIZE] [--d2t-path D2T_PATH]
+                   [--t2d-path T2D_PATH] [--mask-token-id MASK_TOKEN_ID]
+                   [--norm-before-residual | --no-norm-before-residual]
+                   [--embed-requires-grad | --no-embed-requires-grad]
+                   [--norm-before-fc | --no-norm-before-fc] [--fc-norm]
+                   [--norm-output | --no-norm-output]
+                   [--sliding-window SLIDING_WINDOW]
+                   [--full-attention-indices FULL_ATTENTION_INDICES [FULL_ATTENTION_INDICES ...]]
+                   [--sliding-window-non-causal | --no-sliding-window-non-causal]
+                   [--draft-attn-impl {simple_flex_attention,sdpa,eager}]
+                   [--data-path DATA_PATH]
+                   [--hidden-states-backend {file,fp8,mooncake}]
+                   [--total-seq-len TOTAL_SEQ_LEN]
+                   [--train-data-ratio TRAIN_DATA_RATIO]
+                   [--noise-std NOISE_STD]
+                   [--hidden-states-dtype HIDDEN_STATES_DTYPE]
+                   [--num-workers NUM_WORKERS]
+                   [--prefetch-factor PREFETCH_FACTOR]
+                   [--max-anchors MAX_ANCHORS] [--vllm-endpoint VLLM_ENDPOINT]
+                   [--on-missing {generate,skip,warn,raise}]
+                   [--on-generate {cache,delete}]
+                   [--request-timeout REQUEST_TIMEOUT]
+                   [--max-retries MAX_RETRIES]
+                   [--generation-validation-retries GENERATION_VALIDATION_RETRIES]
+                   [--max-consecutive-generation-failures MAX_CONSECUTIVE_GENERATION_FAILURES]
+                   [--loss-implementation {fused,eager}] [--loss-fn LOSS_FN]
+                   [--ttt-steps TTT_STEPS]
+                   [--ttt-step-loss-decay TTT_STEP_LOSS_DECAY]
+                   [--optimizer {adamw,muon}] [--lr LR]
+                   [--weight-decay WEIGHT_DECAY] [--muon-lr MUON_LR]
+                   [--muon-momentum MUON_MOMENTUM]
+                   [--muon-weight-decay MUON_WEIGHT_DECAY]
+                   [--muon-ns-steps MUON_NS_STEPS]
+                   [--muon-adjust-lr-fn {original,match_rms_adamw}]
+                   [--scheduler-type {linear,cosine,none}]
+                   [--scheduler-warmup-steps SCHEDULER_WARMUP_STEPS]
+                   [--scheduler-warmup-ratio SCHEDULER_WARMUP_RATIO]
+                   [--scheduler-total-steps SCHEDULER_TOTAL_STEPS]
+                   [--scheduler-num-cosine-cycles SCHEDULER_NUM_COSINE_CYCLES]
+                   [--epochs EPOCHS] [--checkpoint-freq CHECKPOINT_FREQ]
+                   [--save-best] [--no-resume-from-checkpoint]
+                   [--log-freq LOG_FREQ] [--save-path SAVE_PATH]
+                   [--fsdp-shard] [--gradient-checkpointing]
+                   [--max-steps MAX_STEPS] [--logger LOGGER]
+                   [--log-dir LOG_DIR] [--run-name RUN_NAME]
+                   [--block-size BLOCK_SIZE]
+                   [--sample-from-anchor | --no-sample-from-anchor]
+                   [--dflash-decay-gamma DFLASH_DECAY_GAMMA]
+                   [--per-position-loss-weight {fixed-exp-decay,dpace}]
+                   [--dpace-alpha DPACE_ALPHA]
+                   [--conv-kernel-size CONV_KERNEL_SIZE]
+                   [--conv-group-size CONV_GROUP_SIZE]
+                   [--selector-rank SELECTOR_RANK]
+                   [--selector-top-k SELECTOR_TOP_K]
+                   [--selector-loss-alpha SELECTOR_LOSS_ALPHA]
+                   [--markov-rank MARKOV_RANK]
+                   [--markov-head-type {vanilla,gated,rnn}]
+                   [--enable-confidence-head | --no-enable-confidence-head]
+                   [--confidence-head-with-markov | --no-confidence-head-with-markov]
+                   [--confidence-head-alpha CONFIDENCE_HEAD_ALPHA]
+                   [--num-depths NUM_DEPTHS]
+                   [--down-sample-ratio DOWN_SAMPLE_RATIO]
+                   [--down-sample-ratio-min DOWN_SAMPLE_RATIO_MIN]
+                   [--num-speculative-steps NUM_SPECULATIVE_STEPS]
+                   [--step-weight-beta STEP_WEIGHT_BETA]
+                   [--hidden-states-path HIDDEN_STATES_PATH]
+                   [--mooncake-master MOONCAKE_MASTER]
+                   [--mooncake-metadata-server MOONCAKE_METADATA_SERVER]
+                   [--mooncake-protocol {tcp,rdma}]
+                   [--mooncake-global-segment-gib MOONCAKE_GLOBAL_SEGMENT_GIB]
+                   [--mooncake-local-buffer-gib MOONCAKE_LOCAL_BUFFER_GIB]
+__main__.py: error: --from-pretrained loads a complete draft model and takes precedence over all other model-definition options, so these conflict with it (remove them): --num-layers
+E1025 01:05:05.720000 79369 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 79488) of binary: bash
+Traceback (most recent call last):
+  File "/opt/venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/opt/venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/opt/venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+bash FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-10-25_01:05:05
+  host      : nid006650
+  rank      : 1 (local_rank: 1)
+  exitcode  : 2 (pid: 79489)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-10-25_01:05:05
+  host      : nid006650
+  rank      : 0 (local_rank: 0)
+  exitcode  : 2 (pid: 79488)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

@@ -1,0 +1,108 @@
+{
+  "command_sha256": "23a5960fac479c65ad8e13016224f8811ebcdf948df548471bb959244aa4c49a",
+  "observation_limit": "matching training sources before queue and after training; argv and Speculators patch recorded by the training process itself",
+  "patch_sha256": "dbeff17994f598e7015430a1d85125f661ae4bdd9a01b5057abba16b7af98100",
+  "recipe": {
+    "backend": {
+      "hidden_states_path": "/tmp/hidden_states"
+    },
+    "data": {
+      "data_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/data",
+      "hidden_states_backend": "file",
+      "max_anchors": 1024,
+      "num_workers": 8,
+      "prefetch_factor": 4,
+      "total_seq_len": 16384
+    },
+    "dflash": {
+      "block_size": 8
+    },
+    "draft": {
+      "from_pretrained": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1-shared-verifier-20261029",
+      "target_layer_ids": [
+        1,
+        8,
+        15,
+        22,
+        29
+      ]
+    },
+    "dspark": {
+      "confidence_head_with_markov": true,
+      "enable_confidence_head": true,
+      "markov_rank": 256
+    },
+    "generation": {
+      "on_generate": "delete",
+      "on_missing": "generate",
+      "vllm_endpoint": "http://localhost:8001/v1"
+    },
+    "loss": {
+      "loss_fn": "{\"ce\":0.1,\"tv\":0.9}",
+      "loss_implementation": "eager"
+    },
+    "optimizer": {
+      "lr": 0.0003,
+      "optimizer": "muon"
+    },
+    "speculator_type": "dspark",
+    "trainer": {
+      "checkpoint_freq": 0.0625,
+      "epochs": 1,
+      "max_steps": 6200,
+      "save_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261029/checkpoints"
+    },
+    "verifier": {
+      "verifier_name_or_path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B"
+    }
+  },
+  "training_source_observation": {
+    "methods/dspark/train/common.sh": "2021390259989c3f8d815e028e182d995603955e18958c81df01bc1933e117c7",
+    "methods/dspark/train/depth_recovery.py": "5850956d7bdd6f7d41364356f89c3d2a2a05c950249fda6474167a315419ba3e",
+    "methods/dspark/train/draft-init-args.sh": "1842392138863101e4bdb53fc3102cc04b02c4932e1268aaa3d174b811361aa9",
+    "methods/dspark/train/rank-wrapper.sh": "6bb0a03b5b51902357345455ede316fac3915c69c6b35c8a2e89ce8cef5cc079",
+    "methods/dspark/train/rebind_verifier.py": "3a4fd2dfcf74bca2301b40a4bd5de3fa2c8dbcb49d285d90c59976ea5d70bb01",
+    "methods/dspark/train/submit-train.sh": "3080ae1016acc75a8634a9a8b60621e4b4aedb5422bbd21c445d0e38b13b386d",
+    "methods/dspark/train/train-node.sh": "94f5ecf52d13f5e3c332ae718774a3bb3f483eea35a09c5a155e0e339cbf8637"
+  },
+  "warm_start_preflight": {
+    "container": {
+      "path": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh",
+      "sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5"
+    },
+    "created_at": "2026-10-30T03:06:29.745505+00:00",
+    "helper_sha256": "3a4fd2dfcf74bca2301b40a4bd5de3fa2c8dbcb49d285d90c59976ea5d70bb01",
+    "initializer": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1-shared-verifier-20261029",
+    "job_id": "3790212",
+    "node": "nid006625",
+    "only_semantic_config_change": "speculators_config.verifier.name_or_path",
+    "original_config_sha256": "800f9ae375630d9a888a114f35b85061e4bd802e195bc2c015cec20f114685fa",
+    "passed": true,
+    "rebound_config_sha256": "03bae5a667337c6e101174526ad7da2374c7658448418db0e3acd915c70d40ae",
+    "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1",
+    "source_revision": "fb8f5c795c90ab23c20fdb866c09174818949e2b",
+    "target": {
+      "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "verified_sha256": {
+        "chat_template.jinja": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+        "config.json": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+        "model-apertus-model-00001-of-00004.safetensors": "60d31e2d767d389ba990972a21cd0524e18c1ed39b65fcc727285db613ea81dc",
+        "model-apertus-model-00002-of-00004.safetensors": "8a0ae0ba1c37a5571276f042085c8f782b6f02c68a888acf1ae35c33b8253bd9",
+        "model-apertus-model-00003-of-00004.safetensors": "17f4ce43b67eacee899b6f23664d6b457259b2fbc89f5561cd69831d34a412c0",
+        "model-apertus-model-00004-of-00004.safetensors": "40bf7c8ba48bfe6748b6cf796bfe65cea0115fe74d0aa38ad5fcdb6af2cf3e0d",
+        "model-vision_tokenizer-model.safetensors": "0f358b3c908d216172675cd57184ff6ce310705e385fedfd31c6f34e8197f9c8",
+        "model-wavtokenizer-model.safetensors": "b2632390709c3cb1319d1a0c1387d5364587b8a78a00efa2e93f15185ae82c02",
+        "tokenizer.json": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582"
+      }
+    },
+    "weights": {
+      "model.safetensors": {
+        "bytes": 983870274,
+        "same_file_as_source": true,
+        "sha256": "ea50bb1c33864929c79e2384cadaaf349a1c8c05473fc7fce5ac4477ddc72bb7",
+        "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1/model.safetensors"
+      }
+    }
+  }
+}

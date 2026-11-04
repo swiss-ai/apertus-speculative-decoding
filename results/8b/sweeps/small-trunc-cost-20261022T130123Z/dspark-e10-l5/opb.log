@@ -1,0 +1,28 @@
+loadtest opb concurrency=1 requests=128
+{
+  "workload": "opb",
+  "variant": "dspark-e10-l5",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 128,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 569.5707805739075,
+      "ttft_p50_ms": 29.40625650808215,
+      "ttft_p95_ms": 95.83974295528584,
+      "tpot_p50_ms": 1.4684020922062393,
+      "tpot_p95_ms": 2.653851366694692,
+      "e2e_p95_ms": 2131.315866630757,
+      "kv_cache_usage_mean": 0.0031133831708071475,
+      "kv_cache_usage_max": 0.01187579147627471,
+      "kv_cache_tokens_peak": 4070,
+      "kv_cache_size_tokens": 342695,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 4.705421594225157,
+      "acceptance_rate": 0.5766183482510965
+    }
+  ]
+}

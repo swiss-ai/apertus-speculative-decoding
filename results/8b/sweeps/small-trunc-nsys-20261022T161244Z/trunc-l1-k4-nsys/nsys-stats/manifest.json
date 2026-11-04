@@ -1,0 +1,169 @@
+{
+  "profile": {
+    "tool": "nsys",
+    "window_s": 15.0,
+    "delay_s": 10.0,
+    "levels": [
+      1,
+      64,
+      256
+    ],
+    "loadtests": null,
+    "nsys": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+    "trace": "cuda,nvtx,osrt",
+    "cuda_graph_trace": "node",
+    "gpu_metrics": false,
+    "gpu_metrics_frequency": 10000,
+    "nvtx": true,
+    "eager_draft": true,
+    "sample": "none",
+    "extra_args": [],
+    "stats": [
+      "cuda_gpu_kern_sum",
+      "cuda_gpu_mem_time_sum",
+      "cuda_api_sum",
+      "nvtx_sum",
+      "nvtx_gpu_proj_sum",
+      "nvtx_gpu_proj_trace",
+      "osrt_sum"
+    ],
+    "report_timeout_s": 900.0
+  },
+  "reports": [
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys/trunc-l1-k4-nsys.1.nsys-rep",
+      "report_bytes": 41353931,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys/trunc-l1-k4-nsys.1.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "trunc-l1-k4-nsys.1_cuda_api_sum.csv",
+        "trunc-l1-k4-nsys.1_cuda_gpu_kern_sum.csv",
+        "trunc-l1-k4-nsys.1_cuda_gpu_mem_time_sum.csv",
+        "trunc-l1-k4-nsys.1_nvtx_gpu_proj_sum.csv",
+        "trunc-l1-k4-nsys.1_nvtx_gpu_proj_trace.csv",
+        "trunc-l1-k4-nsys.1_nvtx_sum.csv",
+        "trunc-l1-k4-nsys.1_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 1,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:37:49.892796+00:00",
+        "start_latency_s": 1.639,
+        "truncated": false,
+        "open_s": 20.935,
+        "stopped_at": "2026-10-24T06:38:12.466222+00:00",
+        "counters": {
+          "prompt_tokens": 4430.0,
+          "generation_tokens": 2060.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 1640.0,
+            "draft_tokens": 6560.0,
+            "accepted_tokens": 419.0,
+            "acceptance_rate": 0.0638719512195122,
+            "mean_acceptance_length": 1.2554878048780487,
+            "acceptance_rate_per_position": {
+              "0": 0.19939024390243903,
+              "1": 0.045121951219512194,
+              "2": 0.007926829268292683,
+              "3": 0.003048780487804878
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys/trunc-l1-k4-nsys.2.nsys-rep",
+      "report_bytes": 20539520,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys/trunc-l1-k4-nsys.2.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "trunc-l1-k4-nsys.2_cuda_api_sum.csv",
+        "trunc-l1-k4-nsys.2_cuda_gpu_kern_sum.csv",
+        "trunc-l1-k4-nsys.2_cuda_gpu_mem_time_sum.csv",
+        "trunc-l1-k4-nsys.2_nvtx_gpu_proj_sum.csv",
+        "trunc-l1-k4-nsys.2_nvtx_gpu_proj_trace.csv",
+        "trunc-l1-k4-nsys.2_nvtx_sum.csv",
+        "trunc-l1-k4-nsys.2_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 64,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:43:54.234169+00:00",
+        "start_latency_s": 0.238,
+        "truncated": false,
+        "open_s": 19.061,
+        "stopped_at": "2026-10-24T06:44:13.533231+00:00",
+        "counters": {
+          "prompt_tokens": 71507.0,
+          "generation_tokens": 56719.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 43931.0,
+            "draft_tokens": 175724.0,
+            "accepted_tokens": 12773.0,
+            "acceptance_rate": 0.07268785140333706,
+            "mean_acceptance_length": 1.2907514056133482,
+            "acceptance_rate_per_position": {
+              "0": 0.22826705515467438,
+              "1": 0.04935011722929139,
+              "2": 0.010766884432405362,
+              "3": 0.0023673487969770777
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys/trunc-l1-k4-nsys.3.nsys-rep",
+      "report_bytes": 10488575,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k4-nsys/nsys/trunc-l1-k4-nsys.3.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "trunc-l1-k4-nsys.3_cuda_api_sum.csv",
+        "trunc-l1-k4-nsys.3_cuda_gpu_kern_sum.csv",
+        "trunc-l1-k4-nsys.3_cuda_gpu_mem_time_sum.csv",
+        "trunc-l1-k4-nsys.3_nvtx_gpu_proj_sum.csv",
+        "trunc-l1-k4-nsys.3_nvtx_gpu_proj_trace.csv",
+        "trunc-l1-k4-nsys.3_nvtx_sum.csv",
+        "trunc-l1-k4-nsys.3_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 256,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:45:17.881571+00:00",
+        "start_latency_s": 0.302,
+        "truncated": false,
+        "open_s": 18.157,
+        "stopped_at": "2026-10-24T06:45:36.340346+00:00",
+        "counters": {
+          "prompt_tokens": 50683.0,
+          "generation_tokens": 60515.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 46045.0,
+            "draft_tokens": 184180.0,
+            "accepted_tokens": 14450.0,
+            "acceptance_rate": 0.0784558583993919,
+            "mean_acceptance_length": 1.3138234335975676,
+            "acceptance_rate_per_position": {
+              "0": 0.24319687262460638,
+              "1": 0.05442501900314909,
+              "2": 0.012661526767292866,
+              "3": 0.0035400152025192744
+            }
+          }
+        }
+      }
+    }
+  ]
+}

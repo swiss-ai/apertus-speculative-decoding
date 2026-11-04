@@ -155,6 +155,8 @@ class Plan:
     probe: Loadtest | None
     node_gpus: int
     captures: list[Capture] = field(default_factory=list)
+    correctness_captures: dict[str, Any] | None = None
+    gpu_order: list[int] | None = None
 
 
 def _engine_args(engine: dict[str, Any]) -> list[str]:
@@ -400,6 +402,24 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
     target_model = spec.get("target_model", defaults["target_model"])
     served_base = spec.get("served_base", defaults["served_base"])
     node_gpus = int(spec.get("node_gpus", 4))
+    gpu_order = spec.get("gpu_order", list(range(node_gpus)))
+    if (not isinstance(gpu_order, list) or any(type(gpu) is not int for gpu in gpu_order)
+            or sorted(gpu_order) != list(range(node_gpus))):
+        raise SpecError("gpu_order must be a permutation of the allocated GPU indices")
+    # `captures` is either a list of labelled greedy captures (one per entry) or a
+    # mapping for two paired within-deployment correctness captures.
+    raw_captures = spec.get("captures")
+    label_captures = raw_captures if isinstance(raw_captures, list) else []
+    correctness_captures = raw_captures if isinstance(raw_captures, dict) else None
+    if raw_captures is not None and not isinstance(raw_captures, (list, dict)):
+        raise SpecError("captures must be a list of captures or a correctness mapping")
+    if correctness_captures is not None and (
+        not correctness_captures.get("workloads_file")
+        or int(correctness_captures.get("repeats", 2)) != 2
+    ):
+        raise SpecError(
+            "captures requires workloads_file and exactly two within-deployment repeats"
+        )
     common_engine = {**DEFAULT_ENGINE, "max_model_len": defaults["max_model_len"]}
     common_engine.update(spec.get("engine") or {})
     workloads_file = Path(
@@ -549,8 +569,10 @@ def build_plan(spec: dict[str, Any], *, check_heads: bool = True) -> Plan:
                 limit=int(entry.get("limit", 32)),
                 max_tokens=int(entry.get("max_tokens", 256)),
             )
-            for entry in spec.get("captures", [])
+            for entry in label_captures
         ],
+        correctness_captures=correctness_captures,
+        gpu_order=gpu_order,
     )
 
 
@@ -805,6 +827,23 @@ async def run_arm(
                     )
                     if not all(case["measurement"]["success"] for case in report["cases"]):
                         raise RuntimeError(f"greedy capture failed: {capture.label}")
+        if plan.correctness_captures is not None:
+            prompts = load_prompts(Path(plan.correctness_captures["workloads_file"]))
+            for repeat in (1, 2):
+                capture = arm_dir / "correctness" / f"capture-{repeat}.json"
+                if capture.exists():
+                    raise FileExistsError(capture)
+                async with StreamingChatClient(
+                    f"http://127.0.0.1:{arm.port}", arm.served_model, None, timeout_seconds=600
+                ) as client:
+                    report = await capture_greedy_outputs(
+                        client, prompts, capture,
+                        max_tokens=plan.correctness_captures.get("max_tokens"), seed=1,
+                        deployment_id=deployment_id,
+                    )
+                if not all(case["measurement"]["success"] for case in report["cases"]):
+                    raise RuntimeError(f"{arm.name}: failed correctness capture {repeat}")
+            status["correctness_captures"] = 2
         tests = ([plan.probe] if plan.probe else []) + plan.loadtests
         for test in tests:
             target = arm_dir / test.label
@@ -913,7 +952,9 @@ async def run_plan(plan: Plan, output: Path) -> list[dict[str, Any]]:
     """Start arms in spec order as soon as enough GPUs are free."""
     output.mkdir(parents=True, exist_ok=True)
     prefix = f"{plan.name}-{os.environ.get('SLURM_JOB_ID', 'local')}"
-    free = list(range(plan.node_gpus))
+    order = plan.gpu_order or list(range(plan.node_gpus))
+    free = list(order)
+    priority = {gpu: index for index, gpu in enumerate(order)}
     released = asyncio.Condition()
     results: list[dict[str, Any]] = []
 
@@ -926,7 +967,7 @@ async def run_plan(plan: Plan, output: Path) -> list[dict[str, Any]]:
         finally:
             async with released:
                 free.extend(gpu_ids)
-                free.sort()
+                free.sort(key=priority.__getitem__)
                 released.notify_all()
 
     # Arms start in order: each waits on the condition until its GPUs are free.

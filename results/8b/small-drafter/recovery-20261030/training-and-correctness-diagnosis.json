@@ -1,0 +1,277 @@
+{
+  "training_job": "3790212",
+  "training_state": {
+    "epoch": 0,
+    "local_step": 0,
+    "global_step": 6200
+  },
+  "heldout_validation_metrics": {
+    "confidence_loss_epoch": 0.23080676714464543,
+    "confidence_abs_error_epoch": 0.2212782879023802,
+    "confidence_pred_mean_epoch": 0.5343625026582185,
+    "confidence_cumprod_bias_epoch": -0.00436446795996184,
+    "loss_epoch": 0.5003008806331198,
+    "ce_loss_epoch": 0.9245447759721219,
+    "tv_loss_epoch": 0.1967103834919704,
+    "accept_rate_epoch": 0.533868922072251,
+    "accept_len_epoch": 3.352152455115482,
+    "full_acc_epoch": 0.5633910078439298,
+    "position_0_acc_epoch": 0.7800359929008029,
+    "position_1_acc_epoch": 0.6668725090896571,
+    "position_2_acc_epoch": 0.5996779513146385,
+    "position_3_acc_epoch": 0.5511943816494254,
+    "position_4_acc_epoch": 0.515142809339124,
+    "position_5_acc_epoch": 0.48782901861374073,
+    "position_6_acc_epoch": 0.4632536873009057,
+    "position_7_acc_epoch": 0.43937627129788276,
+    "eal_epoch": 3.5199252582551424
+  },
+  "control_heldout_validation": {
+    "accept_len_epoch": 4.465678286268495,
+    "accept_rate_epoch": 0.6167823226527874,
+    "ce_loss_epoch": 0.7654787446995669,
+    "confidence_abs_error_epoch": 0.17056567908842424,
+    "confidence_cumprod_bias_epoch": -0.014673293752013348,
+    "confidence_loss_epoch": 0.18488762482801788,
+    "confidence_pred_mean_epoch": 0.6166139251876855,
+    "eal_epoch": 4.630155939868279,
+    "full_acc_epoch": 0.6408379042422021,
+    "loss_epoch": 0.4040442762371436,
+    "position_0_acc_epoch": 0.8192253649686485,
+    "position_1_acc_epoch": 0.7403420103492097,
+    "position_2_acc_epoch": 0.6867357391865617,
+    "position_3_acc_epoch": 0.6432444347304938,
+    "position_4_acc_epoch": 0.6060466444671949,
+    "position_5_acc_epoch": 0.5728984639850964,
+    "position_6_acc_epoch": 0.5421286343398665,
+    "position_7_acc_epoch": 0.5125931131199057,
+    "tv_loss_epoch": 0.15845427002041232
+  },
+  "training_elapsed_s": 8703,
+  "preflight": {
+    "target_identity_checked": {
+      "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "verified_sha256": {
+        "chat_template.jinja": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+        "config.json": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+        "model-apertus-model-00001-of-00004.safetensors": "60d31e2d767d389ba990972a21cd0524e18c1ed39b65fcc727285db613ea81dc",
+        "model-apertus-model-00002-of-00004.safetensors": "8a0ae0ba1c37a5571276f042085c8f782b6f02c68a888acf1ae35c33b8253bd9",
+        "model-apertus-model-00003-of-00004.safetensors": "17f4ce43b67eacee899b6f23664d6b457259b2fbc89f5561cd69831d34a412c0",
+        "model-apertus-model-00004-of-00004.safetensors": "40bf7c8ba48bfe6748b6cf796bfe65cea0115fe74d0aa38ad5fcdb6af2cf3e0d",
+        "model-vision_tokenizer-model.safetensors": "0f358b3c908d216172675cd57184ff6ce310705e385fedfd31c6f34e8197f9c8",
+        "model-wavtokenizer-model.safetensors": "b2632390709c3cb1319d1a0c1387d5364587b8a78a00efa2e93f15185ae82c02",
+        "tokenizer.json": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582"
+      }
+    },
+    "image": {
+      "path": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh",
+      "sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5"
+    },
+    "candidate_weight_files": {
+      "config.json": {
+        "bytes": 2119,
+        "sha256": "03bae5a667337c6e101174526ad7da2374c7658448418db0e3acd915c70d40ae"
+      },
+      "model.safetensors": {
+        "bytes": 983870274,
+        "sha256": "9d6f8f8df6dbc95716c39aa5a6fb13e6872604aa08bd942e6c4422315cc01cba"
+      },
+      "run.yaml": {
+        "bytes": 1199,
+        "sha256": "3b5ba5994a7560ff2cafcbb17672aae961c58bccada9c08d4a9ec073634bba8e"
+      },
+      "speculators.patch": {
+        "bytes": 9846,
+        "sha256": "dbeff17994f598e7015430a1d85125f661ae4bdd9a01b5057abba16b7af98100"
+      },
+      "train_command.txt": {
+        "bytes": 1350,
+        "sha256": "23a5960fac479c65ad8e13016224f8811ebcdf948df548471bb959244aa4c49a"
+      },
+      "training_state.json": {
+        "bytes": 50,
+        "sha256": "8e2c1c348b7ac17f2cc7c465b970060e9d7e1126499caea2c9ae8d87f8b310bb"
+      },
+      "val_metrics.json": {
+        "bytes": 812,
+        "sha256": "b33a976d070a398e614a35c50d813c468f20e4ef94ac003f9d5edbbe117991c7"
+      }
+    },
+    "control_weight_files": {
+      "config.json": {
+        "bytes": 2227,
+        "sha256": "096f1347cbc4320cff149f9329e0592a6306779e501224fdc23cddb711923dab"
+      },
+      "model.safetensors": {
+        "bytes": 3433416186,
+        "sha256": "597ef0f7a1d235c6bbdaf88ea2f5565876441f7fafaf6e7558a74cd6cb78e738"
+      },
+      "run.yaml": {
+        "bytes": 1060,
+        "sha256": "58cfcd6a5fcd47450f840a52c21486f9c15869e2d79fedd3cefa82bcd9ddc9b8"
+      },
+      "speculators.patch": {
+        "bytes": 9846,
+        "sha256": "dbeff17994f598e7015430a1d85125f661ae4bdd9a01b5057abba16b7af98100"
+      },
+      "train_command.txt": {
+        "bytes": 1211,
+        "sha256": "a53653e341cf909a95553a2288ded254a065edeae6477e9232a6339f752f0d73"
+      },
+      "training_state.json": {
+        "bytes": 50,
+        "sha256": "8e2c1c348b7ac17f2cc7c465b970060e9d7e1126499caea2c9ae8d87f8b310bb"
+      },
+      "val_metrics.json": {
+        "bytes": 814,
+        "sha256": "e3831a794a5bde4738c803f509ec6f3af66a4259c415c5fc96ae531fe6a48040"
+      }
+    }
+  },
+  "validation_job": "3790216",
+  "failure_kind": "calibrated_correctness",
+  "first_capture_reports": [
+    {
+      "arm": "depth-l1-k7",
+      "passed": false,
+      "treatment": {
+        "baseline_model": "swiss-ai/Apertus-v1.5-8B-plain",
+        "candidate_model": "swiss-ai/Apertus-v1.5-8B-depth-l1-k7",
+        "same_deployment": false,
+        "total_cases": 6,
+        "comparable_cases": 6,
+        "exact_matches": 4,
+        "worst_case": {
+          "minimum_common_prefix_characters": 137.0,
+          "minimum_common_prefix_fraction": 0.18322981366459629,
+          "maximum_normalized_edit_distance": 0.5140463282405126,
+          "maximum_completion_token_difference": 0.0
+        },
+        "captures": [
+          "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261029-auto-v1/validate/repeat-a/plain/correctness/capture-1.json",
+          "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261029-auto-v1/validate/repeat-a/depth-l1-k7/correctness/capture-1.json"
+        ]
+      },
+      "control_envelope": {
+        "pairs": 8,
+        "cross_deployment_pairs": 4,
+        "comparable_cases": 48,
+        "exact_matches": 42,
+        "minimum_common_prefix_fraction": 0.39742319127849357,
+        "maximum_normalized_edit_distance": 0.01429275505174963,
+        "maximum_completion_token_difference": 0.0
+      },
+      "checks": [
+        {
+          "name": "all_cases_comparable",
+          "treatment": 6,
+          "allowance": 6,
+          "passed": true
+        },
+        {
+          "name": "minimum_common_prefix_fraction",
+          "treatment": 0.18322981366459629,
+          "allowance": 0.3474231912784936,
+          "passed": false
+        },
+        {
+          "name": "maximum_normalized_edit_distance",
+          "treatment": 0.5140463282405126,
+          "allowance": 0.06429275505174964,
+          "passed": false
+        },
+        {
+          "name": "maximum_completion_token_difference",
+          "treatment": 0.0,
+          "allowance": 2.0,
+          "passed": true
+        }
+      ],
+      "tolerance": {
+        "normalized_edit_distance_margin": 0.05,
+        "common_prefix_fraction_margin": 0.05,
+        "completion_token_difference_margin": 2
+      }
+    },
+    {
+      "arm": "depth-l5-k7",
+      "passed": false,
+      "treatment": {
+        "baseline_model": "swiss-ai/Apertus-v1.5-8B-plain",
+        "candidate_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+        "same_deployment": false,
+        "total_cases": 6,
+        "comparable_cases": 6,
+        "exact_matches": 2,
+        "worst_case": {
+          "minimum_common_prefix_characters": 137.0,
+          "minimum_common_prefix_fraction": 0.18322981366459629,
+          "maximum_normalized_edit_distance": 0.506265664160401,
+          "maximum_completion_token_difference": 2.0
+        },
+        "captures": [
+          "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261029-auto-v1/validate/repeat-a/plain/correctness/capture-1.json",
+          "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261029-auto-v1/validate/repeat-a/depth-l5-k7/correctness/capture-1.json"
+        ]
+      },
+      "control_envelope": {
+        "pairs": 8,
+        "cross_deployment_pairs": 4,
+        "comparable_cases": 48,
+        "exact_matches": 40,
+        "minimum_common_prefix_fraction": 0.3979187314172448,
+        "maximum_normalized_edit_distance": 0.41545189504373176,
+        "maximum_completion_token_difference": 2.0
+      },
+      "checks": [
+        {
+          "name": "all_cases_comparable",
+          "treatment": 6,
+          "allowance": 6,
+          "passed": true
+        },
+        {
+          "name": "minimum_common_prefix_fraction",
+          "treatment": 0.18322981366459629,
+          "allowance": 0.34791873141724483,
+          "passed": false
+        },
+        {
+          "name": "maximum_normalized_edit_distance",
+          "treatment": 0.506265664160401,
+          "allowance": 0.46545189504373174,
+          "passed": false
+        },
+        {
+          "name": "maximum_completion_token_difference",
+          "treatment": 2.0,
+          "allowance": 4.0,
+          "passed": true
+        }
+      ],
+      "tolerance": {
+        "normalized_edit_distance_margin": 0.05,
+        "common_prefix_fraction_margin": 0.05,
+        "completion_token_difference_margin": 2
+      }
+    }
+  ],
+  "all_8_treatment_reports_failed": true,
+  "plain_restart_controls": "cross-deployment pairs both exact6/6 and pass calibrated self-checks",
+  "same_gpu_assignments_both_repeats": {
+    "plain": [
+      0
+    ],
+    "depth-l1-k7": [
+      1
+    ],
+    "depth-l5-k7": [
+      2
+    ]
+  },
+  "interpretation": "No confirmed request/model-identity mismatch. Physical-GPU variation was not counterbalanced; one bounded reference+GPU reversal diagnosis will preserve original conditions and limits. No throughput verdict.",
+  "preserved_artifacts_verified": 82,
+  "raw_captures_retained_on_cluster": 12,
+  "archive_sha256": "b1655fd4339f2110f63d18b7654beb311c44dea9707caf9d626c888ae6fe0770"
+}

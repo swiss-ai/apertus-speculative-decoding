@@ -1,0 +1,20 @@
+# Shallow DSpark drafters (docs/small-drafter.md), phase A: where the draft
+# step's time goes (backbone, LM head, Markov loop) for the 5-layer DSpark e10
+# and its first layer alone (untrained truncation), at k=4 and k=7, under
+# Nsight Systems (docs/waste-profiling.md). eager_draft splits the draft into
+# its NVTX ranges at low load: use the ratios, not the timings, and take
+# throughput from the unprofiled small-trunc-a/-cost arms.
+# Submit with SWEEP_PATCHES="serving/patches/vllm-apertus-dspark-num-layers.patch"
+name: small-trunc-nsys
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 64, 256]
+arms:
+  - {name: dspark-e10-k4-nsys, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 4, profile: {tool: nsys, window_s: 15, delay_s: 10, levels: [1, 64, 256], eager_draft: true}}
+  - {name: trunc-l1-k4-nsys, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1, k: 4, profile: {tool: nsys, window_s: 15, delay_s: 10, levels: [1, 64, 256], eager_draft: true}}
+  - {name: dspark-e10-k7-nsys, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, profile: {tool: nsys, window_s: 15, delay_s: 10, levels: [1, 64, 256], eager_draft: true}}
+  - {name: trunc-l1-k7-nsys, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1, k: 7, profile: {tool: nsys, window_s: 15, delay_s: 10, levels: [1, 64, 256], eager_draft: true}}

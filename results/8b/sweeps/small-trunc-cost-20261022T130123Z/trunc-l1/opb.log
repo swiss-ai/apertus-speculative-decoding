@@ -1,0 +1,28 @@
+loadtest opb concurrency=1 requests=128
+{
+  "workload": "opb",
+  "variant": "trunc-l1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 128,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 183.23587499997197,
+      "ttft_p50_ms": 29.385491012362763,
+      "ttft_p95_ms": 91.14548984507549,
+      "tpot_p50_ms": 5.618923156238588,
+      "tpot_p95_ms": 6.170835556731288,
+      "e2e_p95_ms": 5859.46833944472,
+      "kv_cache_usage_mean": 0.0025880258323831428,
+      "kv_cache_usage_max": 0.010833514860056903,
+      "kv_cache_tokens_peak": 4702,
+      "kv_cache_size_tokens": 434023,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.289669057505977,
+      "acceptance_rate": 0.04727918750449275
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "created_at": "2026-10-30T12:21:31.238877+00:00",
+  "source_revision": "73fcc4a7ec178cac0a849b4cedc819a8ee4e595e",
+  "branch": "small-drafter",
+  "frozen_source_files_verified": 66,
+  "training_job_reused": "3790212",
+  "completed_prerequisite_verified": {
+    "metadata_sha256": {
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v1/training-accounting.txt": "744dcd0c931ecccd48f186798d29d54bfb03bc5e5fbf29a3c0d7bbec79c6386a",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261029/checkpoints/epoch0_end/config.json": "03bae5a667337c6e101174526ad7da2374c7658448418db0e3acd915c70d40ae",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261029/checkpoints/epoch0_end/training_state.json": "8e2c1c348b7ac17f2cc7c465b970060e9d7e1126499caea2c9ae8d87f8b310bb",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261029/checkpoints/epoch0_end/val_metrics.json": "b33a976d070a398e614a35c50d813c468f20e4ef94ac003f9d5edbbe117991c7",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/runs/depth-l1-warm-recovery-20261029/provenance/warm-start-3790212.json": "512d365854b3085680536d4d3399ae0559313c92bb9f393a133371e534655d38"
+    },
+    "passed": true,
+    "scheduler_note": "completed job aged out of live Slurm dependency records; accounting/checkpoint verified; full hash gates rerun in allocation",
+    "state": {
+      "epoch": 0,
+      "global_step": 6200,
+      "local_step": 0
+    },
+    "training_job": "3790212",
+    "validation_eal": 3.5199252582551424
+  },
+  "same_six_smoke_prompts_sha256": "0b13076356003aae5ef6fda9eb1281b2c2fe2868b746fb77646c034b99bfed80",
+  "capture_token_cap_unchanged": 384,
+  "planned_arm_order": [
+    "plain",
+    "dspark-e10-k7",
+    "depth-l1-k7",
+    "depth-l5-k7"
+  ],
+  "planned_gpu_order_a": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "planned_gpu_order_b": [
+    3,
+    2,
+    1,
+    0
+  ],
+  "margins_unchanged": {
+    "prefix": 0.05,
+    "normalized_edit": 0.05,
+    "completion_tokens": 2
+  },
+  "expected_serving_image_sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5",
+  "strict_helper_sha256": "7d9157c1ddb8d2fbeedcd3b0cc649df8ac4bc2882f7882f20763c11feae85ac2",
+  "scope": "one bounded calibration diagnosis; no training, precision, engine or numeric-margin changes; correctness not presumed resolved",
+  "job_ids": [
+    "3790212",
+    "3802723",
+    "3802725",
+    "3802726"
+  ]
+}

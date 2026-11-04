@@ -1,5 +1,6 @@
-# Sourced inside the container by the DSpark 70B jobs (port of Yu's
-# methods/dspark/jobs on branch DSpark_Apertus_1.5_8B). Expects REPO_ROOT.
+# Sourced inside the container by the DSpark jobs (port of Yu's
+# methods/dspark/jobs on branch DSpark_Apertus_1.5_8B; 70B defaults, the 8B
+# ones come from submit-train.sh STAGE=8b). Expects REPO_ROOT.
 # speculators (7046ac6 + Yu's patch) lives untracked in the checkout's scratch/;
 # it is prepended to PYTHONPATH, never replacing it: the image's /workspace/vllm
 # entry carries the vLLM overlays.
@@ -7,7 +8,7 @@
 DSPARK_DIR="${DSPARK_DIR:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b}"
 TARGET_MODEL="${TARGET_MODEL:-/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B}"
 SPECULATORS="${SPECULATORS:-${REPO_ROOT}/scratch/speculators}"
-SIDE_DEPS="${DSPARK_DIR}/pydeps"
+SIDE_DEPS="${SIDE_DEPS:-${DSPARK_DIR}/pydeps}"
 OPB_REPO="mlabonne/open-perfectblend"
 OPB_REVISION="af60f3c18201652a83a93f46fcfee1b646ba3df7"
 # Yu's 8B corpus: its row order and val_ids.txt define the held-out split.

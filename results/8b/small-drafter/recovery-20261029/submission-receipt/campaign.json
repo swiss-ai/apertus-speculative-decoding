@@ -1,0 +1,28 @@
+{
+  "job_ids": [
+    "3790212",
+    "3790216",
+    "3790218",
+    "3790219"
+  ],
+  "next_action": "afterok validation and calibrated correctness; then counterbalanced a/b",
+  "source_revision": "fb8f5c795c90ab23c20fdb866c09174818949e2b",
+  "stages": {
+    "a": {
+      "dependency": "afterok:3790216",
+      "job_id": "3790218"
+    },
+    "b": {
+      "dependency": "afterok:3790218",
+      "job_id": "3790219"
+    },
+    "validate": {
+      "dependency": "afterok:3790212",
+      "job_id": "3790216"
+    }
+  },
+  "state": "waiting",
+  "training_job": "3790212",
+  "updated_at": "2026-10-29T10:07:31.361531+00:00",
+  "workstream": "shallow_drafter"
+}

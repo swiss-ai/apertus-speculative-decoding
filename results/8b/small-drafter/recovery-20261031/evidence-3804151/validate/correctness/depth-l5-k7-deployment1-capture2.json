@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "criterion": "calibrated_greedy_divergence",
+  "tolerance": {
+    "normalized_edit_distance_margin": 0.05,
+    "common_prefix_fraction_margin": 0.05,
+    "completion_token_difference_margin": 2
+  },
+  "treatment": {
+    "baseline_model": "swiss-ai/Apertus-v1.5-8B-plain",
+    "candidate_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+    "same_deployment": false,
+    "total_cases": 6,
+    "comparable_cases": 6,
+    "exact_matches": 2,
+    "worst_case": {
+      "minimum_common_prefix_characters": 18.0,
+      "minimum_common_prefix_fraction": 0.03550295857988166,
+      "maximum_normalized_edit_distance": 0.5138751238850346,
+      "maximum_completion_token_difference": 27.0
+    },
+    "captures": [
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/correctness/capture-2.json",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/correctness/capture-2.json"
+    ]
+  },
+  "controls": [
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "same_deployment": true,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 6,
+      "worst_case": {
+        "minimum_common_prefix_characters": 137.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/correctness/capture-1.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/correctness/capture-2.json"
+      ]
+    },
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "same_deployment": true,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 6,
+      "worst_case": {
+        "minimum_common_prefix_characters": 137.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/plain/correctness/capture-1.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/plain/correctness/capture-2.json"
+      ]
+    },
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "same_deployment": false,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 6,
+      "worst_case": {
+        "minimum_common_prefix_characters": 137.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/correctness/capture-1.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/plain/correctness/capture-1.json"
+      ]
+    },
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-plain",
+      "same_deployment": false,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 6,
+      "worst_case": {
+        "minimum_common_prefix_characters": 137.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/correctness/capture-2.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/plain/correctness/capture-2.json"
+      ]
+    },
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "same_deployment": true,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 6,
+      "worst_case": {
+        "minimum_common_prefix_characters": 137.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/correctness/capture-1.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/correctness/capture-2.json"
+      ]
+    },
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "same_deployment": true,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 6,
+      "worst_case": {
+        "minimum_common_prefix_characters": 137.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l5-k7/correctness/capture-1.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l5-k7/correctness/capture-2.json"
+      ]
+    },
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "same_deployment": false,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 2,
+      "worst_case": {
+        "minimum_common_prefix_characters": 18.0,
+        "minimum_common_prefix_fraction": 0.03550295857988166,
+        "maximum_normalized_edit_distance": 0.24357707509881424,
+        "maximum_completion_token_difference": 5.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/correctness/capture-1.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l5-k7/correctness/capture-1.json"
+      ]
+    },
+    {
+      "baseline_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "candidate_model": "swiss-ai/Apertus-v1.5-8B-depth-l5-k7",
+      "same_deployment": false,
+      "total_cases": 6,
+      "comparable_cases": 6,
+      "exact_matches": 2,
+      "worst_case": {
+        "minimum_common_prefix_characters": 18.0,
+        "minimum_common_prefix_fraction": 0.03550295857988166,
+        "maximum_normalized_edit_distance": 0.24357707509881424,
+        "maximum_completion_token_difference": 5.0
+      },
+      "captures": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/correctness/capture-2.json",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l5-k7/correctness/capture-2.json"
+      ]
+    }
+  ],
+  "control_envelope": {
+    "pairs": 8,
+    "cross_deployment_pairs": 4,
+    "comparable_cases": 48,
+    "exact_matches": 40,
+    "minimum_common_prefix_fraction": 0.03550295857988166,
+    "maximum_normalized_edit_distance": 0.24357707509881424,
+    "maximum_completion_token_difference": 5.0
+  },
+  "checks": [
+    {
+      "name": "all_cases_comparable",
+      "treatment": 6,
+      "allowance": 6,
+      "passed": true
+    },
+    {
+      "name": "minimum_common_prefix_fraction",
+      "treatment": 0.03550295857988166,
+      "allowance": 0.0,
+      "passed": true
+    },
+    {
+      "name": "maximum_normalized_edit_distance",
+      "treatment": 0.5138751238850346,
+      "allowance": 0.29357707509881426,
+      "passed": false
+    },
+    {
+      "name": "maximum_completion_token_difference",
+      "treatment": 27.0,
+      "allowance": 7.0,
+      "passed": false
+    }
+  ],
+  "passed": false,
+  "verdict": "exceeds_control_envelope",
+  "claim": "greedy divergence between the two arms exceeds the calibrated same-configuration envelope, which is evidence of a real distributional violation rather than deployment-level numerical nondeterminism"
+}
