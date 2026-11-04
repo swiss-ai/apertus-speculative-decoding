@@ -249,6 +249,9 @@ def render(
                                     "failureThreshold": 5,
                                 },
                                 "env": [
+                                    # Platform-wide CVE-2026-98432 mitigation (rob-poc 8603558):
+                                    # stop Go 1.24+ (the OpenTela binary) opening MPTCP listeners.
+                                    {"name": "GODEBUG", "value": "multipathtcp=0"},
                                     *[
                                         {
                                             "name": key,
