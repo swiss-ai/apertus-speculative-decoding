@@ -1,0 +1,635 @@
+# HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation="0"} 336589.0
+python_gc_objects_collected_total{generation="1"} 37185.0
+python_gc_objects_collected_total{generation="2"} 4364.0
+# HELP python_gc_objects_uncollectable_total Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable_total counter
+python_gc_objects_uncollectable_total{generation="0"} 0.0
+python_gc_objects_uncollectable_total{generation="1"} 0.0
+python_gc_objects_uncollectable_total{generation="2"} 0.0
+# HELP python_gc_collections_total Number of times this generation was collected
+# TYPE python_gc_collections_total counter
+python_gc_collections_total{generation="0"} 13005.0
+python_gc_collections_total{generation="1"} 1183.0
+python_gc_collections_total{generation="2"} 63.0
+# HELP python_info Python platform information
+# TYPE python_info gauge
+python_info{implementation="CPython",major="3",minor="12",patchlevel="3",version="3.12.3"} 1.0
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 5.1931906048e+010
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 2.236547072e+09
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.79287972016e+09
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 574.86
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 60.0
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1e+06
+# HELP vllm:estimated_flops_per_gpu_total Estimated number of floating point operations per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_flops_per_gpu_total counter
+vllm:estimated_flops_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:estimated_flops_per_gpu_created Estimated number of floating point operations per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_flops_per_gpu_created gauge
+vllm:estimated_flops_per_gpu_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949894617e+09
+# HELP vllm:estimated_read_bytes_per_gpu_total Estimated number of bytes read from memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_read_bytes_per_gpu_total counter
+vllm:estimated_read_bytes_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:estimated_read_bytes_per_gpu_created Estimated number of bytes read from memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_read_bytes_per_gpu_created gauge
+vllm:estimated_read_bytes_per_gpu_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949894822e+09
+# HELP vllm:estimated_write_bytes_per_gpu_total Estimated number of bytes written to memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_write_bytes_per_gpu_total counter
+vllm:estimated_write_bytes_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:estimated_write_bytes_per_gpu_created Estimated number of bytes written to memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_write_bytes_per_gpu_created gauge
+vllm:estimated_write_bytes_per_gpu_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949895039e+09
+# HELP vllm:num_requests_running Number of requests in model execution batches.
+# TYPE vllm:num_requests_running gauge
+vllm:num_requests_running{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:num_requests_waiting Number of requests waiting to be processed.
+# TYPE vllm:num_requests_waiting gauge
+vllm:num_requests_waiting{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:num_requests_waiting_by_reason Number of waiting requests by reason. Reason labels: 'capacity' = waiting for scheduling capacity; 'deferred' = deferred by transient constraints (LoRA budget, KV transfer, blocked status). Sum of all reasons equals vllm:num_requests_waiting.
+# TYPE vllm:num_requests_waiting_by_reason gauge
+vllm:num_requests_waiting_by_reason{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",reason="capacity"} 0.0
+vllm:num_requests_waiting_by_reason{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",reason="deferred"} 0.0
+# HELP vllm:engine_sleep_state Engine sleep state; awake = 0 means engine is sleeping; awake = 1 means engine is awake; weights_offloaded = 1 means sleep level 1; discard_all = 1 means sleep level 2.
+# TYPE vllm:engine_sleep_state gauge
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",sleep_state="awake"} 1.0
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",sleep_state="weights_offloaded"} 0.0
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",sleep_state="discard_all"} 0.0
+# HELP vllm:kv_cache_usage_perc KV-cache usage. 1 means 100 percent usage.
+# TYPE vllm:kv_cache_usage_perc gauge
+vllm:kv_cache_usage_perc{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:prefix_cache_queries_total Prefix cache queries, in terms of number of queried tokens.
+# TYPE vllm:prefix_cache_queries_total counter
+vllm:prefix_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:prefix_cache_queries_created Prefix cache queries, in terms of number of queried tokens.
+# TYPE vllm:prefix_cache_queries_created gauge
+vllm:prefix_cache_queries_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.79287989498967e+09
+# HELP vllm:prefix_cache_hits_total Prefix cache hits, in terms of number of cached tokens.
+# TYPE vllm:prefix_cache_hits_total counter
+vllm:prefix_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:prefix_cache_hits_created Prefix cache hits, in terms of number of cached tokens.
+# TYPE vllm:prefix_cache_hits_created gauge
+vllm:prefix_cache_hits_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.79287989498968e+09
+# HELP vllm:external_prefix_cache_queries_total External prefix cache queries from KV connector cross-instance cache sharing, in terms of number of queried tokens.
+# TYPE vllm:external_prefix_cache_queries_total counter
+vllm:external_prefix_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:external_prefix_cache_queries_created External prefix cache queries from KV connector cross-instance cache sharing, in terms of number of queried tokens.
+# TYPE vllm:external_prefix_cache_queries_created gauge
+vllm:external_prefix_cache_queries_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.792879894989689e+09
+# HELP vllm:external_prefix_cache_hits_total External prefix cache hits from KV connector cross-instance cache sharing, in terms of number of cached tokens.
+# TYPE vllm:external_prefix_cache_hits_total counter
+vllm:external_prefix_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:external_prefix_cache_hits_created External prefix cache hits from KV connector cross-instance cache sharing, in terms of number of cached tokens.
+# TYPE vllm:external_prefix_cache_hits_created gauge
+vllm:external_prefix_cache_hits_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949897017e+09
+# HELP vllm:mm_cache_queries_total Multi-modal cache queries, in terms of number of queried items.
+# TYPE vllm:mm_cache_queries_total counter
+vllm:mm_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:mm_cache_queries_created Multi-modal cache queries, in terms of number of queried items.
+# TYPE vllm:mm_cache_queries_created gauge
+vllm:mm_cache_queries_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949897146e+09
+# HELP vllm:mm_cache_hits_total Multi-modal cache hits, in terms of number of cached items.
+# TYPE vllm:mm_cache_hits_total counter
+vllm:mm_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:mm_cache_hits_created Multi-modal cache hits, in terms of number of cached items.
+# TYPE vllm:mm_cache_hits_created gauge
+vllm:mm_cache_hits_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949897246e+09
+# HELP vllm:num_preemptions_total Cumulative number of preemption from the engine.
+# TYPE vllm:num_preemptions_total counter
+vllm:num_preemptions_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:num_preemptions_created Cumulative number of preemption from the engine.
+# TYPE vllm:num_preemptions_created gauge
+vllm:num_preemptions_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949897351e+09
+# HELP vllm:prompt_tokens_total Number of prefill tokens processed.
+# TYPE vllm:prompt_tokens_total counter
+vllm:prompt_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 4.561312e+06
+# HELP vllm:prompt_tokens_created Number of prefill tokens processed.
+# TYPE vllm:prompt_tokens_created gauge
+vllm:prompt_tokens_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949897444e+09
+# HELP vllm:prompt_tokens_by_source_total Number of prompt tokens by source.
+# TYPE vllm:prompt_tokens_by_source_total counter
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",source="local_compute"} 4.561312e+06
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",source="local_cache_hit"} 0.0
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",source="external_kv_transfer"} 0.0
+# HELP vllm:prompt_tokens_by_source_created Number of prompt tokens by source.
+# TYPE vllm:prompt_tokens_by_source_created gauge
+vllm:prompt_tokens_by_source_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",source="local_compute"} 1.7928798949897704e+09
+vllm:prompt_tokens_by_source_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",source="local_cache_hit"} 1.7928798949897747e+09
+vllm:prompt_tokens_by_source_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain",source="external_kv_transfer"} 1.7928798949897785e+09
+# HELP vllm:prompt_tokens_cached_total Number of cached prompt tokens (local + external).
+# TYPE vllm:prompt_tokens_cached_total counter
+vllm:prompt_tokens_cached_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:prompt_tokens_cached_created Number of cached prompt tokens (local + external).
+# TYPE vllm:prompt_tokens_cached_created gauge
+vllm:prompt_tokens_cached_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949897869e+09
+# HELP vllm:generation_tokens_total Number of generation tokens processed.
+# TYPE vllm:generation_tokens_total counter
+vllm:generation_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.724053e+06
+# HELP vllm:generation_tokens_created Number of generation tokens processed.
+# TYPE vllm:generation_tokens_created gauge
+vllm:generation_tokens_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949897997e+09
+# HELP vllm:request_success_total Count of successfully processed requests.
+# TYPE vllm:request_success_total counter
+vllm:request_success_total{engine="0",finished_reason="stop",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 8890.0
+vllm:request_success_total{engine="0",finished_reason="length",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 3936.0
+vllm:request_success_total{engine="0",finished_reason="abort",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_success_total{engine="0",finished_reason="error",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_success_total{engine="0",finished_reason="repetition",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+# HELP vllm:request_success_created Count of successfully processed requests.
+# TYPE vllm:request_success_created gauge
+vllm:request_success_created{engine="0",finished_reason="stop",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949898343e+09
+vllm:request_success_created{engine="0",finished_reason="length",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949898403e+09
+vllm:request_success_created{engine="0",finished_reason="abort",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949898458e+09
+vllm:request_success_created{engine="0",finished_reason="error",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949898517e+09
+vllm:request_success_created{engine="0",finished_reason="repetition",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949898584e+09
+# HELP vllm:request_prompt_tokens Number of prefill tokens processed.
+# TYPE vllm:request_prompt_tokens histogram
+vllm:request_prompt_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 5050.0
+vllm:request_prompt_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 9319.0
+vllm:request_prompt_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 10880.0
+vllm:request_prompt_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11673.0
+vllm:request_prompt_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12382.0
+vllm:request_prompt_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prompt_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prompt_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prompt_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prompt_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prompt_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 4.561312e+06
+# HELP vllm:request_prompt_tokens_created Number of prefill tokens processed.
+# TYPE vllm:request_prompt_tokens_created gauge
+vllm:request_prompt_tokens_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949899008e+09
+# HELP vllm:request_generation_tokens Number of generation tokens processed.
+# TYPE vllm:request_generation_tokens histogram
+vllm:request_generation_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_generation_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 2.0
+vllm:request_generation_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 37.0
+vllm:request_generation_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 55.0
+vllm:request_generation_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 72.0
+vllm:request_generation_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 416.0
+vllm:request_generation_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 784.0
+vllm:request_generation_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1895.0
+vllm:request_generation_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6836.0
+vllm:request_generation_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11382.0
+vllm:request_generation_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_generation_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_generation_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_generation_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_generation_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_generation_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_generation_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.724053e+06
+# HELP vllm:request_generation_tokens_created Number of generation tokens processed.
+# TYPE vllm:request_generation_tokens_created gauge
+vllm:request_generation_tokens_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.792879894989958e+09
+# HELP vllm:iteration_tokens_total Histogram of number of tokens per engine_step.
+# TYPE vllm:iteration_tokens_total histogram
+vllm:iteration_tokens_total_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 246728.0
+vllm:iteration_tokens_total_bucket{engine="0",le="8.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 333008.0
+vllm:iteration_tokens_total_bucket{engine="0",le="16.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 336068.0
+vllm:iteration_tokens_total_bucket{engine="0",le="32.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 348512.0
+vllm:iteration_tokens_total_bucket{engine="0",le="64.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 361143.0
+vllm:iteration_tokens_total_bucket{engine="0",le="128.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 365504.0
+vllm:iteration_tokens_total_bucket{engine="0",le="256.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 380818.0
+vllm:iteration_tokens_total_bucket{engine="0",le="512.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 383749.0
+vllm:iteration_tokens_total_bucket{engine="0",le="1024.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 384699.0
+vllm:iteration_tokens_total_bucket{engine="0",le="2048.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 385189.0
+vllm:iteration_tokens_total_bucket{engine="0",le="4096.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 385570.0
+vllm:iteration_tokens_total_bucket{engine="0",le="8192.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 385648.0
+vllm:iteration_tokens_total_bucket{engine="0",le="16384.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 385714.0
+vllm:iteration_tokens_total_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 385739.0
+vllm:iteration_tokens_total_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 385739.0
+vllm:iteration_tokens_total_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.1285365e+07
+# HELP vllm:iteration_tokens_total_created Histogram of number of tokens per engine_step.
+# TYPE vllm:iteration_tokens_total_created gauge
+vllm:iteration_tokens_total_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.792879894989997e+09
+# HELP vllm:request_max_num_generation_tokens Histogram of maximum number of requested generation tokens.
+# TYPE vllm:request_max_num_generation_tokens histogram
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 2.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 37.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 55.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 72.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 416.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 784.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1895.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6836.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11382.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_max_num_generation_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_max_num_generation_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.724053e+06
+# HELP vllm:request_max_num_generation_tokens_created Histogram of maximum number of requested generation tokens.
+# TYPE vllm:request_max_num_generation_tokens_created gauge
+vllm:request_max_num_generation_tokens_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.792879894990214e+09
+# HELP vllm:request_params_n Histogram of the n request parameter.
+# TYPE vllm:request_params_n histogram
+vllm:request_params_n_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_n_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_n_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_n_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_n_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_n_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_n_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_n_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+# HELP vllm:request_params_n_created Histogram of the n request parameter.
+# TYPE vllm:request_params_n_created gauge
+vllm:request_params_n_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949902573e+09
+# HELP vllm:request_params_max_tokens Histogram of the max_tokens request parameter.
+# TYPE vllm:request_params_max_tokens histogram
+vllm:request_params_max_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.0
+vllm:request_params_max_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.0
+vllm:request_params_max_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 49.0
+vllm:request_params_max_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 297.0
+vllm:request_params_max_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 345.0
+vllm:request_params_max_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 889.0
+vllm:request_params_max_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 3329.0
+vllm:request_params_max_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 5581.0
+vllm:request_params_max_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_max_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_max_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_max_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_max_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_max_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_params_max_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 9.944964e+06
+# HELP vllm:request_params_max_tokens_created Histogram of the max_tokens request parameter.
+# TYPE vllm:request_params_max_tokens_created gauge
+vllm:request_params_max_tokens_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949902859e+09
+# HELP vllm:time_to_first_token_seconds Histogram of time to first token in seconds.
+# TYPE vllm:time_to_first_token_seconds histogram
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.001",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.005",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.02",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 548.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.04",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 2666.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.06",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 4044.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.08",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 5737.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6640.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.25",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 8704.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 9729.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 10721.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11141.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11955.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12796.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12796.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="160.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="640.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="2560.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:time_to_first_token_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6242.974849224091
+# HELP vllm:time_to_first_token_seconds_created Histogram of time to first token in seconds.
+# TYPE vllm:time_to_first_token_seconds_created gauge
+vllm:time_to_first_token_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949903212e+09
+# HELP vllm:inter_token_latency_seconds Histogram of inter-token latency in seconds.
+# TYPE vllm:inter_token_latency_seconds histogram
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 2.032173e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 5.839529e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.569686e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.633563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.657236e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.695026e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.699088e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.702574e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.703536e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711215e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711215e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711215e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711224e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 6.711227e+06
+vllm:inter_token_latency_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 118018.45796681382
+# HELP vllm:inter_token_latency_seconds_created Histogram of inter-token latency in seconds.
+# TYPE vllm:inter_token_latency_seconds_created gauge
+vllm:inter_token_latency_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949903746e+09
+# HELP vllm:request_time_per_output_token_seconds Histogram of time_per_output_token_seconds per request.
+# TYPE vllm:request_time_per_output_token_seconds histogram
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 3580.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 9093.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12719.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12761.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12783.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12805.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12812.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12816.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12821.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_time_per_output_token_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 249.12564480195167
+# HELP vllm:request_time_per_output_token_seconds_created Histogram of time_per_output_token_seconds per request.
+# TYPE vllm:request_time_per_output_token_seconds_created gauge
+vllm:request_time_per_output_token_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949904196e+09
+# HELP vllm:e2e_request_latency_seconds Histogram of e2e request latency in seconds.
+# TYPE vllm:e2e_request_latency_seconds histogram
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 95.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 157.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 285.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 411.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 787.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1181.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1588.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 3802.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 7579.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 10244.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11830.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12615.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:e2e_request_latency_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 124261.1010298729
+# HELP vllm:e2e_request_latency_seconds_created Histogram of e2e request latency in seconds.
+# TYPE vllm:e2e_request_latency_seconds_created gauge
+vllm:e2e_request_latency_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.792879894990463e+09
+# HELP vllm:request_queue_time_seconds Histogram of time spent in WAITING phase for request.
+# TYPE vllm:request_queue_time_seconds histogram
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11463.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11600.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11743.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11851.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12107.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12492.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12737.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_queue_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 2064.349544807279
+# HELP vllm:request_queue_time_seconds_created Histogram of time spent in WAITING phase for request.
+# TYPE vllm:request_queue_time_seconds_created gauge
+vllm:request_queue_time_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949905064e+09
+# HELP vllm:request_inference_time_seconds Histogram of time spent in RUNNING phase for request.
+# TYPE vllm:request_inference_time_seconds histogram
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 100.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 165.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 292.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 803.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1216.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1656.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 3930.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 7834.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 10421.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11858.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12627.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_inference_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 121027.47052722954
+# HELP vllm:request_inference_time_seconds_created Histogram of time spent in RUNNING phase for request.
+# TYPE vllm:request_inference_time_seconds_created gauge
+vllm:request_inference_time_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949905524e+09
+# HELP vllm:request_prefill_time_seconds Histogram of time spent in PREFILL phase for request.
+# TYPE vllm:request_prefill_time_seconds histogram
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 9630.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 10415.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11350.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12711.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12763.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12795.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12795.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12817.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 3009.012560415722
+# HELP vllm:request_prefill_time_seconds_created Histogram of time spent in PREFILL phase for request.
+# TYPE vllm:request_prefill_time_seconds_created gauge
+vllm:request_prefill_time_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949906018e+09
+# HELP vllm:request_decode_time_seconds Histogram of time spent in DECODE phase for request.
+# TYPE vllm:request_decode_time_seconds histogram
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 111.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 186.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 351.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 510.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 922.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1330.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1769.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 4113.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 8008.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 10535.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11894.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12646.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_decode_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 118018.45796681382
+# HELP vllm:request_decode_time_seconds_created Histogram of time spent in DECODE phase for request.
+# TYPE vllm:request_decode_time_seconds_created gauge
+vllm:request_decode_time_seconds_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.792879894990661e+09
+# HELP vllm:request_prefill_kv_computed_tokens Histogram of new KV tokens computed during prefill (excluding cached tokens).
+# TYPE vllm:request_prefill_kv_computed_tokens histogram
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 5050.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 9319.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 10880.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 11673.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12382.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_kv_computed_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 12826.0
+vllm:request_prefill_kv_computed_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 4.561312e+06
+# HELP vllm:request_prefill_kv_computed_tokens_created Histogram of new KV tokens computed during prefill (excluding cached tokens).
+# TYPE vllm:request_prefill_kv_computed_tokens_created gauge
+vllm:request_prefill_kv_computed_tokens_created{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-plain"} 1.7928798949907146e+09
+# HELP vllm:cache_config_info Information of the LLMEngine CacheConfig
+# TYPE vllm:cache_config_info gauge
+vllm:cache_config_info{_block_size_resolved="True",block_size="16",cache_dtype="auto",calculate_kv_scales="False",enable_prefix_caching="False",engine="0",gpu_memory_utilization="0.8",hash_block_size="None",is_attention_free="False",kv_cache_dtype_skip_layers="[]",kv_cache_max_concurrency="14.33837890625",kv_cache_memory_bytes="None",kv_cache_size_tokens="469840",kv_offloading_backend="native",kv_offloading_size="None",kv_sharing_fast_prefill="False",mamba_block_size="None",mamba_cache_dtype="auto",mamba_cache_mode="none",mamba_page_size_padded="None",mamba_ssm_cache_dtype="auto",num_cpu_blocks="None",num_gpu_blocks="29365",num_gpu_blocks_override="None",prefix_caching_hash_algo="sha256",skip_page_size_padded="None",sliding_window="None",user_specified_block_size="False",user_specified_mamba_block_size="False"} 1.0
+# HELP http_requests_total Total number of requests by method, status and handler.
+# TYPE http_requests_total counter
+http_requests_total{handler="/v1/models",method="GET",status="2xx"} 1.0
+http_requests_total{handler="/v1/chat/completions",method="POST",status="2xx"} 12826.0
+# HELP http_requests_created Total number of requests by method, status and handler.
+# TYPE http_requests_created gauge
+http_requests_created{handler="/v1/models",method="GET",status="2xx"} 1.7928799069892733e+09
+http_requests_created{handler="/v1/chat/completions",method="POST",status="2xx"} 1.7928799070662725e+09
+# HELP http_request_size_bytes Content length of incoming requests by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_request_size_bytes summary
+http_request_size_bytes_count{handler="/v1/models"} 1.0
+http_request_size_bytes_sum{handler="/v1/models"} 0.0
+http_request_size_bytes_count{handler="/v1/chat/completions"} 12826.0
+http_request_size_bytes_sum{handler="/v1/chat/completions"} 2.0062776e+07
+# HELP http_request_size_bytes_created Content length of incoming requests by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_request_size_bytes_created gauge
+http_request_size_bytes_created{handler="/v1/models"} 1.792879906989312e+09
+http_request_size_bytes_created{handler="/v1/chat/completions"} 1.7928799070662947e+09
+# HELP http_response_size_bytes Content length of outgoing responses by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_response_size_bytes summary
+http_response_size_bytes_count{handler="/v1/models"} 1.0
+http_response_size_bytes_sum{handler="/v1/models"} 542.0
+http_response_size_bytes_count{handler="/v1/chat/completions"} 12826.0
+http_response_size_bytes_sum{handler="/v1/chat/completions"} 680.0
+# HELP http_response_size_bytes_created Content length of outgoing responses by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_response_size_bytes_created gauge
+http_response_size_bytes_created{handler="/v1/models"} 1.7928799069893384e+09
+http_response_size_bytes_created{handler="/v1/chat/completions"} 1.792879907066318e+09
+# HELP http_request_duration_highr_seconds Latency with many buckets but no API specific labels. Made for more accurate percentile calculations. 
+# TYPE http_request_duration_highr_seconds histogram
+http_request_duration_highr_seconds_bucket{le="0.01"} 1.0
+http_request_duration_highr_seconds_bucket{le="0.025"} 1.0
+http_request_duration_highr_seconds_bucket{le="0.05"} 4.0
+http_request_duration_highr_seconds_bucket{le="0.075"} 5.0
+http_request_duration_highr_seconds_bucket{le="0.1"} 9.0
+http_request_duration_highr_seconds_bucket{le="0.25"} 73.0
+http_request_duration_highr_seconds_bucket{le="0.5"} 158.0
+http_request_duration_highr_seconds_bucket{le="0.75"} 268.0
+http_request_duration_highr_seconds_bucket{le="1.0"} 402.0
+http_request_duration_highr_seconds_bucket{le="1.5"} 779.0
+http_request_duration_highr_seconds_bucket{le="2.0"} 1177.0
+http_request_duration_highr_seconds_bucket{le="2.5"} 1585.0
+http_request_duration_highr_seconds_bucket{le="3.0"} 2023.0
+http_request_duration_highr_seconds_bucket{le="3.5"} 2405.0
+http_request_duration_highr_seconds_bucket{le="4.0"} 2900.0
+http_request_duration_highr_seconds_bucket{le="4.5"} 3389.0
+http_request_duration_highr_seconds_bucket{le="5.0"} 3791.0
+http_request_duration_highr_seconds_bucket{le="7.5"} 5817.0
+http_request_duration_highr_seconds_bucket{le="10.0"} 7572.0
+http_request_duration_highr_seconds_bucket{le="30.0"} 12616.0
+http_request_duration_highr_seconds_bucket{le="60.0"} 12827.0
+http_request_duration_highr_seconds_bucket{le="+Inf"} 12827.0
+http_request_duration_highr_seconds_count 12827.0
+http_request_duration_highr_seconds_sum 124435.48278036539
+# HELP http_request_duration_highr_seconds_created Latency with many buckets but no API specific labels. Made for more accurate percentile calculations. 
+# TYPE http_request_duration_highr_seconds_created gauge
+http_request_duration_highr_seconds_created 1.7928798953172476e+09
+# HELP http_request_duration_seconds Latency with only few buckets by handler. Made to be only used if aggregation by handler is important. 
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{handler="/v1/models",le="0.1",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="0.5",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="1.0",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="+Inf",method="GET"} 1.0
+http_request_duration_seconds_count{handler="/v1/models",method="GET"} 1.0
+http_request_duration_seconds_sum{handler="/v1/models",method="GET"} 0.001269602042157203
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="0.1",method="POST"} 8.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="0.5",method="POST"} 157.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="1.0",method="POST"} 401.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="+Inf",method="POST"} 12826.0
+http_request_duration_seconds_count{handler="/v1/chat/completions",method="POST"} 12826.0
+http_request_duration_seconds_sum{handler="/v1/chat/completions",method="POST"} 124435.48151076335
+# HELP http_request_duration_seconds_created Latency with only few buckets by handler. Made to be only used if aggregation by handler is important. 
+# TYPE http_request_duration_seconds_created gauge
+http_request_duration_seconds_created{handler="/v1/models",method="GET"} 1.7928799069893935e+09
+http_request_duration_seconds_created{handler="/v1/chat/completions",method="POST"} 1.7928799070663583e+09
+# HELP vllm:tool_call_parser_invocations_total Total number of ToolParser invocations. Non-streaming increments once per choice; streaming increments once per delta.
+# TYPE vllm:tool_call_parser_invocations_total counter
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="other"} 0.0
+# HELP vllm:tool_call_parser_invocations_created Total number of ToolParser invocations. Non-streaming increments once per choice; streaming increments once per delta.
+# TYPE vllm:tool_call_parser_invocations_created gauge
+vllm:tool_call_parser_invocations_created{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="chat_completions"} 1.7928798953177812e+09
+vllm:tool_call_parser_invocations_created{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="responses"} 1.7928798953177903e+09
+vllm:tool_call_parser_invocations_created{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="other"} 1.792879895317797e+09
+vllm:tool_call_parser_invocations_created{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="chat_completions"} 1.792879895317803e+09
+vllm:tool_call_parser_invocations_created{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="responses"} 1.7928798953178086e+09
+vllm:tool_call_parser_invocations_created{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="other"} 1.7928798953178139e+09
+vllm:tool_call_parser_invocations_created{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="chat_completions"} 1.79287989531782e+09
+vllm:tool_call_parser_invocations_created{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="responses"} 1.7928798953178253e+09
+vllm:tool_call_parser_invocations_created{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="tool_call",request_type="other"} 1.7928798953178303e+09
+vllm:tool_call_parser_invocations_created{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="chat_completions"} 1.7928798953178356e+09
+vllm:tool_call_parser_invocations_created{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="responses"} 1.7928798953178408e+09
+vllm:tool_call_parser_invocations_created{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-plain",outcome="no_tool_call",request_type="other"} 1.7928798953178463e+09
