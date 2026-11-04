@@ -1,0 +1,90 @@
+{
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-drafter-swap",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"draft_tensor_parallel_size\": 1, \"method\": \"eagle3\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se\", \"num_speculative_tokens\": 7}",
+    "--worker-extension-cls",
+    "apertus_bench.drafter_reload.DrafterReloadExtension",
+    "--port",
+    "8190"
+  ],
+  "speculative_config": {
+    "method": "eagle3",
+    "model": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+    "num_speculative_tokens": 7,
+    "draft_tensor_parallel_size": 1
+  },
+  "engine": {
+    "gpu_memory_utilization": 0.8,
+    "enable_prefix_caching": false,
+    "max_num_batched_tokens": 16384,
+    "max_num_seqs": 256
+  },
+  "env": {
+    "VLLM_SERVER_DEV_MODE": "1"
+  },
+  "cuda_visible_devices": "0",
+  "slurm_job_id": "3722022",
+  "args": {
+    "command": "session",
+    "old": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+    "new": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se",
+    "k": "7",
+    "stage": "8b",
+    "workload": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/workloads/8b/eagle-8b-test.jsonl",
+    "workload_name": "chat",
+    "concurrency": "32",
+    "duration": "360.0",
+    "swap_at": "180.0",
+    "settle": "30.0",
+    "greedy_prompts": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/workloads/8b/eagle-8b-validation.jsonl",
+    "greedy_workload": "chat",
+    "greedy_limit": "32",
+    "greedy_max_tokens": "256",
+    "port": "8190",
+    "output": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/results/8b/sweeps/drafter-swap-smoke-20261022T142432Z/swap-chat-c32",
+    "served_base": "swiss-ai/Apertus-v1.5-8B"
+  },
+  "harness_revision": "278078ebed6d43517f88466ab4ab3f4d0187e61c",
+  "deployment_id": "drafter-swap-3722022-swap-chat-c32",
+  "heads": {
+    "old": {
+      "eagle_head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+      "checkpoint_sha256": "d825649bc24cb6f028da2dd96aeff06180779dcdd79702682333af9c076c400a",
+      "target_model": "swiss-ai/Apertus-v1.5-8B",
+      "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "target_tensor_parallel_size": "1"
+    },
+    "new": {
+      "eagle_head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se",
+      "checkpoint_sha256": "82f71c9e62b0dc5ad40f59ee4b4649de0624835a151bc983c17c756ef17053bb",
+      "target_model": "swiss-ai/Apertus-v1.5-8B",
+      "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "target_tensor_parallel_size": "1"
+    }
+  },
+  "ready_seconds": 207.3
+}

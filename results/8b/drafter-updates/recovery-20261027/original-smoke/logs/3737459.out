@@ -1,0 +1,292 @@
+START 2026-10-25T04:25:37+00:00 host=nid006139 job=3737459 nodes=1
+2026-10-25T04:25:37Z host=nid006139 job=3737459 config=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/methods/eagle/configs/8b/adapt/adapt-smoke.yaml steps=train,export cuda=0,1,2,3
+index, name, memory.total [MiB], driver_version
+0, NVIDIA GH200 120GB, 97871 MiB, 595.91.07
+1, NVIDIA GH200 120GB, 97871 MiB, 595.91.07
+2, NVIDIA GH200 120GB, 97871 MiB, 595.91.07
+3, NVIDIA GH200 120GB, 97871 MiB, 595.91.07
+TargetLMHead already patched
+HFTargetModel language_model walk already patched
+HFTargetModel AutoModel fallback already patched
+patched /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/scratch/TorchSpec
+{"environment": {"torch": "2.11.0+cu130", "transformers": "5.14.0.dev0", "vllm": "0.23.1rc1.dev1029+ga601a9d99", "safetensors": "0.8.0", "yaml": "6.0.3", "accelerate": "1.15.0", "triton": "3.6.0", "vllm_file": "/workspace/vllm/vllm/__init__.py", "cuda": "13.0", "gpu": "NVIDIA GH200 120GB", "machine": "aarch64", "python": "3.12.3"}}
+2026-10-25T04:26:02Z pipeline config=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/methods/eagle/configs/8b/adapt/adapt-smoke.yaml
+{"t": "2026-10-25T04:26:02Z", "msg": "resolved", "config": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/methods/eagle/configs/8b/adapt/adapt-smoke.yaml", "contract": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/targets/8b/contract.json", "target": {"model_id": "swiss-ai/Apertus-v1.5-8B", "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B", "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6", "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686", "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582", "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0", "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"}, "algorithm": "eagle31", "draft_config": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/methods/eagle/configs/8b/draft-e31-config.json", "steps": ["train", "export"], "generated": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/generated", "features": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/features", "features_mode": "online", "train_cache": ["/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat/pool.jsonl", "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/multilingual/pool.jsonl"], "eval_cache": ["/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/traces/chat/dev.jsonl"], "run_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/runs/adapt-smoke-3737459", "head_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/heads/adapt-smoke-3737459-se", "results": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/results/8b/eagle", "cuda_visible_devices": "0,1,2,3", "slurm_job_id": "3737459", "slurm_node": "nid006139"}
+{"parameter_counts": {"trainable": 293629952, "frozen": 1073741824, "by_module": {"embed_tokens": 536870912, "midlayer": 243281920, "fc": 50331648, "fc_norm": 12288, "norm": 4096, "lm_head": 536870912}}}
+{"eval": {"step": 0, "avg_loss": 2.1766177285569412, "avg_acc": 0.5985006238025508, "simulated_acc_len": 1.5848737986483705, "acc": [0.6501457643218459, 0.6097459358220197, 0.6039150419805209, 0.5907955103581372, 0.5820491529414674, 0.5803831661618883, 0.5724697950319765], "ploss": [1.8453126233071089, 2.1343323811888695, 2.2453660797327757, 2.3328730165958405, 2.3877310678362846, 2.41227400675416, 2.4720273427665234], "tokens": 4802.0, "extra": {"opb": {"avg_loss": 0.8304938181262472, "avg_acc": 0.9160334332713058, "simulated_acc_len": 5.077942548308295, "acc": [0.927127658559921, 0.9196808434864308, 0.917553188429868, 0.9191489360909513, 0.9138297838257983, 0.9106383011220618, 0.9042553213841104], "ploss": [0.706562680657953, 0.8125754510983825, 0.8613144098781049, 0.8807541420683265, 0.9007884790189564, 0.9224273050203919, 0.9597735591232777], "tokens": 1880.0}}}}
+{"step": 1, "epoch": 0, "lr_used": 0.0, "lr_next": 3e-05, "grad_norm": 11.632013320922852, "fc_update_norm": 0.0, "elapsed_s": 21.3, "train_tokens_per_s": 284.0, "peak_gpu_gb": 37.78, "checkpointed_batches": 0, "train_avg_loss": 1.6428637220866438, "train_avg_acc": 0.6809392316000802, "train_simulated_acc_len": 2.128141396805119, "train_acc": [0.7299723625183105, 0.6878452897071838, 0.685773491859436, 0.6671270728111267, 0.6650552749633789, 0.6650552749633789, 0.6657458543777466], "train_ploss": [1.3516018390655518, 1.6243795156478882, 1.719664216041565, 1.7697821855545044, 1.8056212663650513, 1.844383955001831, 1.8687511682510376], "train_tokens": 1448.0}
+{"step": 2, "epoch": 0, "lr_used": 3e-05, "lr_next": 3e-05, "grad_norm": 16.168962478637695, "fc_update_norm": 0.0816674530506134, "elapsed_s": 23.4, "train_tokens_per_s": 562.8, "peak_gpu_gb": 53.08, "checkpointed_batches": 0, "train_avg_loss": 1.6385484922712454, "train_avg_acc": 0.6254879065922329, "train_simulated_acc_len": 1.800103968873491, "train_acc": [0.6926229596138, 0.6557376980781555, 0.6161202192306519, 0.6106557250022888, 0.6038251519203186, 0.6038251519203186, 0.5956284403800964], "train_ploss": [1.436098575592041, 1.5938013792037964, 1.6707323789596558, 1.7185622453689575, 1.7885348796844482, 1.819736361503601, 1.8517016172409058], "train_tokens": 732.0}
+{"eval": {"step": 2, "avg_loss": 2.160957808516047, "avg_acc": 0.5980246320633728, "simulated_acc_len": 1.5840674742417644, "acc": [0.650978751148546, 0.6078717202097116, 0.6039150425887316, 0.591003753570704, 0.5826738846023993, 0.5793419372583617, 0.5703873350651549], "ploss": [1.836845649406314, 2.1176840141415596, 2.227876016870141, 2.3138593211770058, 2.369184412062168, 2.3943031281232834, 2.4503626991063356], "tokens": 4802.0, "extra": {"opb": {"avg_loss": 0.8299237817380798, "avg_acc": 0.9148936148449823, "simulated_acc_len": 5.051722554644907, "acc": [0.926063821195288, 0.9180851011834246, 0.9154255352597287, 0.9180851019601872, 0.9132978750511687, 0.9095744617283344, 0.9037234075367451], "ploss": [0.7070656935684383, 0.8115373025648296, 0.8612738973461092, 0.8808413012884557, 0.897703084629029, 0.920039908029139, 0.9601643090136349], "tokens": 1880.0}}}}
+{"step": 3, "epoch": 0, "lr_used": 3e-05, "lr_next": 3e-05, "grad_norm": 12.029243469238281, "fc_update_norm": 0.16703814268112183, "elapsed_s": 27.8, "train_tokens_per_s": 633.0, "peak_gpu_gb": 53.08, "checkpointed_batches": 0, "train_avg_loss": 2.0773043125209925, "train_avg_acc": 0.6261963929448809, "train_simulated_acc_len": 1.7961431253747147, "train_acc": [0.6947891116142273, 0.6401985287666321, 0.6253101825714111, 0.6215881109237671, 0.6079404354095459, 0.5992555618286133, 0.5942928194999695], "train_ploss": [1.6588985919952393, 2.0386223793029785, 2.178096055984497, 2.2720413208007812, 2.3288261890411377, 2.367957592010498, 2.4087045192718506], "train_tokens": 806.0}
+{"step": 4, "epoch": 0, "lr_used": 3e-05, "lr_next": 3e-05, "grad_norm": 19.32050132751465, "fc_update_norm": 0.29708772897720337, "elapsed_s": 28.2, "train_tokens_per_s": 836.1, "peak_gpu_gb": 53.08, "checkpointed_batches": 0, "train_avg_loss": 1.9602465238919637, "train_avg_acc": 0.5930529407092503, "train_simulated_acc_len": 1.660427957922808, "train_acc": [0.6769964098930359, 0.628128707408905, 0.5983313322067261, 0.5828366875648499, 0.5649582743644714, 0.5530393123626709, 0.547079861164093], "train_ploss": [1.616599440574646, 1.9041781425476074, 2.039294958114624, 2.122060537338257, 2.1955270767211914, 2.2206742763519287, 2.240070343017578], "train_tokens": 839.0}
+{"eval": {"step": 4, "avg_loss": 2.0725484378246106, "avg_acc": 0.5993633597074942, "simulated_acc_len": 1.601939473503038, "acc": [0.6551436795971385, 0.6112036660952848, 0.6068304913806597, 0.5912120032377514, 0.5824656439592122, 0.578925439773724, 0.5697625939086892], "ploss": [1.7761099226772785, 2.0300714652985334, 2.131439419463277, 2.2109213266521692, 2.2661141641438007, 2.2910937406122684, 2.3433366287499666], "tokens": 4802.0, "extra": {"opb": {"avg_loss": 0.8195334842113724, "avg_acc": 0.91291793145262, "simulated_acc_len": 5.0219778689884755, "acc": [0.9276595733267196, 0.9170212724107377, 0.9122340397790392, 0.9148936190345186, 0.9079787242127225, 0.9069148927768494, 0.903723398627753], "ploss": [0.7036776514723897, 0.801131206098944, 0.8499709093011916, 0.8664502496831119, 0.8862505280412734, 0.9067230951040983, 0.938470886554569], "tokens": 1880.0}}}}
+{
+  "summary": {
+    "steps": 4,
+    "epochs_completed": 0,
+    "stop_reason": "max_steps",
+    "sequences_seen": 32,
+    "tokens_seen": 23592,
+    "wall_seconds": 31.9,
+    "jobs": [
+      {
+        "slurm_job_id": "3737459",
+        "from_step": 0
+      }
+    ],
+    "peak_gpu_gb": 53.08,
+    "checkpointed_batches": 0,
+    "non_finite_grad_steps": 0,
+    "train_loss_first_decile": 1.6428637220866438,
+    "train_loss_last_decile": 1.9602465238919637,
+    "eval_initial": {
+      "step": 0,
+      "avg_loss": 2.1766177285569412,
+      "avg_acc": 0.5985006238025508,
+      "simulated_acc_len": 1.5848737986483705,
+      "acc": [
+        0.6501457643218459,
+        0.6097459358220197,
+        0.6039150419805209,
+        0.5907955103581372,
+        0.5820491529414674,
+        0.5803831661618883,
+        0.5724697950319765
+      ],
+      "ploss": [
+        1.8453126233071089,
+        2.1343323811888695,
+        2.2453660797327757,
+        2.3328730165958405,
+        2.3877310678362846,
+        2.41227400675416,
+        2.4720273427665234
+      ],
+      "tokens": 4802.0,
+      "extra": {
+        "opb": {
+          "avg_loss": 0.8304938181262472,
+          "avg_acc": 0.9160334332713058,
+          "simulated_acc_len": 5.077942548308295,
+          "acc": [
+            0.927127658559921,
+            0.9196808434864308,
+            0.917553188429868,
+            0.9191489360909513,
+            0.9138297838257983,
+            0.9106383011220618,
+            0.9042553213841104
+          ],
+          "ploss": [
+            0.706562680657953,
+            0.8125754510983825,
+            0.8613144098781049,
+            0.8807541420683265,
+            0.9007884790189564,
+            0.9224273050203919,
+            0.9597735591232777
+          ],
+          "tokens": 1880.0
+        }
+      }
+    },
+    "eval_best": {
+      "step": 4,
+      "avg_loss": 2.0725484378246106,
+      "avg_acc": 0.5993633597074942,
+      "simulated_acc_len": 1.601939473503038,
+      "acc": [
+        0.6551436795971385,
+        0.6112036660952848,
+        0.6068304913806597,
+        0.5912120032377514,
+        0.5824656439592122,
+        0.578925439773724,
+        0.5697625939086892
+      ],
+      "ploss": [
+        1.7761099226772785,
+        2.0300714652985334,
+        2.131439419463277,
+        2.2109213266521692,
+        2.2661141641438007,
+        2.2910937406122684,
+        2.3433366287499666
+      ],
+      "tokens": 4802.0,
+      "extra": {
+        "opb": {
+          "avg_loss": 0.8195334842113724,
+          "avg_acc": 0.91291793145262,
+          "simulated_acc_len": 5.0219778689884755,
+          "acc": [
+            0.9276595733267196,
+            0.9170212724107377,
+            0.9122340397790392,
+            0.9148936190345186,
+            0.9079787242127225,
+            0.9069148927768494,
+            0.903723398627753
+          ],
+          "ploss": [
+            0.7036776514723897,
+            0.801131206098944,
+            0.8499709093011916,
+            0.8664502496831119,
+            0.8862505280412734,
+            0.9067230951040983,
+            0.938470886554569
+          ],
+          "tokens": 1880.0
+        }
+      }
+    },
+    "eval_final": {
+      "step": 4,
+      "avg_loss": 2.0725484378246106,
+      "avg_acc": 0.5993633597074942,
+      "simulated_acc_len": 1.601939473503038,
+      "acc": [
+        0.6551436795971385,
+        0.6112036660952848,
+        0.6068304913806597,
+        0.5912120032377514,
+        0.5824656439592122,
+        0.578925439773724,
+        0.5697625939086892
+      ],
+      "ploss": [
+        1.7761099226772785,
+        2.0300714652985334,
+        2.131439419463277,
+        2.2109213266521692,
+        2.2661141641438007,
+        2.2910937406122684,
+        2.3433366287499666
+      ],
+      "tokens": 4802.0,
+      "extra": {
+        "opb": {
+          "avg_loss": 0.8195334842113724,
+          "avg_acc": 0.91291793145262,
+          "simulated_acc_len": 5.0219778689884755,
+          "acc": [
+            0.9276595733267196,
+            0.9170212724107377,
+            0.9122340397790392,
+            0.9148936190345186,
+            0.9079787242127225,
+            0.9069148927768494,
+            0.903723398627753
+          ],
+          "ploss": [
+            0.7036776514723897,
+            0.801131206098944,
+            0.8499709093011916,
+            0.8664502496831119,
+            0.8862505280412734,
+            0.9067230951040983,
+            0.938470886554569
+          ],
+          "tokens": 1880.0
+        }
+      }
+    },
+    "best_step": 4,
+    "gates": {
+      "finite_losses": true,
+      "real_updates": true,
+      "loss_decreased": false,
+      "heldout_acceptance_improved": true
+    },
+    "final_checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/runs/adapt-smoke-3737459/checkpoints/final",
+    "best_checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/runs/adapt-smoke-3737459/checkpoints/best"
+  }
+}
+{"t": "2026-10-25T04:29:20Z", "msg": "train finished", "rc": 0, "run_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/runs/adapt-smoke-3737459"}
+{"t": "2026-10-25T04:29:20Z", "msg": "train gates not all met; exporting for inspection only"}
+{"t": "2026-10-25T04:29:20Z", "msg": "run", "command": "/opt/venv/bin/python3 -m apertus_eagle.export_head --contract /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/targets/8b/contract.json --run-dir /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/runs/adapt-smoke-3737459 --checkpoint final --output /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/heads/adapt-smoke-3737459-se --drop-embed-tokens"}
+{
+  "export": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/heads/adapt-smoke-3737459-se",
+  "keys": [
+    "fc.weight",
+    "fc_norm.0.weight",
+    "fc_norm.1.weight",
+    "fc_norm.2.weight",
+    "layers.0.hidden_norm.weight",
+    "layers.0.input_layernorm.weight",
+    "layers.0.mlp.down_proj.weight",
+    "layers.0.mlp.gate_proj.weight",
+    "layers.0.mlp.up_proj.weight",
+    "layers.0.post_attention_layernorm.weight",
+    "layers.0.self_attn.k_proj.weight",
+    "layers.0.self_attn.o_proj.weight",
+    "layers.0.self_attn.q_proj.weight",
+    "layers.0.self_attn.v_proj.weight",
+    "lm_head.weight",
+    "norm.weight"
+  ],
+  "validation": {
+    "algorithm": "eagle31",
+    "provenance": {
+      "checked": true,
+      "model_id": "swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582"
+    },
+    "fc_norm": true,
+    "norm_output": true,
+    "parameter_count": {
+      "embed_tokens": 536870912,
+      "lm_head": 536870912,
+      "fc": 50331648,
+      "fc_norm": 12288,
+      "qkv_proj": 50331648,
+      "o_proj": 16777216,
+      "gate_up_proj": 117440512,
+      "down_proj": 58720256,
+      "norms": 16384,
+      "total": 1367371776,
+      "excluding_embed_and_lm_head": 293629952
+    },
+    "aux_hidden_state_layer_ids": [
+      2,
+      16,
+      29
+    ],
+    "draft_vocab_size": 131072,
+    "vocab_size": 131072,
+    "hidden_size": 4096,
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/heads/adapt-smoke-3737459-se",
+    "config_sha256": "1978711f33d65f0cff3dbb6bd9b7d0f9ce94d58a9bae79b4e211d65f47d1aa2e",
+    "weight_files": [
+      "model.safetensors"
+    ],
+    "weights_present": true,
+    "trained_head": true,
+    "checkpoint_manifest_sha256": "60bc0d75b9b23ad47242cbaef5f8f97f35bd504928e607560c7369c6ae950a5f"
+  },
+  "reload": {
+    "samples": 4,
+    "exported_tensors_bitwise_equal": true,
+    "max_first_step_logit_abs_diff": 0.0,
+    "rollout_acc_identical": true,
+    "rollout_loss_max_abs_diff": 9.5367431640625e-07,
+    "same_weights_repeat_loss_max_abs_diff": 9.5367431640625e-07,
+    "loss_tolerance": 1e-05,
+    "pass": true,
+    "reloaded_acc_first_sample": [
+      0.7685459852218628,
+      0.7270029783248901,
+      0.6973294019699097,
+      0.6928783655166626,
+      0.6839762330055237,
+      0.6810088753700256,
+      0.6691394448280334
+    ]
+  }
+}
+{"t": "2026-10-25T04:30:15Z", "msg": "done", "module": "apertus_eagle.export_head", "rc": 0, "seconds": 54.4}
+{"t": "2026-10-25T04:30:15Z", "msg": "exported", "head": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/smoke/heads/adapt-smoke-3737459-se"}
+2026-10-25T04:30:15Z pipeline failed rc=3 config=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/methods/eagle/configs/8b/adapt/adapt-smoke.yaml
+2026-10-25T04:30:15Z pipeline finished

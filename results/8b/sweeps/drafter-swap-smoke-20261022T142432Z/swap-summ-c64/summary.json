@@ -1,0 +1,72 @@
+{
+  "old_head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+  "new_head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se",
+  "workload": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/drafter-updates/workloads/8b/eagle-8b-test.jsonl",
+  "concurrency": 64,
+  "duration_s": 360.0,
+  "swap_at_s": 180.0,
+  "requests": 2631,
+  "errors": 0,
+  "acceptance": {
+    "before_swap": {
+      "mean_acceptance_length": 2.1827,
+      "drafts": 112032.0,
+      "accepted_tokens": 132500.0,
+      "window_s": [
+        60.88,
+        210.09
+      ]
+    },
+    "after_swap": {
+      "mean_acceptance_length": 2.1402,
+      "drafts": 116866.0,
+      "accepted_tokens": 133254.0,
+      "window_s": [
+        241.54,
+        393.81
+      ]
+    }
+  },
+  "stall": {
+    "rpc_seconds": 0.3315,
+    "streams_across_swap": 124,
+    "max_gap_across_swap_s": 0.2969,
+    "baseline_gap_p50_s": 0.03658707905560732,
+    "baseline_gap_p99_s": 0.2643848810112104,
+    "baseline_gap_max_s": 0.41381483897566795,
+    "stall_over_p99_s": 0.0325
+  },
+  "swap_workers": [
+    {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se",
+      "tensors_loaded": 15,
+      "loaded_names": null,
+      "shared_checked_equal": [
+        "lm_head.weight"
+      ],
+      "read_seconds": 0.2251,
+      "copy_seconds": 0.06,
+      "total_seconds": 0.288
+    }
+  ],
+  "digests": {
+    "drafter_changed": true,
+    "drafter_restored": true,
+    "target_unchanged": true
+  },
+  "greedy": {
+    "post_vs_pre": {
+      "prompts": 32,
+      "exact": 32,
+      "exact_rate": 1.0,
+      "first_divergence_chars": []
+    },
+    "back_vs_pre": {
+      "prompts": 32,
+      "exact": 32,
+      "exact_rate": 1.0,
+      "first_divergence_chars": []
+    },
+    "max_tokens": 256
+  }
+}

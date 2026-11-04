@@ -1,0 +1,75 @@
+{
+  "target": {
+    "model_id": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+    "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+    "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+    "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+  },
+  "contract": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/runtime/source-b58ee54a9ffe/targets/8b/contract.json",
+  "policy": {
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "stop": "natural EOS (generation_config eos ids)",
+    "enable_thinking": false,
+    "thinking_policy": "serving default: chat template renders 'Deliberation: disabled'",
+    "tools": null,
+    "developer_messages": "dropped; the template injects its own developer block",
+    "top_k": 20,
+    "seed": "per row: (sha256(id)[:8] + 1) mod 2**31"
+  },
+  "max_seq_length": 8192,
+  "max_new_tokens": 2048,
+  "max_prompt_tokens": 4096,
+  "eos_token_ids": [
+    2,
+    68,
+    72
+  ],
+  "splits": {
+    "dev": {
+      "input": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/summarization/dev.jsonl",
+      "input_sha256": "235ba248fbc9450b4d06434baad7bb5322f1b23fa6f1fcb88380fb8b26ae84ca",
+      "output": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/summarization/dev.jsonl",
+      "output_sha256": "fd1ee76f3b73f2d87ac07444f4dd6296ab0665cf232fdfa283d06ef0785c9a4e",
+      "rows_in": 256,
+      "rows_out": 256,
+      "skipped": {
+        "prompt_too_long": 0,
+        "unrenderable": 0
+      },
+      "finish_reasons": {
+        "stop": 256
+      },
+      "generated_tokens": 55449,
+      "generate_seconds": 35.7,
+      "generated_tokens_per_second": 1555.2
+    },
+    "pool": {
+      "input": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/pools/summarization/pool.jsonl",
+      "input_sha256": "72bee042a28d3e3780a6c08a076565a6a152a2ea50aebbb6b61f0e7dee6d04b5",
+      "output": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261029/data/traces/summarization/pool.jsonl",
+      "output_sha256": "a8604d82fb5abff220541d705356183757e20d4c92fb80cce35dbbadb2887f01",
+      "rows_in": 8192,
+      "rows_out": 8192,
+      "skipped": {
+        "prompt_too_long": 0,
+        "unrenderable": 0
+      },
+      "finish_reasons": {
+        "stop": 8187,
+        "length": 5
+      },
+      "generated_tokens": 1822209,
+      "generate_seconds": 961.1,
+      "generated_tokens_per_second": 1895.9
+    }
+  },
+  "render_parity": {
+    "checked": 32,
+    "failures": 0,
+    "rule": "LLM.chat prompt_token_ids == chat_template(tokenize=False)+encode(add_special_tokens=False)"
+  }
+}

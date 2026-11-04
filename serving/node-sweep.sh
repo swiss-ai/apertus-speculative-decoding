@@ -60,6 +60,7 @@ if [ "${VALIDATE_ONLY:-0}" != "1" ]; then
   export EXTRA_MOUNTS
 fi
 SML_ENVIRONMENT="$("${SERVING_DIR}/resolve-env.sh" "${ENV_SOURCE}")"
+sed -i "s|^workdir = \".*\"|workdir = \"${REPO_ROOT}\"|" "${SML_ENVIRONMENT}"
 CACHE_ROOT="/iopsstor/scratch/cscs/${USER}/apertus-loadtest/vllm-cache/sweep-${NAME}-${STAMP}"
 printf '%s\n' "${PATCHES[@]}" > "${OUT}/patches.txt"
 cp "${SML_ENVIRONMENT}" "${OUT}/environment.toml"
@@ -80,6 +81,16 @@ git -C "${REPO_ROOT}" diff HEAD > "${OUT}/checkout.patch"
   echo
   env | grep -E '^(SWEEP_[A-Z_]*|IMAGE|ENV_SOURCE|VLLM_PATCH_DIR)=' | sort || true
 } > "${OUT}/submit-command.txt"
+python3 - "${OUT}/environment.toml" "${OUT}/mount-summary.json" <<'PY'
+import json, sys, tomllib
+from pathlib import Path
+mounts = tomllib.loads(Path(sys.argv[1]).read_text()).get("mounts", [])
+Path(sys.argv[2]).write_text(json.dumps({
+    "entries": len(mounts), "comma_joined_utf8_bytes": len(",".join(mounts).encode()),
+    "mounts": mounts,
+    "note": "Actual resolved list; excludes Pyxis serialization overhead. No measured byte limit assumed.",
+}, indent=2) + "\n")
+PY
 
 cat > "${OUT}/job.sh" <<EOF
 #!/bin/bash

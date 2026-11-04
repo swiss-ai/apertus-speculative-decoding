@@ -1,0 +1,32 @@
+# Drafter updates (T5), step D smoke: swap the EAGLE head of a running server
+# under load, before any adapted head exists. e10 (best, the served head) is
+# swapped to the epoch-3 head of the same run (same architecture, lower
+# acceptance), then back; chat C=32 and summarization C=64, one GPU each.
+# apertus_bench.drafter_swap: serve, greedy pre, load with the swap at 180 s,
+# greedy post, swap back, greedy back. The loadtests entry is unused by
+# command arms. Debug partition, SWEEP_TIME=00:30:00.
+name: drafter-swap-smoke
+stage: 8b
+loadtests:
+  - {workload: chat, concurrencies: [1]}
+arms:
+  - name: swap-chat-c32
+    method: command
+    gpus: 1
+    command: [python3, -m, apertus_bench.drafter_swap, session,
+              --old, /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se,
+              --new, /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se,
+              --workload, "{repo}/workloads/8b/eagle-8b-test.jsonl", --workload-name, chat,
+              --greedy-prompts, "{repo}/workloads/8b/eagle-8b-validation.jsonl", --greedy-workload, chat,
+              --concurrency, "32", --duration, "360", --swap-at, "180", --port, "8190",
+              --output, "{arm_dir}"]
+  - name: swap-summ-c64
+    method: command
+    gpus: 1
+    command: [python3, -m, apertus_bench.drafter_swap, session,
+              --old, /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se,
+              --new, /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-ep3-se,
+              --workload, "{repo}/workloads/8b/eagle-8b-test.jsonl", --workload-name, summarization,
+              --greedy-prompts, "{repo}/workloads/8b/eagle-8b-validation.jsonl", --greedy-workload, summarization,
+              --concurrency, "64", --duration, "360", --swap-at, "180", --port, "8191",
+              --output, "{arm_dir}"]

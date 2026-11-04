@@ -1,0 +1,2378 @@
+{
+  "claim": "Descriptive comparison of already measured k settings; preregistered selection and matched-k gates retained. Cross-k comparisons use separate GPU pairs and are supplementary to matched-k results.",
+  "source_summary_sha256": "d0bf90e6d7946962b3bf1f2e471dd037d013df862070fd62b931859e27c8ce04",
+  "domain_recovery_setup_gpu_seconds": 56784,
+  "cost_basis": "All four recovery trace allocations plus all multilingual training allocations, including failed attempts; selected-head training-loop lower bound separately. This is experimental recovery cost, not a measured recurring production update cost.",
+  "selected_training_gpu_seconds_lower_bound": 7130.8,
+  "cells": [
+    {
+      "label": "opb",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 424.92293159493033,
+          "adapted_throughput": 364.380609446589,
+          "throughput_ratio": 0.857521640639402,
+          "baseline_tpot_p50_ms": 1.8813175932930304,
+          "adapted_tpot_p50_ms": 2.3919235513784214,
+          "gpu_seconds_saved_per_million": -391.01520681078546,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 437.77470513294816,
+          "adapted_throughput": 363.50238567053924,
+          "throughput_ratio": 0.8303412266822198,
+          "baseline_tpot_p50_ms": 1.8904942666405113,
+          "adapted_tpot_p50_ms": 2.3973516191546924,
+          "gpu_seconds_saved_per_million": -466.73358967044214,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "opb",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7128.147459682714,
+          "adapted_throughput": 7063.325238461672,
+          "throughput_ratio": 0.9909061615815776,
+          "baseline_tpot_p50_ms": 6.823988945858767,
+          "adapted_tpot_p50_ms": 6.827514114469311,
+          "gpu_seconds_saved_per_million": -1.287472700379709,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7170.52318399893,
+          "adapted_throughput": 7088.199438439568,
+          "throughput_ratio": 0.9885191437992882,
+          "baseline_tpot_p50_ms": 6.712635916701865,
+          "adapted_tpot_p50_ms": 7.038580164167924,
+          "gpu_seconds_saved_per_million": -1.6197140473292393,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "opb",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8757.214898068434,
+          "adapted_throughput": 8898.840735631142,
+          "throughput_ratio": 1.0161724748348868,
+          "baseline_tpot_p50_ms": 24.71414690009253,
+          "adapted_tpot_p50_ms": 24.3397678803788,
+          "gpu_seconds_saved_per_million": 1.8173687242352656,
+          "recovery_cost_break_even_tokens": 31245172894,
+          "selected_training_only_lower_bound_tokens": 3923694683
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8972.671411129424,
+          "adapted_throughput": 8714.164416851378,
+          "throughput_ratio": 0.9711895173206273,
+          "baseline_tpot_p50_ms": 24.097358044685123,
+          "adapted_tpot_p50_ms": 24.74227247015957,
+          "gpu_seconds_saved_per_million": -3.306166982993716,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multilingual",
+      "role": "domain",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [],
+        "verdict": "worth_considering_for_this_cell"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 267.0009492415407,
+          "adapted_throughput": 312.3660468808413,
+          "throughput_ratio": 1.1699061286791956,
+          "baseline_tpot_p50_ms": 3.4148899207000607,
+          "adapted_tpot_p50_ms": 2.7842141961788434,
+          "gpu_seconds_saved_per_million": 543.932768544495,
+          "recovery_cost_break_even_tokens": 104395255,
+          "selected_training_only_lower_bound_tokens": 13109709
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 267.4564459303286,
+          "adapted_throughput": 313.14704700968565,
+          "throughput_ratio": 1.170833800323733,
+          "baseline_tpot_p50_ms": 3.4106898643944215,
+          "adapted_tpot_p50_ms": 2.7914267602246,
+          "gpu_seconds_saved_per_million": 545.5385958611614,
+          "recovery_cost_break_even_tokens": 104087961,
+          "selected_training_only_lower_bound_tokens": 13071120
+        }
+      ]
+    },
+    {
+      "label": "multilingual",
+      "role": "domain",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6864.50774967829,
+          "adapted_throughput": 7717.693984851191,
+          "throughput_ratio": 1.1242894998862645,
+          "baseline_tpot_p50_ms": 7.539962255227575,
+          "adapted_tpot_p50_ms": 6.51984583936995,
+          "gpu_seconds_saved_per_million": 16.10448666793843,
+          "recovery_cost_break_even_tokens": 3525973921,
+          "selected_training_only_lower_bound_tokens": 442783440
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6959.669230150276,
+          "adapted_throughput": 7708.0966464961,
+          "throughput_ratio": 1.1075377854314585,
+          "baseline_tpot_p50_ms": 7.50737507261482,
+          "adapted_tpot_p50_ms": 6.5662203842828815,
+          "gpu_seconds_saved_per_million": 13.951276218149417,
+          "recovery_cost_break_even_tokens": 4070165275,
+          "selected_training_only_lower_bound_tokens": 511121699
+        }
+      ]
+    },
+    {
+      "label": "multilingual",
+      "role": "domain",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p50_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8644.400976858939,
+          "adapted_throughput": 9935.435567283554,
+          "throughput_ratio": 1.1493492254559587,
+          "baseline_tpot_p50_ms": 25.32494992939938,
+          "adapted_tpot_p50_ms": 20.95870849420773,
+          "gpu_seconds_saved_per_million": 15.031975643599509,
+          "recovery_cost_break_even_tokens": 3777547367,
+          "selected_training_only_lower_bound_tokens": 474375437
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8827.144777056375,
+          "adapted_throughput": 9754.213598274022,
+          "throughput_ratio": 1.105024766743069,
+          "baseline_tpot_p50_ms": 24.725734718120986,
+          "adapted_tpot_p50_ms": 21.35442063308266,
+          "gpu_seconds_saved_per_million": 10.767117788117005,
+          "recovery_cost_break_even_tokens": 5273834755,
+          "selected_training_only_lower_bound_tokens": 662275657
+        }
+      ]
+    },
+    {
+      "label": "lang-deu",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 185.23473532578714,
+          "adapted_throughput": 211.90141781507435,
+          "throughput_ratio": 1.1439615655367574,
+          "baseline_tpot_p50_ms": 5.298970327463135,
+          "adapted_tpot_p50_ms": 4.6058869903572175,
+          "gpu_seconds_saved_per_million": 679.3799070395653,
+          "recovery_cost_break_even_tokens": 83582101,
+          "selected_training_only_lower_bound_tokens": 10496042
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 185.24621166374226,
+          "adapted_throughput": 211.307896113617,
+          "throughput_ratio": 1.1406867337032605,
+          "baseline_tpot_p50_ms": 5.290974608296587,
+          "adapted_tpot_p50_ms": 4.6762660120625785,
+          "gpu_seconds_saved_per_million": 665.7902344908853,
+          "recovery_cost_break_even_tokens": 85288124,
+          "selected_training_only_lower_bound_tokens": 10710281
+        }
+      ]
+    },
+    {
+      "label": "lang-deu",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5246.881754257477,
+          "adapted_throughput": 6037.005170587981,
+          "throughput_ratio": 1.1505891410053932,
+          "baseline_tpot_p50_ms": 10.021212289851908,
+          "adapted_tpot_p50_ms": 8.761014728034228,
+          "gpu_seconds_saved_per_million": 24.944345209286354,
+          "recovery_cost_break_even_tokens": 2276427765,
+          "selected_training_only_lower_bound_tokens": 285868398
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5249.77836520636,
+          "adapted_throughput": 6051.035198733125,
+          "throughput_ratio": 1.1526267925589406,
+          "baseline_tpot_p50_ms": 10.010355816146973,
+          "adapted_tpot_p50_ms": 8.951382883199482,
+          "gpu_seconds_saved_per_million": 25.22325313706574,
+          "recovery_cost_break_even_tokens": 2251256002,
+          "selected_training_only_lower_bound_tokens": 282707388
+        }
+      ]
+    },
+    {
+      "label": "lang-deu",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7039.025416207362,
+          "adapted_throughput": 8182.369466137516,
+          "throughput_ratio": 1.1624293112079982,
+          "baseline_tpot_p50_ms": 33.08797936771073,
+          "adapted_tpot_p50_ms": 28.491942052306094,
+          "gpu_seconds_saved_per_million": 19.851133816458287,
+          "recovery_cost_break_even_tokens": 2860491523,
+          "selected_training_only_lower_bound_tokens": 359213739
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7219.95190815659,
+          "adapted_throughput": 8021.473268089065,
+          "throughput_ratio": 1.111014778232383,
+          "baseline_tpot_p50_ms": 32.19959807794075,
+          "adapted_tpot_p50_ms": 29.302817065364728,
+          "gpu_seconds_saved_per_million": 13.839699332293563,
+          "recovery_cost_break_even_tokens": 4102979309,
+          "selected_training_only_lower_bound_tokens": 515242408
+        }
+      ]
+    },
+    {
+      "label": "lang-fra",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 206.59350436047674,
+          "adapted_throughput": 226.4706622580259,
+          "throughput_ratio": 1.0962138570575108,
+          "baseline_tpot_p50_ms": 4.756071260389611,
+          "adapted_tpot_p50_ms": 4.275109963516236,
+          "gpu_seconds_saved_per_million": 424.8402689258319,
+          "recovery_cost_break_even_tokens": 133659647,
+          "selected_training_only_lower_bound_tokens": 16784662
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 206.3940778258109,
+          "adapted_throughput": 226.00484601615614,
+          "throughput_ratio": 1.095016138044891,
+          "baseline_tpot_p50_ms": 4.755872358917122,
+          "adapted_tpot_p50_ms": 4.308345410785419,
+          "gpu_seconds_saved_per_million": 420.41637478029406,
+          "recovery_cost_break_even_tokens": 135066100,
+          "selected_training_only_lower_bound_tokens": 16961281
+        }
+      ]
+    },
+    {
+      "label": "lang-fra",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6032.72843717092,
+          "adapted_throughput": 6600.133971515243,
+          "throughput_ratio": 1.0940545460074464,
+          "baseline_tpot_p50_ms": 8.949976994240485,
+          "adapted_tpot_p50_ms": 8.203623546871013,
+          "gpu_seconds_saved_per_million": 14.250399524216562,
+          "recovery_cost_break_even_tokens": 3984730387,
+          "selected_training_only_lower_bound_tokens": 500392989
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6081.563430877368,
+          "adapted_throughput": 6489.58984675977,
+          "throughput_ratio": 1.0670923555299558,
+          "baseline_tpot_p50_ms": 8.845102134941708,
+          "adapted_tpot_p50_ms": 8.263167459329996,
+          "gpu_seconds_saved_per_million": 10.338458533470288,
+          "recovery_cost_break_even_tokens": 5492501597,
+          "selected_training_only_lower_bound_tokens": 689735320
+        }
+      ]
+    },
+    {
+      "label": "lang-fra",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7854.480777793756,
+          "adapted_throughput": 8758.96107420105,
+          "throughput_ratio": 1.1151546896600024,
+          "baseline_tpot_p50_ms": 29.649988202203797,
+          "adapted_tpot_p50_ms": 26.678225914824665,
+          "gpu_seconds_saved_per_million": 13.147071745664348,
+          "recovery_cost_break_even_tokens": 4319136695,
+          "selected_training_only_lower_bound_tokens": 542386939
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8052.208681202207,
+          "adapted_throughput": 8528.27995740185,
+          "throughput_ratio": 1.0591230673530638,
+          "baseline_tpot_p50_ms": 28.924996102840293,
+          "adapted_tpot_p50_ms": 27.17163261294201,
+          "gpu_seconds_saved_per_million": 6.932589883115853,
+          "recovery_cost_break_even_tokens": 8190878295,
+          "selected_training_only_lower_bound_tokens": 1028591064
+        }
+      ]
+    },
+    {
+      "label": "lang-ita",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 193.41726728998714,
+          "adapted_throughput": 219.02476797575775,
+          "throughput_ratio": 1.132395111587311,
+          "baseline_tpot_p50_ms": 4.997483965641875,
+          "adapted_tpot_p50_ms": 4.254527635110114,
+          "gpu_seconds_saved_per_million": 604.4755248957281,
+          "recovery_cost_break_even_tokens": 93939288,
+          "selected_training_only_lower_bound_tokens": 11796673
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 193.40650769310056,
+          "adapted_throughput": 220.6572517415697,
+          "throughput_ratio": 1.1408987958756325,
+          "baseline_tpot_p50_ms": 4.99173696999323,
+          "adapted_tpot_p50_ms": 4.249316553207517,
+          "gpu_seconds_saved_per_million": 638.5414246011323,
+          "recovery_cost_break_even_tokens": 88927669,
+          "selected_training_only_lower_bound_tokens": 11167326
+        }
+      ]
+    },
+    {
+      "label": "lang-ita",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5041.104923192565,
+          "adapted_throughput": 5780.904314990842,
+          "throughput_ratio": 1.1467534207420853,
+          "baseline_tpot_p50_ms": 9.725228287426242,
+          "adapted_tpot_p50_ms": 8.2173792777894,
+          "gpu_seconds_saved_per_million": 25.385893407979353,
+          "recovery_cost_break_even_tokens": 2236832839,
+          "selected_training_only_lower_bound_tokens": 280896161
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5066.038000510083,
+          "adapted_throughput": 5767.614537883993,
+          "throughput_ratio": 1.1384862366415867,
+          "baseline_tpot_p50_ms": 9.76317621159959,
+          "adapted_tpot_p50_ms": 8.32507551543078,
+          "gpu_seconds_saved_per_million": 24.011007624027883,
+          "recovery_cost_break_even_tokens": 2364915330,
+          "selected_training_only_lower_bound_tokens": 296980457
+        }
+      ]
+    },
+    {
+      "label": "lang-ita",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7042.941444060038,
+          "adapted_throughput": 8168.048821050717,
+          "throughput_ratio": 1.1597496423798308,
+          "baseline_tpot_p50_ms": 31.643125871548783,
+          "adapted_tpot_p50_ms": 26.73882511220907,
+          "gpu_seconds_saved_per_million": 19.557870659162006,
+          "recovery_cost_break_even_tokens": 2903383553,
+          "selected_training_only_lower_bound_tokens": 364600019
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7256.264330599455,
+          "adapted_throughput": 8023.934295909632,
+          "throughput_ratio": 1.1057941015286523,
+          "baseline_tpot_p50_ms": 30.671094759420647,
+          "adapted_tpot_p50_ms": 27.36701692612339,
+          "gpu_seconds_saved_per_million": 13.184816528542981,
+          "recovery_cost_break_even_tokens": 4306772103,
+          "selected_training_only_lower_bound_tokens": 540834223
+        }
+      ]
+    },
+    {
+      "label": "lang-spa",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 218.97535819318563,
+          "adapted_throughput": 237.36758625148045,
+          "throughput_ratio": 1.0839922272992413,
+          "baseline_tpot_p50_ms": 4.380136220741341,
+          "adapted_tpot_p50_ms": 4.082102852499344,
+          "gpu_seconds_saved_per_million": 353.84876522380455,
+          "recovery_cost_break_even_tokens": 160475338,
+          "selected_training_only_lower_bound_tokens": 20152113
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 218.56029501284928,
+          "adapted_throughput": 237.53372609172695,
+          "throughput_ratio": 1.0868109693838133,
+          "baseline_tpot_p50_ms": 4.379043943789381,
+          "adapted_tpot_p50_ms": 4.05230305157374,
+          "gpu_seconds_saved_per_million": 365.46797295761644,
+          "recovery_cost_break_even_tokens": 155373396,
+          "selected_training_only_lower_bound_tokens": 19511423
+        }
+      ]
+    },
+    {
+      "label": "lang-spa",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6001.360535702776,
+          "adapted_throughput": 6252.203860139043,
+          "throughput_ratio": 1.04179774285247,
+          "baseline_tpot_p50_ms": 8.664089500434905,
+          "adapted_tpot_p50_ms": 8.010245713179417,
+          "gpu_seconds_saved_per_million": 6.685281508325687,
+          "recovery_cost_break_even_tokens": 8493883157,
+          "selected_training_only_lower_bound_tokens": 1066641696
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5876.455050344805,
+          "adapted_throughput": 6457.2440268593145,
+          "throughput_ratio": 1.0988332202899145,
+          "baseline_tpot_p50_ms": 8.643240825904801,
+          "adapted_tpot_p50_ms": 8.11774467629321,
+          "gpu_seconds_saved_per_million": 15.305789881691254,
+          "recovery_cost_break_even_tokens": 3709968610,
+          "selected_training_only_lower_bound_tokens": 465889057
+        }
+      ]
+    },
+    {
+      "label": "lang-spa",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8003.4936751326295,
+          "adapted_throughput": 8701.99256087123,
+          "throughput_ratio": 1.087274247233915,
+          "baseline_tpot_p50_ms": 28.73065636643709,
+          "adapted_tpot_p50_ms": 26.17469452350211,
+          "gpu_seconds_saved_per_million": 10.029225677156546,
+          "recovery_cost_break_even_tokens": 5661852852,
+          "selected_training_only_lower_bound_tokens": 711002049
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8168.495184787905,
+          "adapted_throughput": 8432.425271457783,
+          "throughput_ratio": 1.032310735416897,
+          "baseline_tpot_p50_ms": 27.891241346207458,
+          "adapted_tpot_p50_ms": 26.850028842315247,
+          "gpu_seconds_saved_per_million": 3.831725082256341,
+          "recovery_cost_break_even_tokens": 14819434793,
+          "selected_training_only_lower_bound_tokens": 1860989463
+        }
+      ]
+    },
+    {
+      "label": "translate-from-en",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 198.97812097275718,
+          "adapted_throughput": 212.21498718916757,
+          "throughput_ratio": 1.0665242296575044,
+          "baseline_tpot_p50_ms": 4.8641070254473355,
+          "adapted_tpot_p50_ms": 4.409522993535942,
+          "gpu_seconds_saved_per_million": 313.4756434436222,
+          "recovery_cost_break_even_tokens": 181143261,
+          "selected_training_only_lower_bound_tokens": 22747541
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 198.49812492537538,
+          "adapted_throughput": 213.31568443081343,
+          "throughput_ratio": 1.0746483600840495,
+          "baseline_tpot_p50_ms": 4.860674897820628,
+          "adapted_tpot_p50_ms": 4.364645538701112,
+          "gpu_seconds_saved_per_million": 349.9431384205636,
+          "recovery_cost_break_even_tokens": 162266363,
+          "selected_training_only_lower_bound_tokens": 20377025
+        }
+      ]
+    },
+    {
+      "label": "translate-from-en",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 4904.819149788147,
+          "adapted_throughput": 5216.212101339332,
+          "throughput_ratio": 1.0634871423474674,
+          "baseline_tpot_p50_ms": 11.228593573081909,
+          "adapted_tpot_p50_ms": 10.220877713953646,
+          "gpu_seconds_saved_per_million": 12.171119792304125,
+          "recovery_cost_break_even_tokens": 4665470472,
+          "selected_training_only_lower_bound_tokens": 585878714
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 4895.940858390381,
+          "adapted_throughput": 5167.380913073586,
+          "throughput_ratio": 1.0554418573537354,
+          "baseline_tpot_p50_ms": 11.075062104735881,
+          "adapted_tpot_p50_ms": 10.314404820746859,
+          "gpu_seconds_saved_per_million": 10.729198850711072,
+          "recovery_cost_break_even_tokens": 5292473445,
+          "selected_training_only_lower_bound_tokens": 664616259
+        }
+      ]
+    },
+    {
+      "label": "translate-from-en",
+      "role": "independent_domain",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6067.787747119781,
+          "adapted_throughput": 6545.535633184401,
+          "throughput_ratio": 1.0787351018155498,
+          "baseline_tpot_p50_ms": 36.75729920995282,
+          "adapted_tpot_p50_ms": 33.69186487047017,
+          "gpu_seconds_saved_per_million": 12.028824870554558,
+          "recovery_cost_break_even_tokens": 4720660631,
+          "selected_training_only_lower_bound_tokens": 592809363
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6188.829076231781,
+          "adapted_throughput": 6386.871877581513,
+          "throughput_ratio": 1.0320000437740826,
+          "baseline_tpot_p50_ms": 36.020200813643186,
+          "adapted_tpot_p50_ms": 34.62657888961223,
+          "gpu_seconds_saved_per_million": 5.01028428116831,
+          "recovery_cost_break_even_tokens": 11333488644,
+          "selected_training_only_lower_bound_tokens": 1423232616
+        }
+      ]
+    },
+    {
+      "label": "multi-turn",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "tpot_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 334.9666087826518,
+          "adapted_throughput": 318.448887696183,
+          "throughput_ratio": 0.9506884547492715,
+          "baseline_tpot_p50_ms": 2.6236016698698643,
+          "adapted_tpot_p50_ms": 3.003096174391586,
+          "gpu_seconds_saved_per_million": -154.84916781299717,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 336.8850030725995,
+          "adapted_throughput": 319.0763842981087,
+          "throughput_ratio": 0.9471373952177592,
+          "baseline_tpot_p50_ms": 2.7690165895281122,
+          "adapted_tpot_p50_ms": 3.107230137104777,
+          "gpu_seconds_saved_per_million": -165.6738241488033,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multi-turn",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6070.520328101085,
+          "adapted_throughput": 6101.369598163118,
+          "throughput_ratio": 1.0050818164497741,
+          "baseline_tpot_p50_ms": 8.447463179183385,
+          "adapted_tpot_p50_ms": 8.62726915050682,
+          "gpu_seconds_saved_per_million": 0.8328976581428833,
+          "recovery_cost_break_even_tokens": 68176443342,
+          "selected_training_only_lower_bound_tokens": 8561436007
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6004.968675412215,
+          "adapted_throughput": 5945.48567783058,
+          "throughput_ratio": 0.990094370046393,
+          "baseline_tpot_p50_ms": 8.51086409037583,
+          "adapted_tpot_p50_ms": 8.840933119651453,
+          "gpu_seconds_saved_per_million": -1.6660758246450484,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multi-turn",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7356.360882781002,
+          "adapted_throughput": 7490.489325303702,
+          "throughput_ratio": 1.0182329883837882,
+          "baseline_tpot_p50_ms": 31.412852321042443,
+          "adapted_tpot_p50_ms": 30.824923430485768,
+          "gpu_seconds_saved_per_million": 2.4341518413483527,
+          "recovery_cost_break_even_tokens": 23328043484,
+          "selected_training_only_lower_bound_tokens": 2929480355
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7516.577759465653,
+          "adapted_throughput": 7353.852310452147,
+          "throughput_ratio": 0.9783511254428806,
+          "baseline_tpot_p50_ms": 30.640331177781896,
+          "adapted_tpot_p50_ms": 31.52137772538046,
+          "gpu_seconds_saved_per_million": -2.943882150903363,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "code-multi",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 499.04455533351495,
+          "adapted_throughput": 398.8935021025607,
+          "throughput_ratio": 0.7993144055764267,
+          "baseline_tpot_p50_ms": 1.7099225608665594,
+          "adapted_tpot_p50_ms": 2.3233971419957125,
+          "gpu_seconds_saved_per_million": -503.10569955580354,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 509.8490014763313,
+          "adapted_throughput": 397.5610677400245,
+          "throughput_ratio": 0.7797623739358848,
+          "baseline_tpot_p50_ms": 1.700543997456706,
+          "adapted_tpot_p50_ms": 2.343811808031788,
+          "gpu_seconds_saved_per_million": -553.971814483943,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "code-multi",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 9202.118137596612,
+          "adapted_throughput": 9186.915048287245,
+          "throughput_ratio": 0.998347870666075,
+          "baseline_tpot_p50_ms": 5.71460654908458,
+          "adapted_tpot_p50_ms": 5.669642490660073,
+          "gpu_seconds_saved_per_million": -0.17983505074786876,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 9261.896579864222,
+          "adapted_throughput": 9034.595687887746,
+          "throughput_ratio": 0.9754584938390871,
+          "baseline_tpot_p50_ms": 5.632982581921075,
+          "adapted_tpot_p50_ms": 5.7648027264301716,
+          "gpu_seconds_saved_per_million": -2.7163923000798462,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "code-multi",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 11533.368082550243,
+          "adapted_throughput": 11668.491942475017,
+          "throughput_ratio": 1.0117159063126766,
+          "baseline_tpot_p50_ms": 19.57407873037313,
+          "adapted_tpot_p50_ms": 19.27725741428659,
+          "gpu_seconds_saved_per_million": 1.0040634531382011,
+          "recovery_cost_break_even_tokens": 56554194681,
+          "selected_training_only_lower_bound_tokens": 7101941594
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 11738.273672709745,
+          "adapted_throughput": 11509.563981147505,
+          "throughput_ratio": 0.9805159005541022,
+          "baseline_tpot_p50_ms": 19.178548180003496,
+          "adapted_tpot_p50_ms": 19.55205551515737,
+          "gpu_seconds_saved_per_million": -1.6928616477403011,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "math-gsm8k",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 610.2836468267291,
+          "adapted_throughput": 429.2320321680564,
+          "throughput_ratio": 0.7033320233958741,
+          "baseline_tpot_p50_ms": 1.546400505874041,
+          "adapted_tpot_p50_ms": 2.2585388651551135,
+          "gpu_seconds_saved_per_million": -691.1599190434422,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 619.3162266535683,
+          "adapted_throughput": 428.90610947479274,
+          "throughput_ratio": 0.6925478310044559,
+          "baseline_tpot_p50_ms": 1.5025805367809717,
+          "adapted_tpot_p50_ms": 2.2555413452613005,
+          "gpu_seconds_saved_per_million": -716.828607016178,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "math-gsm8k",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 12182.269498314923,
+          "adapted_throughput": 12156.829884021685,
+          "throughput_ratio": 0.9979117508197666,
+          "baseline_tpot_p50_ms": 4.661707659478747,
+          "adapted_tpot_p50_ms": 4.674989067099206,
+          "gpu_seconds_saved_per_million": -0.1717758001185814,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 12265.982464649827,
+          "adapted_throughput": 11868.119352643142,
+          "throughput_ratio": 0.9675636979627751,
+          "baseline_tpot_p50_ms": 4.626659541465582,
+          "adapted_tpot_p50_ms": 4.7731165869647905,
+          "gpu_seconds_saved_per_million": -2.733061664904895,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "math-gsm8k",
+      "role": "forgetting",
+      "k": 3,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 14941.003766087071,
+          "adapted_throughput": 14972.355742755493,
+          "throughput_ratio": 1.002098384898315,
+          "baseline_tpot_p50_ms": 15.647064697388776,
+          "adapted_tpot_p50_ms": 15.618622575911807,
+          "gpu_seconds_saved_per_million": 0.14015061720198219,
+          "recovery_cost_break_even_tokens": 405164109397,
+          "selected_training_only_lower_bound_tokens": 50879547607
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 15193.123633636995,
+          "adapted_throughput": 14754.764164133972,
+          "throughput_ratio": 0.971147508565486,
+          "baseline_tpot_p50_ms": 15.38424195973345,
+          "adapted_tpot_p50_ms": 15.822024402528282,
+          "gpu_seconds_saved_per_million": -1.9554695089365737,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "opb",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 424.92293159493033,
+          "adapted_throughput": 420.2368639618463,
+          "throughput_ratio": 0.9889719587137954,
+          "baseline_tpot_p50_ms": 1.8813175932930304,
+          "adapted_tpot_p50_ms": 1.8886369890200325,
+          "gpu_seconds_saved_per_million": -26.242441422763477,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 437.77470513294816,
+          "adapted_throughput": 414.822202987814,
+          "throughput_ratio": 0.9475700585803292,
+          "baseline_tpot_p50_ms": 1.8904942666405113,
+          "adapted_tpot_p50_ms": 1.9489997025590005,
+          "gpu_seconds_saved_per_million": -126.39135765163246,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "opb",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "tpot_p95_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7128.147459682714,
+          "adapted_throughput": 6225.745265860822,
+          "throughput_ratio": 0.873402984586677,
+          "baseline_tpot_p50_ms": 6.823988945858767,
+          "adapted_tpot_p50_ms": 7.167640360296919,
+          "gpu_seconds_saved_per_million": -20.334435478355346,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7170.52318399893,
+          "adapted_throughput": 6018.4125205539995,
+          "throughput_ratio": 0.8393268337775027,
+          "baseline_tpot_p50_ms": 6.712635916701865,
+          "adapted_tpot_p50_ms": 7.237427029563073,
+          "gpu_seconds_saved_per_million": -26.696934727184043,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "opb",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8757.214898068434,
+          "adapted_throughput": 7568.638596150687,
+          "throughput_ratio": 0.8642746220399468,
+          "baseline_tpot_p50_ms": 24.71414690009253,
+          "adapted_tpot_p50_ms": 25.47107154221262,
+          "gpu_seconds_saved_per_million": -17.932601251311112,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8972.671411129424,
+          "adapted_throughput": 7356.213569499917,
+          "throughput_ratio": 0.8198465353780254,
+          "baseline_tpot_p50_ms": 24.097358044685123,
+          "adapted_tpot_p50_ms": 26.00378460336227,
+          "gpu_seconds_saved_per_million": -24.489972037913745,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multilingual",
+      "role": "domain",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [],
+        "verdict": "worth_considering_for_this_cell"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 267.0009492415407,
+          "adapted_throughput": 329.37809652369907,
+          "throughput_ratio": 1.2336214438913073,
+          "baseline_tpot_p50_ms": 3.4148899207000607,
+          "adapted_tpot_p50_ms": 2.3750059545717352,
+          "gpu_seconds_saved_per_million": 709.2804480837663,
+          "recovery_cost_break_even_tokens": 80058601,
+          "selected_training_only_lower_bound_tokens": 10053570
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 267.4564459303286,
+          "adapted_throughput": 325.3242817845054,
+          "throughput_ratio": 1.2163635864257734,
+          "baseline_tpot_p50_ms": 3.4106898643944215,
+          "adapted_tpot_p50_ms": 2.408266930289576,
+          "gpu_seconds_saved_per_million": 665.0705113032182,
+          "recovery_cost_break_even_tokens": 85380421,
+          "selected_training_only_lower_bound_tokens": 10721871
+        }
+      ]
+    },
+    {
+      "label": "multilingual",
+      "role": "domain",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [],
+        "verdict": "worth_considering_for_this_cell"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6864.50774967829,
+          "adapted_throughput": 6093.274218103617,
+          "throughput_ratio": 0.8876491134253849,
+          "baseline_tpot_p50_ms": 7.539962255227575,
+          "adapted_tpot_p50_ms": 7.7222610705112125,
+          "gpu_seconds_saved_per_million": -18.43850819003211,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6959.669230150276,
+          "adapted_throughput": 5854.665583196367,
+          "throughput_ratio": 0.8412275626308681,
+          "baseline_tpot_p50_ms": 7.50737507261482,
+          "adapted_tpot_p50_ms": 8.057345943205862,
+          "gpu_seconds_saved_per_million": -27.118959249325712,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multilingual",
+      "role": "domain",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p50_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8644.400976858939,
+          "adapted_throughput": 7442.069141550865,
+          "throughput_ratio": 0.8609120703069286,
+          "baseline_tpot_p50_ms": 25.32494992939938,
+          "adapted_tpot_p50_ms": 26.311608075439437,
+          "gpu_seconds_saved_per_million": -18.689416484524443,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8827.144777056375,
+          "adapted_throughput": 7270.895585577893,
+          "throughput_ratio": 0.8236973301351639,
+          "baseline_tpot_p50_ms": 24.725734718120986,
+          "adapted_tpot_p50_ms": 26.729409207644707,
+          "gpu_seconds_saved_per_million": -24.247724065043556,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-deu",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [],
+        "verdict": "worth_considering_for_this_cell"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 185.23473532578714,
+          "adapted_throughput": 182.2616523403266,
+          "throughput_ratio": 0.9839496464837897,
+          "baseline_tpot_p50_ms": 5.298970327463135,
+          "adapted_tpot_p50_ms": 5.32583609000437,
+          "gpu_seconds_saved_per_million": -88.06215300978693,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 185.24621166374226,
+          "adapted_throughput": 180.02007733301338,
+          "throughput_ratio": 0.971788171624177,
+          "baseline_tpot_p50_ms": 5.290974608296587,
+          "adapted_tpot_p50_ms": 5.395860114647842,
+          "gpu_seconds_saved_per_million": -156.714899769956,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-deu",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [],
+        "verdict": "worth_considering_for_this_cell"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5246.881754257477,
+          "adapted_throughput": 3852.108423196509,
+          "throughput_ratio": 0.7341709997696809,
+          "baseline_tpot_p50_ms": 10.021212289851908,
+          "adapted_tpot_p50_ms": 14.391734891980455,
+          "gpu_seconds_saved_per_million": -69.0087014761989,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5249.77836520636,
+          "adapted_throughput": 3710.4865523335,
+          "throughput_ratio": 0.7067891812205385,
+          "baseline_tpot_p50_ms": 10.010355816146973,
+          "adapted_tpot_p50_ms": 14.909048782657294,
+          "gpu_seconds_saved_per_million": -79.02220224866821,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-deu",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [],
+        "verdict": "worth_considering_for_this_cell"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7039.025416207362,
+          "adapted_throughput": 4804.864059581911,
+          "throughput_ratio": 0.6826035957362375,
+          "baseline_tpot_p50_ms": 33.08797936771073,
+          "adapted_tpot_p50_ms": 49.06383079157109,
+          "gpu_seconds_saved_per_million": -66.0573119921691,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7219.95190815659,
+          "adapted_throughput": 4690.111404125975,
+          "throughput_ratio": 0.6496042444309663,
+          "baseline_tpot_p50_ms": 32.19959807794075,
+          "adapted_tpot_p50_ms": 50.12663115586514,
+          "gpu_seconds_saved_per_million": -74.70947390733284,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-fra",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 206.59350436047674,
+          "adapted_throughput": 196.9922997125599,
+          "throughput_ratio": 0.9535261058781206,
+          "baseline_tpot_p50_ms": 4.756071260389611,
+          "adapted_tpot_p50_ms": 4.953464453678556,
+          "gpu_seconds_saved_per_million": -235.91731346703182,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 206.3940778258109,
+          "adapted_throughput": 194.7581320464685,
+          "throughput_ratio": 0.9436226760868461,
+          "baseline_tpot_p50_ms": 4.755872358917122,
+          "adapted_tpot_p50_ms": 5.013403040218444,
+          "gpu_seconds_saved_per_million": -289.4735296583276,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-fra",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6032.72843717092,
+          "adapted_throughput": 4114.465715102506,
+          "throughput_ratio": 0.6820240224557508,
+          "baseline_tpot_p50_ms": 8.949976994240485,
+          "adapted_tpot_p50_ms": 13.479237984747552,
+          "gpu_seconds_saved_per_million": -77.28244675295036,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6081.563430877368,
+          "adapted_throughput": 3970.9516646491816,
+          "throughput_ratio": 0.652949148649479,
+          "baseline_tpot_p50_ms": 8.845102134941708,
+          "adapted_tpot_p50_ms": 13.853407131005376,
+          "gpu_seconds_saved_per_million": -87.39740008423942,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-fra",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7854.480777793756,
+          "adapted_throughput": 5153.616315098072,
+          "throughput_ratio": 0.6561371096188068,
+          "baseline_tpot_p50_ms": 29.649988202203797,
+          "adapted_tpot_p50_ms": 45.46726500723192,
+          "gpu_seconds_saved_per_million": -66.72264083257615,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8052.208681202207,
+          "adapted_throughput": 5070.7581184628325,
+          "throughput_ratio": 0.6297350601829858,
+          "baseline_tpot_p50_ms": 28.924996102840293,
+          "adapted_tpot_p50_ms": 46.35658470809845,
+          "gpu_seconds_saved_per_million": -73.01964147508137,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-ita",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [],
+        "verdict": "worth_considering_for_this_cell"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 193.41726728998714,
+          "adapted_throughput": 192.56405769451447,
+          "throughput_ratio": 0.9955887620199211,
+          "baseline_tpot_p50_ms": 4.997483965641875,
+          "adapted_tpot_p50_ms": 4.77735459905911,
+          "gpu_seconds_saved_per_million": -22.907898976021897,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 193.40650769310056,
+          "adapted_throughput": 190.04620182527492,
+          "throughput_ratio": 0.9826256835516733,
+          "baseline_tpot_p50_ms": 4.99173696999323,
+          "adapted_tpot_p50_ms": 4.831419388317007,
+          "gpu_seconds_saved_per_million": -91.42154003319774,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-ita",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p50_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5041.104923192565,
+          "adapted_throughput": 3849.6892071990674,
+          "throughput_ratio": 0.763659805906407,
+          "baseline_tpot_p50_ms": 9.725228287426242,
+          "adapted_tpot_p50_ms": 13.234254478306912,
+          "gpu_seconds_saved_per_million": -61.39201929642206,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5066.038000510083,
+          "adapted_throughput": 3704.715605878638,
+          "throughput_ratio": 0.7312846065318938,
+          "baseline_tpot_p50_ms": 9.76317621159959,
+          "adapted_tpot_p50_ms": 13.636071741655964,
+          "gpu_seconds_saved_per_million": -72.53333914260756,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-ita",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": true,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "conditional_tradeoff"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7042.941444060038,
+          "adapted_throughput": 4952.112968792206,
+          "throughput_ratio": 0.7031313561422238,
+          "baseline_tpot_p50_ms": 31.643125871548783,
+          "adapted_tpot_p50_ms": 43.983008028031634,
+          "gpu_seconds_saved_per_million": -59.947873913341084,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7256.264330599455,
+          "adapted_throughput": 4851.083704977533,
+          "throughput_ratio": 0.6685373470369118,
+          "baseline_tpot_p50_ms": 30.671094759420647,
+          "adapted_tpot_p50_ms": 44.99235360710623,
+          "gpu_seconds_saved_per_million": -68.32754764115606,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-spa",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p50_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 218.97535819318563,
+          "adapted_throughput": 205.29357830850782,
+          "throughput_ratio": 0.9375190889168113,
+          "baseline_tpot_p50_ms": 4.380136220741341,
+          "adapted_tpot_p50_ms": 4.77321398906487,
+          "gpu_seconds_saved_per_million": -304.34907705342175,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 218.56029501284928,
+          "adapted_throughput": 131.19088550065723,
+          "throughput_ratio": 0.60025031304494,
+          "baseline_tpot_p50_ms": 4.379043943789381,
+          "adapted_tpot_p50_ms": 4.830689174227858,
+          "gpu_seconds_saved_per_million": -3047.0842957535897,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-spa",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6001.360535702776,
+          "adapted_throughput": 3989.331660647357,
+          "throughput_ratio": 0.6647378768388217,
+          "baseline_tpot_p50_ms": 8.664089500434905,
+          "adapted_tpot_p50_ms": 12.904902523057203,
+          "gpu_seconds_saved_per_million": -84.03967172455518,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 5876.455050344805,
+          "adapted_throughput": 3879.116956116047,
+          "throughput_ratio": 0.660111737924114,
+          "baseline_tpot_p50_ms": 8.643240825904801,
+          "adapted_tpot_p50_ms": 13.264021050299597,
+          "gpu_seconds_saved_per_million": -87.62000886309906,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "lang-spa",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8003.4936751326295,
+          "adapted_throughput": 5239.752698103898,
+          "throughput_ratio": 0.6546831809693493,
+          "baseline_tpot_p50_ms": 28.73065636643709,
+          "adapted_tpot_p50_ms": 43.57315202602597,
+          "gpu_seconds_saved_per_million": -65.90326660943559,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 8168.495184787905,
+          "adapted_throughput": 5152.500257235528,
+          "throughput_ratio": 0.6307771677249648,
+          "baseline_tpot_p50_ms": 27.891241346207458,
+          "adapted_tpot_p50_ms": 44.33139089238087,
+          "gpu_seconds_saved_per_million": -71.65896435551744,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "translate-from-en",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 198.97812097275718,
+          "adapted_throughput": 183.41650622802902,
+          "throughput_ratio": 0.9217923323999087,
+          "baseline_tpot_p50_ms": 4.8641070254473355,
+          "adapted_tpot_p50_ms": 5.172581271715715,
+          "gpu_seconds_saved_per_million": -426.39383558457484,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 198.49812492537538,
+          "adapted_throughput": 181.37390734450702,
+          "throughput_ratio": 0.91373108644071,
+          "baseline_tpot_p50_ms": 4.860674897820628,
+          "adapted_tpot_p50_ms": 5.232474909259768,
+          "gpu_seconds_saved_per_million": -475.641258560021,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "translate-from-en",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 4904.819149788147,
+          "adapted_throughput": 3532.993989240216,
+          "throughput_ratio": 0.7203107558803296,
+          "baseline_tpot_p50_ms": 11.228593573081909,
+          "adapted_tpot_p50_ms": 15.792837677232232,
+          "gpu_seconds_saved_per_million": -79.16493630373219,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 4895.940858390381,
+          "adapted_throughput": 3462.9273830836432,
+          "throughput_ratio": 0.7073058035717645,
+          "baseline_tpot_p50_ms": 11.075062104735881,
+          "adapted_tpot_p50_ms": 16.12316287352501,
+          "gpu_seconds_saved_per_million": -84.52218716974633,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "translate-from-en",
+      "role": "independent_domain",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6067.787747119781,
+          "adapted_throughput": 4251.278881560956,
+          "throughput_ratio": 0.7006307832008339,
+          "baseline_tpot_p50_ms": 36.75729920995282,
+          "adapted_tpot_p50_ms": 53.23458990589408,
+          "gpu_seconds_saved_per_million": -70.4186258157794,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6188.829076231781,
+          "adapted_throughput": 4184.019100366475,
+          "throughput_ratio": 0.6760598893311199,
+          "baseline_tpot_p50_ms": 36.020200813643186,
+          "adapted_tpot_p50_ms": 54.0934277651584,
+          "gpu_seconds_saved_per_million": -77.42319117054376,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multi-turn",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "tpot_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 334.9666087826518,
+          "adapted_throughput": 324.0672321502333,
+          "throughput_ratio": 0.9674613040624275,
+          "baseline_tpot_p50_ms": 2.6236016698698643,
+          "adapted_tpot_p50_ms": 2.978873646565419,
+          "gpu_seconds_saved_per_million": -100.40723871300906,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 336.8850030725995,
+          "adapted_throughput": 319.77996120440235,
+          "throughput_ratio": 0.9492258731846518,
+          "baseline_tpot_p50_ms": 2.7690165895281122,
+          "adapted_tpot_p50_ms": 3.0166669915862214,
+          "gpu_seconds_saved_per_million": -158.77832564653272,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multi-turn",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6070.520328101085,
+          "adapted_throughput": 4936.078548185072,
+          "throughput_ratio": 0.8131228101379445,
+          "baseline_tpot_p50_ms": 8.447463179183385,
+          "adapted_tpot_p50_ms": 10.854960640026711,
+          "gpu_seconds_saved_per_million": -37.85944409875074,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 6004.968675412215,
+          "adapted_throughput": 4896.61867123066,
+          "throughput_ratio": 0.81542784582378,
+          "baseline_tpot_p50_ms": 8.51086409037583,
+          "adapted_tpot_p50_ms": 11.086706992934111,
+          "gpu_seconds_saved_per_million": -37.69379781616357,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "multi-turn",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7356.360882781002,
+          "adapted_throughput": 5972.256613996939,
+          "throughput_ratio": 0.8118493245724487,
+          "baseline_tpot_p50_ms": 31.412852321042443,
+          "adapted_tpot_p50_ms": 38.408508919295336,
+          "gpu_seconds_saved_per_million": -31.504117721028592,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 7516.577759465653,
+          "adapted_throughput": 5834.033519711971,
+          "throughput_ratio": 0.776155546633593,
+          "baseline_tpot_p50_ms": 30.640331177781896,
+          "adapted_tpot_p50_ms": 39.363725996956646,
+          "gpu_seconds_saved_per_million": -38.36872938938109,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "code-multi",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": false,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 499.04455533351495,
+          "adapted_throughput": 504.5202973081246,
+          "throughput_ratio": 1.0109724510889617,
+          "baseline_tpot_p50_ms": 1.7099225608665594,
+          "adapted_tpot_p50_ms": 1.7010406741438264,
+          "gpu_seconds_saved_per_million": 21.74828475188292,
+          "recovery_cost_break_even_tokens": 2610964527,
+          "selected_training_only_lower_bound_tokens": 327878731
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 509.8490014763313,
+          "adapted_throughput": 498.20806174507806,
+          "throughput_ratio": 0.9771678679421839,
+          "baseline_tpot_p50_ms": 1.700543997456706,
+          "adapted_tpot_p50_ms": 1.7204245410135224,
+          "gpu_seconds_saved_per_million": -45.82850782831929,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "code-multi",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 9202.118137596612,
+          "adapted_throughput": 8482.35368550046,
+          "throughput_ratio": 0.9217827416108203,
+          "baseline_tpot_p50_ms": 5.71460654908458,
+          "adapted_tpot_p50_ms": 5.901293523279224,
+          "gpu_seconds_saved_per_million": -9.221173896919964,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 9261.896579864222,
+          "adapted_throughput": 8249.850852247233,
+          "throughput_ratio": 0.8907301848071569,
+          "baseline_tpot_p50_ms": 5.632982581921075,
+          "adapted_tpot_p50_ms": 6.006127920521137,
+          "gpu_seconds_saved_per_million": -13.245065535103379,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "code-multi",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 11533.368082550243,
+          "adapted_throughput": 10434.637744313659,
+          "throughput_ratio": 0.9047346507652919,
+          "baseline_tpot_p50_ms": 19.57407873037313,
+          "adapted_tpot_p50_ms": 20.50134776945142,
+          "gpu_seconds_saved_per_million": -9.129722714774914,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 11738.273672709745,
+          "adapted_throughput": 10187.236276035168,
+          "throughput_ratio": 0.8678649484650731,
+          "baseline_tpot_p50_ms": 19.178548180003496,
+          "adapted_tpot_p50_ms": 20.98710057507033,
+          "gpu_seconds_saved_per_million": -12.970647578457204,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "math-gsm8k",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 1,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms",
+          "tpot_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 610.2836468267291,
+          "adapted_throughput": 598.1083416086908,
+          "throughput_ratio": 0.9800497600069316,
+          "baseline_tpot_p50_ms": 1.546400505874041,
+          "adapted_tpot_p50_ms": 1.5797047002117757,
+          "gpu_seconds_saved_per_million": -33.35556220367994,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 7,
+          "baseline_throughput": 619.3162266535683,
+          "adapted_throughput": 591.483921335457,
+          "throughput_ratio": 0.9550596220149097,
+          "baseline_tpot_p50_ms": 1.5025805367809717,
+          "adapted_tpot_p50_ms": 1.5999346739072509,
+          "gpu_seconds_saved_per_million": -75.97903571685197,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "math-gsm8k",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 64,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "tpot_p95_ms",
+          "ttft_p50_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 12182.269498314923,
+          "adapted_throughput": 11674.219710449179,
+          "throughput_ratio": 0.9582959654655465,
+          "baseline_tpot_p50_ms": 4.661707659478747,
+          "adapted_tpot_p50_ms": 4.749143238252077,
+          "gpu_seconds_saved_per_million": -3.572318798928009,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 12265.982464649827,
+          "adapted_throughput": 11635.243856747991,
+          "throughput_ratio": 0.9485782235773119,
+          "baseline_tpot_p50_ms": 4.626659541465582,
+          "adapted_tpot_p50_ms": 4.785055382488233,
+          "gpu_seconds_saved_per_million": -4.4194842029774435,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    },
+    {
+      "label": "math-gsm8k",
+      "role": "forgetting",
+      "k": 7,
+      "concurrency": 256,
+      "original_matched_k_classification": {
+        "substantial_repeatable_benefit": false,
+        "latency_regressions": [
+          "e2e_p95_ms",
+          "tpot_p95_ms",
+          "ttft_p95_ms"
+        ],
+        "verdict": "no_substantial_repeatable_gain"
+      },
+      "dominated_by_unadapted_setting_in_both_repeats": true,
+      "comparisons": [
+        {
+          "repeat": "a",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 14941.003766087071,
+          "adapted_throughput": 13968.991050154566,
+          "throughput_ratio": 0.9349432788352032,
+          "baseline_tpot_p50_ms": 15.647064697388776,
+          "adapted_tpot_p50_ms": 16.105436486822775,
+          "gpu_seconds_saved_per_million": -4.6572240565704135,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        },
+        {
+          "repeat": "b",
+          "strongest_observed_unadapted_k": 3,
+          "baseline_throughput": 15193.123633636995,
+          "adapted_throughput": 13735.442126234431,
+          "throughput_ratio": 0.9040564967051731,
+          "baseline_tpot_p50_ms": 15.38424195973345,
+          "adapted_tpot_p50_ms": 16.402708036151356,
+          "gpu_seconds_saved_per_million": -6.985104841407079,
+          "recovery_cost_break_even_tokens": null,
+          "selected_training_only_lower_bound_tokens": null
+        }
+      ]
+    }
+  ]
+}

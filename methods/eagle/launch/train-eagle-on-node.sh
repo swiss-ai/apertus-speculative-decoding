@@ -32,6 +32,12 @@ setup_shared() {
 export PYTHONPATH="${EAGLE_PYDEPS}:${REPO_ROOT}/methods/eagle:${REPO_ROOT}/src:${TORCHSPEC_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 # Sequential teacher-then-trainer on one GPU (plan A3 simplest resource path).
 export CUDA_VISIBLE_DEVICES="${EAGLE_CUDA_DEVICES:-0}"
+if [ -n "${EAGLE_RECOVERY_CACHE_ROOT:-}" ] && [ "${T5_CACHE_WRAPPER_STARTED:-0}" != 1 ]; then
+  cache="${EAGLE_RECOVERY_CACHE_ROOT}/${SLURM_JOB_ID}/node${NODE_RANK}"
+  exec "${PYTHON}" -m apertus_bench.runtime_caches --root "${cache}" \
+    --report "${cache}/runtime-cache-preflight.json" --probe-flashinfer \
+    --exec env T5_CACHE_WRAPPER_STARTED=1 bash "$0"
+fi
 
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 log "host=$(hostname) job=${SLURM_JOB_ID:-none} config=${EAGLE_TRAIN_CONFIG} steps=${EAGLE_STEPS:-all} cuda=${CUDA_VISIBLE_DEVICES}"
@@ -42,6 +48,10 @@ if [ "${NODE_RANK}" = "0" ]; then
 else
   for _ in $(seq 1 120); do [ -f "${SETUP_DONE}" ] && break; sleep 5; done
   [ -f "${SETUP_DONE}" ] || { log "node ${NODE_RANK}: node 0 setup did not finish"; exit 1; }
+fi
+if [ -n "${EAGLE_DEPLOYMENT_ROOT:-}" ]; then
+  "${PYTHON}" -m apertus_eagle.adaptation_provenance --repo "${REPO_ROOT}" \
+    --deployment "${EAGLE_DEPLOYMENT_ROOT}/${SLURM_JOB_ID}"
 fi
 "${PYTHON}" - <<'PY'
 import importlib, json, platform, sys
@@ -61,6 +71,33 @@ mods["python"] = sys.version.split()[0]
 print(json.dumps({"environment": mods}))
 PY
 
-"${PYTHON}" -m apertus_eagle.pipeline --config "${EAGLE_TRAIN_CONFIG}" \
-  ${EAGLE_STEPS:+--steps "${EAGLE_STEPS}"} ${EAGLE_RUN_ID:+--run-id "${EAGLE_RUN_ID}"}
+# Several space-separated configs run in turn; a failed one does not stop the
+# rest, and the job fails if any did.
+failed=0
+for config in ${EAGLE_TRAIN_CONFIG}; do
+  log "pipeline config=${config}"
+  rc=0
+  "${PYTHON}" -m apertus_eagle.pipeline --config "${config}" \
+    ${EAGLE_STEPS:+--steps "${EAGLE_STEPS}"} ${EAGLE_RUN_ID:+--run-id "${EAGLE_RUN_ID}"} \
+    || rc=$?
+  if [ -n "${EAGLE_DEPLOYMENT_ROOT:-}" ]; then
+    # A scientific negative must not stop independent arms. Nonfinite updates,
+    # missing/corrupt exports and other infrastructure failures must stop here.
+    outcome=0
+    "${PYTHON}" -m apertus_eagle.adaptation_validate --config "${config}" \
+      --run-id "${EAGLE_RUN_ID}" || outcome=$?
+    if [ "${outcome}" = 4 ]; then
+      log "recovery deadline stop; controller will resume the remaining bounded curves"
+      failed=0
+      break
+    fi
+    [ "${outcome}" = 0 ] || exit "${outcome}"
+    [ "${rc}" = 0 ] || [ "${rc}" = 3 ] || exit "${rc}"
+  fi
+  if [ "${rc}" != 0 ]; then
+    failed=${rc}
+    log "pipeline failed rc=${rc} config=${config}"
+  fi
+done
 log "pipeline finished"
+exit "${failed}"
