@@ -2,8 +2,8 @@
 # DSpark repeat of the T5 best adaptation setting, inside one 1-node allocation
 # (submit-train.sh STAGE=8b MODE=adapt). Frozen settings:
 # methods/dspark/configs/8b/adapt-mult-n8k-r0.json. Every step writes a done
-# marker under ADAPT_ROOT/stages; a resubmission skips finished steps and stops
-# at a run directory left behind by an unfinished one (inspect it first).
+# marker under ADAPT_ROOT/stages; a resubmission skips finished steps, so the
+# whole sequence can run as a chain of short jobs (ADAPT_DEADLINE, below).
 #   rebind -> convert -> prepare (+ row check) -> lr-0 evaluations of e10 on the
 #   multilingual dev traces and OPB held-out -> 384-step fine-tune -> export ->
 #   lr-0 evaluations of the exported head -> development report.
@@ -23,9 +23,34 @@ plan() { python3 -c "import json,sys; print(json.load(open('${PLAN}'))$1)"; }
 SEQ_LEN="$(plan "['training']['total_seq_len']")"
 SEED="$(plan "['training']['seed']")"
 
-step() {  # step NAME CMD...: run once
-  local name=$1; shift
+# Chunked allocations (debug, 1.5 h): ADAPT_DEADLINE (unix s, set by
+# submit-train.sh MODE=adapt) stops the job before a step whose conservative
+# duration (minutes, below) no longer fits, so no step is cut mid-way. Outputs
+# of a step that was cut anyway (node failure, time limit) are kept under
+# ADAPT_ROOT/incomplete/ and the step reruns from scratch: every step is
+# deterministic (seeded) and at most ~40 min.
+declare -A MINUTES=([rebind]=10 [convert]=10 [prepare-train]=20 [prepare-opb]=15
+  [eval-e10-dev]=25 [eval-e10-opb]=25 [train]=55 [export]=15 [eval-final-dev]=25
+  [eval-final-opb]=25 [report]=5)
+declare -A OUTPUTS=([rebind]=init/e10-rebound [convert]=data/rows [prepare-train]=data/prepared-train
+  [prepare-opb]=data/prepared-opb [eval-e10-dev]=runs/eval-e10-dev [eval-e10-opb]=runs/eval-e10-opb
+  [train]=runs/train [export]=head [eval-final-dev]=runs/eval-final-dev
+  [eval-final-opb]=runs/eval-final-opb [report]=development-report.json)
+
+step() {  # step NAME CMD...: run once, if it fits before ADAPT_DEADLINE
+  local name=$1 out; shift
   if [ -f "${STAGES}/${name}.done" ]; then stamp "skip ${name} (done)"; return 0; fi
+  if [ -n "${ADAPT_DEADLINE:-}" ] && (( $(date +%s) + ${MINUTES[${name}]} * 60 > ADAPT_DEADLINE )); then
+    stamp "ADAPT_PAUSED before ${name}: needs ${MINUTES[${name}]} min, $(( (ADAPT_DEADLINE - $(date +%s)) / 60 )) left"
+    exit 0
+  fi
+  for out in ${OUTPUTS[${name}]}; do
+    if [ -e "${ADAPT_ROOT}/${out}" ]; then
+      mkdir -p "${ADAPT_ROOT}/incomplete"
+      mv "${ADAPT_ROOT}/${out}" "${ADAPT_ROOT}/incomplete/$(basename "${out}")-$(date -u +%Y%m%dT%H%M%SZ)"
+      stamp "set aside unfinished ${out} of ${name}"
+    fi
+  done
   stamp "begin ${name}"
   "$@"
   date -u +%FT%TZ > "${STAGES}/${name}.done"
@@ -41,10 +66,6 @@ prepare() {  # prepare IN OUT RATIO TRAIN_ROWS
 
 trainer() {  # trainer RUN_ID DATA FROM LR EPOCHS MAX_STEPS RATIO [EXTRA...]
   local run=$1 data=$2 from=$3 lr=$4 epochs=$5 steps=$6 ratio=$7; shift 7
-  if [ -e "${ADAPT_ROOT}/runs/${run}" ]; then
-    echo "run directory ${run} exists without a done marker: inspect before resubmitting" >&2
-    return 1
-  fi
   RUN_ID="${run}" DATA="${data}" FROM_PRETRAINED="${from}" LR="${lr}" EPOCHS="${epochs}" \
     MAX_STEPS="${steps}" SEQ="${SEQ_LEN}" CKPT_FREQ=1 \
     TRAIN_EXTRA="--seed ${SEED} --train-data-ratio ${ratio} $*" \

@@ -60,7 +60,7 @@ pass_env() {
   for v in DSPARK_DIR RUN_ID DATA EPOCHS MAX_STEPS CHECK_ROWS GRAD_CKPT WORKERS PREFETCH SEQ ANCHORS LR CKPT_FREQ \
            EXTRACT_MEM EXTRACT_EAGER IN OUT FULL ALLOW_MISSING TARGET_MODEL LAYERS SPECULATORS NUM_LAYERS FSDP \
            FROM_PRETRAINED EXTRACT_PER_RANK EXTRACT_GPUS TRAIN_GPUS CHECK_SPLIT SIDE_DEPS \
-           DSPARK_VALIDATE_WARM_START ADAPT_ROOT ADAPT_PLAN; do
+           DSPARK_VALIDATE_WARM_START ADAPT_ROOT ADAPT_PLAN ADAPT_DEADLINE; do
     if [ -n "${!v:-}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -94,7 +94,10 @@ srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/tr
     NODES=1
     NAME="dspark-${STAGE}-adapt"
     TIME="${TIME:-06:00:00}"
-    CMD="srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/adapt-job.sh"
+    IFS=: read -r th tm ts <<< "${TIME}"
+    LIMIT_S=$(( 10#${th} * 3600 + 10#${tm} * 60 + 10#${ts} ))
+    CMD="export ADAPT_DEADLINE=\$(( \$(date +%s) + ${LIMIT_S} - ${ADAPT_MARGIN:-300} ))
+srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/adapt-job.sh"
     CHAIN=1
     ;;
   *) echo "unknown MODE ${MODE}" >&2; exit 2 ;;
