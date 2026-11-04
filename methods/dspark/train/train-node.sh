@@ -172,6 +172,12 @@ extra=()
 . "${REPO_ROOT}/methods/dspark/train/draft-init-args.sh"
 [ "${GRAD_CKPT:-0}" = 1 ] && extra+=(--gradient-checkpointing)
 [ -n "${MAX_STEPS:-}" ] && extra+=(--max-steps "${MAX_STEPS}")
+# Further trainer flags (whitespace-separated, no quoting), e.g. the adaptation
+# repeat's seed, schedule and held-out ratio (methods/dspark/train/adapt-job.sh).
+if [ -n "${TRAIN_EXTRA:-}" ]; then
+  read -r -a more <<< "${TRAIN_EXTRA}"
+  extra+=("${more[@]}")
+fi
 t0=$(date +%s)
 stamp "torchrun start"
 rc=0

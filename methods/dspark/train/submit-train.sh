@@ -2,6 +2,7 @@
 # Submit DSpark data preparation or training on Clariden (login node only submits).
 #   MODE=prepare IN=... OUT=... ./methods/dspark/train/submit-train.sh   # or FULL=1
 #   MODE=train RUN_ID=opb-thinkoff DATA=... [NODES=2] [CHAIN=12] ./methods/dspark/train/submit-train.sh
+#   STAGE=8b MODE=adapt ADAPT_ROOT=... ./methods/dspark/train/submit-train.sh   # adapt-job.sh
 # STAGE=70b (default) is the 70B drafter. STAGE=8b is Yu's 8B setup (target
 # layers 1/8/15/22/29, one 1-GPU extraction server per trainer rank, no FSDP,
 # his dataloader depth and checkpoint interval); MODE=prepare there builds the
@@ -42,7 +43,7 @@ DSPARK_DIR="${DSPARK_DIR:-/iopsstor/scratch/cscs/${USER}/apertus-dspark70b}"
 EXCLUDE="${DSPARK_EXCLUDE:-nid007129,nid007593,nid007611}"
 ENV_SOURCE="${DSPARK_ENV_SOURCE:-${REPO_ROOT}/methods/eagle/configs/train-env.toml}"
 IMAGE="$(sed -n 's|^ *image *= *"\(/[^"]*\)".*|\1|p' "${ENV_SOURCE}" | head -1 | sed "s|{arch}|arm64|")"
-LOG_ROOT="${REPO_ROOT}/results/${STAGE}/dspark/logs"
+LOG_ROOT="${DSPARK_LOG_ROOT:-${REPO_ROOT}/results/${STAGE}/dspark/logs}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "${LOG_ROOT}"
 
@@ -59,7 +60,7 @@ pass_env() {
   for v in DSPARK_DIR RUN_ID DATA EPOCHS MAX_STEPS CHECK_ROWS GRAD_CKPT WORKERS PREFETCH SEQ ANCHORS LR CKPT_FREQ \
            EXTRACT_MEM EXTRACT_EAGER IN OUT FULL ALLOW_MISSING TARGET_MODEL LAYERS SPECULATORS NUM_LAYERS FSDP \
            FROM_PRETRAINED EXTRACT_PER_RANK EXTRACT_GPUS TRAIN_GPUS CHECK_SPLIT SIDE_DEPS \
-           DSPARK_VALIDATE_WARM_START; do
+           DSPARK_VALIDATE_WARM_START ADAPT_ROOT ADAPT_PLAN; do
     if [ -n "${!v:-}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -85,6 +86,16 @@ case "${MODE}" in
 export HEAD_NODE=\$(scontrol show hostnames \"\${SLURM_JOB_NODELIST}\" | head -1)
 srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/train-node.sh"
     CHAIN="${CHAIN:-1}"
+    ;;
+  adapt)
+    # DSpark repeat of the T5 best adaptation setting (adapt-job.sh): one node,
+    # all steps in one allocation, resumable by step markers.
+    : "${ADAPT_ROOT:?set ADAPT_ROOT}"
+    NODES=1
+    NAME="dspark-${STAGE}-adapt"
+    TIME="${TIME:-06:00:00}"
+    CMD="srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/adapt-job.sh"
+    CHAIN=1
     ;;
   *) echo "unknown MODE ${MODE}" >&2; exit 2 ;;
 esac
