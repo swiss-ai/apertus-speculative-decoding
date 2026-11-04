@@ -56,14 +56,85 @@
         "depth-l5-k7": 0
       }
     },
-    "actual_gpu_status_read": "pending storage recovery; configured reversal is not a claim that statuses were retrieved",
+    "actual_gpu_status_read": "retrieved 2026-11-04: actual roles plain/e10/L1/L5 = 0/1/2/3 (A) and 3/2/1/0 (B), matching configuration; evidence-3804151/validate/repeat-*/*/status.json",
     "report_count": 12,
     "report_path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness",
     "raw_captures": "Retained on cluster. Frozen harness checks all 16 captures (4 configurations x2 deployments x2 captures, 6 successful/comparable cases each) before calibrated treatment gates. Exact artifact/hash collection awaits storage reads.",
-    "per_model_metrics": "not yet retrieved: individual report reads are blocked in Lustre cl_sync_io_wait",
-    "reference_e10_outcome": "unknown until saved reports can be read; do not infer it from top-level failure",
-    "plain_control_outcome": "unknown for this counterbalanced attempt until saved reports can be read",
-    "previous_attempt_3790216": "Plain restart controls exact 6/6 and calibrated self-checks passed; all 8 L1/L5 comparisons failed prefix/edit. Those values must not be attributed to 3804151."
+    "per_model_metrics": "retrieved 2026-11-04: all 12 treatment reports failed; see evidence-3804151/correctness-summary.json",
+    "reference_e10_outcome": "failed: vs plain 4/6 exact both repeats, min prefix fraction 0.183, max edit 0.502/0.506 (allowances 0.350/0.353); same worst divergence point as L1",
+    "plain_control_outcome": "all 4 plain-vs-plain pairs (2 same-deployment, 2 cross-deployment) exact 6/6",
+    "previous_attempt_3790216": "Plain restart controls exact 6/6 and calibrated self-checks passed; all 8 L1/L5 comparisons failed prefix/edit. Those values must not be attributed to 3804151.",
+    "per_arm_vs_plain": {
+      "dspark-e10-k7": {
+        "exact_a_b": [
+          4,
+          4
+        ],
+        "min_prefix_fraction_a_b": [
+          0.183,
+          0.183
+        ],
+        "max_edit_a_b": [
+          0.502,
+          0.506
+        ],
+        "max_token_diff_a_b": [
+          0,
+          0
+        ],
+        "failed": [
+          "prefix",
+          "edit"
+        ],
+        "same_arm_cross_deployment_exact": 4
+      },
+      "depth-l1-k7": {
+        "exact_a_b": [
+          2,
+          4
+        ],
+        "min_prefix_fraction_a_b": [
+          0.183,
+          0.183
+        ],
+        "max_edit_a_b": [
+          0.506,
+          0.502
+        ],
+        "max_token_diff_a_b": [
+          2,
+          0
+        ],
+        "failed": [
+          "prefix",
+          "edit"
+        ],
+        "same_arm_cross_deployment_exact": 2
+      },
+      "depth-l5-k7": {
+        "exact_a_b": [
+          2,
+          2
+        ],
+        "min_prefix_fraction_a_b": [
+          0.036,
+          0.183
+        ],
+        "max_edit_a_b": [
+          0.514,
+          0.466
+        ],
+        "max_token_diff_a_b": [
+          27,
+          22
+        ],
+        "failed": [
+          "edit",
+          "token_diff"
+        ],
+        "same_arm_cross_deployment_exact": 2
+      }
+    }
   },
   "performance": {
     "G3_original_5_percent": "not evaluated; correctness prerequisite failed",
@@ -71,7 +142,7 @@
     "absolute_throughput_latency_memory_gpu_s_per_million": "no valid trained-model comparison measured",
     "implementation_verdict": "No implementation endorsement; correctness blocked. This is not proof of a throughput loss or a disproven optimization."
   },
-  "common_serving_path": "Unresolved. Existing e10 reference was included to distinguish a shared path issue, but its exact outcome cannot be claimed before reading saved gate reports. No change to numerical flags or correctness limits is authorized.",
+  "common_serving_path": "Shared: the calibrated gate rejects the deployed e10 reference with the same worst-case prefix/edit as L1. Spec arms are exact within a deployment but diverge across GPU-reversed deployments; plain is exact everywhere. Root cause (spec-decode numerics vs gate calibration) still uninvestigated; no change to flags or limits authorized.",
   "retention": {
     "weights_raw_captures_and_attempts": "preserved in original remote locations",
     "prior_training_archive": "../recovery-20261030/training-and-failed-validation.tar.gz",
@@ -80,9 +151,12 @@
     "latest_frozen_submission_archive_sha256": "a7c6c6ba0b66fbc698eb23ab630ec7d6c327bafc7878932ecaf3729ecbae8b1a"
   },
   "evidence_collection": {
-    "state": "blocked_cluster_storage",
-    "observation": "Two own lightweight Python readers stalled on distinct small correctness JSON file descriptors in Lustre cl_sync_io_wait, near-zero CPU. Duplicate reader terminated;SIGKILL issued to both after bounded observation. No allocation or new experiment.",
-    "pending": "compact final raw-gate/status/log/provenance collection and hashes; canonical remote campaign terminal annotation when storage permits"
+    "state": "retrieved",
+    "retrieved_at": "2026-11-04",
+    "path": "evidence-3804151/",
+    "manifest": "evidence-3804151/retrieval-manifest.json",
+    "note": "sha256 of every file matched remote; 16 raw captures and prompt text retained on cluster only"
   },
-  "next_action": "Original bounded recovery scientifically stopped. No more training/validation/benchmark submissions. Resolve shared serving correctness only under separate investigation; retrieve existing evidence when cluster storage permits."
+  "next_action": "Original bounded recovery scientifically stopped. No more training/validation/benchmark submissions. Resolve shared serving correctness only under separate investigation; the existing evidence was retrieved on 2026-11-04 and a shared-path investigation should start from e10 under this harness.",
+  "verdict_after_evidence": "Unchanged outcome (no implementation endorsement, no further runs). The correctness failure is not attributable to shallow drafting; remaining reasons are the trainer acceptance loss and no throughput measurement."
 }
