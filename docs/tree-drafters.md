@@ -1,6 +1,6 @@
 # Tree-based speculation with several drafters (TreeGraft) for Apertus 1.5 8B
 
-Branch `tree-drafters`. Yu's suggestion (Slack, 17 Oct): follow TreeGraft
+Yu's suggestion (Slack, 17 Oct): follow TreeGraft
 (arXiv 2608.26112), which builds one draft tree from several drafters.
 
 ## Summary
@@ -13,7 +13,7 @@ single-drafter endpoint. At C>=64 no substantial tree/grafting throughput
 gain remains. These are decode-only cost projections, not serving speedups.
 
 Recovery completed 2026-10-27. Jobs 3737472/3737473 had finished on 25/26
-October while their local watchers were stopped. Their original high-load
+October and were collected afterwards. Their original high-load
 projections are invalid: the cost model extrapolated a downward timing-table
 segment into negative verification time. The corrected, versioned analysis
 and all nonrestricted raw evidence are in
