@@ -125,7 +125,8 @@ def port_forward(kube: Kube, pod: str) -> tuple[subprocess.Popen, str]:
     return process, f"http://127.0.0.1:{port}"
 
 
-async def wait_idle(metrics: KubeMetrics, model: str, seconds: float = 120) -> None:
+async def wait_idle(metrics: KubeMetrics, model: str, seconds: float = 900) -> None:
+    # Streams the gateway dropped keep running in the engine; wait them out.
     from apertus_bench.load import parse_load_sample
 
     deadline = time.monotonic() + seconds
@@ -257,9 +258,17 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
                     break
                 for attempt in range(1 + args.retries):
                     await wait_idle(metrics, model)
+                    # Warm up as a separate cell, then let the engine drain before measuring.
+                    await run_cell(
+                        client, prompts, corpus,
+                        out / "warmup" / label / f"c{concurrency}-{run_id}-{attempt}",
+                        CellSettings(label, concurrency, concurrency, 0, 1, generation),
+                        variant_record, None, model, extra, tolerate_warmup_failures=True,
+                    )  # fmt: skip
+                    await wait_idle(metrics, model)
                     summary = await run_cell(
                         client, prompts, corpus, cell,
-                        CellSettings(label, concurrency, requests, concurrency, 1, generation),
+                        CellSettings(label, concurrency, requests, 0, 1, generation),
                         variant_record, "kubectl-exec://pod/metrics", model, extra,
                         metrics_interval=args.metrics_interval, tolerate_warmup_failures=True,
                         metrics_client=metrics,

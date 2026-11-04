@@ -368,9 +368,9 @@ def test_live_window_guards_cells_and_records_the_window(tmp_path, monkeypatch):
             return json.dumps({"items": [pod]})
         if argv[0] == "exec":
             scrapes.append(1)
-            # The foreign request finishes between the before and after scrape of
-            # the first measured cell (scrape 1 is wait_idle's, 2 is "before").
-            if len(scrapes) == 3 and state["foreign"]:
+            # The foreign request finishes inside the first measured cell: scrapes 1-2
+            # are the idle waits around the warmup, 3 is "before", 4 is "after".
+            if len(scrapes) == 4 and state["foreign"]:
                 state["done"] += state.pop("foreign")
             return scrape()
         raise AssertionError(argv)
