@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build the speculators training dataset inside the container (Yu's
 # apertus_opb_prepare.sh): prepare-data packs at 8,192 tokens.
+#   STAGE=8b MODE=prepare OUT=dir submit-train.sh   # Yu's 8B corpus, split checked
 #   IN=answers.jsonl OUT=dir bash prepare.sh        # any regenerated jsonl (pilot)
 #   FULL=1 bash prepare.sh                          # the whole corpus
 # FULL=1 first merges the parts so that the trainer holds out the 8B run's
@@ -27,6 +28,19 @@ python3 -m speculators prepare-data --model "${TARGET_MODEL}" --trust-remote-cod
   --output "${OUT}" --token-freq-path "${OUT}/token_freq.pt" --no-skip-token-freq --seq-length 8192
 cat "${OUT}/dataset_info.json" 2> /dev/null | head -c 400 || true
 echo
+
+# A corpus that already has a held-out list (Yu's 8B one): the prepared
+# dataset must hold out exactly those rows, as in his run.
+if [ "${CHECK_SPLIT:-0}" = 1 ] && [ "${FULL:-0}" != 1 ]; then
+  stamp "held-out split"
+  python3 "$(dirname "${IN}")/val_ids.py" "${IN}" "${OUT}" "${OUT}"
+  if cmp -s <(sort "${OUT}/val_ids.txt") <(sort "$(dirname "${IN}")/val_ids.txt"); then
+    stamp "SPLIT_VERIFIED: $(wc -l < "${OUT}/val_ids.txt") held out, as in $(dirname "${IN}")/val_ids.txt"
+  else
+    stamp "SPLIT_MISMATCH: the prepared dataset does not hold out the rows of $(dirname "${IN}")/val_ids.txt"
+    exit 1
+  fi
+fi
 
 if [ "${FULL:-0}" = 1 ]; then
   stamp "held-out split"
