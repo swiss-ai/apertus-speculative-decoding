@@ -76,9 +76,12 @@ sweep directories. That limitation cannot be repaired retrospectively.
 Original metadata is retained unchanged. The manifest's recovery revision
 `c4d60795bddec2479d0b00ce7c750991c2412021`, source patches, resolved overlay
 files, target contract and scheduler configuration identify what was present
-at recovery time, **not proven as-run identities**. Files under
-`other-run-identity-reference/` belong to a different run and supply context
-only; their image/checkpoint hashes are not promoted to this pair's receipt.
+at recovery time, **not proven as-run identities**. The manifest keeps their
+paths and SHA256 values; the byte copies (recovery-time repository files,
+`serving/patches/` copies identical to the committed patches, resolved vLLM
+overlay files and an unrelated run's identity files) were dropped from the
+repository on merge and remain in the Clariden archive above and in branch
+`waste-profiling` at `412eb2fc`.
 Consequently close differences are descriptive, and these runs should not
 be published as fully receipt-backed reproductions.
 
@@ -102,12 +105,11 @@ PYTHONPATH=src .venv/bin/python results/8b/waste/recovery-20261027/analyze.py \
   --output results/8b/waste/recovery-20261027/analysis-v3
 ```
 
-`analysis-v1` is retained as the first execution; v2 has identical metrics
-after formatting the analysis source. Exact initially executed collector and
-v1 analysis sources and their hashes are under `executed-source/`. The
-maintained collector refuses to overwrite an existing archive. Earlier
+`analysis-v2` is the second execution; the first (`analysis-v1`) had
+identical metric files and was dropped on merge together with the
+Clariden-specific collector `collect_remote.py`. Both, and the exact executed
+v1 sources, remain in branch `waste-profiling` at `412eb2fc`. Earlier
 `results/8b/waste/{decomposition,drafter-costs,cost-per-token}*` outputs are
 unchanged. The local `SHA256SUMS` covers all stored recovery and raw files.
 
-Validation: eight focused `tests/test_waste_report.py` tests pass; Ruff passes
-for the two maintained recovery scripts. No serving implementation changed.
+Validation: `tests/test_waste_report.py` passes. No serving implementation changed.
