@@ -13,6 +13,7 @@ from typing import Any
 from apertus_bench import __version__
 from apertus_bench.client import RequestMeasurement, StreamingChatClient
 from apertus_bench.load import MetricsSampler, summarize_load
+from apertus_bench.profiling import WINDOW_FILE, WindowSettings, profile_window
 from apertus_bench.prometheus import (
     SpeculativeSnapshot,
     parse_speculative_snapshot,
@@ -166,8 +167,11 @@ async def run_cell(
     extra_metadata: dict[str, str] | None = None,
     metrics_interval: float | None = None,
     tolerate_warmup_failures: bool = False,
+    profile: WindowSettings | None = None,
 ) -> dict[str, object]:
     """Run one cell. ``metrics_interval`` also samples load gauges during it.
+    ``profile`` opens one Nsight capture window inside the measured requests
+    (apertus_bench.profiling); the server must run under ``nsys profile``.
 
     Warm-up failures abort a benchmark cell; a load test records them instead
     (``tolerate_warmup_failures``), since failures under load are a result.
@@ -207,6 +211,16 @@ async def run_cell(
         sampler.start()
     started_at = datetime.now(UTC)
     wall_started = time.perf_counter()
+    window: dict[str, Any] | None = None
+    window_task = None
+    level_done = asyncio.Event()
+    if profile is not None:
+        window = {}
+        window_task = asyncio.create_task(
+            profile_window(
+                client.http, client.base_url, metrics_url, model, profile, window, level_done
+            )
+        )
     measurements = await _execute_requests(
         client,
         prompts,
@@ -216,6 +230,12 @@ async def run_cell(
         store_output=False,
     )
     wall_seconds = time.perf_counter() - wall_started
+    if window_task is not None and window is not None:
+        level_done.set()
+        try:
+            await window_task
+        except Exception as error:  # noqa: BLE001 - recorded with the cell
+            window["error"] = f"{type(error).__name__}: {error}"
     ended_at = datetime.now(UTC)
     if sampler is not None:
         await sampler.stop()
@@ -257,6 +277,8 @@ async def run_cell(
         with (output_dir / "metrics_timeseries.jsonl").open("w", encoding="utf-8") as handle:
             for sample in sampler.samples:
                 handle.write(json.dumps(sample, sort_keys=True) + "\n")
+    if window is not None:
+        (output_dir / WINDOW_FILE).write_text(json.dumps(window, indent=2) + "\n")
     if raw_before:
         (output_dir / "metrics_before.prom").write_text(raw_before)
         (output_dir / "metrics_after.prom").write_text(raw_after)

@@ -1,0 +1,116 @@
+{
+  "arm": "plain-nsys",
+  "deployment_id": "nsys-smoke-3722011-plain-nsys",
+  "env": {
+    "VLLM_APERTUS_NVTX": "1"
+  },
+  "finished": "2026-10-22T17:20:50+0200",
+  "gpus": [
+    1
+  ],
+  "port": 8101,
+  "profile": {
+    "argv": [
+      "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+      "profile",
+      "--output",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys/plain-nsys",
+      "--force-overwrite",
+      "true",
+      "--trace",
+      "cuda,nvtx,osrt",
+      "--cuda-graph-trace",
+      "node",
+      "--capture-range",
+      "cudaProfilerApi",
+      "--capture-range-end",
+      "repeat",
+      "--sample",
+      "none",
+      "--cpuctxsw",
+      "none",
+      "vllm",
+      "serve",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-plain-nsys",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--profiler-config.profiler",
+      "cuda",
+      "--port",
+      "8101"
+    ],
+    "expected_reports": 2,
+    "nsys_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys",
+    "reports": [
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys/plain-nsys.1.nsys-rep",
+        "stats_exit_code": 0
+      },
+      {
+        "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys/plain-nsys.2.nsys-rep",
+        "stats_exit_code": 0
+      }
+    ],
+    "reports_before_stop": 0
+  },
+  "ready_seconds": 160.2,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-plain-nsys",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--profiler-config.profiler",
+    "cuda"
+  ],
+  "servers": [],
+  "started": "2026-10-22T17:00:03+0200",
+  "status": "ok",
+  "tests": {
+    "opb": {
+      "exit_code": 0
+    }
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "SWEEP_DRAFT_KV": "1",
+  "created_at": "2026-10-22T17:10:34.239437+00:00",
+  "expanded_arms": [
+    {
+      "env": {},
+      "metadata": {},
+      "name": "state-kernels",
+      "serve_argv": [
+        "python3",
+        "{repo}/serving/draft_kv/check_gpu.py",
+        "--smoke",
+        "--state-check"
+      ]
+    },
+    {
+      "env": {
+        "VLLM_APERTUS_DRAFT_KV_BUDGET": "2048",
+        "VLLM_APERTUS_DRAFT_KV_POLICY": "native",
+        "VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl",
+        "VLLM_DRAFT_KV_TRACE": "{arm_dir}/draft-kv.jsonl"
+      },
+      "metadata": {
+        "checkpoint_sha256": "5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1",
+        "dspark_checkpoint": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+        "engine": "{\"async_scheduling\": false, \"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.8, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 256}",
+        "extra_vllm_args": "",
+        "inventory_sha256": "af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226",
+        "kv_phase": "preflight",
+        "kv_policy": "native-a",
+        "load_generator": "replica node (same container step)",
+        "max_num_batched_tokens": "16384",
+        "max_num_seqs": "256",
+        "speculative_config": "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+        "sweep_arm": "native-a",
+        "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6"
+      },
+      "name": "native-a",
+      "serve_argv": [
+        "vllm",
+        "serve",
+        "--model",
+        "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+        "--served-model-name",
+        "swiss-ai/Apertus-v1.5-8B-native-a",
+        "--host",
+        "127.0.0.1",
+        "--chat-template-content-format",
+        "string",
+        "--tensor-parallel-size",
+        "1",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "apertus",
+        "--compilation-config.pass_config.fuse_allreduce_rms",
+        "false",
+        "--gpu-memory-utilization",
+        "0.8",
+        "--no-enable-prefix-caching",
+        "--max-model-len",
+        "32768",
+        "--max-num-batched-tokens",
+        "16384",
+        "--max-num-seqs",
+        "256",
+        "--no-async-scheduling",
+        "--speculative-config",
+        "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}"
+      ]
+    },
+    {
+      "env": {
+        "VLLM_APERTUS_DRAFT_KV_BUDGET": "2048",
+        "VLLM_APERTUS_DRAFT_KV_POLICY": "native",
+        "VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl",
+        "VLLM_DRAFT_KV_TRACE": "{arm_dir}/draft-kv.jsonl"
+      },
+      "metadata": {
+        "checkpoint_sha256": "5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1",
+        "dspark_checkpoint": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+        "engine": "{\"async_scheduling\": false, \"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.8, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 256}",
+        "extra_vllm_args": "",
+        "inventory_sha256": "af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226",
+        "kv_phase": "preflight",
+        "kv_policy": "native-b",
+        "load_generator": "replica node (same container step)",
+        "max_num_batched_tokens": "16384",
+        "max_num_seqs": "256",
+        "speculative_config": "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+        "sweep_arm": "native-b",
+        "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6"
+      },
+      "name": "native-b",
+      "serve_argv": [
+        "vllm",
+        "serve",
+        "--model",
+        "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+        "--served-model-name",
+        "swiss-ai/Apertus-v1.5-8B-native-b",
+        "--host",
+        "127.0.0.1",
+        "--chat-template-content-format",
+        "string",
+        "--tensor-parallel-size",
+        "1",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "apertus",
+        "--compilation-config.pass_config.fuse_allreduce_rms",
+        "false",
+        "--gpu-memory-utilization",
+        "0.8",
+        "--no-enable-prefix-caching",
+        "--max-model-len",
+        "32768",
+        "--max-num-batched-tokens",
+        "16384",
+        "--max-num-seqs",
+        "256",
+        "--no-async-scheduling",
+        "--speculative-config",
+        "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}"
+      ]
+    },
+    {
+      "env": {
+        "VLLM_APERTUS_DRAFT_KV_BUDGET": "2048",
+        "VLLM_APERTUS_DRAFT_KV_POLICY": "full",
+        "VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl",
+        "VLLM_DRAFT_KV_TRACE": "{arm_dir}/draft-kv.jsonl"
+      },
+      "metadata": {
+        "checkpoint_sha256": "5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1",
+        "dspark_checkpoint": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+        "engine": "{\"async_scheduling\": false, \"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.8, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 256}",
+        "extra_vllm_args": "",
+        "inventory_sha256": "af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226",
+        "kv_phase": "preflight",
+        "kv_policy": "full-custom",
+        "load_generator": "replica node (same container step)",
+        "max_num_batched_tokens": "16384",
+        "max_num_seqs": "256",
+        "speculative_config": "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+        "sweep_arm": "full-custom",
+        "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6"
+      },
+      "name": "full-custom",
+      "serve_argv": [
+        "vllm",
+        "serve",
+        "--model",
+        "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+        "--served-model-name",
+        "swiss-ai/Apertus-v1.5-8B-full-custom",
+        "--host",
+        "127.0.0.1",
+        "--chat-template-content-format",
+        "string",
+        "--tensor-parallel-size",
+        "1",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "apertus",
+        "--compilation-config.pass_config.fuse_allreduce_rms",
+        "false",
+        "--gpu-memory-utilization",
+        "0.8",
+        "--no-enable-prefix-caching",
+        "--max-model-len",
+        "32768",
+        "--max-num-batched-tokens",
+        "16384",
+        "--max-num-seqs",
+        "256",
+        "--no-async-scheduling",
+        "--speculative-config",
+        "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}"
+      ]
+    },
+    {
+      "env": {
+        "VLLM_APERTUS_DRAFT_KV_BUDGET": "512",
+        "VLLM_APERTUS_DRAFT_KV_POLICY": "importance",
+        "VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl",
+        "VLLM_DRAFT_KV_TRACE": "{arm_dir}/draft-kv.jsonl"
+      },
+      "metadata": {
+        "checkpoint_sha256": "5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1",
+        "dspark_checkpoint": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+        "engine": "{\"async_scheduling\": false, \"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.8, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 256}",
+        "extra_vllm_args": "",
+        "inventory_sha256": "af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226",
+        "kv_phase": "preflight",
+        "kv_policy": "importance512",
+        "load_generator": "replica node (same container step)",
+        "max_num_batched_tokens": "16384",
+        "max_num_seqs": "256",
+        "speculative_config": "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+        "sweep_arm": "importance512",
+        "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6"
+      },
+      "name": "importance512",
+      "serve_argv": [
+        "vllm",
+        "serve",
+        "--model",
+        "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+        "--served-model-name",
+        "swiss-ai/Apertus-v1.5-8B-importance512",
+        "--host",
+        "127.0.0.1",
+        "--chat-template-content-format",
+        "string",
+        "--tensor-parallel-size",
+        "1",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "apertus",
+        "--compilation-config.pass_config.fuse_allreduce_rms",
+        "false",
+        "--gpu-memory-utilization",
+        "0.8",
+        "--no-enable-prefix-caching",
+        "--max-model-len",
+        "32768",
+        "--max-num-batched-tokens",
+        "16384",
+        "--max-num-seqs",
+        "256",
+        "--no-async-scheduling",
+        "--speculative-config",
+        "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}"
+      ]
+    }
+  ],
+  "frozen_inputs": {
+    "corpora": {
+      "correctness.jsonl": {
+        "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl",
+        "selection": "first two per validation stratum, cap128",
+        "sha256": "beb64e64786346ddb5446ea2cf2a0fd9469e6c95c27de281e86682a6f079215f"
+      },
+      "eagle-8b-test.jsonl": {
+        "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-test.jsonl",
+        "sha256": "70812a8c52f7f619ecc9e6afc9d7e31938b88a97caf324d4be7987c4459f830f"
+      },
+      "eagle-8b-validation.jsonl": {
+        "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-validation.jsonl",
+        "sha256": "8f2a17d6e83d2573b1f9d336c2b817211c7d3d33f46a8b7fbe48f8e6553c7290"
+      },
+      "opb-heldout.jsonl": {
+        "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/opb-heldout.jsonl",
+        "sha256": "186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b"
+      }
+    },
+    "inventory": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs.json",
+    "inventory_sha256": "af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226",
+    "phase": "preflight"
+  },
+  "git_diff": "",
+  "git_revision": "e2f907aef74076bc79ba85f0e5bcd02a287dbbbb",
+  "reservation": {
+    "allocated_gpus": 4,
+    "allocation": "preflight-runtime-01",
+    "command": null,
+    "job_comment": "apertus-drafter-kv:kv-sparsity-20261022-a:preflight-runtime-01:7458fc528c9640958aaf89b98414d528",
+    "output": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-runtime-01/results",
+    "phase": "preflight",
+    "reserved_at": "2026-10-22T17:10:33.320842+00:00",
+    "reserved_seconds": 1800,
+    "state": "reserved",
+    "submission_attempted": false
+  },
+  "spec": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/specs/preflight/runtime-01.yaml",
+  "spec_sha256": "b374468805a53b2e19978aa13ee671cf58c8442de1150b11c54a9081a963c842"
+}

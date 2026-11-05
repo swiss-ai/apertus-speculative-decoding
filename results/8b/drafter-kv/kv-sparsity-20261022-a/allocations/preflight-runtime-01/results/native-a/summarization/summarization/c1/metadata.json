@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "harness_version": "0.1.0",
+  "harness_git_revision": "a26ba85babb61fbd5522fe10eab2721a8f32f23b",
+  "python": "3.12.3",
+  "started_at": "2026-10-22T17:25:14.361951+00:00",
+  "ended_at": "2026-10-22T17:25:15.318989+00:00",
+  "base_url": "http://127.0.0.1:8101",
+  "metrics_url": "http://127.0.0.1:8101/metrics",
+  "model": "swiss-ai/Apertus-v1.5-8B-native-a",
+  "variant": {
+    "name": "native-a",
+    "method": "dspark",
+    "num_speculative_tokens": 7,
+    "draft_tensor_parallel_size": null,
+    "prompt_lookup_max": null,
+    "algorithm": null,
+    "parallel_drafting": false
+  },
+  "cell": {
+    "workload": "summarization",
+    "concurrency": 1,
+    "requests": 2,
+    "warmup_requests": 1,
+    "repeat": 1,
+    "generation": {
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "top_k": null,
+      "seed": 1,
+      "max_tokens": null,
+      "ignore_eos": false
+    }
+  },
+  "workload_file": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl",
+  "workload_file_sha256": "beb64e64786346ddb5446ea2cf2a0fd9469e6c95c27de281e86682a6f079215f",
+  "prompt_ids": [
+    "summarization-eng-50262f9791679fa4",
+    "summarization-eng-0a5f25cbf7522a64"
+  ],
+  "extra": {
+    "deployment_id": "drafter-kv-runtime-preflight-3723725-native-a",
+    "sweep_arm": "native-a",
+    "max_num_batched_tokens": "16384",
+    "max_num_seqs": "256",
+    "speculative_config": "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}",
+    "engine": "{\"async_scheduling\": false, \"enable_prefix_caching\": false, \"gpu_memory_utilization\": 0.8, \"max_model_len\": 32768, \"max_num_batched_tokens\": 16384, \"max_num_seqs\": 256}",
+    "load_generator": "replica node (same container step)",
+    "dspark_checkpoint": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+    "kv_policy": "native-a",
+    "kv_phase": "preflight",
+    "checkpoint_sha256": "5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1",
+    "target_revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+    "inventory_sha256": "af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226"
+  }
+}

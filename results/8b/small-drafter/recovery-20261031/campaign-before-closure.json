@@ -1,0 +1,33 @@
+{
+  "active_job": "3804151",
+  "error": "CorrectnessGateFailed: calibrated correctness exceeded the existing protocol margins",
+  "failure_kind": "correctness",
+  "host_launcher_also_failed": true,
+  "job_ids": [
+    "3790212",
+    "3804151",
+    "3804152",
+    "3804153"
+  ],
+  "next_action": "stop; diagnose preserved infrastructure/correctness artifacts; no scientific verdict",
+  "source_revision": "296ed4f01f2d53ac1d3f300fd8f70b27ec339538",
+  "stage": "validate",
+  "stages": {
+    "a": {
+      "dependency": "afterok:3804151",
+      "job_id": "3804152"
+    },
+    "b": {
+      "dependency": "afterok:3804152",
+      "job_id": "3804153"
+    },
+    "validate": {
+      "dependency": "completed-training:3790212",
+      "job_id": "3804151"
+    }
+  },
+  "state": "failed",
+  "training_job": "3790212",
+  "updated_at": "2026-10-30T14:25:21.434610+00:00",
+  "workstream": "shallow_drafter"
+}

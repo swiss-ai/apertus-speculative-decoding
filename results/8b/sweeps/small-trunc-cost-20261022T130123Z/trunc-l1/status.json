@@ -1,0 +1,56 @@
+{
+  "arm": "trunc-l1",
+  "deployment_id": "small-trunc-cost-3721367-trunc-l1",
+  "env": {
+    "VLLM_DSPARK_DRAFT_CUT": "1",
+    "VLLM_DSPARK_KV_COST": "1",
+    "VLLM_DSPARK_STS": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/methods/dspark/scheduler/sts-dspark-e10-8b.json",
+    "VLLM_DSPARK_VERIFY_MODE": "paper",
+    "VLLM_DSPARK_VERIFY_PROFILE": "{arm_dir}/cost-table.json",
+    "VLLM_DSPARK_VERIFY_SCHED": "1"
+  },
+  "finished": "2026-10-22T15:12:42+0200",
+  "gpus": [
+    3
+  ],
+  "port": 8103,
+  "ready_seconds": 280.5,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-trunc-l1",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/drafters/dspark-e10-trunc-l1\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-10-22T15:02:23+0200",
+  "status": "ok",
+  "tests": {
+    "opb": {
+      "exit_code": 0
+    }
+  }
+}

@@ -1,0 +1,2206 @@
+{
+  "claim_limit": "offline candidate replay and modeled decode-only throughput; no tree-serving benchmark",
+  "source_report_sha256": "01d20bb0bb8d127b23ebf7c2108d65318776d6885e099b98b9ac42d0a8552c8d",
+  "corrected_report_sha256": "c4d4ed26f261eb3c30d44d3ce1569b042bf7a2aac6074765a5f88d9145e06006",
+  "sequences": {
+    "all": 256,
+    "chat": 128,
+    "opb": 128
+  },
+  "anchors": 86844,
+  "hf_argmax_agreement_range_across_shards": [
+    0.9899323447849511,
+    0.9944352375191547
+  ],
+  "comparisons": [
+    {
+      "workload": "opb",
+      "concurrency": 1,
+      "best_chain": {
+        "policy": "chain-dspark",
+        "budget": 7,
+        "tokens_per_step": 4.8177,
+        "tok_s": 616.5,
+        "speedup_vs_plain": 3.5178,
+        "step_ms": {
+          "verify": 5.772,
+          "kv": 0.035,
+          "dspark": 2.008,
+          "dspark_tree": 0.0,
+          "total": 7.814
+        },
+        "verified_tokens": 8.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-dspark",
+        "budget": 32,
+        "tokens_per_step": 6.1086,
+        "tok_s": 767.0,
+        "speedup_vs_plain": 4.3766,
+        "step_ms": {
+          "verify": 5.926,
+          "kv": 0.034,
+          "dspark": 1.998,
+          "dspark_tree": 0.006,
+          "total": 7.964
+        },
+        "verified_tokens": 33.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 32,
+        "tokens_per_step": 6.1086,
+        "tok_s": 767.0,
+        "speedup_vs_plain": 4.3766,
+        "step_ms": {
+          "verify": 5.926,
+          "kv": 0.034,
+          "dspark": 1.998,
+          "dspark_tree": 0.006,
+          "total": 7.964
+        },
+        "verified_tokens": 33.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 48,
+        "tokens_per_step": 6.6392,
+        "tok_s": 557.8,
+        "speedup_vs_plain": 3.1828,
+        "step_ms": {
+          "verify": 6.129,
+          "kv": 0.033,
+          "dspark": 1.998,
+          "dspark_tree": 0.009,
+          "eagle": 3.734,
+          "total": 11.903
+        },
+        "verified_tokens": 49.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 1.2441200324412003,
+      "multi_vs_single": 1.0,
+      "two_neural_vs_single": 0.7272490221642763
+    },
+    {
+      "workload": "opb",
+      "concurrency": 8,
+      "best_chain": {
+        "policy": "chain-dspark",
+        "budget": 7,
+        "tokens_per_step": 4.8177,
+        "tok_s": 4365.8,
+        "speedup_vs_plain": 3.2925,
+        "step_ms": {
+          "verify": 6.49,
+          "kv": 0.28,
+          "dspark": 2.059,
+          "dspark_tree": 0.0,
+          "total": 8.828
+        },
+        "verified_tokens": 64.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-dspark",
+        "budget": 10,
+        "tokens_per_step": 5.4405,
+        "tok_s": 4842.7,
+        "speedup_vs_plain": 3.6521,
+        "step_ms": {
+          "verify": 6.702,
+          "kv": 0.274,
+          "dspark": 1.992,
+          "dspark_tree": 0.019,
+          "total": 8.988
+        },
+        "verified_tokens": 88.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 10,
+        "tokens_per_step": 5.4405,
+        "tok_s": 4842.7,
+        "speedup_vs_plain": 3.6521,
+        "step_ms": {
+          "verify": 6.702,
+          "kv": 0.274,
+          "dspark": 1.992,
+          "dspark_tree": 0.019,
+          "total": 8.988
+        },
+        "verified_tokens": 88.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 10,
+        "tokens_per_step": 5.6762,
+        "tok_s": 3672.5,
+        "speedup_vs_plain": 2.7696,
+        "step_ms": {
+          "verify": 6.702,
+          "kv": 0.27,
+          "dspark": 1.972,
+          "dspark_tree": 0.018,
+          "eagle": 3.402,
+          "total": 12.365
+        },
+        "verified_tokens": 88.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 1.1092354207705346,
+      "multi_vs_single": 1.0,
+      "two_neural_vs_single": 0.7583579408181387
+    },
+    {
+      "workload": "opb",
+      "concurrency": 64,
+      "best_chain": {
+        "policy": "chain-eagle",
+        "budget": 3,
+        "tokens_per_step": 3.2239,
+        "tok_s": 13049.2,
+        "speedup_vs_plain": 1.75,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 2.104,
+          "eagle": 2.374,
+          "total": 15.812
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-eagle",
+        "budget": 3,
+        "tokens_per_step": 3.255,
+        "tok_s": 13330.8,
+        "speedup_vs_plain": 1.7878,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 2.09,
+          "eagle": 2.203,
+          "total": 15.627
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 4,
+        "tokens_per_step": 3.8728,
+        "tok_s": 13180.4,
+        "speedup_vs_plain": 1.7676,
+        "step_ms": {
+          "verify": 13.49,
+          "kv": 2.13,
+          "dspark": 3.114,
+          "dspark_tree": 0.072,
+          "total": 18.805
+        },
+        "verified_tokens": 320.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 4,
+        "tokens_per_step": 3.9447,
+        "tok_s": 11703.1,
+        "speedup_vs_plain": 1.5695,
+        "step_ms": {
+          "verify": 13.49,
+          "kv": 2.105,
+          "dspark": 3.061,
+          "dspark_tree": 0.07,
+          "eagle": 2.846,
+          "total": 21.572
+        },
+        "verified_tokens": 320.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 1.0100542561996138,
+      "multi_vs_single": 0.9887178563927146,
+      "two_neural_vs_single": 0.8778993008671648
+    },
+    {
+      "workload": "opb",
+      "concurrency": 128,
+      "best_chain": {
+        "policy": "chain-eagle",
+        "budget": 3,
+        "tokens_per_step": 3.2239,
+        "tok_s": 15185.4,
+        "speedup_vs_plain": 1.4335,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 4.209,
+          "eagle": 3.161,
+          "total": 27.175
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-eagle",
+        "budget": 3,
+        "tokens_per_step": 3.255,
+        "tok_s": 15477.3,
+        "speedup_vs_plain": 1.461,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 4.181,
+          "eagle": 2.934,
+          "total": 26.919
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 3,
+        "tokens_per_step": 3.3131,
+        "tok_s": 14810.8,
+        "speedup_vs_plain": 1.3981,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 4.195,
+          "dspark": 4.523,
+          "dspark_tree": 0.11,
+          "total": 28.633
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 3,
+        "tokens_per_step": 3.3503,
+        "tok_s": 13622.5,
+        "speedup_vs_plain": 1.2859,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 4.163,
+          "dspark": 4.457,
+          "dspark_tree": 0.107,
+          "eagle": 2.948,
+          "total": 31.48
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 0.9753315684802507,
+      "multi_vs_single": 0.9569369334444638,
+      "two_neural_vs_single": 0.8801599762232432
+    },
+    {
+      "workload": "opb",
+      "concurrency": 256,
+      "best_chain": {
+        "policy": "chain-eagle",
+        "budget": 2,
+        "tokens_per_step": 2.6086,
+        "tok_s": 17107.4,
+        "speedup_vs_plain": 1.3169,
+        "step_ms": {
+          "verify": 27.615,
+          "kv": 8.263,
+          "eagle": 3.157,
+          "total": 39.035
+        },
+        "verified_tokens": 768.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-eagle",
+        "budget": 3,
+        "tokens_per_step": 3.255,
+        "tok_s": 17292.6,
+        "speedup_vs_plain": 1.3311,
+        "step_ms": {
+          "verify": 35.43,
+          "kv": 8.362,
+          "eagle": 4.395,
+          "total": 48.187
+        },
+        "verified_tokens": 1024.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 3,
+        "tokens_per_step": 3.3131,
+        "tok_s": 16229.2,
+        "speedup_vs_plain": 1.2493,
+        "step_ms": {
+          "verify": 35.43,
+          "kv": 8.39,
+          "dspark": 8.221,
+          "dspark_tree": 0.22,
+          "total": 52.261
+        },
+        "verified_tokens": 1024.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 3,
+        "tokens_per_step": 3.3503,
+        "tok_s": 15186.6,
+        "speedup_vs_plain": 1.169,
+        "step_ms": {
+          "verify": 35.43,
+          "kv": 8.327,
+          "dspark": 8.089,
+          "dspark_tree": 0.215,
+          "eagle": 4.416,
+          "total": 56.476
+        },
+        "verified_tokens": 1024.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 0.9486654897880449,
+      "multi_vs_single": 0.9385054878965571,
+      "two_neural_vs_single": 0.878213802435724
+    },
+    {
+      "workload": "chat",
+      "concurrency": 1,
+      "best_chain": {
+        "policy": "chain-dspark",
+        "budget": 7,
+        "tokens_per_step": 2.625,
+        "tok_s": 336.0,
+        "speedup_vs_plain": 1.9176,
+        "step_ms": {
+          "verify": 5.772,
+          "kv": 0.033,
+          "dspark": 2.008,
+          "dspark_tree": 0.0,
+          "total": 7.812
+        },
+        "verified_tokens": 8.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-dspark",
+        "budget": 48,
+        "tokens_per_step": 3.551,
+        "tok_s": 436.5,
+        "speedup_vs_plain": 2.4909,
+        "step_ms": {
+          "verify": 6.129,
+          "kv": 0.032,
+          "dspark": 1.967,
+          "dspark_tree": 0.008,
+          "total": 8.136
+        },
+        "verified_tokens": 49.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 48,
+        "tokens_per_step": 3.554,
+        "tok_s": 436.8,
+        "speedup_vs_plain": 2.493,
+        "step_ms": {
+          "verify": 6.129,
+          "kv": 0.032,
+          "dspark": 1.967,
+          "dspark_tree": 0.008,
+          "total": 8.136
+        },
+        "verified_tokens": 49.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 32,
+        "tokens_per_step": 3.7839,
+        "tok_s": 350.0,
+        "speedup_vs_plain": 1.9972,
+        "step_ms": {
+          "verify": 5.926,
+          "kv": 0.032,
+          "dspark": 1.92,
+          "dspark_tree": 0.005,
+          "eagle": 2.929,
+          "total": 10.813
+        },
+        "verified_tokens": 33.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 1.3,
+      "multi_vs_single": 1.0006872852233677,
+      "two_neural_vs_single": 0.8018327605956472
+    },
+    {
+      "workload": "chat",
+      "concurrency": 8,
+      "best_chain": {
+        "policy": "chain-dspark",
+        "budget": 5,
+        "tokens_per_step": 2.5412,
+        "tok_s": 2456.2,
+        "speedup_vs_plain": 1.8546,
+        "step_ms": {
+          "verify": 6.109,
+          "kv": 0.265,
+          "dspark": 1.903,
+          "dspark_tree": 0.0,
+          "total": 8.277
+        },
+        "verified_tokens": 48.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-dspark",
+        "budget": 10,
+        "tokens_per_step": 3.0337,
+        "tok_s": 2734.4,
+        "speedup_vs_plain": 2.0647,
+        "step_ms": {
+          "verify": 6.702,
+          "kv": 0.26,
+          "dspark": 1.897,
+          "dspark_tree": 0.016,
+          "total": 8.876
+        },
+        "verified_tokens": 88.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 10,
+        "tokens_per_step": 3.0337,
+        "tok_s": 2734.4,
+        "speedup_vs_plain": 2.0647,
+        "step_ms": {
+          "verify": 6.702,
+          "kv": 0.26,
+          "dspark": 1.897,
+          "dspark_tree": 0.016,
+          "total": 8.876
+        },
+        "verified_tokens": 88.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 10,
+        "tokens_per_step": 3.2696,
+        "tok_s": 2314.3,
+        "speedup_vs_plain": 1.7474,
+        "step_ms": {
+          "verify": 6.702,
+          "kv": 0.261,
+          "dspark": 1.851,
+          "dspark_tree": 0.014,
+          "eagle": 2.475,
+          "total": 11.302
+        },
+        "verified_tokens": 88.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 1.1132643921504766,
+      "multi_vs_single": 1.0,
+      "two_neural_vs_single": 0.8463648332358105
+    },
+    {
+      "workload": "chat",
+      "concurrency": 64,
+      "best_chain": {
+        "policy": "chain-eagle",
+        "budget": 1,
+        "tokens_per_step": 1.6241,
+        "tok_s": 9493.2,
+        "speedup_vs_plain": 1.2817,
+        "step_ms": {
+          "verify": 7.896,
+          "kv": 2.262,
+          "eagle": 0.791,
+          "total": 10.949
+        },
+        "verified_tokens": 128.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "tree-eagle",
+        "budget": 2,
+        "tokens_per_step": 2.0248,
+        "tok_s": 9635.3,
+        "speedup_vs_plain": 1.3009,
+        "step_ms": {
+          "verify": 9.854,
+          "kv": 2.208,
+          "eagle": 1.387,
+          "total": 13.449
+        },
+        "verified_tokens": 192.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 3,
+        "tokens_per_step": 2.3558,
+        "tok_s": 9342.4,
+        "speedup_vs_plain": 1.2613,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 2.167,
+          "dspark": 2.589,
+          "dspark_tree": 0.05,
+          "total": 16.138
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 3,
+        "tokens_per_step": 2.4258,
+        "tok_s": 8669.2,
+        "speedup_vs_plain": 1.1704,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 2.181,
+          "dspark": 2.481,
+          "dspark_tree": 0.045,
+          "eagle": 1.868,
+          "total": 17.908
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 0.9841149454346267,
+      "multi_vs_single": 0.9696013616597304,
+      "two_neural_vs_single": 0.8997332724461098
+    },
+    {
+      "workload": "chat",
+      "concurrency": 128,
+      "best_chain": {
+        "policy": "chain-eagle",
+        "budget": 1,
+        "tokens_per_step": 1.6241,
+        "tok_s": 12293.9,
+        "speedup_vs_plain": 1.1716,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 4.523,
+          "eagle": 1.054,
+          "total": 16.91
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "chain-eagle",
+        "budget": 1,
+        "tokens_per_step": 1.6241,
+        "tok_s": 12293.9,
+        "speedup_vs_plain": 1.1716,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 4.523,
+          "eagle": 1.054,
+          "total": 16.91
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 1,
+        "tokens_per_step": 1.6591,
+        "tok_s": 11469.5,
+        "speedup_vs_plain": 1.0931,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 4.531,
+          "dspark": 2.613,
+          "dspark_tree": 0.038,
+          "total": 18.515
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 1,
+        "tokens_per_step": 1.6751,
+        "tok_s": 10952.9,
+        "speedup_vs_plain": 1.0438,
+        "step_ms": {
+          "verify": 11.333,
+          "kv": 4.537,
+          "dspark": 2.613,
+          "dspark_tree": 0.038,
+          "eagle": 1.054,
+          "total": 19.575
+        },
+        "verified_tokens": 256.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 0.9329423535249189,
+      "multi_vs_single": 0.9329423535249189,
+      "two_neural_vs_single": 0.8909215139215383
+    },
+    {
+      "workload": "chat",
+      "concurrency": 256,
+      "best_chain": {
+        "policy": "chain-eagle",
+        "budget": 1,
+        "tokens_per_step": 1.6241,
+        "tok_s": 13663.7,
+        "speedup_vs_plain": 1.0641,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 9.047,
+          "eagle": 1.579,
+          "total": 30.43
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "best_single": {
+        "policy": "chain-eagle",
+        "budget": 1,
+        "tokens_per_step": 1.6241,
+        "tok_s": 13663.7,
+        "speedup_vs_plain": 1.0641,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 9.047,
+          "eagle": 1.579,
+          "total": 30.43
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "best_multi": {
+        "policy": "graft-dspark+ngram",
+        "budget": 1,
+        "tokens_per_step": 1.6591,
+        "tok_s": 12821.6,
+        "speedup_vs_plain": 0.9986,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 9.062,
+          "dspark": 4.182,
+          "dspark_tree": 0.077,
+          "total": 33.125
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "best_two_neural_drafters": {
+        "policy": "graft-all",
+        "budget": 1,
+        "tokens_per_step": 1.6751,
+        "tok_s": 12351.8,
+        "speedup_vs_plain": 0.962,
+        "step_ms": {
+          "verify": 19.805,
+          "kv": 9.075,
+          "dspark": 4.182,
+          "dspark_tree": 0.077,
+          "eagle": 1.579,
+          "total": 34.717
+        },
+        "verified_tokens": 512.0,
+        "verify_extrapolated": false
+      },
+      "multi_vs_chain": 0.9383695485117501,
+      "multi_vs_single": 0.9383695485117501,
+      "two_neural_vs_single": 0.9039864751128902
+    }
+  ],
+  "G4_acceptance_screen": [
+    {
+      "workload": "opb",
+      "budget_cap": 4,
+      "threshold": 0.1,
+      "chain_tokens_per_step": 3.7921,
+      "single_tree_tokens_per_step": 3.8728,
+      "multi_tokens_per_step": 3.9447,
+      "multi_vs_chain_gain": 0.04024155481131819,
+      "multi_vs_single_gain": 0.018565379053914643,
+      "passed": false
+    },
+    {
+      "workload": "opb",
+      "budget_cap": 16,
+      "threshold": 0.15,
+      "chain_tokens_per_step": 4.8177,
+      "single_tree_tokens_per_step": 5.8562,
+      "multi_tokens_per_step": 6.0612,
+      "multi_vs_chain_gain": 0.25811071673205066,
+      "multi_vs_single_gain": 0.03500563505344756,
+      "passed": true
+    },
+    {
+      "workload": "chat",
+      "budget_cap": 4,
+      "threshold": 0.1,
+      "chain_tokens_per_step": 2.4504,
+      "single_tree_tokens_per_step": 2.5513,
+      "multi_tokens_per_step": 2.6595,
+      "multi_vs_chain_gain": 0.08533300685602341,
+      "multi_vs_single_gain": 0.04240975189119278,
+      "passed": false
+    },
+    {
+      "workload": "chat",
+      "budget_cap": 16,
+      "threshold": 0.15,
+      "chain_tokens_per_step": 2.625,
+      "single_tree_tokens_per_step": 3.2678,
+      "multi_tokens_per_step": 3.4973,
+      "multi_vs_chain_gain": 0.3323047619047619,
+      "multi_vs_single_gain": 0.07023073627516996,
+      "passed": true
+    }
+  ],
+  "gate_interpretation": "low-load chain comparison passes, but does not isolate multi-drafter value",
+  "implementation_verdict": "do not implement multi-drafter serving; single-DSpark-tree low-load headroom is unvalidated",
+  "invalidated_original_projection": {
+    "reason": "last downward timing segment extrapolated to negative verification time",
+    "minimum_verify_ms": -71.779,
+    "negative_verify_points": 48
+  },
+  "tail_sensitivity": {
+    "0.5": [
+      {
+        "workload": "opb",
+        "concurrency": 1,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 7,
+          "tokens_per_step": 4.8177,
+          "tok_s": 616.5,
+          "speedup_vs_plain": 3.5178,
+          "step_ms": {
+            "verify": 5.772,
+            "kv": 0.035,
+            "dspark": 2.008,
+            "dspark_tree": 0.0,
+            "total": 7.814
+          },
+          "verified_tokens": 8.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 32,
+          "tokens_per_step": 6.1086,
+          "tok_s": 767.0,
+          "speedup_vs_plain": 4.3766,
+          "step_ms": {
+            "verify": 5.926,
+            "kv": 0.034,
+            "dspark": 1.998,
+            "dspark_tree": 0.006,
+            "total": 7.964
+          },
+          "verified_tokens": 33.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 32,
+          "tokens_per_step": 6.1086,
+          "tok_s": 767.0,
+          "speedup_vs_plain": 4.3766,
+          "step_ms": {
+            "verify": 5.926,
+            "kv": 0.034,
+            "dspark": 1.998,
+            "dspark_tree": 0.006,
+            "total": 7.964
+          },
+          "verified_tokens": 33.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 48,
+          "tokens_per_step": 6.6392,
+          "tok_s": 557.8,
+          "speedup_vs_plain": 3.1828,
+          "step_ms": {
+            "verify": 6.129,
+            "kv": 0.033,
+            "dspark": 1.998,
+            "dspark_tree": 0.009,
+            "eagle": 3.734,
+            "total": 11.903
+          },
+          "verified_tokens": 49.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.2441200324412003,
+        "multi_vs_single": 1.0,
+        "two_neural_vs_single": 0.7272490221642763
+      },
+      {
+        "workload": "opb",
+        "concurrency": 8,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 7,
+          "tokens_per_step": 4.8177,
+          "tok_s": 4365.8,
+          "speedup_vs_plain": 3.2925,
+          "step_ms": {
+            "verify": 6.49,
+            "kv": 0.28,
+            "dspark": 2.059,
+            "dspark_tree": 0.0,
+            "total": 8.828
+          },
+          "verified_tokens": 64.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 10,
+          "tokens_per_step": 5.4405,
+          "tok_s": 4842.7,
+          "speedup_vs_plain": 3.6521,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.274,
+            "dspark": 1.992,
+            "dspark_tree": 0.019,
+            "total": 8.988
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 10,
+          "tokens_per_step": 5.4405,
+          "tok_s": 4842.7,
+          "speedup_vs_plain": 3.6521,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.274,
+            "dspark": 1.992,
+            "dspark_tree": 0.019,
+            "total": 8.988
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 10,
+          "tokens_per_step": 5.6762,
+          "tok_s": 3672.5,
+          "speedup_vs_plain": 2.7696,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.27,
+            "dspark": 1.972,
+            "dspark_tree": 0.018,
+            "eagle": 3.402,
+            "total": 12.365
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.1092354207705346,
+        "multi_vs_single": 1.0,
+        "two_neural_vs_single": 0.7583579408181387
+      },
+      {
+        "workload": "opb",
+        "concurrency": 64,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.2239,
+          "tok_s": 13049.2,
+          "speedup_vs_plain": 1.75,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.104,
+            "eagle": 2.374,
+            "total": 15.812
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.255,
+          "tok_s": 13330.8,
+          "speedup_vs_plain": 1.7878,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.09,
+            "eagle": 2.203,
+            "total": 15.627
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 4,
+          "tokens_per_step": 3.8728,
+          "tok_s": 13180.4,
+          "speedup_vs_plain": 1.7676,
+          "step_ms": {
+            "verify": 13.49,
+            "kv": 2.13,
+            "dspark": 3.114,
+            "dspark_tree": 0.072,
+            "total": 18.805
+          },
+          "verified_tokens": 320.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 4,
+          "tokens_per_step": 3.9447,
+          "tok_s": 11703.1,
+          "speedup_vs_plain": 1.5695,
+          "step_ms": {
+            "verify": 13.49,
+            "kv": 2.105,
+            "dspark": 3.061,
+            "dspark_tree": 0.07,
+            "eagle": 2.846,
+            "total": 21.572
+          },
+          "verified_tokens": 320.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.0100542561996138,
+        "multi_vs_single": 0.9887178563927146,
+        "two_neural_vs_single": 0.8778993008671648
+      },
+      {
+        "workload": "opb",
+        "concurrency": 128,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.2239,
+          "tok_s": 15185.4,
+          "speedup_vs_plain": 1.4335,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.209,
+            "eagle": 3.161,
+            "total": 27.175
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.255,
+          "tok_s": 15477.3,
+          "speedup_vs_plain": 1.461,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.181,
+            "eagle": 2.934,
+            "total": 26.919
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 3,
+          "tokens_per_step": 3.3131,
+          "tok_s": 14810.8,
+          "speedup_vs_plain": 1.3981,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.195,
+            "dspark": 4.523,
+            "dspark_tree": 0.11,
+            "total": 28.633
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 3,
+          "tokens_per_step": 3.3503,
+          "tok_s": 13622.5,
+          "speedup_vs_plain": 1.2859,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.163,
+            "dspark": 4.457,
+            "dspark_tree": 0.107,
+            "eagle": 2.948,
+            "total": 31.48
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9753315684802507,
+        "multi_vs_single": 0.9569369334444638,
+        "two_neural_vs_single": 0.8801599762232432
+      },
+      {
+        "workload": "opb",
+        "concurrency": 256,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 2,
+          "tokens_per_step": 2.6086,
+          "tok_s": 17107.4,
+          "speedup_vs_plain": 1.3169,
+          "step_ms": {
+            "verify": 27.615,
+            "kv": 8.263,
+            "eagle": 3.157,
+            "total": 39.035
+          },
+          "verified_tokens": 768.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.255,
+          "tok_s": 17292.6,
+          "speedup_vs_plain": 1.3311,
+          "step_ms": {
+            "verify": 35.43,
+            "kv": 8.362,
+            "eagle": 4.395,
+            "total": 48.187
+          },
+          "verified_tokens": 1024.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 3,
+          "tokens_per_step": 3.3131,
+          "tok_s": 16229.2,
+          "speedup_vs_plain": 1.2493,
+          "step_ms": {
+            "verify": 35.43,
+            "kv": 8.39,
+            "dspark": 8.221,
+            "dspark_tree": 0.22,
+            "total": 52.261
+          },
+          "verified_tokens": 1024.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 3,
+          "tokens_per_step": 3.3503,
+          "tok_s": 15186.6,
+          "speedup_vs_plain": 1.169,
+          "step_ms": {
+            "verify": 35.43,
+            "kv": 8.327,
+            "dspark": 8.089,
+            "dspark_tree": 0.215,
+            "eagle": 4.416,
+            "total": 56.476
+          },
+          "verified_tokens": 1024.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9486654897880449,
+        "multi_vs_single": 0.9385054878965571,
+        "two_neural_vs_single": 0.878213802435724
+      },
+      {
+        "workload": "chat",
+        "concurrency": 1,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 7,
+          "tokens_per_step": 2.625,
+          "tok_s": 336.0,
+          "speedup_vs_plain": 1.9176,
+          "step_ms": {
+            "verify": 5.772,
+            "kv": 0.033,
+            "dspark": 2.008,
+            "dspark_tree": 0.0,
+            "total": 7.812
+          },
+          "verified_tokens": 8.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 48,
+          "tokens_per_step": 3.551,
+          "tok_s": 436.5,
+          "speedup_vs_plain": 2.4909,
+          "step_ms": {
+            "verify": 6.129,
+            "kv": 0.032,
+            "dspark": 1.967,
+            "dspark_tree": 0.008,
+            "total": 8.136
+          },
+          "verified_tokens": 49.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 48,
+          "tokens_per_step": 3.554,
+          "tok_s": 436.8,
+          "speedup_vs_plain": 2.493,
+          "step_ms": {
+            "verify": 6.129,
+            "kv": 0.032,
+            "dspark": 1.967,
+            "dspark_tree": 0.008,
+            "total": 8.136
+          },
+          "verified_tokens": 49.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 32,
+          "tokens_per_step": 3.7839,
+          "tok_s": 350.0,
+          "speedup_vs_plain": 1.9972,
+          "step_ms": {
+            "verify": 5.926,
+            "kv": 0.032,
+            "dspark": 1.92,
+            "dspark_tree": 0.005,
+            "eagle": 2.929,
+            "total": 10.813
+          },
+          "verified_tokens": 33.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.3,
+        "multi_vs_single": 1.0006872852233677,
+        "two_neural_vs_single": 0.8018327605956472
+      },
+      {
+        "workload": "chat",
+        "concurrency": 8,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 5,
+          "tokens_per_step": 2.5412,
+          "tok_s": 2456.2,
+          "speedup_vs_plain": 1.8546,
+          "step_ms": {
+            "verify": 6.109,
+            "kv": 0.265,
+            "dspark": 1.903,
+            "dspark_tree": 0.0,
+            "total": 8.277
+          },
+          "verified_tokens": 48.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 10,
+          "tokens_per_step": 3.0337,
+          "tok_s": 2734.4,
+          "speedup_vs_plain": 2.0647,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.26,
+            "dspark": 1.897,
+            "dspark_tree": 0.016,
+            "total": 8.876
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 10,
+          "tokens_per_step": 3.0337,
+          "tok_s": 2734.4,
+          "speedup_vs_plain": 2.0647,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.26,
+            "dspark": 1.897,
+            "dspark_tree": 0.016,
+            "total": 8.876
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 10,
+          "tokens_per_step": 3.2696,
+          "tok_s": 2314.3,
+          "speedup_vs_plain": 1.7474,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.261,
+            "dspark": 1.851,
+            "dspark_tree": 0.014,
+            "eagle": 2.475,
+            "total": 11.302
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.1132643921504766,
+        "multi_vs_single": 1.0,
+        "two_neural_vs_single": 0.8463648332358105
+      },
+      {
+        "workload": "chat",
+        "concurrency": 64,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 9493.2,
+          "speedup_vs_plain": 1.2817,
+          "step_ms": {
+            "verify": 7.896,
+            "kv": 2.262,
+            "eagle": 0.791,
+            "total": 10.949
+          },
+          "verified_tokens": 128.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 2,
+          "tokens_per_step": 2.0248,
+          "tok_s": 9635.3,
+          "speedup_vs_plain": 1.3009,
+          "step_ms": {
+            "verify": 9.854,
+            "kv": 2.208,
+            "eagle": 1.387,
+            "total": 13.449
+          },
+          "verified_tokens": 192.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 3,
+          "tokens_per_step": 2.3558,
+          "tok_s": 9342.4,
+          "speedup_vs_plain": 1.2613,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.167,
+            "dspark": 2.589,
+            "dspark_tree": 0.05,
+            "total": 16.138
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 3,
+          "tokens_per_step": 2.4258,
+          "tok_s": 8669.2,
+          "speedup_vs_plain": 1.1704,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.181,
+            "dspark": 2.481,
+            "dspark_tree": 0.045,
+            "eagle": 1.868,
+            "total": 17.908
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9841149454346267,
+        "multi_vs_single": 0.9696013616597304,
+        "two_neural_vs_single": 0.8997332724461098
+      },
+      {
+        "workload": "chat",
+        "concurrency": 128,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 12293.9,
+          "speedup_vs_plain": 1.1716,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.523,
+            "eagle": 1.054,
+            "total": 16.91
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 12293.9,
+          "speedup_vs_plain": 1.1716,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.523,
+            "eagle": 1.054,
+            "total": 16.91
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 1,
+          "tokens_per_step": 1.6591,
+          "tok_s": 11469.5,
+          "speedup_vs_plain": 1.0931,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.531,
+            "dspark": 2.613,
+            "dspark_tree": 0.038,
+            "total": 18.515
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 1,
+          "tokens_per_step": 1.6751,
+          "tok_s": 10952.9,
+          "speedup_vs_plain": 1.0438,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.537,
+            "dspark": 2.613,
+            "dspark_tree": 0.038,
+            "eagle": 1.054,
+            "total": 19.575
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9329423535249189,
+        "multi_vs_single": 0.9329423535249189,
+        "two_neural_vs_single": 0.8909215139215383
+      },
+      {
+        "workload": "chat",
+        "concurrency": 256,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 13663.7,
+          "speedup_vs_plain": 1.0641,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.047,
+            "eagle": 1.579,
+            "total": 30.43
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 13663.7,
+          "speedup_vs_plain": 1.0641,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.047,
+            "eagle": 1.579,
+            "total": 30.43
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 1,
+          "tokens_per_step": 1.6591,
+          "tok_s": 12821.6,
+          "speedup_vs_plain": 0.9986,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.062,
+            "dspark": 4.182,
+            "dspark_tree": 0.077,
+            "total": 33.125
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 1,
+          "tokens_per_step": 1.6751,
+          "tok_s": 12351.8,
+          "speedup_vs_plain": 0.962,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.075,
+            "dspark": 4.182,
+            "dspark_tree": 0.077,
+            "eagle": 1.579,
+            "total": 34.717
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9383695485117501,
+        "multi_vs_single": 0.9383695485117501,
+        "two_neural_vs_single": 0.9039864751128902
+      }
+    ],
+    "1.5": [
+      {
+        "workload": "opb",
+        "concurrency": 1,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 7,
+          "tokens_per_step": 4.8177,
+          "tok_s": 616.5,
+          "speedup_vs_plain": 3.5178,
+          "step_ms": {
+            "verify": 5.772,
+            "kv": 0.035,
+            "dspark": 2.008,
+            "dspark_tree": 0.0,
+            "total": 7.814
+          },
+          "verified_tokens": 8.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 32,
+          "tokens_per_step": 6.1086,
+          "tok_s": 767.0,
+          "speedup_vs_plain": 4.3766,
+          "step_ms": {
+            "verify": 5.926,
+            "kv": 0.034,
+            "dspark": 1.998,
+            "dspark_tree": 0.006,
+            "total": 7.964
+          },
+          "verified_tokens": 33.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 32,
+          "tokens_per_step": 6.1086,
+          "tok_s": 767.0,
+          "speedup_vs_plain": 4.3766,
+          "step_ms": {
+            "verify": 5.926,
+            "kv": 0.034,
+            "dspark": 1.998,
+            "dspark_tree": 0.006,
+            "total": 7.964
+          },
+          "verified_tokens": 33.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 48,
+          "tokens_per_step": 6.6392,
+          "tok_s": 557.8,
+          "speedup_vs_plain": 3.1828,
+          "step_ms": {
+            "verify": 6.129,
+            "kv": 0.033,
+            "dspark": 1.998,
+            "dspark_tree": 0.009,
+            "eagle": 3.734,
+            "total": 11.903
+          },
+          "verified_tokens": 49.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.2441200324412003,
+        "multi_vs_single": 1.0,
+        "two_neural_vs_single": 0.7272490221642763
+      },
+      {
+        "workload": "opb",
+        "concurrency": 8,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 7,
+          "tokens_per_step": 4.8177,
+          "tok_s": 4365.8,
+          "speedup_vs_plain": 3.2925,
+          "step_ms": {
+            "verify": 6.49,
+            "kv": 0.28,
+            "dspark": 2.059,
+            "dspark_tree": 0.0,
+            "total": 8.828
+          },
+          "verified_tokens": 64.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 10,
+          "tokens_per_step": 5.4405,
+          "tok_s": 4842.7,
+          "speedup_vs_plain": 3.6521,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.274,
+            "dspark": 1.992,
+            "dspark_tree": 0.019,
+            "total": 8.988
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 10,
+          "tokens_per_step": 5.4405,
+          "tok_s": 4842.7,
+          "speedup_vs_plain": 3.6521,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.274,
+            "dspark": 1.992,
+            "dspark_tree": 0.019,
+            "total": 8.988
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 10,
+          "tokens_per_step": 5.6762,
+          "tok_s": 3672.5,
+          "speedup_vs_plain": 2.7696,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.27,
+            "dspark": 1.972,
+            "dspark_tree": 0.018,
+            "eagle": 3.402,
+            "total": 12.365
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.1092354207705346,
+        "multi_vs_single": 1.0,
+        "two_neural_vs_single": 0.7583579408181387
+      },
+      {
+        "workload": "opb",
+        "concurrency": 64,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.2239,
+          "tok_s": 13049.2,
+          "speedup_vs_plain": 1.75,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.104,
+            "eagle": 2.374,
+            "total": 15.812
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.255,
+          "tok_s": 13330.8,
+          "speedup_vs_plain": 1.7878,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.09,
+            "eagle": 2.203,
+            "total": 15.627
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 4,
+          "tokens_per_step": 3.8728,
+          "tok_s": 13180.4,
+          "speedup_vs_plain": 1.7676,
+          "step_ms": {
+            "verify": 13.49,
+            "kv": 2.13,
+            "dspark": 3.114,
+            "dspark_tree": 0.072,
+            "total": 18.805
+          },
+          "verified_tokens": 320.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 4,
+          "tokens_per_step": 3.9447,
+          "tok_s": 11703.1,
+          "speedup_vs_plain": 1.5695,
+          "step_ms": {
+            "verify": 13.49,
+            "kv": 2.105,
+            "dspark": 3.061,
+            "dspark_tree": 0.07,
+            "eagle": 2.846,
+            "total": 21.572
+          },
+          "verified_tokens": 320.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.0100542561996138,
+        "multi_vs_single": 0.9887178563927146,
+        "two_neural_vs_single": 0.8778993008671648
+      },
+      {
+        "workload": "opb",
+        "concurrency": 128,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.2239,
+          "tok_s": 15185.4,
+          "speedup_vs_plain": 1.4335,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.209,
+            "eagle": 3.161,
+            "total": 27.175
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.255,
+          "tok_s": 15477.3,
+          "speedup_vs_plain": 1.461,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.181,
+            "eagle": 2.934,
+            "total": 26.919
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 3,
+          "tokens_per_step": 3.3131,
+          "tok_s": 14810.8,
+          "speedup_vs_plain": 1.3981,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.195,
+            "dspark": 4.523,
+            "dspark_tree": 0.11,
+            "total": 28.633
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 3,
+          "tokens_per_step": 3.3503,
+          "tok_s": 13622.5,
+          "speedup_vs_plain": 1.2859,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 4.163,
+            "dspark": 4.457,
+            "dspark_tree": 0.107,
+            "eagle": 2.948,
+            "total": 31.48
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9753315684802507,
+        "multi_vs_single": 0.9569369334444638,
+        "two_neural_vs_single": 0.8801599762232432
+      },
+      {
+        "workload": "opb",
+        "concurrency": 256,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 2,
+          "tokens_per_step": 2.6086,
+          "tok_s": 17107.4,
+          "speedup_vs_plain": 1.3169,
+          "step_ms": {
+            "verify": 27.615,
+            "kv": 8.263,
+            "eagle": 3.157,
+            "total": 39.035
+          },
+          "verified_tokens": 768.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 3,
+          "tokens_per_step": 3.255,
+          "tok_s": 17292.6,
+          "speedup_vs_plain": 1.3311,
+          "step_ms": {
+            "verify": 35.43,
+            "kv": 8.362,
+            "eagle": 4.395,
+            "total": 48.187
+          },
+          "verified_tokens": 1024.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 3,
+          "tokens_per_step": 3.3131,
+          "tok_s": 16229.2,
+          "speedup_vs_plain": 1.2493,
+          "step_ms": {
+            "verify": 35.43,
+            "kv": 8.39,
+            "dspark": 8.221,
+            "dspark_tree": 0.22,
+            "total": 52.261
+          },
+          "verified_tokens": 1024.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 3,
+          "tokens_per_step": 3.3503,
+          "tok_s": 15186.6,
+          "speedup_vs_plain": 1.169,
+          "step_ms": {
+            "verify": 35.43,
+            "kv": 8.327,
+            "dspark": 8.089,
+            "dspark_tree": 0.215,
+            "eagle": 4.416,
+            "total": 56.476
+          },
+          "verified_tokens": 1024.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9486654897880449,
+        "multi_vs_single": 0.9385054878965571,
+        "two_neural_vs_single": 0.878213802435724
+      },
+      {
+        "workload": "chat",
+        "concurrency": 1,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 7,
+          "tokens_per_step": 2.625,
+          "tok_s": 336.0,
+          "speedup_vs_plain": 1.9176,
+          "step_ms": {
+            "verify": 5.772,
+            "kv": 0.033,
+            "dspark": 2.008,
+            "dspark_tree": 0.0,
+            "total": 7.812
+          },
+          "verified_tokens": 8.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 48,
+          "tokens_per_step": 3.551,
+          "tok_s": 436.5,
+          "speedup_vs_plain": 2.4909,
+          "step_ms": {
+            "verify": 6.129,
+            "kv": 0.032,
+            "dspark": 1.967,
+            "dspark_tree": 0.008,
+            "total": 8.136
+          },
+          "verified_tokens": 49.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 48,
+          "tokens_per_step": 3.554,
+          "tok_s": 436.8,
+          "speedup_vs_plain": 2.493,
+          "step_ms": {
+            "verify": 6.129,
+            "kv": 0.032,
+            "dspark": 1.967,
+            "dspark_tree": 0.008,
+            "total": 8.136
+          },
+          "verified_tokens": 49.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 32,
+          "tokens_per_step": 3.7839,
+          "tok_s": 350.0,
+          "speedup_vs_plain": 1.9972,
+          "step_ms": {
+            "verify": 5.926,
+            "kv": 0.032,
+            "dspark": 1.92,
+            "dspark_tree": 0.005,
+            "eagle": 2.929,
+            "total": 10.813
+          },
+          "verified_tokens": 33.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.3,
+        "multi_vs_single": 1.0006872852233677,
+        "two_neural_vs_single": 0.8018327605956472
+      },
+      {
+        "workload": "chat",
+        "concurrency": 8,
+        "best_chain": {
+          "policy": "chain-dspark",
+          "budget": 5,
+          "tokens_per_step": 2.5412,
+          "tok_s": 2456.2,
+          "speedup_vs_plain": 1.8546,
+          "step_ms": {
+            "verify": 6.109,
+            "kv": 0.265,
+            "dspark": 1.903,
+            "dspark_tree": 0.0,
+            "total": 8.277
+          },
+          "verified_tokens": 48.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-dspark",
+          "budget": 10,
+          "tokens_per_step": 3.0337,
+          "tok_s": 2734.4,
+          "speedup_vs_plain": 2.0647,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.26,
+            "dspark": 1.897,
+            "dspark_tree": 0.016,
+            "total": 8.876
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 10,
+          "tokens_per_step": 3.0337,
+          "tok_s": 2734.4,
+          "speedup_vs_plain": 2.0647,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.26,
+            "dspark": 1.897,
+            "dspark_tree": 0.016,
+            "total": 8.876
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 10,
+          "tokens_per_step": 3.2696,
+          "tok_s": 2314.3,
+          "speedup_vs_plain": 1.7474,
+          "step_ms": {
+            "verify": 6.702,
+            "kv": 0.261,
+            "dspark": 1.851,
+            "dspark_tree": 0.014,
+            "eagle": 2.475,
+            "total": 11.302
+          },
+          "verified_tokens": 88.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 1.1132643921504766,
+        "multi_vs_single": 1.0,
+        "two_neural_vs_single": 0.8463648332358105
+      },
+      {
+        "workload": "chat",
+        "concurrency": 64,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 9493.2,
+          "speedup_vs_plain": 1.2817,
+          "step_ms": {
+            "verify": 7.896,
+            "kv": 2.262,
+            "eagle": 0.791,
+            "total": 10.949
+          },
+          "verified_tokens": 128.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "tree-eagle",
+          "budget": 2,
+          "tokens_per_step": 2.0248,
+          "tok_s": 9635.3,
+          "speedup_vs_plain": 1.3009,
+          "step_ms": {
+            "verify": 9.854,
+            "kv": 2.208,
+            "eagle": 1.387,
+            "total": 13.449
+          },
+          "verified_tokens": 192.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 3,
+          "tokens_per_step": 2.3558,
+          "tok_s": 9342.4,
+          "speedup_vs_plain": 1.2613,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.167,
+            "dspark": 2.589,
+            "dspark_tree": 0.05,
+            "total": 16.138
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 3,
+          "tokens_per_step": 2.4258,
+          "tok_s": 8669.2,
+          "speedup_vs_plain": 1.1704,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 2.181,
+            "dspark": 2.481,
+            "dspark_tree": 0.045,
+            "eagle": 1.868,
+            "total": 17.908
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9841149454346267,
+        "multi_vs_single": 0.9696013616597304,
+        "two_neural_vs_single": 0.8997332724461098
+      },
+      {
+        "workload": "chat",
+        "concurrency": 128,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 12293.9,
+          "speedup_vs_plain": 1.1716,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.523,
+            "eagle": 1.054,
+            "total": 16.91
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 12293.9,
+          "speedup_vs_plain": 1.1716,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.523,
+            "eagle": 1.054,
+            "total": 16.91
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 1,
+          "tokens_per_step": 1.6591,
+          "tok_s": 11469.5,
+          "speedup_vs_plain": 1.0931,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.531,
+            "dspark": 2.613,
+            "dspark_tree": 0.038,
+            "total": 18.515
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 1,
+          "tokens_per_step": 1.6751,
+          "tok_s": 10952.9,
+          "speedup_vs_plain": 1.0438,
+          "step_ms": {
+            "verify": 11.333,
+            "kv": 4.537,
+            "dspark": 2.613,
+            "dspark_tree": 0.038,
+            "eagle": 1.054,
+            "total": 19.575
+          },
+          "verified_tokens": 256.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9329423535249189,
+        "multi_vs_single": 0.9329423535249189,
+        "two_neural_vs_single": 0.8909215139215383
+      },
+      {
+        "workload": "chat",
+        "concurrency": 256,
+        "best_chain": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 13663.7,
+          "speedup_vs_plain": 1.0641,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.047,
+            "eagle": 1.579,
+            "total": 30.43
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_single": {
+          "policy": "chain-eagle",
+          "budget": 1,
+          "tokens_per_step": 1.6241,
+          "tok_s": 13663.7,
+          "speedup_vs_plain": 1.0641,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.047,
+            "eagle": 1.579,
+            "total": 30.43
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_multi": {
+          "policy": "graft-dspark+ngram",
+          "budget": 1,
+          "tokens_per_step": 1.6591,
+          "tok_s": 12821.6,
+          "speedup_vs_plain": 0.9986,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.062,
+            "dspark": 4.182,
+            "dspark_tree": 0.077,
+            "total": 33.125
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "best_two_neural_drafters": {
+          "policy": "graft-all",
+          "budget": 1,
+          "tokens_per_step": 1.6751,
+          "tok_s": 12351.8,
+          "speedup_vs_plain": 0.962,
+          "step_ms": {
+            "verify": 19.805,
+            "kv": 9.075,
+            "dspark": 4.182,
+            "dspark_tree": 0.077,
+            "eagle": 1.579,
+            "total": 34.717
+          },
+          "verified_tokens": 512.0,
+          "verify_extrapolated": false
+        },
+        "multi_vs_chain": 0.9383695485117501,
+        "multi_vs_single": 0.9383695485117501,
+        "two_neural_vs_single": 0.9039864751128902
+      }
+    ]
+  },
+  "checks": {
+    "acceptance_aggregates_unchanged": true,
+    "all_corrected_verify_times_positive": true,
+    "selected_best_chain_single_multi_within_measured_verify_range": true,
+    "best_settings_unchanged_under_half_and_1_5x_tail_slope": true
+  }
+}

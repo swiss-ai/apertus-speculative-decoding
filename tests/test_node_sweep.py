@@ -1,3 +1,4 @@
+import asyncio
 import json
 from pathlib import Path
 
@@ -25,6 +26,57 @@ def _spec(**overrides):
 
 def _flag(argv: list[str], flag: str) -> str:
     return argv[argv.index(flag) + 1]
+
+
+def test_optional_captures_require_two_within_deployment_repeats() -> None:
+    assert build_plan(_spec(), check_heads=False).correctness_captures is None
+    config = {"workloads_file": "smoke.jsonl", "repeats": 2, "max_tokens": 384}
+    plan = build_plan(_spec(captures=config), check_heads=False)
+    assert plan.correctness_captures == config
+    assert plan.captures == []
+    with pytest.raises(SpecError, match="exactly two"):
+        build_plan(_spec(captures={**config, "repeats": 1}), check_heads=False)
+
+
+def test_listed_captures_stay_labelled_greedy_captures() -> None:
+    entries = [{"workload": "chat", "limit": 8, "max_tokens": 64}]
+    plan = build_plan(_spec(captures=entries), check_heads=False)
+    assert plan.correctness_captures is None
+    assert [(c.label, c.workload, c.limit, c.max_tokens) for c in plan.captures] == [
+        ("chat", "chat", 8, 64)
+    ]
+    with pytest.raises(SpecError, match="list of captures"):
+        build_plan(_spec(captures="chat"), check_heads=False)
+
+
+@pytest.mark.parametrize("order", [[0, 0, 2, 3], [0, 1, 2], [False, 1, 2, 3]])
+def test_gpu_order_requires_exact_allocated_indices(order: list) -> None:
+    with pytest.raises(SpecError, match="gpu_order"):
+        build_plan(_spec(gpu_order=order), check_heads=False)
+
+
+@pytest.mark.parametrize("order", [[0, 1, 2, 3], [3, 2, 1, 0]])
+async def test_capture_repeats_can_counterbalance_all_physical_gpus(
+    tmp_path: Path, monkeypatch, order: list[int]
+) -> None:
+    from apertus_bench import node_sweep
+
+    names = ["plain", "reference", "one-layer", "five-layer"]
+    spec = _spec(arms=[{"name": name, "method": "baseline"} for name in names], gpu_order=order)
+    plan = build_plan(spec, check_heads=False)
+    ready = asyncio.Event()
+    assignments = {}
+
+    async def fake_arm(arm, gpu_ids, *_):
+        assignments[arm.name] = gpu_ids
+        if len(assignments) == 4:
+            ready.set()
+        await ready.wait()
+        return {"arm": arm.name, "status": "ok"}
+
+    monkeypatch.setattr(node_sweep, "run_arm", fake_arm)
+    await node_sweep.run_plan(plan, tmp_path)
+    assert assignments == {name: [gpu] for name, gpu in zip(names, order, strict=True)}
 
 
 def test_plan_serves_arms_like_the_launchers() -> None:
@@ -128,6 +180,31 @@ def test_bench_command_passes_generation_and_provenance(tmp_path: Path) -> None:
     assert "deployment_id=dep-1" in command
 
 
+def test_dspark_arms_get_their_checkpoint_digest(tmp_path: Path) -> None:
+    from apertus_bench.eagle import checkpoint_manifest_sha256
+    from apertus_bench.node_sweep import hash_drafters
+
+    drafter = tmp_path / "dspark"
+    drafter.mkdir()
+    (drafter / "config.json").write_text("{}")
+    (drafter / "model.safetensors").write_bytes(b"weights")
+    arms = [
+        {"name": "plain", "method": "baseline"},
+        {"name": "dspark-k3", "method": "dspark", "drafter": str(drafter), "k": 3},
+        {"name": "pd-dspark", "method": "pd", "serve_method": "dspark", "drafter": str(drafter),
+         "k": 3},
+    ]  # fmt: skip
+    plan = build_plan(_spec(arms=arms), check_heads=False)
+    hash_drafters(plan)
+    digest = checkpoint_manifest_sha256(drafter, [drafter / "model.safetensors"])
+    plain, dspark, pd = plan.arms
+    assert "checkpoint_sha256" not in plain.metadata
+    assert dspark.metadata["checkpoint_sha256"] == digest
+    assert pd.metadata["checkpoint_sha256"] == digest
+    command = bench_command(dspark, plan.loadtests[0], tmp_path / "out", "dep")
+    assert f"checkpoint_sha256={digest}" in command
+
+
 def test_probe_runs_a_single_cell(tmp_path: Path) -> None:
     plan = build_plan(_spec(probe=True), check_heads=False)
     assert plan.probe is not None
@@ -226,7 +303,11 @@ def test_env_values_can_point_into_the_arm_directory(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "spec_path",
-    sorted((Path(__file__).resolve().parents[1] / "experiments" / "system-8b").glob("*.yaml")),
+    sorted(
+        path
+        for spec_dir in ("system-8b", "high-concurrency-8b")
+        for path in (Path(__file__).resolve().parents[1] / "experiments" / spec_dir).glob("*.yaml")
+    ),
     ids=lambda path: path.stem,
 )
 def test_committed_specs_expand(spec_path: Path) -> None:

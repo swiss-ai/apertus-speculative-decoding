@@ -1,0 +1,28 @@
+loadtest chat concurrency=256 requests=1024
+{
+  "workload": "chat",
+  "variant": "native-a",
+  "levels": [
+    {
+      "concurrency": 256,
+      "requests": 1024,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 3802.67021361446,
+      "ttft_p50_ms": 358.26860496308655,
+      "ttft_p95_ms": 3834.0878553921357,
+      "tpot_p50_ms": 52.48843396685141,
+      "tpot_p95_ms": 109.30888802120194,
+      "e2e_p95_ms": 24811.546352796722,
+      "kv_cache_usage_mean": 0.47232288335395317,
+      "kv_cache_usage_max": 0.5993137094703425,
+      "kv_cache_tokens_peak": 217261,
+      "kv_cache_size_tokens": 362517,
+      "running_max": 254.0,
+      "waiting_max": 159.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.510200259521357,
+      "acceptance_rate": 0.21574289421733672
+    }
+  ]
+}

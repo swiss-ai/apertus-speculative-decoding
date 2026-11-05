@@ -1,0 +1,1185 @@
+{
+  "artifact_path_mapping": {
+    "artifact_root": "/home/projects/apertus-speculative-decoding-kv-sparsity",
+    "method": "lexical_relative_to_prefix; canonical artifact contents unchanged",
+    "source_root": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity"
+  },
+  "bootstrap": {
+    "samples": 20000,
+    "scale": "paired log ratio",
+    "seed": 20261022
+  },
+  "candidate": null,
+  "correctness_controls_passed": false,
+  "correctness_controls_passed_scope": "selected candidate only; inspect decisions per policy when candidate is null",
+  "created_at": "2026-10-22T23:42:26.009269+00:00",
+  "decisions": {
+    "importance1024": {
+      "artifacts": [
+        {
+          "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/correctness-controls.json",
+          "sha256": "10a85d66a22dbeb83516a8ad3522d37073b83204b68c47f3d94ed333e0ebf711"
+        },
+        {
+          "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/memory.json",
+          "sha256": "279a85872f20043d38d22e52362994231e387b631f41289f7bbfd950cb007e8c"
+        }
+      ],
+      "capacity_improvement_passed": false,
+      "cells": [
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.9905210532327777,
+              0.9972079037800687
+            ],
+            "throughput": [
+              0.7466785681120822,
+              0.7750045713079925
+            ],
+            "tpot_p95": [
+              1.3988523875049292,
+              1.2780101913778372
+            ],
+            "ttft_p95": [
+              1.2070409217578455,
+              1.1600824319949874
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9938588547395873,
+            "throughput": 0.760709736748893,
+            "tpot_p95": 1.3370667924470037,
+            "ttft_p95": 1.1833287658255895
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.9787973349093547,
+              0.9961619946418496
+            ],
+            "throughput": [
+              0.7607461333043122,
+              0.7955335257282965
+            ],
+            "tpot_p95": [
+              1.2324832574844182,
+              1.1386445781099348
+            ],
+            "ttft_p95": [
+              1.627921328630629,
+              1.0942161300395012
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9874414947192716,
+            "throughput": 0.7779454052899523,
+            "tpot_p95": 1.184635124730777,
+            "ttft_p95": 1.3346526799969234
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.9890606833399326,
+              0.9968497935989264
+            ],
+            "throughput": [
+              0.8123583396239936,
+              0.8306071249222181
+            ],
+            "tpot_p95": [
+              1.1968757433020234,
+              1.2019836958834689
+            ],
+            "ttft_p95": [
+              1.1955893407245897,
+              1.1400848822257839
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9929476008552641,
+            "throughput": 0.8214320573739937,
+            "tpot_p95": 1.1994270004662393,
+            "ttft_p95": 1.167507315913008
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.9908069458631257,
+              0.9992185732187568
+            ],
+            "throughput": [
+              0.7419810127591853,
+              0.7632135954305427
+            ],
+            "tpot_p95": [
+              1.3901697571005478,
+              1.3135359133945397
+            ],
+            "ttft_p95": [
+              1.380136441403757,
+              1.215749078058347
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9950038707364843,
+            "throughput": 0.7525224225822996,
+            "tpot_p95": 1.3513096986503625,
+            "ttft_p95": 1.2953376417874012
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.9908720428893444,
+              1.0063418061847746
+            ],
+            "throughput": [
+              0.8090353383892139,
+              0.8099288407999439
+            ],
+            "tpot_p95": [
+              1.2000192727083798,
+              1.1757188099118367
+            ],
+            "ttft_p95": [
+              1.3537957039878499,
+              1.1049166910406845
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9985769681598211,
+            "throughput": 0.8094819663141152,
+            "tpot_p95": 1.1878068997863096,
+            "ttft_p95": 1.2230418920034378
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.99676647964187,
+              0.9986960653587684
+            ],
+            "throughput": [
+              0.8200496735318943,
+              0.8391231960756615
+            ],
+            "tpot_p95": [
+              1.2003945585297136,
+              1.1790457795831313
+            ],
+            "ttft_p95": [
+              1.0801054728142991,
+              1.0723075664812856
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9977308060292849,
+            "throughput": 0.8295316166336796,
+            "tpot_p95": 1.1896722817940304,
+            "ttft_p95": 1.0761994569300894
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.9396100116414434,
+              0.9549575834537567
+            ],
+            "throughput": [
+              0.7351763571292632,
+              0.7645442383807436
+            ],
+            "tpot_p95": [
+              1.3918995178966174,
+              1.2905498766693742
+            ],
+            "ttft_p95": [
+              1.0909195396149132,
+              1.0436525465334077
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9472527150164675,
+            "throughput": 0.7497165117809012,
+            "tpot_p95": 1.3402670447181937,
+            "ttft_p95": 1.0670243462930715
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.9554870855277631,
+              0.9530352012886543
+            ],
+            "throughput": [
+              0.8626088978924048,
+              0.8733959333538116
+            ],
+            "tpot_p95": [
+              1.1381790573473236,
+              1.0778024462467692
+            ],
+            "ttft_p95": [
+              1.0312411651068636,
+              1.0055247404227416
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9542603559221463,
+            "throughput": 0.8679856585762461,
+            "tpot_p95": 1.1075794203016718,
+            "ttft_p95": 1.018301774945583
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.9526509728515858,
+              0.954579899668043
+            ],
+            "throughput": [
+              0.8958619621078296,
+              0.9053920043725651
+            ],
+            "tpot_p95": [
+              1.207548564704591,
+              1.1483461114987203
+            ],
+            "ttft_p95": [
+              1.0871966345214734,
+              1.0361183091383488
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9536149485422983,
+            "throughput": 0.9006143778076979,
+            "tpot_p95": 1.1775753473660944,
+            "ttft_p95": 1.0613502431625916
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        }
+      ],
+      "correctness_controls_passed": true,
+      "failure_reasons": [
+        "45% lower physical draft storage including metadata not established",
+        "acceptance below95%: summarization/c1",
+        "p95 latency regression over5%: chat/c1",
+        "p95 latency regression over5%: chat/c256",
+        "p95 latency regression over5%: chat/c32",
+        "p95 latency regression over5%: code/c1",
+        "p95 latency regression over5%: code/c256",
+        "p95 latency regression over5%: code/c32",
+        "p95 latency regression over5%: summarization/c1",
+        "p95 latency regression over5%: summarization/c256",
+        "p95 latency regression over5%: summarization/c32",
+        "throughput regression over3%: chat/c1",
+        "throughput regression over3%: chat/c256",
+        "throughput regression over3%: chat/c32",
+        "throughput regression over3%: code/c1",
+        "throughput regression over3%: code/c256",
+        "throughput regression over3%: code/c32",
+        "throughput regression over3%: summarization/c1",
+        "throughput regression over3%: summarization/c256",
+        "throughput regression over3%: summarization/c32"
+      ],
+      "memory": {
+        "combined_live_kv_bytes_ratio": 0.9700365923097535,
+        "draft_storage_ratio": 0.5839963942307692,
+        "includes_selection_metadata": true,
+        "matched_lengths": true,
+        "native_filled_window": true,
+        "physical_eviction_verified": true
+      },
+      "promising": false,
+      "score_c32_c256": 0.8335571589440229,
+      "selected_speed_cell": {
+        "concurrency": 256,
+        "workload": "summarization"
+      },
+      "speed_improvement_passed": false,
+      "stable_and_storage_passed": false
+    },
+    "importance512": {
+      "artifacts": [
+        {
+          "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/correctness-controls.json",
+          "sha256": "10a85d66a22dbeb83516a8ad3522d37073b83204b68c47f3d94ed333e0ebf711"
+        },
+        {
+          "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/memory.json",
+          "sha256": "279a85872f20043d38d22e52362994231e387b631f41289f7bbfd950cb007e8c"
+        }
+      ],
+      "capacity_improvement_passed": false,
+      "cells": [
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.9686696095986222,
+              0.975208944515279
+            ],
+            "throughput": [
+              0.747980739290123,
+              0.7569672797333611
+            ],
+            "tpot_p95": [
+              1.3907053330823658,
+              1.2899722039564312
+            ],
+            "ttft_p95": [
+              1.2386844405651882,
+              1.2342374405287022
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9719337773535293,
+            "throughput": 0.7524605939937272,
+            "tpot_p95": 1.339392109716278,
+            "ttft_p95": 1.2364589413101856
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.9623938381730016,
+              0.9794674865499371
+            ],
+            "throughput": [
+              0.8034430148149474,
+              0.823933744170439
+            ],
+            "tpot_p95": [
+              1.1703805067810622,
+              1.0974223215588177
+            ],
+            "ttft_p95": [
+              1.6394043191334458,
+              1.1859499916895648
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9708931319905691,
+            "throughput": 0.8136238758935637,
+            "tpot_p95": 1.1333144721827473,
+            "ttft_p95": 1.394364205884584
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.966831756753536,
+              0.9743958348688204
+            ],
+            "throughput": [
+              0.796580448395413,
+              0.8168182657986026
+            ],
+            "tpot_p95": [
+              1.215244804744034,
+              1.2166573680201627
+            ],
+            "ttft_p95": [
+              1.1937938403815107,
+              1.1805708740987069
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.970606427343004,
+            "throughput": 0.8066358908624228,
+            "tpot_p95": 1.2159508812612674,
+            "ttft_p95": 1.1871639472426934
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.9808672076320994,
+              0.9891944498566402
+            ],
+            "throughput": [
+              0.7472822425015738,
+              0.7849928245720355
+            ],
+            "tpot_p95": [
+              1.3972631484539124,
+              1.3171227223372899
+            ],
+            "ttft_p95": [
+              1.449775870665906,
+              1.1583933963038597
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9850220291120668,
+            "throughput": 0.7659054760829401,
+            "tpot_p95": 1.356601283322845,
+            "ttft_p95": 1.295920828870369
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.9762360463151334,
+              0.9912364350931642
+            ],
+            "throughput": [
+              0.8162010648449266,
+              0.8349849083255337
+            ],
+            "tpot_p95": [
+              1.1677486482095063,
+              1.1657257340731992
+            ],
+            "ttft_p95": [
+              1.4024373809922512,
+              1.143521331762683
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9837076488260411,
+            "throughput": 0.8255395637428554,
+            "tpot_p95": 1.1667367527197439,
+            "ttft_p95": 1.2663795093201833
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.9876704300984377,
+              0.9896020175176594
+            ],
+            "throughput": [
+              0.8069043181975858,
+              0.8314114787877815
+            ],
+            "tpot_p95": [
+              1.256571699087635,
+              1.229237857587517
+            ],
+            "ttft_p95": [
+              1.1180729678966772,
+              1.1750160478389438
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9886357520684493,
+            "throughput": 0.8190662442274748,
+            "tpot_p95": 1.2428296356667676,
+            "ttft_p95": 1.1461909439240532
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.8864001944269883,
+              0.900878638110928
+            ],
+            "throughput": [
+              0.7075812897155725,
+              0.7403628145112355
+            ],
+            "tpot_p95": [
+              1.3977143230968474,
+              1.2907021043403746
+            ],
+            "ttft_p95": [
+              1.111397676840873,
+              1.034620538165814
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.8936100939317142,
+            "throughput": 0.7237864845030689,
+            "tpot_p95": 1.3431428881871739,
+            "ttft_p95": 1.0723221822425104
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.8990645622475201,
+              0.8957859556509284
+            ],
+            "throughput": [
+              0.8260884794393745,
+              0.858161482445402
+            ],
+            "tpot_p95": [
+              1.149395893071153,
+              1.121369481625544
+            ],
+            "ttft_p95": [
+              1.0592226109586529,
+              1.0302157563587222
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.8974237617117001,
+            "throughput": 0.8419722763528272,
+            "tpot_p95": 1.1352962066331975,
+            "ttft_p95": 1.0446185061069084
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.8965022537204898,
+              0.8981665187360464
+            ],
+            "throughput": [
+              0.8765410872204157,
+              0.892218876749372
+            ],
+            "tpot_p95": [
+              1.2260560230235111,
+              1.1555607789023716
+            ],
+            "ttft_p95": [
+              1.1020348142545624,
+              1.046584290956554
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.8973340003940294,
+            "throughput": 0.8843452404261994,
+            "tpot_p95": 1.1902866263816427,
+            "ttft_p95": 1.073951732940568
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        }
+      ],
+      "correctness_controls_passed": true,
+      "failure_reasons": [
+        "acceptance below95%: summarization/c1",
+        "acceptance below95%: summarization/c256",
+        "acceptance below95%: summarization/c32",
+        "p95 latency regression over5%: chat/c1",
+        "p95 latency regression over5%: chat/c256",
+        "p95 latency regression over5%: chat/c32",
+        "p95 latency regression over5%: code/c1",
+        "p95 latency regression over5%: code/c256",
+        "p95 latency regression over5%: code/c32",
+        "p95 latency regression over5%: summarization/c1",
+        "p95 latency regression over5%: summarization/c256",
+        "p95 latency regression over5%: summarization/c32",
+        "throughput regression over3%: chat/c1",
+        "throughput regression over3%: chat/c256",
+        "throughput regression over3%: chat/c32",
+        "throughput regression over3%: code/c1",
+        "throughput regression over3%: code/c256",
+        "throughput regression over3%: code/c32",
+        "throughput regression over3%: summarization/c1",
+        "throughput regression over3%: summarization/c256",
+        "throughput regression over3%: summarization/c32"
+      ],
+      "memory": {
+        "combined_live_kv_bytes_ratio": 0.9500209072910978,
+        "draft_storage_ratio": 0.30817307692307694,
+        "includes_selection_metadata": true,
+        "matched_lengths": true,
+        "native_filled_window": true,
+        "physical_eviction_verified": true
+      },
+      "promising": false,
+      "score_c32_c256": 0.8314694496051012,
+      "selected_speed_cell": {
+        "concurrency": 256,
+        "workload": "summarization"
+      },
+      "speed_improvement_passed": false,
+      "stable_and_storage_passed": false
+    },
+    "recent512": {
+      "artifacts": [
+        {
+          "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/correctness-controls.json",
+          "sha256": "10a85d66a22dbeb83516a8ad3522d37073b83204b68c47f3d94ed333e0ebf711"
+        },
+        {
+          "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/memory.json",
+          "sha256": "279a85872f20043d38d22e52362994231e387b631f41289f7bbfd950cb007e8c"
+        }
+      ],
+      "capacity_improvement_passed": true,
+      "cells": [
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.9659113330450353,
+              0.9709326641572564
+            ],
+            "throughput": [
+              0.7423863252007217,
+              0.7609612725143904
+            ],
+            "tpot_p95": [
+              1.3889166384201743,
+              1.3094538930568094
+            ],
+            "ttft_p95": [
+              1.2963487483605194,
+              1.2279520982126981
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9684187441045857,
+            "throughput": 0.7516164199390692,
+            "tpot_p95": 1.3486001258010745,
+            "ttft_p95": 1.2616870315433637
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.9685879986549872,
+              0.9824530629983974
+            ],
+            "throughput": [
+              0.7991748868750885,
+              0.8258817885850017
+            ],
+            "tpot_p95": [
+              1.1857494774347868,
+              1.060930490756105
+            ],
+            "ttft_p95": [
+              1.662470917371742,
+              1.1761871489633722
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9754958975116604,
+            "throughput": 0.8124186020547625,
+            "tpot_p95": 1.1216049995469364,
+            "ttft_p95": 1.3983479282846565
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.9742095703273251,
+              0.9683948568309294
+            ],
+            "throughput": [
+              0.8127217772946548,
+              0.8285099824544543
+            ],
+            "tpot_p95": [
+              1.175479356323027,
+              1.1988377774028014
+            ],
+            "ttft_p95": [
+              1.2485854016019702,
+              1.1618179200251681
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9712978623370131,
+            "throughput": 0.8205779094313637,
+            "tpot_p95": 1.1871011157088402,
+            "ttft_p95": 1.204420563699819
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "chat"
+        },
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.9540807271809575,
+              0.9666353588746669
+            ],
+            "throughput": [
+              0.7227454424311207,
+              0.7581073297942702
+            ],
+            "tpot_p95": [
+              1.418316932024354,
+              1.3186770512355486
+            ],
+            "ttft_p95": [
+              1.6342533732125861,
+              1.2239672913397375
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9603375271819632,
+            "throughput": 0.7402152507767151,
+            "tpot_p95": 1.3675898470079855,
+            "ttft_p95": 1.4143099641075283
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.9600248020041869,
+              0.9682575255129741
+            ],
+            "throughput": [
+              0.7939544159986088,
+              0.8025585580932849
+            ],
+            "tpot_p95": [
+              1.2304306421599172,
+              1.190575892392485
+            ],
+            "ttft_p95": [
+              1.3706650767482658,
+              1.0553381356128324
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.964132376398416,
+            "throughput": 0.7982448943122904,
+            "tpot_p95": 1.210339233362532,
+            "ttft_p95": 1.2027115725081947
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.9605196628108069,
+              0.9694295380052156
+            ],
+            "throughput": [
+              0.819357094685368,
+              0.8346605732646014
+            ],
+            "tpot_p95": [
+              1.2278092992542606,
+              1.2152137507995366
+            ],
+            "ttft_p95": [
+              1.0898515398249262,
+              1.0853883057274267
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.9649643169379922,
+            "throughput": 0.8269734350984362,
+            "tpot_p95": 1.2214952901314522,
+            "ttft_p95": 1.0876176333183476
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "code"
+        },
+        {
+          "concurrency": 1,
+          "node_ratios": {
+            "acceptance": [
+              0.8630095692745565,
+              0.869201127615128
+            ],
+            "throughput": [
+              0.6903866845760509,
+              0.711955865514515
+            ],
+            "tpot_p95": [
+              1.465545340900581,
+              1.3757620590814286
+            ],
+            "ttft_p95": [
+              1.1093429972966578,
+              1.0354860768949998
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.8660998157002981,
+            "throughput": 0.7010883322071754,
+            "tpot_p95": 1.419944250974163,
+            "ttft_p95": 1.0717785350536073
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        },
+        {
+          "concurrency": 32,
+          "node_ratios": {
+            "acceptance": [
+              0.8756804618346206,
+              0.8668091691359708
+            ],
+            "throughput": [
+              0.8405395260890597,
+              0.8424242701808831
+            ],
+            "tpot_p95": [
+              1.1279076264789423,
+              1.075371622955527
+            ],
+            "ttft_p95": [
+              1.0621995014614036,
+              1.0214868382223745
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.8712335241205257,
+            "throughput": 0.8414813704555565,
+            "tpot_p95": 1.1013264070340711,
+            "ttft_p95": 1.041644282041231
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        },
+        {
+          "concurrency": 256,
+          "node_ratios": {
+            "acceptance": [
+              0.8738920194851149,
+              0.8699071750294664
+            ],
+            "throughput": [
+              0.8789475529838379,
+              0.8853525586301096
+            ],
+            "tpot_p95": [
+              1.1982628973068303,
+              1.163053365936934
+            ],
+            "ttft_p95": [
+              1.0936145921767393,
+              1.0419330024750761
+            ]
+          },
+          "ratios_geomean": {
+            "acceptance": 0.8718973207615055,
+            "throughput": 0.8821442427040573,
+            "tpot_p95": 1.1805268722015825,
+            "ttft_p95": 1.0674610698181297
+          },
+          "throughput_ratio_ci95": null,
+          "workload": "summarization"
+        }
+      ],
+      "correctness_controls_passed": true,
+      "failure_reasons": [
+        "acceptance below95%: summarization/c1",
+        "acceptance below95%: summarization/c256",
+        "acceptance below95%: summarization/c32",
+        "p95 latency regression over5%: chat/c1",
+        "p95 latency regression over5%: chat/c256",
+        "p95 latency regression over5%: chat/c32",
+        "p95 latency regression over5%: code/c1",
+        "p95 latency regression over5%: code/c256",
+        "p95 latency regression over5%: code/c32",
+        "p95 latency regression over5%: summarization/c1",
+        "p95 latency regression over5%: summarization/c256",
+        "p95 latency regression over5%: summarization/c32",
+        "throughput regression over3%: chat/c1",
+        "throughput regression over3%: chat/c256",
+        "throughput regression over3%: chat/c32",
+        "throughput regression over3%: code/c1",
+        "throughput regression over3%: code/c256",
+        "throughput regression over3%: code/c32",
+        "throughput regression over3%: summarization/c1",
+        "throughput regression over3%: summarization/c256",
+        "throughput regression over3%: summarization/c32"
+      ],
+      "memory": {
+        "combined_live_kv_bytes_ratio": 0.9469804642236385,
+        "draft_storage_ratio": 0.30817307692307694,
+        "includes_selection_metadata": true,
+        "matched_lengths": true,
+        "native_filled_window": true,
+        "physical_eviction_verified": true
+      },
+      "promising": false,
+      "score_c32_c256": 0.8298862767592481,
+      "selected_speed_cell": {
+        "concurrency": 256,
+        "workload": "summarization"
+      },
+      "speed_improvement_passed": false,
+      "stable_and_storage_passed": false
+    }
+  },
+  "evidence": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/analysis/screen-v1/evidence.json",
+  "evidence_sha256": "349c73a151865b5327f986fa2af4e1b119ab10b07b63acc624fedf468f798632",
+  "passed": false,
+  "phase": "screen",
+  "promising": false,
+  "schema_version": 1,
+  "selected_allocations": [
+    "screen-01-r2",
+    "screen-02-r2"
+  ],
+  "selected_speed_cell": null,
+  "superseded_attempt_history": [
+    {
+      "accounting_seen_at": "2026-10-22T23:41:20.767759+00:00",
+      "allocated_gpus": 4,
+      "allocation": "screen-01",
+      "command": null,
+      "elapsed_seconds": 625,
+      "job_comment": "apertus-drafter-kv:kv-sparsity-20261022-a:screen-01:791722c32e6f47b5be17e6b76bbd91ae",
+      "job_id": "3725102",
+      "output": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-01/results",
+      "phase": "screen",
+      "registered_at": "2026-10-22T20:57:50.250473+00:00",
+      "reserved_at": "2026-10-22T20:57:21.856377+00:00",
+      "reserved_seconds": 5400,
+      "slurm_state": "CANCELLED",
+      "state": "terminal",
+      "submission_attempted": true,
+      "submission_started_at": "2026-10-22T20:57:45.128158+00:00",
+      "superseded_at": "2026-10-22T22:42:31.846729+00:00",
+      "superseded_by": "screen-01-r2"
+    },
+    {
+      "accounting_seen_at": "2026-10-22T23:41:20.767763+00:00",
+      "allocated_gpus": 4,
+      "allocation": "screen-02",
+      "command": null,
+      "elapsed_seconds": 0,
+      "job_comment": "apertus-drafter-kv:kv-sparsity-20261022-a:screen-02:aea75cf578bc4009bc953e19bc0efeda",
+      "job_id": "3725104",
+      "output": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-02/results",
+      "phase": "screen",
+      "registered_at": "2026-10-22T20:57:53.276884+00:00",
+      "reserved_at": "2026-10-22T20:57:50.398950+00:00",
+      "reserved_seconds": 5400,
+      "slurm_state": "CANCELLED",
+      "state": "terminal",
+      "submission_attempted": true,
+      "submission_started_at": "2026-10-22T20:57:51.270439+00:00",
+      "superseded_at": "2026-10-22T22:42:35.098223+00:00",
+      "superseded_by": "screen-02-r2"
+    }
+  ],
+  "trace_summaries": {
+    "screen-01-r2": {
+      "importance1024-1": {
+        "allocation_samples": 1976,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-01-r2/results/importance1024-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 3949199360,
+          "draft_context_live_bytes": 3863019520,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 3949199360,
+          "draft_metadata_bytes": 7221248,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 57391841280,
+          "target_allocated_bytes": 54580019200,
+          "target_live_bytes": 49901731840
+        },
+        "sha256": "7215540568215c3584ca7ee5fbb7c3ee319cb8ce9a3bbb641ec2d4b54b63d990",
+        "steady_filled_samples": 852,
+        "step_samples": 1713
+      },
+      "importance512-1": {
+        "allocation_samples": 2005,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-01-r2/results/importance512-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 2636185600,
+          "draft_context_live_bytes": 2552627200,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 2636185600,
+          "draft_metadata_bytes": 6041600,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 57391841280,
+          "target_allocated_bytes": 55866818560,
+          "target_live_bytes": 51078234112
+        },
+        "sha256": "acd1585b32bf3585ad421da48cc532810516b8113f1a9f2c866a0aab5bae3ea0",
+        "steady_filled_samples": 878,
+        "step_samples": 1744
+      },
+      "native2048-1": {
+        "allocation_samples": 1962,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-01-r2/results/native2048-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 5440798720,
+          "draft_context_live_bytes": 0,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 5440798720,
+          "draft_metadata_bytes": 0,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 56150261760,
+          "target_allocated_bytes": 50930647040,
+          "target_live_bytes": 46565163008
+        },
+        "sha256": "1465a13b7a5ac098198ae2cc60f1ef4ab7db1d838607328e22088f4ae51e5491",
+        "steady_filled_samples": 875,
+        "step_samples": 1712
+      },
+      "recent512-1": {
+        "allocation_samples": 2046,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-01-r2/results/recent512-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 2659123200,
+          "draft_context_live_bytes": 2574581760,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 2659123200,
+          "draft_metadata_bytes": 6041600,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 57391841280,
+          "target_allocated_bytes": 55901224960,
+          "target_live_bytes": 51109691392
+        },
+        "sha256": "232432cf1b5b38162c9e7d144cd6c5ea2a2382122f206780453fdc6471597664",
+        "steady_filled_samples": 890,
+        "step_samples": 1771
+      }
+    },
+    "screen-02-r2": {
+      "importance1024-1": {
+        "allocation_samples": 1982,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-02-r2/results/importance1024-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 3948544000,
+          "draft_context_live_bytes": 3861381120,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 3948544000,
+          "draft_metadata_bytes": 7221248,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 57391841280,
+          "target_allocated_bytes": 54550200320,
+          "target_live_bytes": 49874468864
+        },
+        "sha256": "f32d1be35994da13e227c8dbccc5a8a673a9c4836b9f404808806b6fdc6c96eb",
+        "steady_filled_samples": 855,
+        "step_samples": 1715
+      },
+      "importance512-1": {
+        "allocation_samples": 2014,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-02-r2/results/importance512-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 2629632000,
+          "draft_context_live_bytes": 2546401280,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 2629632000,
+          "draft_metadata_bytes": 6041600,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 57391841280,
+          "target_allocated_bytes": 55910400000,
+          "target_live_bytes": 51118080000
+        },
+        "sha256": "569824a7caa9f43e1e1b30aa273dda5487afbe7b3ece612b2e62087ec2264b1c",
+        "steady_filled_samples": 884,
+        "step_samples": 1749
+      },
+      "native2048-1": {
+        "allocation_samples": 2018,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-02-r2/results/native2048-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 5442764800,
+          "draft_context_live_bytes": 0,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 5442764800,
+          "draft_metadata_bytes": 0,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 56150261760,
+          "target_allocated_bytes": 50907709440,
+          "target_live_bytes": 46544191488
+        },
+        "sha256": "8edd37189a9d3568ef698ab0d1c68e3760df49cc4411b34c104f76876b21adb2",
+        "steady_filled_samples": 910,
+        "step_samples": 1761
+      },
+      "recent512-1": {
+        "allocation_samples": 2024,
+        "available": true,
+        "path": "/home/projects/apertus-speculative-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/screen-02-r2/results/recent512-1/draft-kv.jsonl",
+        "peaks": {
+          "bootstrap_peak_pages": 0,
+          "draft_allocated_bytes": 2645360640,
+          "draft_context_live_bytes": 2561802240,
+          "draft_context_projection_scratch_bytes": 304087040,
+          "draft_live_bytes": 2645360640,
+          "draft_metadata_bytes": 6041600,
+          "draft_query_scratch_bytes": 36700160,
+          "shared_pool_reserved_bytes": 57391841280,
+          "target_allocated_bytes": 55914987520,
+          "target_live_bytes": 51122274304
+        },
+        "sha256": "355b78c41a8a81b8fffe8e9ab8fca83785cb677dcd21f825808c5a9255c45427",
+        "steady_filled_samples": 870,
+        "step_samples": 1746
+      }
+    }
+  },
+  "uncertainty_unit": "independent node allocation; GPU replicates averaged within node"
+}

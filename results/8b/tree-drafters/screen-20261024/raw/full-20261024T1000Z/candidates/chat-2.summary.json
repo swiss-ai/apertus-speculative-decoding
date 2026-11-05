@@ -1,0 +1,321 @@
+{
+ "workload": "chat",
+ "shard": 2,
+ "num_shards": 4,
+ "args": {
+  "capture": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/tree-drafters/runs/full-20261024T1000Z/captures/chat-plain.json",
+  "prompts": "workloads/8b/eagle-8b-test.jsonl",
+  "workload": "chat",
+  "eagle_head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+  "dspark": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+  "dspark_hf_layers": "0,7,14,21,28",
+  "contract": "None",
+  "shard": "2",
+  "num_shards": "4",
+  "limit": "0",
+  "max_anchors": "0",
+  "width": "10",
+  "topk": "10",
+  "keep": "48",
+  "ngram_branches": "8",
+  "anchor_chunk": "32",
+  "node_chunk": "1024",
+  "output": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/tree-drafters/runs/full-20261024T1000Z/candidates/chat-2.jsonl.gz",
+  "summary": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/tree-drafters/runs/full-20261024T1000Z/candidates/chat-2.summary.json"
+ },
+ "target": {
+  "model_id": "swiss-ai/Apertus-v1.5-8B",
+  "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+  "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+  "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+  "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+  "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+  "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+ },
+ "eagle_head": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+ "eagle_head_sha256": "42b0549629bed5366be812ea0a08897d3631bff2329bb7294adddd8ab100d6ff",
+ "dspark": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+ "dspark_sha256": "002d1167be0cd49f0e3ecb04bb0978552936f04567d0ab7c7f5f2180b03eb56a",
+ "eagle_hf_layers": [
+  1,
+  15,
+  28
+ ],
+ "dspark_hf_layers": [
+  0,
+  7,
+  14,
+  21,
+  28
+ ],
+ "capture": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/tree-drafters/runs/full-20261024T1000Z/captures/chat-plain.json",
+ "capture_sha256": "cb46c418265cf0fb22cf614808845e236cc56a255857070ac029fc76d6722917",
+ "prompts_sha256": "70812a8c52f7f619ecc9e6afc9d7e31938b88a97caf324d4be7987c4459f830f",
+ "slurm_job_id": "3737473",
+ "seconds": 71.9,
+ "anchors": 7788,
+ "hf_argmax_agreement": 0.9911765716112532,
+ "chain_k7_accepted_per_step": {
+  "chain-dspark": 2.389483338428615,
+  "chain-eagle": 2.348452988885551,
+  "chain-ngram": 1.272
+ },
+ "sequences": [
+  {
+   "id_sha256": "3557f60c23071bab",
+   "prompt_tokens": 1335,
+   "generated_tokens": 512,
+   "hf_argmax_agreement": 0.99414,
+   "mean_nodes": 109.1,
+   "seconds": 4.12
+  },
+  {
+   "id_sha256": "42d0eb83abe41b33",
+   "prompt_tokens": 232,
+   "generated_tokens": 512,
+   "hf_argmax_agreement": 0.99609,
+   "mean_nodes": 105.7,
+   "seconds": 3.69
+  },
+  {
+   "id_sha256": "d2559802b0fb3f0a",
+   "prompt_tokens": 764,
+   "generated_tokens": 355,
+   "hf_argmax_agreement": 0.99437,
+   "mean_nodes": 107.9,
+   "seconds": 2.77
+  },
+  {
+   "id_sha256": "1d34663e81b3ce63",
+   "prompt_tokens": 216,
+   "generated_tokens": 20,
+   "hf_argmax_agreement": 0.95,
+   "mean_nodes": 104.9,
+   "seconds": 0.2
+  },
+  {
+   "id_sha256": "be3352b2f4f0708c",
+   "prompt_tokens": 129,
+   "generated_tokens": 73,
+   "hf_argmax_agreement": 1.0,
+   "mean_nodes": 103.2,
+   "seconds": 0.56
+  },
+  {
+   "id_sha256": "1f1907a90b385716",
+   "prompt_tokens": 160,
+   "generated_tokens": 144,
+   "hf_argmax_agreement": 0.97917,
+   "mean_nodes": 100.2,
+   "seconds": 1.13
+  },
+  {
+   "id_sha256": "ad368afddef676f6",
+   "prompt_tokens": 149,
+   "generated_tokens": 186,
+   "hf_argmax_agreement": 0.98925,
+   "mean_nodes": 102.4,
+   "seconds": 1.3
+  },
+  {
+   "id_sha256": "e52f26e72c35f468",
+   "prompt_tokens": 313,
+   "generated_tokens": 38,
+   "hf_argmax_agreement": 1.0,
+   "mean_nodes": 93.4,
+   "seconds": 0.32
+  },
+  {
+   "id_sha256": "476c7742f3356ff3",
+   "prompt_tokens": 1922,
+   "generated_tokens": 374,
+   "hf_argmax_agreement": 0.97594,
+   "mean_nodes": 104.5,
+   "seconds": 2.91
+  },
+  {
+   "id_sha256": "1d922435b8d7396f",
+   "prompt_tokens": 1035,
+   "generated_tokens": 392,
+   "hf_argmax_agreement": 0.97959,
+   "mean_nodes": 103.0,
+   "seconds": 2.96
+  },
+  {
+   "id_sha256": "f28c5abc18f69f5c",
+   "prompt_tokens": 173,
+   "generated_tokens": 30,
+   "hf_argmax_agreement": 1.0,
+   "mean_nodes": 101.7,
+   "seconds": 0.23
+  },
+  {
+   "id_sha256": "0bef60022670e1aa",
+   "prompt_tokens": 944,
+   "generated_tokens": 490,
+   "hf_argmax_agreement": 0.98776,
+   "mean_nodes": 109.7,
+   "seconds": 3.81
+  },
+  {
+   "id_sha256": "ea61fed4bae0a975",
+   "prompt_tokens": 835,
+   "generated_tokens": 452,
+   "hf_argmax_agreement": 0.99336,
+   "mean_nodes": 99.5,
+   "seconds": 3.45
+  },
+  {
+   "id_sha256": "93f1a524322a3fbc",
+   "prompt_tokens": 189,
+   "generated_tokens": 34,
+   "hf_argmax_agreement": 0.97059,
+   "mean_nodes": 95.5,
+   "seconds": 0.3
+  },
+  {
+   "id_sha256": "8690fec1203531ce",
+   "prompt_tokens": 162,
+   "generated_tokens": 228,
+   "hf_argmax_agreement": 0.97807,
+   "mean_nodes": 102.4,
+   "seconds": 1.65
+  },
+  {
+   "id_sha256": "d5377601ed1ef1b9",
+   "prompt_tokens": 352,
+   "generated_tokens": 324,
+   "hf_argmax_agreement": 0.99691,
+   "mean_nodes": 117.9,
+   "seconds": 2.52
+  },
+  {
+   "id_sha256": "26d0e760ceecfde9",
+   "prompt_tokens": 231,
+   "generated_tokens": 65,
+   "hf_argmax_agreement": 1.0,
+   "mean_nodes": 90.9,
+   "seconds": 0.56
+  },
+  {
+   "id_sha256": "a31282c2601b9099",
+   "prompt_tokens": 176,
+   "generated_tokens": 89,
+   "hf_argmax_agreement": 0.98876,
+   "mean_nodes": 116.9,
+   "seconds": 0.64
+  },
+  {
+   "id_sha256": "4455d50fe38ab0aa",
+   "prompt_tokens": 219,
+   "generated_tokens": 66,
+   "hf_argmax_agreement": 1.0,
+   "mean_nodes": 101.6,
+   "seconds": 0.61
+  },
+  {
+   "id_sha256": "3660b8c1b874b119",
+   "prompt_tokens": 235,
+   "generated_tokens": 59,
+   "hf_argmax_agreement": 0.98305,
+   "mean_nodes": 94.4,
+   "seconds": 0.41
+  },
+  {
+   "id_sha256": "3a2de5d47d721999",
+   "prompt_tokens": 1155,
+   "generated_tokens": 478,
+   "hf_argmax_agreement": 0.99372,
+   "mean_nodes": 107.7,
+   "seconds": 3.64
+  },
+  {
+   "id_sha256": "2e4bcf42a396cdbc",
+   "prompt_tokens": 441,
+   "generated_tokens": 33,
+   "hf_argmax_agreement": 0.9697,
+   "mean_nodes": 97.1,
+   "seconds": 0.24
+  },
+  {
+   "id_sha256": "b3e172c970dbc1e9",
+   "prompt_tokens": 1139,
+   "generated_tokens": 512,
+   "hf_argmax_agreement": 0.99219,
+   "mean_nodes": 105.2,
+   "seconds": 3.89
+  },
+  {
+   "id_sha256": "79cf69b878cd9751",
+   "prompt_tokens": 1081,
+   "generated_tokens": 185,
+   "hf_argmax_agreement": 0.98378,
+   "mean_nodes": 110.3,
+   "seconds": 1.39
+  },
+  {
+   "id_sha256": "cc2296c4a376bf71",
+   "prompt_tokens": 426,
+   "generated_tokens": 512,
+   "hf_argmax_agreement": 0.99805,
+   "mean_nodes": 111.2,
+   "seconds": 3.57
+  },
+  {
+   "id_sha256": "ba5103a4ded15830",
+   "prompt_tokens": 276,
+   "generated_tokens": 294,
+   "hf_argmax_agreement": 0.9932,
+   "mean_nodes": 108.6,
+   "seconds": 1.95
+  },
+  {
+   "id_sha256": "fc22bf647e223070",
+   "prompt_tokens": 1283,
+   "generated_tokens": 297,
+   "hf_argmax_agreement": 1.0,
+   "mean_nodes": 106.9,
+   "seconds": 2.34
+  },
+  {
+   "id_sha256": "8601b10341963cc6",
+   "prompt_tokens": 162,
+   "generated_tokens": 512,
+   "hf_argmax_agreement": 0.99609,
+   "mean_nodes": 110.9,
+   "seconds": 3.61
+  },
+  {
+   "id_sha256": "38743ba3feefe1aa",
+   "prompt_tokens": 336,
+   "generated_tokens": 200,
+   "hf_argmax_agreement": 0.985,
+   "mean_nodes": 114.2,
+   "seconds": 1.65
+  },
+  {
+   "id_sha256": "4cd0e4f8e2e2e56b",
+   "prompt_tokens": 166,
+   "generated_tokens": 53,
+   "hf_argmax_agreement": 0.98113,
+   "mean_nodes": 94.8,
+   "seconds": 0.58
+  },
+  {
+   "id_sha256": "dfcb13f7a7727216",
+   "prompt_tokens": 195,
+   "generated_tokens": 80,
+   "hf_argmax_agreement": 1.0,
+   "mean_nodes": 95.3,
+   "seconds": 0.59
+  },
+  {
+   "id_sha256": "2e79274858169b55",
+   "prompt_tokens": 262,
+   "generated_tokens": 221,
+   "hf_argmax_agreement": 0.99548,
+   "mean_nodes": 117.3,
+   "seconds": 1.71
+  }
+ ]
+}

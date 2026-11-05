@@ -1,0 +1,178 @@
+{
+  "profile": {
+    "tool": "nsys",
+    "window_s": 15.0,
+    "delay_s": 10.0,
+    "levels": [
+      1,
+      64,
+      256
+    ],
+    "loadtests": null,
+    "nsys": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+    "trace": "cuda,nvtx,osrt",
+    "cuda_graph_trace": "node",
+    "gpu_metrics": false,
+    "gpu_metrics_frequency": 10000,
+    "nvtx": true,
+    "eager_draft": true,
+    "sample": "none",
+    "extra_args": [],
+    "stats": [
+      "cuda_gpu_kern_sum",
+      "cuda_gpu_mem_time_sum",
+      "cuda_api_sum",
+      "nvtx_sum",
+      "nvtx_gpu_proj_sum",
+      "nvtx_gpu_proj_trace",
+      "osrt_sum"
+    ],
+    "report_timeout_s": 900.0
+  },
+  "reports": [
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k7-nsys/nsys/trunc-l1-k7-nsys.1.nsys-rep",
+      "report_bytes": 39753481,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k7-nsys/nsys/trunc-l1-k7-nsys.1.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "trunc-l1-k7-nsys.1_cuda_api_sum.csv",
+        "trunc-l1-k7-nsys.1_cuda_gpu_kern_sum.csv",
+        "trunc-l1-k7-nsys.1_cuda_gpu_mem_time_sum.csv",
+        "trunc-l1-k7-nsys.1_nvtx_gpu_proj_sum.csv",
+        "trunc-l1-k7-nsys.1_nvtx_gpu_proj_trace.csv",
+        "trunc-l1-k7-nsys.1_nvtx_sum.csv",
+        "trunc-l1-k7-nsys.1_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 1,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:37:54.432070+00:00",
+        "start_latency_s": 2.496,
+        "truncated": false,
+        "open_s": 20.746,
+        "stopped_at": "2026-10-24T06:38:17.673716+00:00",
+        "counters": {
+          "prompt_tokens": 1098.0,
+          "generation_tokens": 1811.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 1479.0,
+            "draft_tokens": 10353.0,
+            "accepted_tokens": 330.0,
+            "acceptance_rate": 0.03187481889307447,
+            "mean_acceptance_length": 1.2231237322515214,
+            "acceptance_rate_per_position": {
+              "0": 0.1845841784989858,
+              "1": 0.03380662609871535,
+              "2": 0.0033806626098715348,
+              "3": 0.000676132521974307,
+              "4": 0.000676132521974307,
+              "5": 0.0,
+              "6": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k7-nsys/nsys/trunc-l1-k7-nsys.2.nsys-rep",
+      "report_bytes": 17318378,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k7-nsys/nsys/trunc-l1-k7-nsys.2.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "trunc-l1-k7-nsys.2_cuda_api_sum.csv",
+        "trunc-l1-k7-nsys.2_cuda_gpu_kern_sum.csv",
+        "trunc-l1-k7-nsys.2_cuda_gpu_mem_time_sum.csv",
+        "trunc-l1-k7-nsys.2_nvtx_gpu_proj_sum.csv",
+        "trunc-l1-k7-nsys.2_nvtx_gpu_proj_trace.csv",
+        "trunc-l1-k7-nsys.2_nvtx_sum.csv",
+        "trunc-l1-k7-nsys.2_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 64,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:44:29.123417+00:00",
+        "start_latency_s": 0.232,
+        "truncated": false,
+        "open_s": 18.724,
+        "stopped_at": "2026-10-24T06:44:48.079459+00:00",
+        "counters": {
+          "prompt_tokens": 49133.0,
+          "generation_tokens": 44006.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 34091.0,
+            "draft_tokens": 238637.0,
+            "accepted_tokens": 9898.0,
+            "acceptance_rate": 0.04147722272740606,
+            "mean_acceptance_length": 1.2903405590918424,
+            "acceptance_rate_per_position": {
+              "0": 0.2251033997242674,
+              "1": 0.05048253204658121,
+              "2": 0.011439969493414684,
+              "3": 0.0026986594702414126,
+              "4": 0.0005279985920037546,
+              "5": 8.799976533395911e-05,
+              "6": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k7-nsys/nsys/trunc-l1-k7-nsys.3.nsys-rep",
+      "report_bytes": 10396803,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/trunc-l1-k7-nsys/nsys/trunc-l1-k7-nsys.3.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "trunc-l1-k7-nsys.3_cuda_api_sum.csv",
+        "trunc-l1-k7-nsys.3_cuda_gpu_kern_sum.csv",
+        "trunc-l1-k7-nsys.3_cuda_gpu_mem_time_sum.csv",
+        "trunc-l1-k7-nsys.3_nvtx_gpu_proj_sum.csv",
+        "trunc-l1-k7-nsys.3_nvtx_gpu_proj_trace.csv",
+        "trunc-l1-k7-nsys.3_nvtx_sum.csv",
+        "trunc-l1-k7-nsys.3_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 256,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:45:58.723053+00:00",
+        "start_latency_s": 0.273,
+        "truncated": false,
+        "open_s": 18.086,
+        "stopped_at": "2026-10-24T06:46:17.082551+00:00",
+        "counters": {
+          "prompt_tokens": 39697.0,
+          "generation_tokens": 55907.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 42504.0,
+            "draft_tokens": 297528.0,
+            "accepted_tokens": 13384.0,
+            "acceptance_rate": 0.04498400150574064,
+            "mean_acceptance_length": 1.3148880105401846,
+            "acceptance_rate_per_position": {
+              "0": 0.24308300395256918,
+              "1": 0.05503011481272351,
+              "2": 0.012587050630528892,
+              "3": 0.0035761340109166195,
+              "4": 0.000564652738565782,
+              "5": 4.7054394880481836e-05,
+              "6": 0.0
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+name: drafter-kv-screen-01
+stage: 8b
+node_gpus: 4
+probe: false
+engine:
+  max_num_batched_tokens: 16384
+  max_num_seqs: 256
+  async_scheduling: false
+loadtests:
+- workload: chat
+  workloads_file: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-validation.jsonl
+  concurrencies: &id001
+  - 1
+  - 32
+  - 256
+  generation:
+    temperature: 0.0
+    top_p: 1.0
+    seed: 1
+- workload: code
+  workloads_file: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-validation.jsonl
+  concurrencies: *id001
+  generation:
+    temperature: 0.0
+    top_p: 1.0
+    seed: 1
+- workload: summarization
+  workloads_file: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-validation.jsonl
+  concurrencies: *id001
+  generation:
+    temperature: 0.0
+    top_p: 1.0
+    seed: 1
+arms:
+- name: native2048-1
+  method: dspark
+  drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  k: 7
+  env:
+    VLLM_DRAFT_KV_TRACE: '{arm_dir}/draft-kv.jsonl'
+    VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl
+  metadata:
+    kv_policy: native2048
+    kv_phase: screen
+    kv_node_block: '1'
+    head_config_sha256: 7da65275c084673689a3afd1c36f4f131c9aa64f6959caf53ff95c1d733b3498
+    exact_head_checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    inventory_sha256: af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226
+    target_tensor_parallel_size: '1'
+    target_model: swiss-ai/Apertus-v1.5-8B
+    target_revision: a411d838600baf0e3635a3daf66fb7c55fc97bb6
+    checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    container_sha256: f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5
+    container_image: /capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+- name: recent512-1
+  method: dspark
+  drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  k: 7
+  env:
+    VLLM_APERTUS_DRAFT_KV_POLICY: recent
+    VLLM_APERTUS_DRAFT_KV_BUDGET: '512'
+    VLLM_APERTUS_DRAFT_KV_RECENT: '128'
+    VLLM_APERTUS_DRAFT_KV_GRAPHS: '1'
+    VLLM_DRAFT_KV_TRACE: '{arm_dir}/draft-kv.jsonl'
+    VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl
+  metadata:
+    kv_policy: recent512
+    kv_phase: screen
+    kv_node_block: '1'
+    head_config_sha256: 7da65275c084673689a3afd1c36f4f131c9aa64f6959caf53ff95c1d733b3498
+    exact_head_checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    inventory_sha256: af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226
+    target_tensor_parallel_size: '1'
+    target_model: swiss-ai/Apertus-v1.5-8B
+    target_revision: a411d838600baf0e3635a3daf66fb7c55fc97bb6
+    checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    container_sha256: f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5
+    container_image: /capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+- name: importance1024-1
+  method: dspark
+  drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  k: 7
+  env:
+    VLLM_APERTUS_DRAFT_KV_POLICY: importance
+    VLLM_APERTUS_DRAFT_KV_BUDGET: '1024'
+    VLLM_APERTUS_DRAFT_KV_RECENT: '128'
+    VLLM_APERTUS_DRAFT_KV_GRAPHS: '1'
+    VLLM_DRAFT_KV_TRACE: '{arm_dir}/draft-kv.jsonl'
+    VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl
+  metadata:
+    kv_policy: importance1024
+    kv_phase: screen
+    kv_node_block: '1'
+    head_config_sha256: 7da65275c084673689a3afd1c36f4f131c9aa64f6959caf53ff95c1d733b3498
+    exact_head_checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    inventory_sha256: af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226
+    target_tensor_parallel_size: '1'
+    target_model: swiss-ai/Apertus-v1.5-8B
+    target_revision: a411d838600baf0e3635a3daf66fb7c55fc97bb6
+    checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    container_sha256: f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5
+    container_image: /capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+- name: importance512-1
+  method: dspark
+  drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  k: 7
+  env:
+    VLLM_APERTUS_DRAFT_KV_POLICY: importance
+    VLLM_APERTUS_DRAFT_KV_BUDGET: '512'
+    VLLM_APERTUS_DRAFT_KV_RECENT: '128'
+    VLLM_APERTUS_DRAFT_KV_GRAPHS: '1'
+    VLLM_DRAFT_KV_TRACE: '{arm_dir}/draft-kv.jsonl'
+    VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl
+  metadata:
+    kv_policy: importance512
+    kv_phase: screen
+    kv_node_block: '1'
+    head_config_sha256: 7da65275c084673689a3afd1c36f4f131c9aa64f6959caf53ff95c1d733b3498
+    exact_head_checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    inventory_sha256: af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226
+    target_tensor_parallel_size: '1'
+    target_model: swiss-ai/Apertus-v1.5-8B
+    target_revision: a411d838600baf0e3635a3daf66fb7c55fc97bb6
+    checkpoint_sha256: 5c16092b1fe459c61232506d9abef988d0a417df8ee73dbb6e961c8ddeb46cd1
+    container_sha256: f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5
+    container_image: /capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh
+drafter_kv:
+  phase: screen
+  repeat: 1
+  inventory: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs.json
+  corpora:
+    correctness.jsonl:
+      path: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl
+      selection: first two per validation stratum, cap128
+      sha256: beb64e64786346ddb5446ea2cf2a0fd9469e6c95c27de281e86682a6f079215f
+    eagle-8b-test.jsonl:
+      path: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-test.jsonl
+      sha256: 70812a8c52f7f619ecc9e6afc9d7e31938b88a97caf324d4be7987c4459f830f
+    eagle-8b-validation.jsonl:
+      path: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-validation.jsonl
+      sha256: 8f2a17d6e83d2573b1f9d336c2b817211c7d3d33f46a8b7fbe48f8e6553c7290
+    opb-heldout.jsonl:
+      path: /users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/opb-heldout.jsonl
+      sha256: 186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b
+  inventory_sha256: af71a1c7b764d0a132d61f747848badfd17f355a8ffda3fc837b8d12ec8c5226

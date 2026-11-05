@@ -1,0 +1,42 @@
+{"dtype": "torch.bfloat16", "slots": 32, "page_size": 16, "causal": false, "sinks": true, "window": 2048, "max_output_error": 0.0009500384330749512, "max_mass_error": 4.76837158203125e-07}
+Traceback (most recent call last):
+  File "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py", line 465, in <module>
+    main()
+  File "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py", line 447, in main
+    report = check_state_kernels(policy)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py", line 375, in check_state_kernels
+    ends, batch_scores = prepare([list(range(end)) for end in ends_host], [0, 0], max_pages)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py", line 264, in prepare
+    integration._prepare_pages[(2,)](
+  File "/opt/venv/lib/python3.12/site-packages/triton/runtime/jit.py", line 370, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/triton/runtime/jit.py", line 720, in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/triton/runtime/jit.py", line 849, in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/triton/compiler/compiler.py", line 304, in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/triton/compiler/compiler.py", line 80, in make_ir
+    return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+triton.compiler.errors.CompilationError: at 29:38:
+    C: tl.constexpr,
+    V: tl.constexpr,
+):
+    r = tl.program_id(0)
+    state = tl.load(idx_ptr + r)
+    lo = tl.load(starts_ptr + r)
+    hi = tl.load(starts_ptr + r + 1) - tl.load(rejected_ptr + r)
+    end = tl.load(positions_ptr + hi - 1) + 1
+    first = tl.load(positions_ptr + lo)
+    tl.store(ends_ptr + r, end)
+    offsets = tl.arange(0, V)
+    tags = tl.load(tags_ptr + state * MAX_PAGES + offsets, offsets < MAX_PAGES, other=-1)
+                                      ^
+NameError("Cannot access global variable MAX_PAGES from within @jit'ed function. Triton kernels can only access global variables that are instanstiated as constexpr (`x = triton.language.constexpr(42)`). Note that this is different from annotating a variable as constexpr (`x: triton.language.constexpr = 42`), which is not supported.  Alternatively, set the envvar TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1, but we do not promise to support this forever.")

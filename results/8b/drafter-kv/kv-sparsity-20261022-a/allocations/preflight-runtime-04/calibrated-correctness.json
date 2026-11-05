@@ -1,0 +1,3074 @@
+{
+  "controls": [
+    {
+      "exact": 6,
+      "total": 6,
+      "same_deployment": true,
+      "worst": {
+        "minimum_common_prefix_characters": 372.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      }
+    },
+    {
+      "exact": 6,
+      "total": 6,
+      "same_deployment": true,
+      "worst": {
+        "minimum_common_prefix_characters": 372.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      }
+    },
+    {
+      "exact": 6,
+      "total": 6,
+      "same_deployment": true,
+      "worst": {
+        "minimum_common_prefix_characters": 372.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      }
+    },
+    {
+      "exact": 6,
+      "total": 6,
+      "same_deployment": true,
+      "worst": {
+        "minimum_common_prefix_characters": 372.0,
+        "minimum_common_prefix_fraction": 1.0,
+        "maximum_normalized_edit_distance": 0.0,
+        "maximum_completion_token_difference": 0.0
+      }
+    },
+    {
+      "exact": 4,
+      "total": 6,
+      "same_deployment": false,
+      "worst": {
+        "minimum_common_prefix_characters": 4.0,
+        "minimum_common_prefix_fraction": 0.006932409012131715,
+        "maximum_normalized_edit_distance": 0.754653130287648,
+        "maximum_completion_token_difference": 0.0
+      }
+    },
+    {
+      "exact": 4,
+      "total": 6,
+      "same_deployment": false,
+      "worst": {
+        "minimum_common_prefix_characters": 4.0,
+        "minimum_common_prefix_fraction": 0.006932409012131715,
+        "maximum_normalized_edit_distance": 0.754653130287648,
+        "maximum_completion_token_difference": 0.0
+      }
+    },
+    {
+      "exact": 4,
+      "total": 6,
+      "same_deployment": false,
+      "worst": {
+        "minimum_common_prefix_characters": 4.0,
+        "minimum_common_prefix_fraction": 0.006932409012131715,
+        "maximum_normalized_edit_distance": 0.754653130287648,
+        "maximum_completion_token_difference": 0.0
+      }
+    },
+    {
+      "exact": 4,
+      "total": 6,
+      "same_deployment": false,
+      "worst": {
+        "minimum_common_prefix_characters": 4.0,
+        "minimum_common_prefix_fraction": 0.006932409012131715,
+        "maximum_normalized_edit_distance": 0.754653130287648,
+        "maximum_completion_token_difference": 0.0
+      }
+    }
+  ],
+  "treatments": {
+    "full-custom": [
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      }
+    ],
+    "importance512": [
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-a",
+        "exact": 4,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 4.0,
+          "minimum_common_prefix_fraction": 0.006932409012131715,
+          "maximum_normalized_edit_distance": 0.754653130287648,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 4,
+            "worst_case": {
+              "minimum_common_prefix_characters": 4.0,
+              "minimum_common_prefix_fraction": 0.006932409012131715,
+              "maximum_normalized_edit_distance": 0.754653130287648,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 0.006932409012131715,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.754653130287648,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      },
+      {
+        "native": "native-b",
+        "exact": 6,
+        "total": 6,
+        "worst": {
+          "minimum_common_prefix_characters": 372.0,
+          "minimum_common_prefix_fraction": 1.0,
+          "maximum_normalized_edit_distance": 0.0,
+          "maximum_completion_token_difference": 0.0
+        },
+        "gate": {
+          "schema_version": 1,
+          "criterion": "calibrated_greedy_divergence",
+          "tolerance": {
+            "normalized_edit_distance_margin": 0.05,
+            "common_prefix_fraction_margin": 0.05,
+            "completion_token_difference_margin": 2
+          },
+          "treatment": {
+            "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+            "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+            "same_deployment": false,
+            "total_cases": 6,
+            "comparable_cases": 6,
+            "exact_matches": 6,
+            "worst_case": {
+              "minimum_common_prefix_characters": 372.0,
+              "minimum_common_prefix_fraction": 1.0,
+              "maximum_normalized_edit_distance": 0.0,
+              "maximum_completion_token_difference": 0.0
+            }
+          },
+          "controls": [
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-full-custom",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-importance512",
+              "same_deployment": true,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 6,
+              "worst_case": {
+                "minimum_common_prefix_characters": 372.0,
+                "minimum_common_prefix_fraction": 1.0,
+                "maximum_normalized_edit_distance": 0.0,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            },
+            {
+              "baseline_model": "swiss-ai/Apertus-v1.5-8B-native-a",
+              "candidate_model": "swiss-ai/Apertus-v1.5-8B-native-b",
+              "same_deployment": false,
+              "total_cases": 6,
+              "comparable_cases": 6,
+              "exact_matches": 4,
+              "worst_case": {
+                "minimum_common_prefix_characters": 4.0,
+                "minimum_common_prefix_fraction": 0.006932409012131715,
+                "maximum_normalized_edit_distance": 0.754653130287648,
+                "maximum_completion_token_difference": 0.0
+              }
+            }
+          ],
+          "control_envelope": {
+            "pairs": 8,
+            "cross_deployment_pairs": 4,
+            "comparable_cases": 48,
+            "exact_matches": 40,
+            "minimum_common_prefix_fraction": 0.006932409012131715,
+            "maximum_normalized_edit_distance": 0.754653130287648,
+            "maximum_completion_token_difference": 0.0
+          },
+          "checks": [
+            {
+              "name": "all_cases_comparable",
+              "treatment": 6,
+              "allowance": 6,
+              "passed": true
+            },
+            {
+              "name": "minimum_common_prefix_fraction",
+              "treatment": 1.0,
+              "allowance": 0.0,
+              "passed": true
+            },
+            {
+              "name": "maximum_normalized_edit_distance",
+              "treatment": 0.0,
+              "allowance": 0.8046531302876481,
+              "passed": true
+            },
+            {
+              "name": "maximum_completion_token_difference",
+              "treatment": 0.0,
+              "allowance": 2.0,
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "verdict": "within_control_envelope",
+          "claim": "greedy divergence between the two arms stays inside the divergence measured between independently launched deployments of a single configuration, so this run shows no divergence beyond deployment-level numerical nondeterminism; that is consistent with losslessness and is not a proof of it"
+        }
+      }
+    ]
+  }
+}

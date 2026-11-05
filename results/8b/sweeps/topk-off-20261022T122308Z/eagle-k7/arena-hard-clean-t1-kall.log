@@ -1,0 +1,72 @@
+loadtest arena-hard-clean concurrency=8 requests=371
+loadtest arena-hard-clean concurrency=64 requests=371
+loadtest arena-hard-clean concurrency=256 requests=1113
+{
+  "workload": "arena-hard-clean",
+  "variant": "eagle-k7",
+  "levels": [
+    {
+      "concurrency": 8,
+      "requests": 371,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 2158.615921192422,
+      "ttft_p50_ms": 33.37013901909813,
+      "ttft_p95_ms": 58.76332550542429,
+      "tpot_p50_ms": 3.5478752545631407,
+      "tpot_p95_ms": 4.799940540998687,
+      "e2e_p95_ms": 4249.43629099289,
+      "kv_cache_usage_mean": 0.00985490080380876,
+      "kv_cache_usage_max": 0.014677681073904658,
+      "kv_cache_tokens_peak": 6368,
+      "kv_cache_size_tokens": 433872,
+      "running_max": 8.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.922874261106802,
+      "acceptance_rate": 0.2746963230152574
+    },
+    {
+      "concurrency": 64,
+      "requests": 371,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 6383.982036035303,
+      "ttft_p50_ms": 91.08168102102354,
+      "ttft_p95_ms": 307.2391184978187,
+      "tpot_p50_ms": 8.805663549510697,
+      "tpot_p95_ms": 12.177208434388554,
+      "e2e_p95_ms": 10247.931455494836,
+      "kv_cache_usage_mean": 0.06847301540471624,
+      "kv_cache_usage_max": 0.0881767222304175,
+      "kv_cache_tokens_peak": 38257,
+      "kv_cache_size_tokens": 433872,
+      "running_max": 64.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.929281664024079,
+      "acceptance_rate": 0.2756116662891541
+    },
+    {
+      "concurrency": 256,
+      "requests": 1113,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 7911.645090448157,
+      "ttft_p50_ms": 282.8906769864261,
+      "ttft_p95_ms": 1312.8569130203687,
+      "tpot_p50_ms": 29.09052019159538,
+      "tpot_p95_ms": 40.808896976623984,
+      "e2e_p95_ms": 35067.89469178766,
+      "kv_cache_usage_mean": 0.28333425159555464,
+      "kv_cache_usage_max": 0.3646186753208438,
+      "kv_cache_tokens_peak": 158198,
+      "kv_cache_size_tokens": 433872,
+      "running_max": 256.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.9336455160630983,
+      "acceptance_rate": 0.2762350737232998
+    }
+  ]
+}

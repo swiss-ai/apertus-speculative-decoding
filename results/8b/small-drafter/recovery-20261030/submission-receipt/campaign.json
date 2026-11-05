@@ -1,0 +1,33 @@
+{
+  "active_job": "3802723",
+  "error": "ValueError: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v1/validate/repeat-a: serving or measurement failure",
+  "failure_kind": "infrastructure",
+  "host_launcher_also_failed": true,
+  "job_ids": [
+    "3790212",
+    "3802723",
+    "3802725",
+    "3802726"
+  ],
+  "next_action": "stop; diagnose preserved infrastructure/correctness artifacts; no scientific verdict",
+  "source_revision": "73fcc4a7ec178cac0a849b4cedc819a8ee4e595e",
+  "stage": "validate",
+  "stages": {
+    "a": {
+      "dependency": "afterok:3802723",
+      "job_id": "3802725"
+    },
+    "b": {
+      "dependency": "afterok:3802725",
+      "job_id": "3802726"
+    },
+    "validate": {
+      "dependency": "completed-training:3790212",
+      "job_id": "3802723"
+    }
+  },
+  "state": "failed",
+  "training_job": "3790212",
+  "updated_at": "2026-10-30T12:21:30.822416+00:00",
+  "workstream": "shallow_drafter"
+}

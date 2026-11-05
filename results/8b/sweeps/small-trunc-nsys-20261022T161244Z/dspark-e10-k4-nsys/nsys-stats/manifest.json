@@ -1,0 +1,169 @@
+{
+  "profile": {
+    "tool": "nsys",
+    "window_s": 15.0,
+    "delay_s": 10.0,
+    "levels": [
+      1,
+      64,
+      256
+    ],
+    "loadtests": null,
+    "nsys": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+    "trace": "cuda,nvtx,osrt",
+    "cuda_graph_trace": "node",
+    "gpu_metrics": false,
+    "gpu_metrics_frequency": 10000,
+    "nvtx": true,
+    "eager_draft": true,
+    "sample": "none",
+    "extra_args": [],
+    "stats": [
+      "cuda_gpu_kern_sum",
+      "cuda_gpu_mem_time_sum",
+      "cuda_api_sum",
+      "nvtx_sum",
+      "nvtx_gpu_proj_sum",
+      "nvtx_gpu_proj_trace",
+      "osrt_sum"
+    ],
+    "report_timeout_s": 900.0
+  },
+  "reports": [
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/dspark-e10-k4-nsys/nsys/dspark-e10-k4-nsys.1.nsys-rep",
+      "report_bytes": 37398785,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/dspark-e10-k4-nsys/nsys/dspark-e10-k4-nsys.1.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k4-nsys.1_cuda_api_sum.csv",
+        "dspark-e10-k4-nsys.1_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k4-nsys.1_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k4-nsys.1_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k4-nsys.1_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k4-nsys.1_nvtx_sum.csv",
+        "dspark-e10-k4-nsys.1_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 1,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:37:54.250450+00:00",
+        "start_latency_s": 2.664,
+        "truncated": false,
+        "open_s": 20.457,
+        "stopped_at": "2026-10-24T06:38:17.371985+00:00",
+        "counters": {
+          "prompt_tokens": 10592.0,
+          "generation_tokens": 4206.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 1245.0,
+            "draft_tokens": 4980.0,
+            "accepted_tokens": 2970.0,
+            "acceptance_rate": 0.5963855421686747,
+            "mean_acceptance_length": 3.3855421686746987,
+            "acceptance_rate_per_position": {
+              "0": 0.8160642570281125,
+              "1": 0.6441767068273092,
+              "2": 0.5140562248995983,
+              "3": 0.41124497991967873
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/dspark-e10-k4-nsys/nsys/dspark-e10-k4-nsys.2.nsys-rep",
+      "report_bytes": 15105736,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/dspark-e10-k4-nsys/nsys/dspark-e10-k4-nsys.2.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k4-nsys.2_cuda_api_sum.csv",
+        "dspark-e10-k4-nsys.2_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k4-nsys.2_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k4-nsys.2_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k4-nsys.2_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k4-nsys.2_nvtx_sum.csv",
+        "dspark-e10-k4-nsys.2_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 64,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:40:51.582369+00:00",
+        "start_latency_s": 0.245,
+        "truncated": true,
+        "open_s": 12.223,
+        "stopped_at": "2026-10-24T06:41:04.050924+00:00",
+        "counters": {
+          "prompt_tokens": 32662.0,
+          "generation_tokens": 46550.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 12506.0,
+            "draft_tokens": 50024.0,
+            "accepted_tokens": 34161.0,
+            "acceptance_rate": 0.6828922117383656,
+            "mean_acceptance_length": 3.7315688469534622,
+            "acceptance_rate_per_position": {
+              "0": 0.8603070526147449,
+              "1": 0.7254917639533024,
+              "2": 0.6163441548056933,
+              "3": 0.5294258755797218
+            }
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/dspark-e10-k4-nsys/nsys/dspark-e10-k4-nsys.3.nsys-rep",
+      "report_bytes": 10175623,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/small-drafter/results/8b/sweeps/small-trunc-nsys-20261022T161244Z/dspark-e10-k4-nsys/nsys/dspark-e10-k4-nsys.3.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "dspark-e10-k4-nsys.3_cuda_api_sum.csv",
+        "dspark-e10-k4-nsys.3_cuda_gpu_kern_sum.csv",
+        "dspark-e10-k4-nsys.3_cuda_gpu_mem_time_sum.csv",
+        "dspark-e10-k4-nsys.3_nvtx_gpu_proj_sum.csv",
+        "dspark-e10-k4-nsys.3_nvtx_gpu_proj_trace.csv",
+        "dspark-e10-k4-nsys.3_nvtx_sum.csv",
+        "dspark-e10-k4-nsys.3_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 256,
+        "delay_s": 10.0,
+        "window_s": 15.0,
+        "start_requested_at": "2026-10-24T06:41:29.826630+00:00",
+        "start_latency_s": 0.3,
+        "truncated": false,
+        "open_s": 18.328,
+        "stopped_at": "2026-10-24T06:41:48.454348+00:00",
+        "counters": {
+          "prompt_tokens": 167242.0,
+          "generation_tokens": 144810.0,
+          "speculative_decoding": {
+            "enabled": true,
+            "drafts": 38041.0,
+            "draft_tokens": 152164.0,
+            "accepted_tokens": 106952.0,
+            "acceptance_rate": 0.7028732157409111,
+            "mean_acceptance_length": 3.8114928629636444,
+            "acceptance_rate_per_position": {
+              "0": 0.867774243579296,
+              "1": 0.7450119607791593,
+              "2": 0.6405457269787861,
+              "3": 0.5581609316264031
+            }
+          }
+        }
+      }
+    }
+  ]
+}

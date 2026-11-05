@@ -1,0 +1,42 @@
+# Fixed design; concrete node_sweep specs are generated into each campaign only
+# after compute-node input freezing. Never submit this design file as a sweep.
+experiment: drafter-kv-sparsity
+target: swiss-ai/Apertus-v1.5-8B
+target_revision: a411d838600baf0e3635a3daf66fb7c55fc97bb6
+speculative_tokens: 7
+allocated_gpus_per_node: 4
+maximum_total_gpu_hours: 72
+maximum_allocation_seconds: 5400
+phase_gpu_hours: {preflight: 6, screen: 12, confirm: 30, on: 12, eagle: 12}
+screen:
+  independent_nodes: 2
+  policies: [native2048, recent512, importance1024, importance512]
+  strata: [chat, code, summarization]
+  split: validation
+  concurrencies: [1, 32, 256]
+  gpu_order_second_node: [importance1024, importance512, native2048, recent512]
+confirm:
+  independent_nodes: 5
+  arms_per_node: [native, candidate, native, candidate]
+  strata: [chat, code, summarization, opb]
+  split: test
+  concurrencies: [1, 8, 32, 128, 256]
+extensions:
+  require_explicit_parent_confirmation_gate: true
+  thinking_on_independent_nodes: 2
+  thinking_on_output_cap: 8192
+  eagle_off_independent_nodes: 2
+decision:
+  maximum_draft_storage_ratio_including_metadata: 0.55
+  minimum_acceptance_ratio_each_cell: 0.95
+  minimum_success_rate: 0.99
+  minimum_throughput_ratio_each_cell: 0.97
+  maximum_p95_latency_ratio_each_cell: 1.05
+  speed_cell_selection: highest_validation_median_ratio_then_workload_name_then_concurrency
+  speed_improvement_ratio: 1.05
+  speed_confidence: paired_log_ratio_node_bootstrap_ci95_lower_above_1
+  alternative_maximum_combined_live_kv_ratio_at_matched_lengths: 0.95
+  candidate_rank: geometric_mean_throughput_ratio_at_c32_c256
+  eligible_expansion_candidates: [importance1024, importance512]
+  rank_tie_fraction: 0.02
+  rank_tie_break: smaller_cache_budget_then_policy_name

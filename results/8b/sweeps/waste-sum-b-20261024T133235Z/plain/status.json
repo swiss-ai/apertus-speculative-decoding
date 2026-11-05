@@ -1,0 +1,47 @@
+{
+  "arm": "plain",
+  "deployment_id": "waste-sum-b-3737493-plain",
+  "env": {},
+  "finished": "2026-10-25T07:16:58+0100",
+  "gpus": [
+    3
+  ],
+  "port": 8103,
+  "ready_seconds": 215.4,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-plain",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256"
+  ],
+  "servers": [],
+  "started": "2026-10-25T07:04:54+0100",
+  "status": "ok",
+  "tests": {
+    "summarization": {
+      "exit_code": 0
+    }
+  }
+}

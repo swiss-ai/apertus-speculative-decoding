@@ -173,6 +173,17 @@ def test_submit_requires_an_explicit_training_config(tmp_path: Path) -> None:
     assert "EAGLE_TRAIN_CONFIG" in result.stderr
 
 
+def test_sparse_gpu_preflight_requires_its_serving_overlay(tmp_path: Path) -> None:
+    result = subprocess.run(
+        ["bash", str(REPO / "serving/node-sweep.sh"), str(tmp_path / "unused.yaml")],
+        capture_output=True,
+        text=True,
+        env={**os.environ, "SWEEP_DRAFT_KV_PREFLIGHT": "1", "SWEEP_DRAFT_KV": "0"},
+    )
+    assert result.returncode == 2
+    assert "SWEEP_DRAFT_KV_PREFLIGHT=1 requires SWEEP_DRAFT_KV=1" in result.stderr
+
+
 def test_submit_refuses_more_ranks_than_visible_gpus(tmp_path: Path) -> None:
     env = {k: v for k, v in os.environ.items() if k != "EAGLE_CUDA_DEVICES"}
     config = REPO / "methods/eagle/configs/8b/adapt/adapt-smoke.yaml"

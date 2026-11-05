@@ -21,6 +21,7 @@ from apertus_bench.correctness import (
 )
 from apertus_bench.diagnostics import break_even_report, format_env_exports, write_corpus
 from apertus_bench.eagle import EagleHeadError, validate_eagle_head
+from apertus_bench.profiling import WindowSettings
 from apertus_bench.runner import CellSettings, GenerationSettings, Variant, run_cell
 from apertus_bench.workloads import available_workloads, derive_workload, load_prompts
 
@@ -154,6 +155,20 @@ def build_parser() -> argparse.ArgumentParser:
             "measured requests per level = max(--requests, this x concurrency), "
             "rounded up to whole passes over the workload's prompts"
         ),
+    )
+    loadtest.add_argument(
+        "--profile-levels",
+        type=int,
+        nargs="+",
+        default=[],
+        help="levels in which to open an Nsight capture window (server under nsys profile)",
+    )
+    loadtest.add_argument("--profile-window", type=float, default=15.0, help="seconds")
+    loadtest.add_argument(
+        "--profile-delay",
+        type=float,
+        default=10.0,
+        help="seconds from the start of a level's measured requests to the window",
     )
     loadtest.add_argument("--output", type=Path, required=True)
 
@@ -475,6 +490,9 @@ async def _run_loadtest(args: argparse.Namespace) -> None:
                 extra,
                 metrics_interval=interval,
                 tolerate_warmup_failures=True,
+                profile=WindowSettings(args.profile_delay, args.profile_window)
+                if concurrency in args.profile_levels
+                else None,
             )
             levels.append(loadtest_level(concurrency, summary))
     report = {"workload": args.workload, "variant": variant.name, "levels": levels}

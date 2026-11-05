@@ -1,0 +1,443 @@
+{
+  "retrieved_at": "2026-11-04T18:35:25+00:00",
+  "remote_host": "clariden1 (login node, read-only tar + sha256sum; no job submitted or modified)",
+  "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2",
+  "integrity": "local sha256 of every file equals remote sha256sum computed at retrieval time",
+  "excluded": {
+    "validate/repeat-*/*/correctness/capture-*.json": "16 raw served captures (completion text of held-out OPB prompts); retained on cluster only",
+    "smoke.jsonl": "held-out prompt text; retained on cluster only",
+    "cache-validate/, jit-cache/": "compile/autotune caches",
+    "source/": "frozen source tree; identical to commit 296ed4f0 per source-manifest.json",
+    "validate/training-evidence/logs/": "large trainer/extract logs; summarized by training-evidence/collection-manifest.json",
+    "checkpoints/weights": "never committed"
+  },
+  "slurm_accounting": "3790212|dspark-8b-depth-l1-warm-recovery-20261029|COMPLETED|0:0|30 Oct 04:05|30 Oct 06:30|02:25:03|nid[006625,006648]\n3804151|depth-recovery-validate|FAILED|1:0|30 Oct 15:17|30 Oct 15:25|00:08:16|nid007156\n3804152|depth-recovery-a|CANCELLED by 1186|0:0|None|31 Oct 13:37|00:00:00|None assigned\n3804153|depth-recovery-b|CANCELLED by 1186|0:0|None|31 Oct 13:37|00:00:00|None assigned\n",
+  "entries": [
+    {
+      "artifact": "a.sbatch",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/a.sbatch",
+      "bytes": 5117,
+      "sha256": "831d91416d28033a687590b4ef9e702f33162619faa2c22823a018b09cd10a14"
+    },
+    {
+      "artifact": "b.sbatch",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/b.sbatch",
+      "bytes": 5117,
+      "sha256": "1135f529afcdc2bc700b71417a6b21f83f7a266bddb8fd1a336ffb9f27fefb19"
+    },
+    {
+      "artifact": "campaign-before-closure-20261031.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/campaign-before-closure-20261031.json",
+      "bytes": 893,
+      "sha256": "345856112886312d2d945f02358b61c234bab6626c4ee42df872b7560dc4a1d3"
+    },
+    {
+      "artifact": "campaign.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/campaign.json",
+      "bytes": 2031,
+      "sha256": "269978796fe6364a99d8f6e127c31641e8ff72c303bb77fb67a5e1684867035b"
+    },
+    {
+      "artifact": "closure-20261031.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/closure-20261031.json",
+      "bytes": 5545,
+      "sha256": "6ff1aa71c3ac908e2fcd49fbb5ad462acb07f99200886037743f158d681f7976"
+    },
+    {
+      "artifact": "completed-training-prerequisite.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/completed-training-prerequisite.json",
+      "bytes": 1432,
+      "sha256": "6061880b3fb0c6dadb3939ef1e17ffcf923169b15d7dcf6ffc884451b0ed341b"
+    },
+    {
+      "artifact": "environments/env_resolved_arm64_Mfb4cT.toml",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/environments/env_resolved_arm64_Mfb4cT.toml",
+      "bytes": 2078,
+      "sha256": "d89f57b72bfb10697a49e0cbc637ec2bc4319788de8ceebb9dc4bfabe06db28c"
+    },
+    {
+      "artifact": "events.jsonl",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/events.jsonl",
+      "bytes": 804,
+      "sha256": "562073d04697828fb46635813c170465748f136dc3fecdf38fec3f963c76b590"
+    },
+    {
+      "artifact": "source-manifest.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/source-manifest.json",
+      "bytes": 10087,
+      "sha256": "6d5a270d3c97a3e6016e7d13864a6fd411c0176d20d4dfdbc00d877e7e608abd"
+    },
+    {
+      "artifact": "speculators-at-queue.patch",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/speculators-at-queue.patch",
+      "bytes": 9846,
+      "sha256": "dbeff17994f598e7015430a1d85125f661ae4bdd9a01b5057abba16b7af98100"
+    },
+    {
+      "artifact": "training-accounting.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/training-accounting.txt",
+      "bytes": 22,
+      "sha256": "744dcd0c931ecccd48f186798d29d54bfb03bc5e5fbf29a3c0d7bbec79c6386a"
+    },
+    {
+      "artifact": "training-environment.toml",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/training-environment.toml",
+      "bytes": 1208,
+      "sha256": "87ab22d938808d5c2d8bc0e56b4eb6d53a397b760962f09d1be8644b46fdb761"
+    },
+    {
+      "artifact": "training-submit.sbatch",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/training-submit.sbatch",
+      "bytes": 2808,
+      "sha256": "d4f56ed4a3dd7fa2e159d0de0bc0772d9be26a4f3c1411c22bf7ded508819e7d"
+    },
+    {
+      "artifact": "validate/correctness/depth-l1-k7-deployment1-capture1.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l1-k7-deployment1-capture1.json",
+      "bytes": 9333,
+      "sha256": "157f1ab9365900037fc69d865dc872cb81c8cac85cf1a284727e62c5e14550df"
+    },
+    {
+      "artifact": "validate/correctness/depth-l1-k7-deployment1-capture2.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l1-k7-deployment1-capture2.json",
+      "bytes": 9333,
+      "sha256": "24bf2b206a2ee6e418ff9a6ccba142d31db7e3d61a1294d81de407640e075571"
+    },
+    {
+      "artifact": "validate/correctness/depth-l1-k7-deployment2-capture1.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l1-k7-deployment2-capture1.json",
+      "bytes": 9311,
+      "sha256": "c180ca7d1b2844cedf92c5ddb08f047cf42d7cb5bdcfcc5a04bdaeeea11b879e"
+    },
+    {
+      "artifact": "validate/correctness/depth-l1-k7-deployment2-capture2.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l1-k7-deployment2-capture2.json",
+      "bytes": 9311,
+      "sha256": "8b3d9c9ca12aa9919d5d2ee123b3c605e769cc6d2a2019a02d99c386919a24c8"
+    },
+    {
+      "artifact": "validate/correctness/depth-l5-k7-deployment1-capture1.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l5-k7-deployment1-capture1.json",
+      "bytes": 9321,
+      "sha256": "263d564c528bc01c0203da531d642a43837685045c8890039be3650cccdb8ac2"
+    },
+    {
+      "artifact": "validate/correctness/depth-l5-k7-deployment1-capture2.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l5-k7-deployment1-capture2.json",
+      "bytes": 9321,
+      "sha256": "16ac38e942f6efe989704c8760719c882ea78f8ce4bf8c8df00a72d9a2134160"
+    },
+    {
+      "artifact": "validate/correctness/depth-l5-k7-deployment2-capture1.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l5-k7-deployment2-capture1.json",
+      "bytes": 9320,
+      "sha256": "aaf9c97503c6ba0ccaf44d034d9f42c842f6d103d85ae08559e6fc8c22976569"
+    },
+    {
+      "artifact": "validate/correctness/depth-l5-k7-deployment2-capture2.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/depth-l5-k7-deployment2-capture2.json",
+      "bytes": 9320,
+      "sha256": "93c0e137667ca2f184fa4dfed67b6901d0d188bcca9257fac1074817b7ebbfb2"
+    },
+    {
+      "artifact": "validate/correctness/dspark-e10-k7-deployment1-capture1.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/dspark-e10-k7-deployment1-capture1.json",
+      "bytes": 9298,
+      "sha256": "34dcc072f002edba714e924b08c99cb9d3c4c510ead70c0299be14dddf39788c"
+    },
+    {
+      "artifact": "validate/correctness/dspark-e10-k7-deployment1-capture2.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/dspark-e10-k7-deployment1-capture2.json",
+      "bytes": 9298,
+      "sha256": "35e86913d1a3e38c51c6f4dc9f8a7af98228f3b8792a57e0766f7ab9fb554bdf"
+    },
+    {
+      "artifact": "validate/correctness/dspark-e10-k7-deployment2-capture1.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/dspark-e10-k7-deployment2-capture1.json",
+      "bytes": 9320,
+      "sha256": "c0d828fbf20db5ebad41fc80ae5c9972da10846ccdf8cfb08e384a54727d3030"
+    },
+    {
+      "artifact": "validate/correctness/dspark-e10-k7-deployment2-capture2.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/correctness/dspark-e10-k7-deployment2-capture2.json",
+      "bytes": 9320,
+      "sha256": "bb7e075e8e38f32cf4e7828bd66622c7eb30437bedd91a77936ff24f21e87322"
+    },
+    {
+      "artifact": "validate-environment.toml",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate-environment.toml",
+      "bytes": 2078,
+      "sha256": "d89f57b72bfb10697a49e0cbc637ec2bc4319788de8ceebb9dc4bfabe06db28c"
+    },
+    {
+      "artifact": "validate-gpu-memory.csv",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate-gpu-memory.csv",
+      "bytes": 96087,
+      "sha256": "80e9eded589ccd566cc1af75c8c8bec8b1ba3b39861978d32bb574d2e7874ac3"
+    },
+    {
+      "artifact": "validate-job.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate-job.out",
+      "bytes": 1220,
+      "sha256": "89348b5f0ab3834731146cd91069ba249750ee43ba52b5bccf7716f2b47f485c"
+    },
+    {
+      "artifact": "validate-patches.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate-patches.txt",
+      "bytes": 1076,
+      "sha256": "772d1fca7f040949ccb31c2f49d745d0e9d47abb6c53d46813187f217d8d8912"
+    },
+    {
+      "artifact": "validate/repeat-a/depth-l1-k7/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l1-k7/engine-excerpt.txt",
+      "bytes": 12247,
+      "sha256": "dac6c4a39b29adf132dcadabc9d2ec9ad25654dc07c1123598c41ab2540698a2"
+    },
+    {
+      "artifact": "validate/repeat-a/depth-l1-k7/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l1-k7/replica.out",
+      "bytes": 31062,
+      "sha256": "19b0a01c1d0ba209112d81548136933c4382d7f5affa52b6d7b024700e23d733"
+    },
+    {
+      "artifact": "validate/repeat-a/depth-l1-k7/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l1-k7/status.json",
+      "bytes": 1239,
+      "sha256": "16d162d37e8faf736facd5ba02914dfc6af92b55506994f8175e9aa73de34f5e"
+    },
+    {
+      "artifact": "validate/repeat-a/depth-l5-k7/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/engine-excerpt.txt",
+      "bytes": 12569,
+      "sha256": "4c4e6c460041982d8c24be856832d5e5ebb3ce27650de04f6ef0d92a1c20aefb"
+    },
+    {
+      "artifact": "validate/repeat-a/depth-l5-k7/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/replica.out",
+      "bytes": 32885,
+      "sha256": "94ee63a5055d084396b1ce26089e5288b8c6ebd429f1965f5e3e73e8d1e9df05"
+    },
+    {
+      "artifact": "validate/repeat-a/depth-l5-k7/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/depth-l5-k7/status.json",
+      "bytes": 1224,
+      "sha256": "321e477189dd6d4b8c69ebb39c1a5c85373e8abacbf5393f45681ce69674cec4"
+    },
+    {
+      "artifact": "validate/repeat-a/dspark-e10-k7/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/dspark-e10-k7/engine-excerpt.txt",
+      "bytes": 12561,
+      "sha256": "e3dd259459ba02f0f3ffe5c9cea681050855a9389ed369706970be5f6cac0643"
+    },
+    {
+      "artifact": "validate/repeat-a/dspark-e10-k7/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/dspark-e10-k7/replica.out",
+      "bytes": 32314,
+      "sha256": "6ab7c09b10c92439deac53db72446e452c94fb1b92dd7c1106bd0619fd10f0cb"
+    },
+    {
+      "artifact": "validate/repeat-a/dspark-e10-k7/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/dspark-e10-k7/status.json",
+      "bytes": 1273,
+      "sha256": "1b0d1763c84e5a34794f6f6687946207e76b7b63e466b534e2138f84b918fd4a"
+    },
+    {
+      "artifact": "validate/repeat-a/plain/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/engine-excerpt.txt",
+      "bytes": 10427,
+      "sha256": "80eb1d48173298d4cf27df22eab36b5c16ebdea9f6e3d6978c58f6673c29af61"
+    },
+    {
+      "artifact": "validate/repeat-a/plain/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/replica.out",
+      "bytes": 26998,
+      "sha256": "f394799f8b0e650dc5946fb957e17dfacd5ac9ccf2542a74e488bb0db8ebf629"
+    },
+    {
+      "artifact": "validate/repeat-a/plain/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/plain/status.json",
+      "bytes": 987,
+      "sha256": "6a9195bbc2b50c7ff2b31fc319f0d33e210f6524614b5d211eb4ca2a8e874356"
+    },
+    {
+      "artifact": "validate/repeat-a/preflight/command.log",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/preflight/command.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "validate/repeat-a/preflight/manifest.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/preflight/manifest.json",
+      "bytes": 8191,
+      "sha256": "be2b8e3c41e6a15a92587ea1a3f34beda0fb9efadf35dc1906894b4df54c3ae0"
+    },
+    {
+      "artifact": "validate/repeat-a/preflight/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/preflight/status.json",
+      "bytes": 1120,
+      "sha256": "b2e8c076e33aa45cceab5f30acf12fd6b6c9c1d32c6353999a5f08502592876f"
+    },
+    {
+      "artifact": "validate/repeat-a/spec.yaml",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/spec.yaml",
+      "bytes": 2439,
+      "sha256": "8487a92087bc41788b7c4d2238729a0c97fd887ba96823a82057ae0a81a4d31d"
+    },
+    {
+      "artifact": "validate/repeat-a/sweep-status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-a/sweep-status.json",
+      "bytes": 112,
+      "sha256": "06fe2cf60717a0479acf5df55d15d152e2effb46b5081a37e9c442009d159024"
+    },
+    {
+      "artifact": "validate/repeat-b/depth-l1-k7/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l1-k7/engine-excerpt.txt",
+      "bytes": 12235,
+      "sha256": "cba3d102c580b5cfa366f0fefca36cead0e5d2021670383b521e6c3606a2e5df"
+    },
+    {
+      "artifact": "validate/repeat-b/depth-l1-k7/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l1-k7/replica.out",
+      "bytes": 31061,
+      "sha256": "1d38256178e6eb0e371c50fabb28a173ab6cc2cd7915522d329667d541fb220a"
+    },
+    {
+      "artifact": "validate/repeat-b/depth-l1-k7/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l1-k7/status.json",
+      "bytes": 1239,
+      "sha256": "055301c193e50ac1431cde4a8be52088762356d35476d3fb00fcbffb9d8e1ad0"
+    },
+    {
+      "artifact": "validate/repeat-b/depth-l5-k7/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l5-k7/engine-excerpt.txt",
+      "bytes": 12573,
+      "sha256": "12ac20234d8c8de14b988a6e7ace9276aad168ff23c417c6ee1be767d6f5cbf2"
+    },
+    {
+      "artifact": "validate/repeat-b/depth-l5-k7/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l5-k7/replica.out",
+      "bytes": 31360,
+      "sha256": "867c7cd8645f3867569232fc7dcb74f7ebfc1d2bf12e73703a62c98dfeda68bb"
+    },
+    {
+      "artifact": "validate/repeat-b/depth-l5-k7/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/depth-l5-k7/status.json",
+      "bytes": 1224,
+      "sha256": "ec9a612c12e70ee164ffe78c2eb6b8b797573f4efc5754f5cefe5851cf6e996f"
+    },
+    {
+      "artifact": "validate/repeat-b/dspark-e10-k7/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/dspark-e10-k7/engine-excerpt.txt",
+      "bytes": 11934,
+      "sha256": "bee22e67c3378f7fd22388727cd70609d512d5631f0d07eba9d93b6ab7424337"
+    },
+    {
+      "artifact": "validate/repeat-b/dspark-e10-k7/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/dspark-e10-k7/replica.out",
+      "bytes": 30822,
+      "sha256": "5666845904540c7605691d62659cd6628ad4c69dae914aac4a6d1f50f8c795a0"
+    },
+    {
+      "artifact": "validate/repeat-b/dspark-e10-k7/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/dspark-e10-k7/status.json",
+      "bytes": 1273,
+      "sha256": "721134a8ca61ee4fb7f0c38aaf2aaf9e434668ac181078b82c8d55fd169f520a"
+    },
+    {
+      "artifact": "validate/repeat-b/plain/engine-excerpt.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/plain/engine-excerpt.txt",
+      "bytes": 10226,
+      "sha256": "0fe3f3becb2b889f99c6972389dc0d160b1691126ba2eb301a4dfb5c1b441812"
+    },
+    {
+      "artifact": "validate/repeat-b/plain/replica.out",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/plain/replica.out",
+      "bytes": 26791,
+      "sha256": "f1cb2a0e333bff743800f379faea8f721a94a03962eabf6cf415314bdcc55ccf"
+    },
+    {
+      "artifact": "validate/repeat-b/plain/status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/plain/status.json",
+      "bytes": 987,
+      "sha256": "ba5377065940b5ac14e276d8e4a99f85345012604bee5309ff16f6ce2cbab57a"
+    },
+    {
+      "artifact": "validate/repeat-b/spec.yaml",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/spec.yaml",
+      "bytes": 1461,
+      "sha256": "e0fa0e8e162bc3c6beed030af65c70275cec144522e4108d58853279f801fcf8"
+    },
+    {
+      "artifact": "validate/repeat-b/sweep-status.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/repeat-b/sweep-status.json",
+      "bytes": 91,
+      "sha256": "c9773354feab9336c41d66d9e16a27f97547e344ac318d2c6c3efdfd2e71dd90"
+    },
+    {
+      "artifact": "validate/runtime-provenance.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/runtime-provenance.json",
+      "bytes": 2225,
+      "sha256": "f55d8f8ca6b1639a620a4da9f241a842fa13a9fb22fb167382444c27fbdb09bc"
+    },
+    {
+      "artifact": "validate.sbatch",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate.sbatch",
+      "bytes": 5173,
+      "sha256": "611f6adadf5b47dbbada75442a1d9ef929cf73348f18bcb1d7d23609bde23b32"
+    },
+    {
+      "artifact": "validate/training-evidence/checkpoints/epoch0_end/config.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/checkpoints/epoch0_end/config.json",
+      "bytes": 2119,
+      "sha256": "03bae5a667337c6e101174526ad7da2374c7658448418db0e3acd915c70d40ae"
+    },
+    {
+      "artifact": "validate/training-evidence/checkpoints/epoch0_end/training_state.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/checkpoints/epoch0_end/training_state.json",
+      "bytes": 50,
+      "sha256": "8e2c1c348b7ac17f2cc7c465b970060e9d7e1126499caea2c9ae8d87f8b310bb"
+    },
+    {
+      "artifact": "validate/training-evidence/checkpoints/epoch0_end/val_metrics.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/checkpoints/epoch0_end/val_metrics.json",
+      "bytes": 812,
+      "sha256": "b33a976d070a398e614a35c50d813c468f20e4ef94ac003f9d5edbbe117991c7"
+    },
+    {
+      "artifact": "validate/training-evidence/checkpoints/run.yaml",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/checkpoints/run.yaml",
+      "bytes": 1199,
+      "sha256": "3b5ba5994a7560ff2cafcbb17672aae961c58bccada9c08d4a9ec073634bba8e"
+    },
+    {
+      "artifact": "validate/training-evidence/checkpoints/speculators.patch",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/checkpoints/speculators.patch",
+      "bytes": 9846,
+      "sha256": "dbeff17994f598e7015430a1d85125f661ae4bdd9a01b5057abba16b7af98100"
+    },
+    {
+      "artifact": "validate/training-evidence/checkpoints/train_command.txt",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/checkpoints/train_command.txt",
+      "bytes": 1350,
+      "sha256": "23a5960fac479c65ad8e13016224f8811ebcdf948df548471bb959244aa4c49a"
+    },
+    {
+      "artifact": "validate/training-evidence/collection-manifest.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/collection-manifest.json",
+      "bytes": 6350,
+      "sha256": "d17116fb565380768aca8b9d34111220881f075c416b5786e3dbe7f454a8bf18"
+    },
+    {
+      "artifact": "validate/training-evidence/provenance/warm-start-3790212.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-evidence/provenance/warm-start-3790212.json",
+      "bytes": 2539,
+      "sha256": "512d365854b3085680536d4d3399ae0559313c92bb9f393a133371e534655d38"
+    },
+    {
+      "artifact": "validate/training-recipe-checked.json",
+      "source": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/small-drafter/campaigns/depth-recovery-20261030-gpu-calibration-v2/validate/training-recipe-checked.json",
+      "bytes": 5308,
+      "sha256": "ae960d892ac062004c7c1b6f47e3ad4eae918ff5d6e5386fab380594fa4792d4"
+    }
+  ]
+}

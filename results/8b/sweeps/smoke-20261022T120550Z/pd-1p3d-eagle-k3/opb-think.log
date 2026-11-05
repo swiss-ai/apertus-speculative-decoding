@@ -1,0 +1,28 @@
+loadtest opb-think concurrency=4 requests=128
+{
+  "workload": "opb-think",
+  "variant": "pd-1p3d-eagle-k3",
+  "levels": [
+    {
+      "concurrency": 4,
+      "requests": 128,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 1019.1972103289456,
+      "ttft_p50_ms": 66.78936249954859,
+      "ttft_p95_ms": 105.11205400071049,
+      "tpot_p50_ms": 2.7593649920452172,
+      "tpot_p95_ms": 3.520836904756415,
+      "e2e_p95_ms": 307.9590800514779,
+      "kv_cache_usage_mean": 0.0009014767828752213,
+      "kv_cache_usage_max": 0.0023971087181000605,
+      "kv_cache_tokens_peak": 1040,
+      "kv_cache_size_tokens": 433872,
+      "running_max": 2.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.5557603686635946,
+      "acceptance_rate": 0.5185867895545315
+    }
+  ]
+}

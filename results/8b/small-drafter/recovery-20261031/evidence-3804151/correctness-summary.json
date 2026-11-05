@@ -1,0 +1,450 @@
+{
+  "schema_version": 1,
+  "job": "3804151",
+  "node": "nid007156",
+  "source_revision": "296ed4f01f2d53ac1d3f300fd8f70b27ec339538",
+  "scope": "6 fixed held-out OPB prompts, 384-token cap, T0, top_p 1, seed 1, k7; 2 deployments (repeat a/b) x 2 captures per arm",
+  "plain_controls": "all 4 plain-vs-plain pairs (2 same-deployment, 2 cross-deployment) exact 6/6, prefix 1.0, edit 0.0",
+  "actual_gpu_placement": {
+    "repeat-a": {
+      "depth-l1-k7": {
+        "gpus": [
+          2
+        ],
+        "status": "ok",
+        "ready_seconds": 245.4,
+        "started": "2026-10-30T15:18:08+0100",
+        "finished": "2026-10-30T15:22:22+0100",
+        "deployment_id": "depth-validation-a-3804151-depth-l1-k7"
+      },
+      "depth-l5-k7": {
+        "gpus": [
+          3
+        ],
+        "status": "ok",
+        "ready_seconds": 245.4,
+        "started": "2026-10-30T15:18:08+0100",
+        "finished": "2026-10-30T15:22:21+0100",
+        "deployment_id": "depth-validation-a-3804151-depth-l5-k7"
+      },
+      "dspark-e10-k7": {
+        "gpus": [
+          1
+        ],
+        "status": "ok",
+        "ready_seconds": 245.4,
+        "started": "2026-10-30T15:18:08+0100",
+        "finished": "2026-10-30T15:22:20+0100",
+        "deployment_id": "depth-validation-a-3804151-dspark-e10-k7"
+      },
+      "plain": {
+        "gpus": [
+          0
+        ],
+        "status": "ok",
+        "ready_seconds": 235.7,
+        "started": "2026-10-30T15:18:08+0100",
+        "finished": "2026-10-30T15:22:23+0100",
+        "deployment_id": "depth-validation-a-3804151-plain"
+      }
+    },
+    "repeat-b": {
+      "depth-l1-k7": {
+        "gpus": [
+          1
+        ],
+        "status": "ok",
+        "ready_seconds": 135.3,
+        "started": "2026-10-30T15:22:23+0100",
+        "finished": "2026-10-30T15:24:47+0100",
+        "deployment_id": "depth-validation-b-3804151-depth-l1-k7"
+      },
+      "depth-l5-k7": {
+        "gpus": [
+          0
+        ],
+        "status": "ok",
+        "ready_seconds": 135.3,
+        "started": "2026-10-30T15:22:24+0100",
+        "finished": "2026-10-30T15:24:47+0100",
+        "deployment_id": "depth-validation-b-3804151-depth-l5-k7"
+      },
+      "dspark-e10-k7": {
+        "gpus": [
+          2
+        ],
+        "status": "ok",
+        "ready_seconds": 135.3,
+        "started": "2026-10-30T15:22:23+0100",
+        "finished": "2026-10-30T15:24:45+0100",
+        "deployment_id": "depth-validation-b-3804151-dspark-e10-k7"
+      },
+      "plain": {
+        "gpus": [
+          3
+        ],
+        "status": "ok",
+        "ready_seconds": 135.4,
+        "started": "2026-10-30T15:22:23+0100",
+        "finished": "2026-10-30T15:24:59+0100",
+        "deployment_id": "depth-validation-b-3804151-plain"
+      }
+    }
+  },
+  "arms": {
+    "depth-l1-k7": {
+      "control_envelope": {
+        "pairs": 8,
+        "cross_deployment_pairs": 4,
+        "comparable_cases": 48,
+        "exact_matches": 40,
+        "minimum_common_prefix_fraction": 0.3979187314172448,
+        "maximum_normalized_edit_distance": 0.41545189504373176,
+        "maximum_completion_token_difference": 2.0
+      },
+      "same_config_cross_deployment_exact": [
+        2,
+        2
+      ],
+      "reports": [
+        {
+          "report": "validate/correctness/depth-l1-k7-deployment1-capture1.json",
+          "repeat": "a",
+          "capture": 1,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 2,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.506265664160401,
+            "maximum_completion_token_difference": 2.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.34791873141724483,
+            "maximum_normalized_edit_distance": 0.46545189504373174,
+            "maximum_completion_token_difference": 4.0
+          }
+        },
+        {
+          "report": "validate/correctness/depth-l1-k7-deployment1-capture2.json",
+          "repeat": "a",
+          "capture": 2,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 2,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.506265664160401,
+            "maximum_completion_token_difference": 2.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.34791873141724483,
+            "maximum_normalized_edit_distance": 0.46545189504373174,
+            "maximum_completion_token_difference": 4.0
+          }
+        },
+        {
+          "report": "validate/correctness/depth-l1-k7-deployment2-capture1.json",
+          "repeat": "b",
+          "capture": 1,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 4,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.5025,
+            "maximum_completion_token_difference": 0.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.34791873141724483,
+            "maximum_normalized_edit_distance": 0.46545189504373174,
+            "maximum_completion_token_difference": 4.0
+          }
+        },
+        {
+          "report": "validate/correctness/depth-l1-k7-deployment2-capture2.json",
+          "repeat": "b",
+          "capture": 2,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 4,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.5025,
+            "maximum_completion_token_difference": 0.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.34791873141724483,
+            "maximum_normalized_edit_distance": 0.46545189504373174,
+            "maximum_completion_token_difference": 4.0
+          }
+        }
+      ]
+    },
+    "depth-l5-k7": {
+      "control_envelope": {
+        "pairs": 8,
+        "cross_deployment_pairs": 4,
+        "comparable_cases": 48,
+        "exact_matches": 40,
+        "minimum_common_prefix_fraction": 0.03550295857988166,
+        "maximum_normalized_edit_distance": 0.24357707509881424,
+        "maximum_completion_token_difference": 5.0
+      },
+      "same_config_cross_deployment_exact": [
+        2,
+        2
+      ],
+      "reports": [
+        {
+          "report": "validate/correctness/depth-l5-k7-deployment1-capture1.json",
+          "repeat": "a",
+          "capture": 1,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 2,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 18.0,
+            "minimum_common_prefix_fraction": 0.03550295857988166,
+            "maximum_normalized_edit_distance": 0.5138751238850346,
+            "maximum_completion_token_difference": 27.0
+          },
+          "failed_checks": [
+            "maximum_normalized_edit_distance",
+            "maximum_completion_token_difference"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.0,
+            "maximum_normalized_edit_distance": 0.29357707509881426,
+            "maximum_completion_token_difference": 7.0
+          }
+        },
+        {
+          "report": "validate/correctness/depth-l5-k7-deployment1-capture2.json",
+          "repeat": "a",
+          "capture": 2,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 2,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 18.0,
+            "minimum_common_prefix_fraction": 0.03550295857988166,
+            "maximum_normalized_edit_distance": 0.5138751238850346,
+            "maximum_completion_token_difference": 27.0
+          },
+          "failed_checks": [
+            "maximum_normalized_edit_distance",
+            "maximum_completion_token_difference"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.0,
+            "maximum_normalized_edit_distance": 0.29357707509881426,
+            "maximum_completion_token_difference": 7.0
+          }
+        },
+        {
+          "report": "validate/correctness/depth-l5-k7-deployment2-capture1.json",
+          "repeat": "b",
+          "capture": 1,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 2,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.466403162055336,
+            "maximum_completion_token_difference": 22.0
+          },
+          "failed_checks": [
+            "maximum_normalized_edit_distance",
+            "maximum_completion_token_difference"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.0,
+            "maximum_normalized_edit_distance": 0.29357707509881426,
+            "maximum_completion_token_difference": 7.0
+          }
+        },
+        {
+          "report": "validate/correctness/depth-l5-k7-deployment2-capture2.json",
+          "repeat": "b",
+          "capture": 2,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 2,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.466403162055336,
+            "maximum_completion_token_difference": 22.0
+          },
+          "failed_checks": [
+            "maximum_normalized_edit_distance",
+            "maximum_completion_token_difference"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.0,
+            "maximum_normalized_edit_distance": 0.29357707509881426,
+            "maximum_completion_token_difference": 7.0
+          }
+        }
+      ]
+    },
+    "dspark-e10-k7": {
+      "control_envelope": {
+        "pairs": 8,
+        "cross_deployment_pairs": 4,
+        "comparable_cases": 48,
+        "exact_matches": 44,
+        "minimum_common_prefix_fraction": 0.4,
+        "maximum_normalized_edit_distance": 0.3028515240904621,
+        "maximum_completion_token_difference": 0.0
+      },
+      "same_config_cross_deployment_exact": [
+        4,
+        4
+      ],
+      "reports": [
+        {
+          "report": "validate/correctness/dspark-e10-k7-deployment1-capture1.json",
+          "repeat": "a",
+          "capture": 1,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 4,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.5025,
+            "maximum_completion_token_difference": 0.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.35000000000000003,
+            "maximum_normalized_edit_distance": 0.3528515240904621,
+            "maximum_completion_token_difference": 2.0
+          }
+        },
+        {
+          "report": "validate/correctness/dspark-e10-k7-deployment1-capture2.json",
+          "repeat": "a",
+          "capture": 2,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 4,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.5025,
+            "maximum_completion_token_difference": 0.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.35000000000000003,
+            "maximum_normalized_edit_distance": 0.3528515240904621,
+            "maximum_completion_token_difference": 2.0
+          }
+        },
+        {
+          "report": "validate/correctness/dspark-e10-k7-deployment2-capture1.json",
+          "repeat": "b",
+          "capture": 1,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 4,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.506265664160401,
+            "maximum_completion_token_difference": 0.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.35000000000000003,
+            "maximum_normalized_edit_distance": 0.3528515240904621,
+            "maximum_completion_token_difference": 2.0
+          }
+        },
+        {
+          "report": "validate/correctness/dspark-e10-k7-deployment2-capture2.json",
+          "repeat": "b",
+          "capture": 2,
+          "passed": false,
+          "verdict": "exceeds_control_envelope",
+          "exact_matches": 4,
+          "comparable_cases": 6,
+          "worst_case": {
+            "minimum_common_prefix_characters": 137.0,
+            "minimum_common_prefix_fraction": 0.18322981366459629,
+            "maximum_normalized_edit_distance": 0.506265664160401,
+            "maximum_completion_token_difference": 0.0
+          },
+          "failed_checks": [
+            "minimum_common_prefix_fraction",
+            "maximum_normalized_edit_distance"
+          ],
+          "allowances": {
+            "all_cases_comparable": 6,
+            "minimum_common_prefix_fraction": 0.35000000000000003,
+            "maximum_normalized_edit_distance": 0.3528515240904621,
+            "maximum_completion_token_difference": 2.0
+          }
+        }
+      ]
+    }
+  },
+  "reports_passed": 0,
+  "reports_total": 12,
+  "interpretation": "All 12 treatment reports failed, including the existing deployed DSpark e10 k7 reference. The calibrated gate therefore rejects the deployed reference with the same worst-case prefix (0.183) and edit (~0.50) as the one-layer drafter; the block is not specific to shallow drafting. Every speculative arm was exact within a deployment but not across the two GPU-reversed deployments, whereas plain was exact everywhere."
+}

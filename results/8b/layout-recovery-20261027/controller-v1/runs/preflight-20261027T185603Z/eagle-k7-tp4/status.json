@@ -1,0 +1,50 @@
+{
+  "arm": "eagle-k7-tp4",
+  "deployment_id": "layout-recovery-preflight-3769354-eagle-k7-tp4",
+  "env": {
+    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+  },
+  "error": "RuntimeError: eagle-k7-tp4: a server exited with 1",
+  "finished": "2026-10-28T09:05:51+0100",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "port": 8102,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-eagle-k7-tp4",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "4",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.7",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "1024",
+    "--speculative-config",
+    "{\"draft_tensor_parallel_size\": 4, \"method\": \"eagle3\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-10-28T09:03:15+0100",
+  "status": "failed",
+  "tests": {}
+}

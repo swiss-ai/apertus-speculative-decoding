@@ -1,0 +1,82 @@
+{
+  "arm": "eagle-k3",
+  "deployment_id": "topk-off-3721144-eagle-k3",
+  "env": {},
+  "finished": "2026-10-25T00:56:39+0200",
+  "gpus": [
+    3
+  ],
+  "port": 8103,
+  "ready_seconds": 200.4,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-eagle-k3",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"draft_tensor_parallel_size\": 1, \"method\": \"eagle3\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se\", \"num_speculative_tokens\": 3}"
+  ],
+  "servers": [],
+  "started": "2026-10-25T00:08:41+0200",
+  "status": "ok",
+  "tests": {
+    "arena-hard-clean-default": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-greedy": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-t1-k20": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-t1-k5": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-t1-k50": {
+      "exit_code": 0
+    },
+    "arena-hard-clean-t1-kall": {
+      "exit_code": 0
+    },
+    "opb-default": {
+      "exit_code": 0
+    },
+    "opb-greedy": {
+      "exit_code": 0
+    },
+    "opb-t1-k20": {
+      "exit_code": 0
+    },
+    "opb-t1-k5": {
+      "exit_code": 0
+    },
+    "opb-t1-k50": {
+      "exit_code": 0
+    },
+    "opb-t1-kall": {
+      "exit_code": 0
+    }
+  }
+}

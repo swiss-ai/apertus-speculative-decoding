@@ -14,6 +14,67 @@ fallback for a demonstrated 3.1-specific issue. Stage A (8B) is implemented: tra
 A 3× decode speedup is a stretch target. Each target needs its own trained head; the public
 Apertus-8B-Instruct-2509 head is not a substitute for either Apertus 1.5 target.
 
+The completed [8B drafter KV sparsity study](docs/drafter-kv-sparsity.md) reduced
+physical drafter storage but failed the throughput and acceptance gates. Its
+opt-in serving overlay is in `serving/draft_kv/`, its campaign tools are in
+`experiments/drafter-kv-8b/`, and raw measurements and provenance are under
+`results/8b/drafter-kv/`.
+
+The [8B wasted-compute profiling study](docs/waste-profiling.md) measured with
+Nsight Systems how much GPU time speculation wastes past saturation: at k=7 and
+C=128 about 22% of GPU time and 45-46% of the work speculation adds. A
+load-dependent k is worth about 4% geomean over the best fixed k, and the DSpark
+paper scheduler adds only 1.9-2.8% over plain at C=128-256 on summarization, too
+little to justify another serving mechanism. The opt-in NVTX overlay is
+`serving/patches/vllm-apertus-nvtx.patch`, the harness support is in
+`src/apertus_bench/{profiling,vllm_nvtx,waste_report}.py`, raw sweeps are under
+`results/8b/sweeps/` and analyses under `results/8b/waste/`.
+
+The [8B multi-drafter tree screen](docs/tree-drafters.md) (TreeGraft-style trees
+from DSpark, EAGLE and n-gram candidates, replayed offline against greedy target
+captures) found low-load headroom from a single DSpark tree but no case for
+multi-drafter serving: grafting n-gram candidates changes projected throughput by
+less than 0.1%, running both neural drafters is 10-27% slower, and no tree gain
+remains at C>=64. The simulator is `src/apertus_bench/tree_sim.py`, the candidate
+builders are in `methods/tree/`, and the evidence is under
+`results/8b/tree-drafters/`.
+
+The [8B serving-layout campaign](docs/high-concurrency-8b.md) measured the final
+DSpark and EAGLE heads under DP4, TP4, TP2DP2 and prefill/decode disaggregation,
+thinking off and on, up to C=1024. Speculation is a load-specific choice with
+material memory costs: TP4 k7 gives 1.44-2.64x paired throughput at C1024 but
+regresses Arena-Hard 28-45% at C128 and uses about 70 GiB more resident memory
+per node; TP2DP2 k3 gains 44-50% at C128. P/D is not worth implementing for this
+decode-heavy grid. Specs are in `experiments/high-concurrency-8b/`, raw sweeps
+under `results/8b/sweeps/`, and the recovered runs and reviews under
+`results/8b/layout-recovery-*/`.
+
+The [final 8B sampling sweeps](docs/sampling-final-8b.md) found no case for a
+narrower sampler top-k as a speed optimization (top-k5 changes throughput by
+-5% to +8%, top-k20/50 by at most +0.6%), while draft length should depend on
+load: short drafts help at intermediate load and k7 loses badly at high load.
+The validated analysis is in `results/8b/sampling/recovery-20261027/`.
+
+The [8B online drafter adaptation study](docs/drafter-updates.md) fine-tuned the
+EAGLE e10 head on served-workload traces and swapped heads into a running server
+without a restart. Adaptation is worth keeping in mind for persistent
+multilingual traffic (+17% throughput at k3/C1) and low-load summarization (+14%),
+but chat gains are insufficient and high-load gains fail the benefit rule, so no
+blanket replacement of the default drafter is justified. The swap and
+confirmation harness is in `src/apertus_bench/{drafter_swap,drafter_reload,adaptation_confirmation}.py`,
+training tools in `methods/eagle/apertus_eagle/`, configs in
+`methods/eagle/configs/8b/adapt/`, and evidence under `results/8b/drafter-updates/`.
+
+The [8B shallow DSpark drafter study](docs/small-drafter.md) asked whether a 1-3
+layer DSpark drafter wins under load by costing less per step. Each removed layer
+saves 1.35-2.2 ms of draft time at 256 requests, but the trained 1-layer drafter
+loses acceptance (held-out EAL 3.52 versus 4.63) and twice failed the calibrated
+greedy correctness gate in serving, so the study closed as correctness blocked
+with no speed or implementation claim. The depth serving overlay is
+`serving/patches/vllm-apertus-dspark-num-layers.patch`, the truncation, training
+campaign and cost models are in `methods/dspark/`, and evidence is under
+`results/8b/small-drafter/` and `results/8b/sweeps/small-trunc-*`.
+
 The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
 test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
 conditions under which a configuration wins or loses.
@@ -66,12 +127,15 @@ against a plain baseline launched the same way. Each method names its target exp
 ```text
 src/apertus_bench/   benchmark client, correctness gate, analysis, EAGLE head validation
 serving/             plain-target launcher, environment resolution, vLLM overlay patches
+└── draft_kv/        opt-in DSpark sparse-cache runtime, installer and GPU checks
 methods/
 ├── draft_model/     8B draft, 70B target
 ├── ngram/           prompt lookup
+├── tree/            offline tree / multi-drafter candidate builders (analysis only)
 └── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
 targets/<stage>/     target contracts (architecture, aux layers, hashes) and environment locks
-experiments/         one-off campaigns: smoke-70b, round-cost-70b
+experiments/         one-off campaigns: smoke-70b, round-cost-70b, system-8b, drafter-kv-8b,
+                     high-concurrency-8b
 workloads/           corpora; workloads/<stage>/ holds manifests (restricted text stays on the cluster)
 results/<stage>/     raw cells and reports, by target (8b, 70b) and then method
 ```

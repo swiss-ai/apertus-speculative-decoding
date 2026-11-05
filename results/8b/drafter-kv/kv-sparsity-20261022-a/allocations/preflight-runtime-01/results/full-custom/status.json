@@ -1,0 +1,51 @@
+{
+  "arm": "full-custom",
+  "deployment_id": "drafter-kv-runtime-preflight-3723725-full-custom",
+  "env": {
+    "VLLM_APERTUS_DRAFT_KV_BUDGET": "2048",
+    "VLLM_APERTUS_DRAFT_KV_POLICY": "full",
+    "VLLM_DRAFT_KV_CORRECTNESS_WORKLOADS": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/off-inputs-correctness.jsonl",
+    "VLLM_DRAFT_KV_TRACE": "{arm_dir}/draft-kv.jsonl"
+  },
+  "error": "RuntimeError: full-custom: a server exited with 1",
+  "finished": "2026-10-22T19:24:09+0200",
+  "gpus": [
+    3
+  ],
+  "port": 8103,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-full-custom",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--no-async-scheduling",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-10-22T19:21:24+0200",
+  "status": "failed",
+  "tests": {}
+}

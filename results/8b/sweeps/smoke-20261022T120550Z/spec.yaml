@@ -1,0 +1,22 @@
+# Paths not run before, at a tiny load: EAGLE at TP4, the thinking-on DSpark
+# drafter, and 1 prefill + 3 decode GPUs with DSpark and with EAGLE (NIXL).
+# debug, SWEEP_TIME 01:30:00.
+name: smoke
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [4]
+    min_requests: 16
+    max_tokens: 64
+  - workload: opb-think
+    workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-spec-decoding-highconc/workloads/8b/opb-heldout-think.jsonl
+    concurrencies: [4]
+    min_requests: 16
+    max_tokens: 64
+arms:
+  - {name: eagle-k3-tp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3, tensor_parallel_size: 4, engine: {max_num_seqs: 1024}}
+  - {name: dspark-on-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-on_2026-10-10_epoch10_final, k: 7}
+  - {name: pd-1p3d-dspark-off-k3, method: pd, serve_method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3, decode: {count: 3}, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}
+  - {name: pd-1p3d-eagle-k3, method: pd, serve_method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3, decode: {count: 3}, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}

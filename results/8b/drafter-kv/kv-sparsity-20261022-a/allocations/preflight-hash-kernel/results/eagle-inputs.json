@@ -1,0 +1,579 @@
+{
+  "checkpoint_sha256": "d32f391418c5ec26d0495178457457fd540085b92671791eeb8b8b2770e11a0f",
+  "corpora": {
+    "correctness.jsonl": {
+      "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/results/8b/drafter-kv/kv-sparsity-20261022-a/allocations/preflight-hash-kernel/results/eagle-inputs-correctness.jsonl",
+      "selection": "first two per validation stratum, cap128",
+      "sha256": "beb64e64786346ddb5446ea2cf2a0fd9469e6c95c27de281e86682a6f079215f"
+    },
+    "eagle-8b-test.jsonl": {
+      "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-test.jsonl",
+      "sha256": "70812a8c52f7f619ecc9e6afc9d7e31938b88a97caf324d4be7987c4459f830f"
+    },
+    "eagle-8b-validation.jsonl": {
+      "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/eagle-8b-validation.jsonl",
+      "sha256": "8f2a17d6e83d2573b1f9d336c2b817211c7d3d33f46a8b7fbe48f8e6553c7290"
+    },
+    "opb-heldout.jsonl": {
+      "path": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/workloads/8b/opb-heldout.jsonl",
+      "sha256": "186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b"
+    }
+  },
+  "created_at": "2026-10-22T17:03:08.995567+00:00",
+  "git_revision": "b67142da5f07819a570598f5c318ae540d250930",
+  "git_tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "head": "eagle",
+  "head_config": {
+    "_torchspec_version": "0.1.0",
+    "apertus_target": {
+      "algorithm": "eagle31",
+      "aux_layer_convention": "vLLM EagleModelMixin index (residual after layer k-1)",
+      "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+      "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+      "contract_sha256": "189f9663a21e5b0dec645e33372ed186ba6b27106fddf2a6b0a3154925e57c1c",
+      "hf_decoder_layer_aux_ids": [
+        1,
+        15,
+        28
+      ],
+      "model_id": "swiss-ai/Apertus-v1.5-8B",
+      "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "stage": "8b",
+      "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+      "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+    },
+    "apertus_training": {
+      "caches": {
+        "eval": {
+          "corpus_sha256": "80f3ca7580d3d722c149ad66aee8ee73fdf2ae3f25ef7f79f8f421e64aaed538",
+          "files": {
+            "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/heldout.jsonl": "259ea9c868ff23c796273de9974e346782b283b9a174ede555fb4364821814ab"
+          },
+          "mode": "online",
+          "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off",
+          "samples": 2000
+        },
+        "train": {
+          "corpus_sha256": "f12d1ed242d9c6ebd143b972a0f115c610c2c5fa685accd08f07aa7269dddcb8",
+          "files": {
+            "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/train.jsonl": "5e4b3ecfb1ee5eee7201c0d9586bf2d4f9f6b2becc113062d87bc2ba45eee4db"
+          },
+          "mode": "online",
+          "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off",
+          "samples": 1628715
+        }
+      },
+      "checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-opb-thinkoff-stage1/checkpoints/best",
+      "checkpoint_step": 251955,
+      "effective_batch": {
+        "audit": "TorchSpec global_batch = per_dp_rank_batch(1) x dp x accumulation",
+        "data_parallel_ranks": 8,
+        "draft_accumulation_steps": 8,
+        "micro_batch_size": 1,
+        "sequences_per_optimizer_step": 64
+      },
+      "embedding": "not exported; vLLM shares the target input embedding (all input ids)",
+      "eval_at_checkpoint": {
+        "acc": [
+          0.8774456869308946,
+          0.8609327665320843,
+          0.8526587906331036,
+          0.8466767483660586,
+          0.8422009757517701,
+          0.8381245392096539,
+          0.8337018099684536
+        ],
+        "avg_acc": 0.8502487596274312,
+        "avg_loss": 0.6473199112347383,
+        "ploss": [
+          0.5629538262388669,
+          0.6269061139901169,
+          0.6602886614529416,
+          0.6856067902473733,
+          0.705484207691159,
+          0.7229872551690787,
+          0.7395420086639933
+        ],
+        "simulated_acc_len": 3.9875324252894413,
+        "tokens": 999157.0
+      },
+      "freeze": {
+        "embedding": true,
+        "lm_head": true
+      },
+      "harness_revision": "4c322349be6a74553659c086a997e930bf536d2e",
+      "objective": {
+        "implementation": "torchspec.models.eagle3.Eagle3Model",
+        "loss_type": "forward_kl",
+        "position_weights": [
+          1.0,
+          0.8,
+          0.6400000000000001,
+          0.5120000000000001,
+          0.4096000000000001,
+          0.3276800000000001,
+          0.2621440000000001
+        ],
+        "target": "compute_lazy_target_padded(target lm_head)",
+        "ttt_length": 7
+      },
+      "optimizer": {
+        "adamw_betas_eps": "torch defaults (0.9, 0.999), 1e-8",
+        "class": "torchspec.training.optimizer.BF16Optimizer (fp32 master, fused AdamW)",
+        "decay_style": "cosine",
+        "lr": 0.0001,
+        "lr_total_steps": 254480,
+        "max_grad_norm": 0.5,
+        "min_lr": 0.0,
+        "warmup_ratio": 0.015,
+        "weight_decay": 0.0
+      },
+      "run_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/runs/e31-opb-thinkoff-stage1",
+      "slurm_job_id": "3696348",
+      "torchspec_revision": "6c042a87140a84d13839e341ece2c5c3ada918bc",
+      "train_summary_gates": {
+        "finite_losses": true,
+        "heldout_acceptance_improved": true,
+        "loss_decreased": true,
+        "real_updates": false
+      }
+    },
+    "architectures": [
+      "LlamaForCausalLMEagle3"
+    ],
+    "attention_bias": false,
+    "bos_token_id": 1,
+    "draft_vocab_size": 131072,
+    "eagle_aux_hidden_state_layer_ids": [
+      2,
+      16,
+      29
+    ],
+    "eagle_config": {
+      "eagle_aux_hidden_state_layer_ids": [
+        2,
+        16,
+        29
+      ],
+      "use_aux_hidden_state": true
+    },
+    "eos_token_id": 2,
+    "fc_norm": true,
+    "head_dim": 128,
+    "hidden_act": "silu",
+    "hidden_size": 4096,
+    "intermediate_size": 14336,
+    "max_position_embeddings": 262144,
+    "mlp_bias": false,
+    "model_type": "llama",
+    "norm_output": true,
+    "num_attention_heads": 32,
+    "num_aux_hidden_states": 3,
+    "num_hidden_layers": 1,
+    "num_key_value_heads": 8,
+    "pad_token_id": 3,
+    "rms_norm_eps": 1e-05,
+    "rope_parameters": {
+      "factor": 32.0,
+      "high_freq_factor": 4.0,
+      "low_freq_factor": 1.0,
+      "original_max_position_embeddings": 8192,
+      "rope_theta": 4000000,
+      "rope_type": "llama3"
+    },
+    "rope_scaling": {
+      "factor": 32.0,
+      "high_freq_factor": 4.0,
+      "low_freq_factor": 1.0,
+      "original_max_position_embeddings": 8192,
+      "rope_theta": 4000000,
+      "rope_type": "llama3"
+    },
+    "rope_theta": 4000000,
+    "target_hidden_size": 4096,
+    "tie_word_embeddings": false,
+    "torch_dtype": "bfloat16",
+    "vocab_size": 131072
+  },
+  "head_config_sha256": "9dc1c1496a3796736bb3a095ca7ea9aa4a13f904b286ed2b7fd1fbee0d41c329",
+  "head_path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se",
+  "repo": "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity",
+  "schema_version": 1,
+  "slurm_job_id": "3723627",
+  "slurm_node_id": "nid006269",
+  "target_contract": {
+    "draft": {
+      "architecture": "LlamaForCausalLMEagle3",
+      "draft_vocab_size": 131072,
+      "hidden_size": 4096,
+      "intermediate_size": 14336,
+      "intermediate_size_rule": "round(3.5 x hidden / 256) x 256",
+      "num_hidden_layers": 1,
+      "vocab_note": "Draft embedding covers the text output vocabulary rows of the target input embedding; every control token id is below output_vocab_size.",
+      "vocab_size": 131072
+    },
+    "internal_head_search": {
+      "apertus_v1_5_8b_head_found": false,
+      "command": "find /capstor/store/cscs/swissai/infra01 -maxdepth 4 -iname *eagle*",
+      "forbidden_substitute": "thomaskiefer/EAGLE3-Apertus-8B-Instruct-2509 (targets Apertus-8B-Instruct-2509)",
+      "matches": [
+        "hf_models/models/mistralai/Mistral-Medium-3.5-128B-EAGLE (different target)",
+        "OpenVid-1M eagle videos",
+        "NVEagle LocateAnything vision data"
+      ],
+      "searched_at": "2026-09-24T09:58:30+00:00"
+    },
+    "recorded_at": "2026-09-24T10:00:28+00:00",
+    "recorded_on_host": "clariden-ln004",
+    "schema_version": 2,
+    "serving": {
+      "draft_tensor_parallel_size": 1,
+      "gpu_memory_utilization": 0.8,
+      "max_model_len": 32768,
+      "prefix_caching": false,
+      "target_tensor_parallel_size": 1
+    },
+    "source": {
+      "authorized_checkpoint": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+      "chat_template_source": "chat_template.jinja",
+      "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+      "generation_config_sha256": "9131f56adebe0d591ba8ddc2d18d18edaf762a1ebce6750b24319c86b1d7d6d5",
+      "hf_id": "swiss-ai/Apertus-v1.5-8B",
+      "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+      "special_tokens_map_sha256": "358c249e2fb29060c6b73157d428853b0c48710deffc8ee670ab1013880946c9",
+      "tokenizer_config_sha256": "43cdc9d1f25c45ae88cd4ee6509ec63a8088a19af1dc7300d13b874a626de871",
+      "tokenizer_json_bytes": 44028400,
+      "tokenizer_json_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+      "weight_index_sha256": "d7277f7abd8d669b6711987f41c90acffadf3a36e8589d7b9172275220836818",
+      "weight_manifest": {
+        "files": [
+          {
+            "bytes": 4026725622,
+            "name": "model-apertus-model-00001-of-00004.safetensors",
+            "sha256": "60d31e2d767d389ba990972a21cd0524e18c1ed39b65fcc727285db613ea81dc"
+          },
+          {
+            "bytes": 4701918018,
+            "name": "model-apertus-model-00002-of-00004.safetensors",
+            "sha256": "8a0ae0ba1c37a5571276f042085c8f782b6f02c68a888acf1ae35c33b8253bd9"
+          },
+          {
+            "bytes": 3791726250,
+            "name": "model-apertus-model-00003-of-00004.safetensors",
+            "sha256": "17f4ce43b67eacee899b6f23664d6b457259b2fbc89f5561cd69831d34a412c0"
+          },
+          {
+            "bytes": 4697854302,
+            "name": "model-apertus-model-00004-of-00004.safetensors",
+            "sha256": "40bf7c8ba48bfe6748b6cf796bfe65cea0115fe74d0aa38ad5fcdb6af2cf3e0d"
+          },
+          {
+            "bytes": 872647552,
+            "name": "model-vision_tokenizer-model.safetensors",
+            "sha256": "0f358b3c908d216172675cd57184ff6ce310705e385fedfd31c6f34e8197f9c8"
+          },
+          {
+            "bytes": 305269780,
+            "name": "model-wavtokenizer-model.safetensors",
+            "sha256": "b2632390709c3cb1319d1a0c1387d5364587b8a78a00efa2e93f15185ae82c02"
+          }
+        ],
+        "hashed": true,
+        "manifest_rule": "sha256(json.dumps({config_sha256, files[name,bytes,sha256]}, sort_keys=True))",
+        "manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+      },
+      "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a",
+      "weight_tensor_count": 924,
+      "weight_total_size_bytes": 18396023436
+    },
+    "stage": "8b",
+    "status": "contract_recorded",
+    "target": {
+      "architecture": "Apertus1p5ForConditionalGeneration",
+      "eagle": {
+        "captured_features_include_final_norm": false,
+        "captured_features_include_residual": true,
+        "default_aux_hidden_state_layer_ids": [
+          2,
+          16,
+          29
+        ],
+        "engine_method": "eagle3",
+        "hf_decoder_layer_aux_ids": [
+          1,
+          15,
+          28
+        ],
+        "indexing_convention": "vLLM EagleModelMixin index k is hidden_states+residual after decoder layer k-1 (index 0 is the embedding stream). The HF trainer hooks decoder layer k-1 outputs. Final RMSNorm is not part of the tuple.",
+        "status": "rule verified in pinned vLLM source",
+        "torchspec_aux_hidden_states_layers": [
+          1,
+          15,
+          28
+        ],
+        "trainer_last_hidden_state": "final RMSNorm output (post-norm)",
+        "vllm_default_rule": "(2, L // 2, L - 3)",
+        "vllm_source_checks": {
+          "apertus_capture_after_layer_idx_plus_1": true,
+          "apertus_capture_before_loop_index0": true,
+          "apertus_sha256": "3336b94e92fcd4af14f5bb2caf03ecb1a65557ae92fa71a0d33dc0aa311fb18e",
+          "default_rule": "(2, num_layers // 2, num_layers - 3)",
+          "default_rule_sha256": "f27bb3291aa1fa02850ff21f60313db53adceb5a4932f20ba5d031bb1aa3c0df",
+          "derived_default_for_target": [
+            2,
+            16,
+            29
+          ],
+          "eagle_head_midlayer_mapping": true,
+          "eagle_head_sha256": "a1b92dfecb60b2514e53a9582f20495c5edced10288ae73ee5b648bfcbebeca9",
+          "eagle_head_supports_fc_norm": true,
+          "eagle_head_supports_norm_output": true,
+          "root": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/vllm-src/root/opt/venv/lib/python3.12/site-packages/vllm",
+          "verified": true,
+          "vllm_version": "0.23.1rc1.dev1029+ga601a9d99"
+        }
+      },
+      "identity": {
+        "chat_template_sha256": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+        "config_sha256": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+        "model_id": "swiss-ai/Apertus-v1.5-8B",
+        "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+        "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6",
+        "tokenizer_sha256": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+        "weight_manifest_sha256": "0a6c3ca1c1e8cf220c21971b3b96b0e8799827f7bb00ac056dfb3657a533b08a"
+      },
+      "model_type": "apertus1p5",
+      "precision": "bfloat16",
+      "precision_source": "text_config.dtype plus safetensors header dtypes ['BF16'] for embed/norm/lm_head",
+      "quantization": null,
+      "tensors": {
+        "decoder_layer_count_in_weight_map": 32,
+        "embed_tokens": {
+          "dtype": "BF16",
+          "file": "model-apertus-model-00002-of-00004.safetensors",
+          "key": "model.language_model.embed_tokens.weight",
+          "shape": [
+            266752,
+            4096
+          ]
+        },
+        "final_norm": {
+          "dtype": "BF16",
+          "file": "model-apertus-model-00004-of-00004.safetensors",
+          "key": "model.language_model.norm.weight",
+          "shape": [
+            4096
+          ]
+        },
+        "lm_head": {
+          "dtype": "BF16",
+          "file": "model-apertus-model-00003-of-00004.safetensors",
+          "key": "lm_head.weight",
+          "shape": [
+            131072,
+            4096
+          ]
+        },
+        "note": "lm_head rows are the text output vocabulary; serving pads logits to input vocab_size with -inf. Input ids above output_vocab_size are multimodal and outside this text-only experiment."
+      },
+      "text": {
+        "attention_bias": false,
+        "head_dim": 128,
+        "head_dim_source": "derived hidden_size / num_heads",
+        "hidden_act": "xielu",
+        "hidden_size": 4096,
+        "intermediate_size": 21504,
+        "max_position_embeddings": 262144,
+        "mlp_bias": false,
+        "model_type": "apertus1p5_text",
+        "num_attention_heads": 32,
+        "num_hidden_layers": 32,
+        "num_key_value_heads": 8,
+        "output_vocab_size": 131072,
+        "post_norm": false,
+        "qk_norm": true,
+        "rms_norm_eps": 1e-05,
+        "rope_parameters": {
+          "factor": 32.0,
+          "high_freq_factor": 4.0,
+          "low_freq_factor": 1.0,
+          "original_max_position_embeddings": 8192,
+          "rope_theta": 4000000,
+          "rope_type": "llama3"
+        },
+        "tie_word_embeddings": false,
+        "vocab_size": 266752
+      },
+      "tokens": {
+        "assistant_end_id": 68,
+        "assistant_start_id": 67,
+        "audio_token_id": 131085,
+        "bos_token": "<s>",
+        "bos_token_id": 1,
+        "chat_template_owns_bos": true,
+        "control_tokens_below_128": {
+          "0": "<unk>",
+          "1": "<s>",
+          "10": "<SPECIAL_10>",
+          "100": "<SPECIAL_100>",
+          "101": "<SPECIAL_101>",
+          "102": "<SPECIAL_102>",
+          "103": "<SPECIAL_103>",
+          "104": "<SPECIAL_104>",
+          "105": "<SPECIAL_105>",
+          "106": "<SPECIAL_106>",
+          "107": "<SPECIAL_107>",
+          "108": "<SPECIAL_108>",
+          "109": "<SPECIAL_109>",
+          "11": "[PREFIX]",
+          "110": "<SPECIAL_110>",
+          "111": "<SPECIAL_111>",
+          "112": "<SPECIAL_112>",
+          "113": "<SPECIAL_113>",
+          "114": "<SPECIAL_114>",
+          "115": "<SPECIAL_115>",
+          "116": "<SPECIAL_116>",
+          "117": "<SPECIAL_117>",
+          "118": "<SPECIAL_118>",
+          "119": "<SPECIAL_119>",
+          "12": "[MIDDLE]",
+          "120": "<SPECIAL_120>",
+          "121": "<SPECIAL_121>",
+          "122": "<SPECIAL_122>",
+          "123": "<SPECIAL_123>",
+          "124": "<SPECIAL_124>",
+          "125": "<SPECIAL_125>",
+          "126": "<SPECIAL_126>",
+          "127": "<SPECIAL_127>",
+          "13": "[SUFFIX]",
+          "14": "\\begin{",
+          "15": "\\end{",
+          "16": "\\text{",
+          "17": "\\boxed{",
+          "18": "<filename>",
+          "19": "<gh_stars>",
+          "2": "</s>",
+          "20": "<issue_start>",
+          "21": "<issue_comment>",
+          "22": "<issue_closed>",
+          "23": "<jupyter_start>",
+          "24": "<jupyter_text>",
+          "25": "<jupyter_code>",
+          "26": "<jupyter_output>",
+          "27": "<empty_output>",
+          "28": "<commit_before>",
+          "29": "<commit_msg>",
+          "3": "<pad>",
+          "30": "<commit_after>",
+          "31": "<reponame>",
+          "32": "<|inner_prefix|>",
+          "33": "<|inner_suffix|>",
+          "34": "<answer>",
+          "35": "</answer>",
+          "36": "<iban-pii>",
+          "37": "<email-pii>",
+          "38": "<ip-pii>",
+          "39": "<file_sep>",
+          "4": "[/INST]",
+          "40": "<code_to_intermediate>",
+          "41": "<intermediate_to_code>",
+          "42": "<pr>",
+          "43": "<pr_status>",
+          "44": "<pr_is_merged>",
+          "45": "<pr_base>",
+          "46": "<pr_file>",
+          "47": "<pr_base_code>",
+          "48": "<pr_diff>",
+          "49": "<pr_diff_hunk>",
+          "5": "[AVAILABLE_TOOLS]",
+          "50": "<pr_comment>",
+          "51": "<pr_event_id>",
+          "52": "<pr_review>",
+          "53": "<pr_review_state>",
+          "54": "<pr_review_comment>",
+          "55": "<pr_in_reply_to_review_id>",
+          "56": "<pr_in_reply_to_comment_id>",
+          "57": "<pr_diff_hunk_comment_line>",
+          "58": "<|fim_begin|>",
+          "59": "<|fim_hole|>",
+          "6": "[/AVAILABLE_TOOLS]",
+          "60": "<|fim_end|>",
+          "61": "<|system_start|>",
+          "62": "<|system_end|>",
+          "63": "<|developer_start|>",
+          "64": "<|developer_end|>",
+          "65": "<|user_start|>",
+          "66": "<|user_end|>",
+          "67": "<|assistant_start|>",
+          "68": "<|assistant_end|>",
+          "7": "[TOOL_RESULTS]",
+          "71": "<|tools_prefix|>",
+          "72": "<|tools_suffix|>",
+          "73": "<|tool_output_start|>",
+          "74": "<|tool_output_end|>",
+          "75": "<SPECIAL_75>",
+          "76": "<SPECIAL_76>",
+          "77": "<SPECIAL_77>",
+          "78": "<SPECIAL_78>",
+          "79": "<SPECIAL_79>",
+          "8": "[/TOOL_RESULTS]",
+          "80": "<SPECIAL_80>",
+          "81": "<SPECIAL_81>",
+          "82": "<SPECIAL_82>",
+          "83": "<SPECIAL_83>",
+          "84": "<SPECIAL_84>",
+          "85": "<SPECIAL_85>",
+          "86": "<SPECIAL_86>",
+          "87": "<SPECIAL_87>",
+          "88": "<SPECIAL_88>",
+          "89": "<SPECIAL_89>",
+          "9": "[TOOL_CALLS]",
+          "90": "<SPECIAL_90>",
+          "91": "<SPECIAL_91>",
+          "92": "<SPECIAL_92>",
+          "93": "<SPECIAL_93>",
+          "94": "<SPECIAL_94>",
+          "95": "<SPECIAL_95>",
+          "96": "<SPECIAL_96>",
+          "97": "<SPECIAL_97>",
+          "98": "<SPECIAL_98>",
+          "99": "<SPECIAL_99>"
+        },
+        "developer_end_id": 64,
+        "developer_start_id": 63,
+        "eos_token": "</s>",
+        "eos_token_id": [
+          2,
+          68,
+          72
+        ],
+        "generation_eos_token_id": [
+          2,
+          68,
+          72
+        ],
+        "image_token_id": 131079,
+        "pad_token_id": 3,
+        "serving_add_special_tokens": false,
+        "system_end_id": 62,
+        "system_start_id": 61,
+        "think_end_id": 33,
+        "think_start_id": 32,
+        "tools_suffix_id": 72,
+        "user_end_id": 66,
+        "user_start_id": 65
+      }
+    }
+  },
+  "target_contract_sha256": "189f9663a21e5b0dec645e33372ed186ba6b27106fddf2a6b0a3154925e57c1c",
+  "weights": [
+    {
+      "bytes": 1661003392,
+      "name": "model.safetensors",
+      "sha256": "42b0549629bed5366be812ea0a08897d3631bff2329bb7294adddd8ab100d6ff"
+    }
+  ],
+  "weights_hashed": true
+}

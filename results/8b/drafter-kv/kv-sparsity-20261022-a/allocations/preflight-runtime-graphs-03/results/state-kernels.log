@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py", line 783, in <module>
+    main()
+  File "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py", line 735, in main
+    config_report = check_draft_config() if args.state_check else None
+                    ^^^^^^^^^^^^^^^^^^^^
+  File "/users/faruk_zahiragic/apertus-spec-decoding-kv-sparsity/serving/draft_kv/check_gpu.py", line 266, in check_draft_config
+    draft_config = integration.sparse_draft_config(config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vllm/vllm/apertus_draft_kv/integration.py", line 948, in sparse_draft_config
+    draft_compilation = replace(
+                        ^^^^^^^^
+  File "/workspace/vllm/vllm/config/utils.py", line 127, in replace
+    return cls(**dataclass_dict)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/pydantic/_internal/_dataclasses.py", line 121, in __init__
+    s.__pydantic_validator__.validate_python(ArgsKwargs(args, kwargs), self_instance=s)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for CompilationConfig
+cudagraph_capture_sizes
+  Input should be a valid list [type=list_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.13/v/list_type
+srun: error: nid007644: task 0: Exited with exit code 1
+srun: Terminating StepId=3723844.0

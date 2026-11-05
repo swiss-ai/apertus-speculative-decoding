@@ -21,6 +21,44 @@ and both control kinds are specified in `../docs/protocol.md`.
 
 ## Recorded runs
 
+- `8b/drafter-kv/kv-sparsity-20261022-a/`: two independent DSpark thinking-off
+  screening repeats with physical KV-page eviction. The 512-token importance
+  policy reduced accounted drafter storage by 69%, but throughput and
+  summarization acceptance regressed. Its `README.md` links the frozen gates,
+  raw cells, calibrated controls, allocation traces, failed-attempt history and
+  reproducibility artifacts. Confirmation and other-head evaluations stopped
+  at the negative screen.
+- `8b/waste/`: wasted-compute analyses (`decomposition`, `drafter-costs`,
+  `cost-per-token`) over the profiled sweeps `8b/sweeps/waste-prof-{a,b}-*` and
+  the Nsight smoke test `8b/sweeps/nsys-smoke-*`. `recovery-20261027/` holds the
+  paired analysis of the unprofiled summarization pair `8b/sweeps/waste-sum-{a,b}-*`
+  (scheduler +1.9%/+2.8% over plain at C=128/256) and its provenance limits.
+- `8b/tree-drafters/screen-20261024/`: offline multi-drafter tree screen (jobs
+  3737472/3737473). Raw per-shard summaries, logs and the original projection are
+  under `raw/`; `analysis-v2/` supersedes the original throughput projections,
+  which extrapolated to negative verification time. Restricted captures stay on
+  Clariden; their hashes are in `collection/manifest.json`.
+- `8b/sweeps/{smoke,dp4-*,tp4-*,think-*,topk-*}-202610*` and
+  `8b/layout-recovery-202610{27,28,30,31}/`: serving-layout and sampling sweeps for
+  the final 8B drafters. The layout recovery directories hold the raw runs of the
+  resumed controllers (`controller-v*/runs/`), their gates and submissions, and
+  the CPU reviews; `layout-recovery-20261031/README.md` is the closure, including
+  11 rejected P/D reliability cells.
+- `8b/sampling/recovery-20261027/`: validated paired analysis (`analysis-v2/`)
+  and verdict tables (`verdict-v1/`) of the `topk-off` and `topk-think` sweeps.
+- `8b/drafter-updates/`: online drafter adaptation. `recovery-20261030-cache/`
+  holds the 19 development curves, selection, paired serving-confirmation
+  summaries and verdict; earlier `recovery-*` directories keep the failed trace
+  attempts the report cites. The confirmation capsules' raw archives contain
+  restricted served captures and stay on Clariden; each capsule's
+  `removed-restricted-parts.json` gives their hashes and location. The live-swap
+  smoke is `8b/sweeps/drafter-swap-smoke-*`.
+- `8b/small-drafter/`: shallow DSpark drafter study. Phase-A depth cost and
+  ceiling models, the dated recovery directories with submission receipts,
+  preserved failures and the strict review, and `recovery-20261031/` with the
+  correctness-blocked closure and the retrieved gate reports of job 3804151.
+  Truncation sweeps are `8b/sweeps/small-trunc-*`.
+
 - `smoke-screening-20260913-debug/`: paired baseline vs. 8B `draft_model` depth-3 TP=4 vs. model-free
   n-gram measurement, smoke corpus, concurrency 1 and 8, two independent deployment repeats of every
   arm. Its `README.md` carries the provenance, the headline comparison, and the deviations.

@@ -9,7 +9,9 @@ columns, and (with --reference) each arm's ratio to the reference arm.
 `--probe` prints the probe cell of every arm instead. `--pool NAME=A,B`
 reports labels A and B as one workload: output tok/s and accepted length are
 recomputed from the cells' summed tokens, wall time and draft counters (the
-mean of the two cells' ratios would weight them wrongly).
+mean of the two cells' ratios would weight them wrongly). `--frontier` lists
+the (arm, C) points that no other point beats on both output tok/s and
+per-user speed (1000 / TPOT p50): layouts compared at equal latency.
 """
 
 from __future__ import annotations
@@ -134,6 +136,22 @@ def table(
     return "\n".join(lines)
 
 
+def frontier(arms: dict[str, dict[int, dict[str, Any]]]) -> list[tuple[str, int, float, float]]:
+    """(arm, C, output tok/s, per-user tok/s) of every point no other point dominates,
+    fastest per user first."""
+    points = [
+        (name, c, row["output_tokens_per_second"], 1000 / row["tpot_p50_ms"])
+        for name, rows in arms.items()
+        for c, row in rows.items()
+        if row.get("output_tokens_per_second") and row.get("tpot_p50_ms")
+    ]
+
+    def dominated(p: tuple[str, int, float, float]) -> bool:
+        return any(q[2] >= p[2] and q[3] >= p[3] and (q[2] > p[2] or q[3] > p[3]) for q in points)
+
+    return sorted((p for p in points if not dominated(p)), key=lambda p: -p[3])
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="apertus_bench.sweep_report")
     parser.add_argument("sweeps", type=Path, nargs="+")
@@ -143,6 +161,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--metric", action="append", choices=sorted(METRICS))
     parser.add_argument("--probe", action="store_true")
     parser.add_argument("--pool", metavar="NAME=A,B", help="pool labels A, B into one workload")
+    parser.add_argument("--frontier", action="store_true", help="throughput/latency frontier")
     args = parser.parse_args(argv)
     if args.probe:
         rows = collect_probe(args.sweeps)
@@ -156,6 +175,14 @@ def main(argv: list[str] | None = None) -> None:
                     f"{_cell(row['mean_acceptance_length'], '{:.2f}')} | "
                     f"{_cell(row['tpot_p50_ms'], '{:.2f}')} |"
                 )
+        return
+    if args.frontier:
+        print(f"{args.label}: points no other beats on both output tok/s and per-user tok/s")
+        print()
+        print("| per-user tok/s | output tok/s | arm | C |")
+        print("| --- | --- | --- | --- |")
+        for name, c, throughput, per_user in frontier(collect(args.sweeps, args.label)):
+            print(f"| {per_user:,.0f} | {throughput:,.0f} | {name} | {c} |")
         return
     if args.pool:
         name, _, labels = args.pool.partition("=")

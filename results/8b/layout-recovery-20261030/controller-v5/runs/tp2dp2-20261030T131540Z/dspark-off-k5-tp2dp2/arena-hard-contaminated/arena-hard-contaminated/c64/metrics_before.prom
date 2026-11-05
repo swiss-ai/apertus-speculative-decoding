@@ -1,0 +1,822 @@
+# HELP http_request_size_bytes Content length of incoming requests by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_request_size_bytes summary
+http_request_size_bytes_count{handler="/v1/chat/completions"} 22867.0
+http_request_size_bytes_sum{handler="/v1/chat/completions"} 3.4190766e+07
+http_request_size_bytes_count{handler="/v1/models"} 1.0
+http_request_size_bytes_sum{handler="/v1/models"} 0.0
+# HELP http_response_size_bytes Content length of outgoing responses by handler. Only value of header is respected. Otherwise ignored. No percentile calculated. 
+# TYPE http_response_size_bytes summary
+http_response_size_bytes_count{handler="/v1/chat/completions"} 22867.0
+http_response_size_bytes_sum{handler="/v1/chat/completions"} 703.0
+http_response_size_bytes_count{handler="/v1/models"} 1.0
+http_response_size_bytes_sum{handler="/v1/models"} 557.0
+# HELP vllm:request_prompt_tokens Number of prefill tokens processed.
+# TYPE vllm:request_prompt_tokens histogram
+vllm:request_prompt_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3.791082e+06
+vllm:request_prompt_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4687.0
+vllm:request_prompt_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8441.0
+vllm:request_prompt_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9846.0
+vllm:request_prompt_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10516.0
+vllm:request_prompt_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11083.0
+vllm:request_prompt_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prompt_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prompt_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prompt_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prompt_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prompt_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3.984784e+06
+vllm:request_prompt_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prompt_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4603.0
+vllm:request_prompt_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8383.0
+vllm:request_prompt_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9741.0
+vllm:request_prompt_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10433.0
+vllm:request_prompt_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11053.0
+vllm:request_prompt_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prompt_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prompt_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prompt_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prompt_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_generation_tokens Number of generation tokens processed.
+# TYPE vllm:request_generation_tokens histogram
+vllm:request_generation_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5.935923e+06
+vllm:request_generation_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 35.0
+vllm:request_generation_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 53.0
+vllm:request_generation_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 53.0
+vllm:request_generation_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 356.0
+vllm:request_generation_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 729.0
+vllm:request_generation_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1622.0
+vllm:request_generation_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 6158.0
+vllm:request_generation_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10283.0
+vllm:request_generation_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_generation_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_generation_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_generation_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_generation_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_generation_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_generation_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5.99862e+06
+vllm:request_generation_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_generation_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 46.0
+vllm:request_generation_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 62.0
+vllm:request_generation_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 62.0
+vllm:request_generation_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 323.0
+vllm:request_generation_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 726.0
+vllm:request_generation_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1614.0
+vllm:request_generation_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 6036.0
+vllm:request_generation_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10205.0
+vllm:request_generation_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_generation_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_generation_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_generation_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_generation_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_generation_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:iteration_tokens_total Histogram of number of tokens per engine_step.
+# TYPE vllm:iteration_tokens_total histogram
+vllm:iteration_tokens_total_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9.727005e+06
+vllm:iteration_tokens_total_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 16687.0
+vllm:iteration_tokens_total_bucket{engine="0",le="8.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 90799.0
+vllm:iteration_tokens_total_bucket{engine="0",le="16.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 96509.0
+vllm:iteration_tokens_total_bucket{engine="0",le="32.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 101293.0
+vllm:iteration_tokens_total_bucket{engine="0",le="64.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 108246.0
+vllm:iteration_tokens_total_bucket{engine="0",le="128.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 113193.0
+vllm:iteration_tokens_total_bucket{engine="0",le="256.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 118065.0
+vllm:iteration_tokens_total_bucket{engine="0",le="512.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 122041.0
+vllm:iteration_tokens_total_bucket{engine="0",le="1024.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 124813.0
+vllm:iteration_tokens_total_bucket{engine="0",le="2048.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 125606.0
+vllm:iteration_tokens_total_bucket{engine="0",le="4096.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 125915.0
+vllm:iteration_tokens_total_bucket{engine="0",le="8192.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 126136.0
+vllm:iteration_tokens_total_bucket{engine="0",le="16384.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 126225.0
+vllm:iteration_tokens_total_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 126225.0
+vllm:iteration_tokens_total_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 126225.0
+vllm:iteration_tokens_total_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9.983404e+06
+vllm:iteration_tokens_total_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 15643.0
+vllm:iteration_tokens_total_bucket{engine="1",le="8.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 89772.0
+vllm:iteration_tokens_total_bucket{engine="1",le="16.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 95188.0
+vllm:iteration_tokens_total_bucket{engine="1",le="32.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 99865.0
+vllm:iteration_tokens_total_bucket{engine="1",le="64.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 106882.0
+vllm:iteration_tokens_total_bucket{engine="1",le="128.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 112201.0
+vllm:iteration_tokens_total_bucket{engine="1",le="256.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 116967.0
+vllm:iteration_tokens_total_bucket{engine="1",le="512.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 121203.0
+vllm:iteration_tokens_total_bucket{engine="1",le="1024.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 123863.0
+vllm:iteration_tokens_total_bucket{engine="1",le="2048.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 124762.0
+vllm:iteration_tokens_total_bucket{engine="1",le="4096.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 125072.0
+vllm:iteration_tokens_total_bucket{engine="1",le="8192.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 125305.0
+vllm:iteration_tokens_total_bucket{engine="1",le="16384.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 125397.0
+vllm:iteration_tokens_total_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 125397.0
+vllm:iteration_tokens_total_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 125397.0
+# HELP vllm:request_max_num_generation_tokens Histogram of maximum number of requested generation tokens.
+# TYPE vllm:request_max_num_generation_tokens histogram
+vllm:request_max_num_generation_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5.935923e+06
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 35.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 53.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 53.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 356.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 729.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1622.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 6158.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10283.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_max_num_generation_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_max_num_generation_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_max_num_generation_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5.99862e+06
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 46.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 62.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 62.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 323.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 726.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1614.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 6036.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10205.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_max_num_generation_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_max_num_generation_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_params_n Histogram of the n request parameter.
+# TYPE vllm:request_params_n histogram
+vllm:request_params_n_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_n_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_n_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_n_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_n_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_n_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_n_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_n_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_n_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_params_max_tokens Histogram of the max_tokens request parameter.
+# TYPE vllm:request_params_max_tokens histogram
+vllm:request_params_max_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9.067207e+06
+vllm:request_params_max_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 35.0
+vllm:request_params_max_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 247.0
+vllm:request_params_max_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 283.0
+vllm:request_params_max_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 738.0
+vllm:request_params_max_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2755.0
+vllm:request_params_max_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4605.0
+vllm:request_params_max_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_max_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_max_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_max_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_max_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_max_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_params_max_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9.08941e+06
+vllm:request_params_max_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_params_max_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.0
+vllm:request_params_max_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.0
+vllm:request_params_max_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 46.0
+vllm:request_params_max_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 240.0
+vllm:request_params_max_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 284.0
+vllm:request_params_max_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 723.0
+vllm:request_params_max_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2738.0
+vllm:request_params_max_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4601.0
+vllm:request_params_max_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_max_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_max_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_max_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_max_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_params_max_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:time_to_first_token_seconds Histogram of time to first token in seconds.
+# TYPE vllm:time_to_first_token_seconds histogram
+vllm:time_to_first_token_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8645.011870384216
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.001",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.005",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.02",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 483.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.04",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1252.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.06",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1873.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.08",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2160.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2777.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.25",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5234.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8270.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8953.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9242.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10291.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11213.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="160.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="640.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="2560.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:time_to_first_token_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8522.716950416565
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.001",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.005",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.02",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 461.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.04",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1354.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.06",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1817.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.08",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2060.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2640.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.25",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5601.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8413.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8992.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9226.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10221.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11269.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="160.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="640.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="2560.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:time_to_first_token_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:inter_token_latency_seconds Histogram of inter-token latency in seconds.
+# TYPE vllm:inter_token_latency_seconds histogram
+vllm:inter_token_latency_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 89241.6769970567
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 210973.0
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 411021.0
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 779554.0
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.130484e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.3689e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.501173e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.524239e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.536626e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:inter_token_latency_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 87572.39823650208
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 212238.0
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 415763.0
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 815078.0
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.161703e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.410566e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.525746e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.542048e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558429e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+vllm:inter_token_latency_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+# HELP vllm:request_time_per_output_token_seconds Histogram of time_per_output_token_seconds per request.
+# TYPE vllm:request_time_per_output_token_seconds histogram
+vllm:request_time_per_output_token_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 199.74610612775857
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3543.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8999.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11157.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11359.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11410.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11426.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_time_per_output_token_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 194.68953580050018
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.01",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3565.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.025",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9253.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.05",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11190.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.075",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11358.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11407.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.15",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11426.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.2",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.4",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="0.75",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="7.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="80.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_time_per_output_token_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:e2e_request_latency_seconds Histogram of e2e request latency in seconds.
+# TYPE vllm:e2e_request_latency_seconds histogram
+vllm:e2e_request_latency_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 97868.5532336235
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 171.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 404.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 768.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1022.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1537.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2025.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2383.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4217.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7102.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9273.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10982.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11431.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:e2e_request_latency_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 96077.72559213638
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 166.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 405.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 748.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 976.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1509.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1993.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2381.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4271.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7173.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9427.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11086.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:e2e_request_latency_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_queue_time_seconds Histogram of time spent in WAITING phase for request.
+# TYPE vllm:request_queue_time_seconds histogram
+vllm:request_queue_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4647.583943170495
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9332.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9438.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9684.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9865.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10260.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10405.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10657.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11414.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_queue_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4685.801002518507
+vllm:request_queue_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9344.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9422.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9686.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9834.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10123.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10308.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10594.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11421.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_queue_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_inference_time_seconds Histogram of time spent in RUNNING phase for request.
+# TYPE vllm:request_inference_time_seconds histogram
+vllm:request_inference_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 92326.14155457763
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 181.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 416.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 797.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1056.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1582.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2085.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2484.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4418.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7455.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9609.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11125.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11432.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_inference_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 90531.07645177282
+vllm:request_inference_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 178.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 420.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 772.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1018.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1590.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2054.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2491.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4462.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7551.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9779.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11221.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_inference_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_prefill_time_seconds Histogram of time spent in PREFILL phase for request.
+# TYPE vllm:request_prefill_time_seconds histogram
+vllm:request_prefill_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3084.464557520929
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7294.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8925.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11332.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2958.6782152707456
+vllm:request_prefill_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7533.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8855.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11328.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_decode_time_seconds Histogram of time spent in DECODE phase for request.
+# TYPE vllm:request_decode_time_seconds histogram
+vllm:request_decode_time_seconds_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 89241.6769970567
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 246.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 509.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 914.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1160.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1704.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2229.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2664.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4612.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7615.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9749.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11181.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_decode_time_seconds_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 87572.39823650208
+vllm:request_decode_time_seconds_bucket{engine="1",le="0.3",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 244.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="0.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 505.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="0.8",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 871.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1130.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="1.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1684.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2202.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="2.5",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 2686.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4628.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7718.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="15.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9910.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11255.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="30.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="40.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="60.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="120.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="240.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="480.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="960.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="1920.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="7680.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_decode_time_seconds_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP vllm:request_prefill_kv_computed_tokens Histogram of new KV tokens computed during prefill (excluding cached tokens).
+# TYPE vllm:request_prefill_kv_computed_tokens histogram
+vllm:request_prefill_kv_computed_tokens_sum{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3.791082e+06
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4687.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8441.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9846.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10516.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11083.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="0",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_kv_computed_tokens_count{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11433.0
+vllm:request_prefill_kv_computed_tokens_sum{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3.984784e+06
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="1.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="2.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="5.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="10.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="20.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="50.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="100.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4603.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="200.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8383.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="500.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 9741.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="1000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 10433.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="2000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11053.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="5000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="10000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="20000.0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_kv_computed_tokens_bucket{engine="1",le="+Inf",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+vllm:request_prefill_kv_computed_tokens_count{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 11434.0
+# HELP http_request_duration_highr_seconds Latency with many buckets but no API specific labels. Made for more accurate percentile calculations. 
+# TYPE http_request_duration_highr_seconds histogram
+http_request_duration_highr_seconds_sum 194349.94729255792
+http_request_duration_highr_seconds_bucket{le="0.01"} 1.0
+http_request_duration_highr_seconds_bucket{le="0.025"} 2.0
+http_request_duration_highr_seconds_bucket{le="0.05"} 10.0
+http_request_duration_highr_seconds_bucket{le="0.075"} 25.0
+http_request_duration_highr_seconds_bucket{le="0.1"} 42.0
+http_request_duration_highr_seconds_bucket{le="0.25"} 244.0
+http_request_duration_highr_seconds_bucket{le="0.5"} 791.0
+http_request_duration_highr_seconds_bucket{le="0.75"} 1374.0
+http_request_duration_highr_seconds_bucket{le="1.0"} 1982.0
+http_request_duration_highr_seconds_bucket{le="1.5"} 3020.0
+http_request_duration_highr_seconds_bucket{le="2.0"} 4003.0
+http_request_duration_highr_seconds_bucket{le="2.5"} 4740.0
+http_request_duration_highr_seconds_bucket{le="3.0"} 5628.0
+http_request_duration_highr_seconds_bucket{le="3.5"} 6357.0
+http_request_duration_highr_seconds_bucket{le="4.0"} 7014.0
+http_request_duration_highr_seconds_bucket{le="4.5"} 7751.0
+http_request_duration_highr_seconds_bucket{le="5.0"} 8466.0
+http_request_duration_highr_seconds_bucket{le="7.5"} 11438.0
+http_request_duration_highr_seconds_bucket{le="10.0"} 14254.0
+http_request_duration_highr_seconds_bucket{le="30.0"} 22866.0
+http_request_duration_highr_seconds_bucket{le="60.0"} 22868.0
+http_request_duration_highr_seconds_bucket{le="+Inf"} 22868.0
+http_request_duration_highr_seconds_count 22868.0
+# HELP http_request_duration_seconds Latency with only few buckets by handler. Made to be only used if aggregation by handler is important. 
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_sum{handler="/v1/models",method="GET"} 0.0012018490815535188
+http_request_duration_seconds_bucket{handler="/v1/models",le="0.1",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="0.5",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="1.0",method="GET"} 1.0
+http_request_duration_seconds_bucket{handler="/v1/models",le="+Inf",method="GET"} 1.0
+http_request_duration_seconds_count{handler="/v1/models",method="GET"} 1.0
+http_request_duration_seconds_sum{handler="/v1/chat/completions",method="POST"} 194349.94609070884
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="0.1",method="POST"} 41.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="0.5",method="POST"} 790.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="1.0",method="POST"} 1981.0
+http_request_duration_seconds_bucket{handler="/v1/chat/completions",le="+Inf",method="POST"} 22867.0
+http_request_duration_seconds_count{handler="/v1/chat/completions",method="POST"} 22867.0
+# HELP vllm:num_requests_running Number of requests in model execution batches.
+# TYPE vllm:num_requests_running gauge
+vllm:num_requests_running{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:num_requests_running{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:num_requests_waiting Number of requests waiting to be processed.
+# TYPE vllm:num_requests_waiting gauge
+vllm:num_requests_waiting{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:num_requests_waiting{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:num_requests_waiting_by_reason Number of waiting requests by reason. Reason labels: 'capacity' = waiting for scheduling capacity; 'deferred' = deferred by transient constraints (LoRA budget, KV transfer, blocked status). Sum of all reasons equals vllm:num_requests_waiting.
+# TYPE vllm:num_requests_waiting_by_reason gauge
+vllm:num_requests_waiting_by_reason{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",reason="capacity"} 0.0
+vllm:num_requests_waiting_by_reason{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",reason="capacity"} 0.0
+vllm:num_requests_waiting_by_reason{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",reason="deferred"} 0.0
+vllm:num_requests_waiting_by_reason{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",reason="deferred"} 0.0
+# HELP vllm:engine_sleep_state Engine sleep state; awake = 0 means engine is sleeping; awake = 1 means engine is awake; weights_offloaded = 1 means sleep level 1; discard_all = 1 means sleep level 2.
+# TYPE vllm:engine_sleep_state gauge
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",sleep_state="awake"} 1.0
+vllm:engine_sleep_state{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",sleep_state="awake"} 1.0
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",sleep_state="weights_offloaded"} 0.0
+vllm:engine_sleep_state{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",sleep_state="weights_offloaded"} 0.0
+vllm:engine_sleep_state{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",sleep_state="discard_all"} 0.0
+vllm:engine_sleep_state{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",sleep_state="discard_all"} 0.0
+# HELP vllm:kv_cache_usage_perc KV-cache usage. 1 means 100 percent usage.
+# TYPE vllm:kv_cache_usage_perc gauge
+vllm:kv_cache_usage_perc{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:kv_cache_usage_perc{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:cache_config_info Information of the LLMEngine CacheConfig
+# TYPE vllm:cache_config_info gauge
+vllm:cache_config_info{_block_size_resolved="True",block_size="16",cache_dtype="auto",calculate_kv_scales="False",enable_prefix_caching="False",engine="0",gpu_memory_utilization="0.8",hash_block_size="None",is_attention_free="False",kv_cache_dtype_skip_layers="[]",kv_cache_max_concurrency="24.948184314922184",kv_cache_memory_bytes="None",kv_cache_size_tokens="817502",kv_offloading_backend="native",kv_offloading_size="None",kv_sharing_fast_prefill="False",mamba_block_size="None",mamba_cache_dtype="auto",mamba_cache_mode="none",mamba_page_size_padded="None",mamba_ssm_cache_dtype="auto",num_cpu_blocks="None",num_gpu_blocks="817552",num_gpu_blocks_override="None",prefix_caching_hash_algo="sha256",skip_page_size_padded="None",sliding_window="None",user_specified_block_size="False",user_specified_mamba_block_size="False"} 1.0
+vllm:cache_config_info{_block_size_resolved="True",block_size="16",cache_dtype="auto",calculate_kv_scales="False",enable_prefix_caching="False",engine="1",gpu_memory_utilization="0.8",hash_block_size="None",is_attention_free="False",kv_cache_dtype_skip_layers="[]",kv_cache_max_concurrency="24.948184314922184",kv_cache_memory_bytes="None",kv_cache_size_tokens="817502",kv_offloading_backend="native",kv_offloading_size="None",kv_sharing_fast_prefill="False",mamba_block_size="None",mamba_cache_dtype="auto",mamba_cache_mode="none",mamba_page_size_padded="None",mamba_ssm_cache_dtype="auto",num_cpu_blocks="None",num_gpu_blocks="817552",num_gpu_blocks_override="None",prefix_caching_hash_algo="sha256",skip_page_size_padded="None",sliding_window="None",user_specified_block_size="False",user_specified_mamba_block_size="False"} 1.0
+# HELP vllm:spec_decode_num_drafts_total Number of spec decoding drafts.
+# TYPE vllm:spec_decode_num_drafts_total counter
+vllm:spec_decode_num_drafts_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.558563e+06
+vllm:spec_decode_num_drafts_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 1.574148e+06
+# HELP vllm:spec_decode_num_draft_tokens_total Number of draft tokens.
+# TYPE vllm:spec_decode_num_draft_tokens_total counter
+vllm:spec_decode_num_draft_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7.792815e+06
+vllm:spec_decode_num_draft_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 7.87074e+06
+# HELP vllm:spec_decode_num_accepted_tokens_total Number of accepted tokens.
+# TYPE vllm:spec_decode_num_accepted_tokens_total counter
+vllm:spec_decode_num_accepted_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4.385471e+06
+vllm:spec_decode_num_accepted_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 4.432759e+06
+# HELP vllm:spec_decode_num_accepted_tokens_per_pos_total Accepted tokens per draft position.
+# TYPE vllm:spec_decode_num_accepted_tokens_per_pos_total counter
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="0"} 1.282403e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="1"} 1.033189e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="2"} 836282.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="3"} 677199.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="4"} 556398.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="0"} 1.295965e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="1"} 1.044543e+06
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="2"} 845829.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="3"} 684804.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",position="4"} 561618.0
+# HELP vllm:estimated_flops_per_gpu_total Estimated number of floating point operations per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_flops_per_gpu_total counter
+vllm:estimated_flops_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:estimated_flops_per_gpu_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:estimated_read_bytes_per_gpu_total Estimated number of bytes read from memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_read_bytes_per_gpu_total counter
+vllm:estimated_read_bytes_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:estimated_read_bytes_per_gpu_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:estimated_write_bytes_per_gpu_total Estimated number of bytes written to memory per GPU (for Model Flops Utilization calculations).
+# TYPE vllm:estimated_write_bytes_per_gpu_total counter
+vllm:estimated_write_bytes_per_gpu_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:estimated_write_bytes_per_gpu_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:prefix_cache_queries_total Prefix cache queries, in terms of number of queried tokens.
+# TYPE vllm:prefix_cache_queries_total counter
+vllm:prefix_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:prefix_cache_queries_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:prefix_cache_hits_total Prefix cache hits, in terms of number of cached tokens.
+# TYPE vllm:prefix_cache_hits_total counter
+vllm:prefix_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:prefix_cache_hits_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:external_prefix_cache_queries_total External prefix cache queries from KV connector cross-instance cache sharing, in terms of number of queried tokens.
+# TYPE vllm:external_prefix_cache_queries_total counter
+vllm:external_prefix_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:external_prefix_cache_queries_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:external_prefix_cache_hits_total External prefix cache hits from KV connector cross-instance cache sharing, in terms of number of cached tokens.
+# TYPE vllm:external_prefix_cache_hits_total counter
+vllm:external_prefix_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:external_prefix_cache_hits_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:mm_cache_queries_total Multi-modal cache queries, in terms of number of queried items.
+# TYPE vllm:mm_cache_queries_total counter
+vllm:mm_cache_queries_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:mm_cache_queries_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:mm_cache_hits_total Multi-modal cache hits, in terms of number of cached items.
+# TYPE vllm:mm_cache_hits_total counter
+vllm:mm_cache_hits_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:mm_cache_hits_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:num_preemptions_total Cumulative number of preemption from the engine.
+# TYPE vllm:num_preemptions_total counter
+vllm:num_preemptions_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:num_preemptions_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:prompt_tokens_total Number of prefill tokens processed.
+# TYPE vllm:prompt_tokens_total counter
+vllm:prompt_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3.791082e+06
+vllm:prompt_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3.984784e+06
+# HELP vllm:prompt_tokens_by_source_total Number of prompt tokens by source.
+# TYPE vllm:prompt_tokens_by_source_total counter
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",source="local_compute"} 3.791082e+06
+vllm:prompt_tokens_by_source_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",source="local_compute"} 3.984784e+06
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",source="local_cache_hit"} 0.0
+vllm:prompt_tokens_by_source_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",source="local_cache_hit"} 0.0
+vllm:prompt_tokens_by_source_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",source="external_kv_transfer"} 0.0
+vllm:prompt_tokens_by_source_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",source="external_kv_transfer"} 0.0
+# HELP vllm:prompt_tokens_cached_total Number of cached prompt tokens (local + external).
+# TYPE vllm:prompt_tokens_cached_total counter
+vllm:prompt_tokens_cached_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:prompt_tokens_cached_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:generation_tokens_total Number of generation tokens processed.
+# TYPE vllm:generation_tokens_total counter
+vllm:generation_tokens_total{engine="0",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5.935923e+06
+vllm:generation_tokens_total{engine="1",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 5.99862e+06
+# HELP vllm:request_success_total Count of successfully processed requests.
+# TYPE vllm:request_success_total counter
+vllm:request_success_total{engine="0",finished_reason="stop",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8414.0
+vllm:request_success_total{engine="1",finished_reason="stop",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 8367.0
+vllm:request_success_total{engine="0",finished_reason="length",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3019.0
+vllm:request_success_total{engine="1",finished_reason="length",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 3067.0
+vllm:request_success_total{engine="0",finished_reason="abort",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="1",finished_reason="abort",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="0",finished_reason="error",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="1",finished_reason="error",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="0",finished_reason="repetition",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+vllm:request_success_total{engine="1",finished_reason="repetition",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2"} 0.0
+# HELP vllm:tool_call_parser_invocations_total Total number of ToolParser invocations. Non-streaming increments once per choice; streaming increments once per delta.
+# TYPE vllm:tool_call_parser_invocations_total counter
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="no_tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="no_tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="no_tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="tool_call",request_type="other"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="no_tool_call",request_type="chat_completions"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="no_tool_call",request_type="responses"} 0.0
+vllm:tool_call_parser_invocations_total{mode="non_streaming",model_name="swiss-ai/Apertus-v1.5-8B-dspark-off-k5-tp2dp2",outcome="no_tool_call",request_type="other"} 0.0
+# HELP http_requests_total Total number of requests by method, status and handler.
+# TYPE http_requests_total counter
+http_requests_total{handler="/v1/chat/completions",method="POST",status="2xx"} 22867.0
+http_requests_total{handler="/v1/models",method="GET",status="2xx"} 1.0

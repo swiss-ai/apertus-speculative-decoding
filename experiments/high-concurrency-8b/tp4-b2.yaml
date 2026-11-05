@@ -1,0 +1,18 @@
+# tp4 split for the debug partition (1.5 h limit), part b2: plain plus one drafter arm,
+# since three TP4 arms ran past 1.5 h (tp4-a, job 3728421). debug, SWEEP_TIME 01:30:00.
+name: tp4-b2
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 1024}
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-clean
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+  - workload: arena-hard-contaminated
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    concurrencies: [1, 4, 32, 64, 128, 256, 512, 1024]
+arms:
+  - {name: plain-tp4, method: baseline, tensor_parallel_size: 4}
+  - {name: eagle-k3-tp4, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3, tensor_parallel_size: 4}

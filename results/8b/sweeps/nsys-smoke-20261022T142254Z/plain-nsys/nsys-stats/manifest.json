@@ -1,0 +1,98 @@
+{
+  "profile": {
+    "tool": "nsys",
+    "window_s": 10.0,
+    "delay_s": 5.0,
+    "levels": null,
+    "loadtests": null,
+    "nsys": "/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys",
+    "trace": "cuda,nvtx,osrt",
+    "cuda_graph_trace": "node",
+    "gpu_metrics": false,
+    "gpu_metrics_frequency": 10000,
+    "nvtx": true,
+    "eager_draft": false,
+    "sample": "none",
+    "extra_args": [],
+    "stats": [
+      "cuda_gpu_kern_sum",
+      "cuda_gpu_mem_time_sum",
+      "cuda_api_sum",
+      "nvtx_sum",
+      "nvtx_gpu_proj_sum",
+      "nvtx_gpu_proj_trace",
+      "osrt_sum"
+    ],
+    "report_timeout_s": 900.0
+  },
+  "reports": [
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys/plain-nsys.1.nsys-rep",
+      "report_bytes": 26364414,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys/plain-nsys.1.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "plain-nsys.1_cuda_api_sum.csv",
+        "plain-nsys.1_cuda_gpu_kern_sum.csv",
+        "plain-nsys.1_cuda_gpu_mem_time_sum.csv",
+        "plain-nsys.1_nvtx_gpu_proj_sum.csv",
+        "plain-nsys.1_nvtx_gpu_proj_trace.csv",
+        "plain-nsys.1_nvtx_sum.csv",
+        "plain-nsys.1_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 8,
+        "delay_s": 5.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-22T15:03:24.809790+00:00",
+        "start_latency_s": 1.547,
+        "truncated": false,
+        "open_s": 17.083,
+        "stopped_at": "2026-10-22T15:03:43.438996+00:00",
+        "counters": {
+          "prompt_tokens": 9098.0,
+          "generation_tokens": 10406.0,
+          "speculative_decoding": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    {
+      "report": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys/plain-nsys.2.nsys-rep",
+      "report_bytes": 13481989,
+      "sqlite": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/waste-profiling/results/8b/sweeps/nsys-smoke-20261022T142254Z/plain-nsys/nsys/plain-nsys.2.sqlite",
+      "stats_exit_code": 0,
+      "csv": [
+        "plain-nsys.2_cuda_api_sum.csv",
+        "plain-nsys.2_cuda_gpu_kern_sum.csv",
+        "plain-nsys.2_cuda_gpu_mem_time_sum.csv",
+        "plain-nsys.2_nvtx_gpu_proj_sum.csv",
+        "plain-nsys.2_nvtx_gpu_proj_trace.csv",
+        "plain-nsys.2_nvtx_sum.csv",
+        "plain-nsys.2_osrt_sum.csv"
+      ],
+      "gpu_metrics": false,
+      "window": {
+        "loadtest": "opb",
+        "concurrency": 128,
+        "delay_s": 5.0,
+        "window_s": 10.0,
+        "start_requested_at": "2026-10-22T15:04:39.239194+00:00",
+        "start_latency_s": 0.253,
+        "truncated": false,
+        "open_s": 13.441,
+        "stopped_at": "2026-10-22T15:04:52.934109+00:00",
+        "counters": {
+          "prompt_tokens": 79248.0,
+          "generation_tokens": 74844.0,
+          "speculative_decoding": {
+            "enabled": false
+          }
+        }
+      }
+    }
+  ]
+}
