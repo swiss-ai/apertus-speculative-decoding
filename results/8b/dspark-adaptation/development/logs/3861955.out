@@ -1,0 +1,78 @@
+START 2026-11-05T02:46:13+00:00 job=3861955 nodes=nid007657 git=4bbc042b
+=== [2026-11-05T02:47:04Z] nid007657 skip rebind (done)
+=== [2026-11-05T02:47:04Z] nid007657 skip convert (done)
+=== [2026-11-05T02:47:04Z] nid007657 begin prepare-train
+Map (num_proc=8):   0%|          | 0/8256 [00:00<?, ? examples/s]Map (num_proc=8):  12%|█▏        | 1000/8256 [00:00<00:01, 4912.32 examples/s]Map (num_proc=8): 100%|██████████| 8256/8256 [00:00<00:00, 21177.46 examples/s]
+Saving the dataset (0/1 shards):   0%|          | 0/8256 [00:00<?, ? examples/s]Saving the dataset (1/1 shards): 100%|██████████| 8256/8256 [00:00<00:00, 430051.46 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 8256/8256 [00:00<00:00, 425778.92 examples/s]
+=== [2026-11-05T02:47:21Z] nid007657 done prepare-train
+=== [2026-11-05T02:47:21Z] nid007657 begin prepare-opb
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 768 examples [00:00, 11513.46 examples/s]
+Map (num_proc=8):   0%|          | 0/768 [00:00<?, ? examples/s]Map (num_proc=8):  88%|████████▊ | 672/768 [00:00<00:00, 4778.49 examples/s]Map (num_proc=8): 100%|██████████| 768/768 [00:00<00:00, 3605.30 examples/s]
+Saving the dataset (0/1 shards):   0%|          | 0/768 [00:00<?, ? examples/s]Saving the dataset (1/1 shards): 100%|██████████| 768/768 [00:00<00:00, 137459.48 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 768/768 [00:00<00:00, 134173.00 examples/s]
+=== [2026-11-05T02:47:35Z] nid007657 done prepare-opb
+=== [2026-11-05T02:47:35Z] nid007657 begin eval-e10-dev
+=== [2026-11-05T02:47:46Z] nid007657 node 0/1 head=nid007657 run=eval-e10-dev data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-train target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=5 from=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/init/e10-rebound extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-11-05T02:52:16Z] nid007657 extraction server 0 up on 8001
+=== [2026-11-05T02:52:16Z] nid007657 extraction server 1 up on 8002
+=== [2026-11-05T02:52:16Z] nid007657 all 1 extraction servers up
+=== [2026-11-05T02:52:16Z] nid007657 torchrun start
+=== [2026-11-05T02:55:34Z] nid007657 torchrun rc=0 wall=198s; checkpoints: run.yaml speculators.patch train_command.txt 
+val/eal_epoch=3.842
+=== [2026-11-05T02:57:07Z] nid007657 done eval-e10-dev
+=== [2026-11-05T02:57:07Z] nid007657 begin eval-e10-opb
+=== [2026-11-05T02:57:27Z] nid007657 node 0/1 head=nid007657 run=eval-e10-opb data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-opb target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=5 from=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/init/e10-rebound extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-11-05T03:00:38Z] nid007657 extraction server 0 up on 8001
+=== [2026-11-05T03:01:08Z] nid007657 extraction server 1 up on 8002
+=== [2026-11-05T03:01:08Z] nid007657 all 1 extraction servers up
+=== [2026-11-05T03:01:08Z] nid007657 torchrun start
+=== [2026-11-05T03:03:09Z] nid007657 torchrun rc=0 wall=121s; checkpoints: run.yaml speculators.patch train_command.txt 
+val/eal_epoch=6.269
+=== [2026-11-05T03:04:46Z] nid007657 done eval-e10-opb
+=== [2026-11-05T03:04:47Z] nid007657 begin train
+=== [2026-11-05T03:05:10Z] nid007657 node 0/1 head=nid007657 run=train data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-train target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=5 from=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/init/e10-rebound extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-11-05T03:08:21Z] nid007657 extraction server 0 up on 8001
+=== [2026-11-05T03:08:41Z] nid007657 extraction server 1 up on 8002
+=== [2026-11-05T03:08:41Z] nid007657 all 1 extraction servers up
+=== [2026-11-05T03:08:41Z] nid007657 torchrun start
+=== [2026-11-05T03:15:56Z] nid007657 torchrun rc=0 wall=435s; checkpoints: run.yaml speculators.patch train_command.txt 
+val/eal_epoch=4.075 val/eal_epoch=4.105
+=== [2026-11-05T03:17:10Z] nid007657 done train
+=== [2026-11-05T03:17:10Z] nid007657 begin export
+=== [2026-11-05T03:17:29Z] nid007657 done export
+=== [2026-11-05T03:17:29Z] nid007657 begin eval-final-dev
+=== [2026-11-05T03:17:42Z] nid007657 node 0/1 head=nid007657 run=eval-final-dev data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-train target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=5 from=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/head extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-11-05T03:20:42Z] nid007657 extraction server 0 up on 8001
+=== [2026-11-05T03:21:22Z] nid007657 extraction server 1 up on 8002
+=== [2026-11-05T03:21:22Z] nid007657 all 1 extraction servers up
+=== [2026-11-05T03:21:22Z] nid007657 torchrun start
+=== [2026-11-05T03:23:06Z] nid007657 torchrun rc=0 wall=104s; checkpoints: run.yaml speculators.patch train_command.txt 
+val/eal_epoch=4.142
+=== [2026-11-05T03:24:24Z] nid007657 done eval-final-dev
+=== [2026-11-05T03:24:24Z] nid007657 begin eval-final-opb
+=== [2026-11-05T03:24:38Z] nid007657 node 0/1 head=nid007657 run=eval-final-opb data=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-opb target=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B layers=5 from=/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/head extract=0,1 (TP1, per_rank=1) train=2,3 fsdp=0 rdzv_threshold=0 dtensor_allgather=0
+=== [2026-11-05T03:27:39Z] nid007657 extraction server 0 up on 8001
+=== [2026-11-05T03:28:09Z] nid007657 extraction server 1 up on 8002
+=== [2026-11-05T03:28:09Z] nid007657 all 1 extraction servers up
+=== [2026-11-05T03:28:09Z] nid007657 torchrun start
+=== [2026-11-05T03:30:34Z] nid007657 torchrun rc=0 wall=145s; checkpoints: run.yaml speculators.patch train_command.txt 
+val/eal_epoch=6.249
+=== [2026-11-05T03:32:05Z] nid007657 done eval-final-opb
+=== [2026-11-05T03:32:05Z] nid007657 begin report
+{
+ "domain_acceptance_initial": 3.841552734375,
+ "domain_acceptance_final": 4.1422119140625,
+ "opb_acceptance_initial": 6.269327799479167,
+ "opb_acceptance_final": 6.24859619140625,
+ "scientific_gates": {
+  "finite_losses": true,
+  "real_updates": true,
+  "loss_decreased": true,
+  "heldout_acceptance_improved": true,
+  "steps": true,
+  "export": true,
+  "evaluation_unchanged": true
+ },
+ "selected": true
+}
+=== [2026-11-05T03:32:05Z] nid007657 done report
+=== [2026-11-05T03:32:05Z] nid007657 ADAPT_OK

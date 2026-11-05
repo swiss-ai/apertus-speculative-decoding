@@ -1,0 +1,54 @@
+{
+  "created_at": "2026-11-05T01:13:29.165207+00:00",
+  "finish_reasons": {
+    "dev": {
+      "stop": 256
+    },
+    "train": {
+      "length": 44,
+      "stop": 7956
+    }
+  },
+  "inputs": {
+    "dev": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/data/traces/multilingual/dev.jsonl",
+      "sha256": "de3693e6709fed732d565f87af66d41209cece2159be8e2be81b50486f901f0a"
+    },
+    "opb": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/data/dspark-opb-thinking-off/heldout.jsonl",
+      "sha256": "259ea9c868ff23c796273de9974e346782b283b9a174ede555fb4364821814ab"
+    },
+    "train": {
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/data/adapt-data/multilingual-n8000.jsonl",
+      "sha256": "2038cf24d547ca1d85ee934f9b4f1351317db72735dfef2336563d88cbd43774"
+    }
+  },
+  "opb_file": {
+    "loss_tokens": 332469,
+    "max_tokens": 4252,
+    "mean_tokens": 730.55078125,
+    "over_max_len": 0,
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/rows/opb-eval.jsonl",
+    "row_digests_sha256": "e01cd9f8207cba79d7eed52ca223854c7aa2435ce0f5b7a727bb1ce513f1a11e",
+    "rows": 768,
+    "sha256": "c263cdc2cbb4ecd1a2121dcb520bf2a494ada046d79559445025282c822325e5",
+    "tokens": 561063
+  },
+  "opb_rows_over_max_len": 0,
+  "split": "speculators holds out the trailing rows by position: train file = 8,000 trace rows then the 256 dev rows, train_data_ratio 0.969 (int(8256*0.969) = 8000); OPB file = the first 256 dev rows as a placeholder train part then the first 512 OPB held-out rows, ratio 0.3334 (int(768*0.3334) = 256).",
+  "train_file": {
+    "loss_tokens": 3150311,
+    "max_tokens": 2722,
+    "mean_tokens": 583.5039970930233,
+    "over_max_len": 0,
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/rows/train-dev.jsonl",
+    "row_digests_sha256": "caad4e49fbd45e6da27580695bae336d38a07aa5d28ff3b1330e133aecdb330b",
+    "rows": 8256,
+    "sha256": "58752e5a592501050469e4e1a1590ad4a71b9eecfd2648c17dbe7fa7bc085f93",
+    "tokens": 4817409
+  },
+  "train_part": {
+    "mean_tokens": 584.030125,
+    "rows": 8000
+  }
+}

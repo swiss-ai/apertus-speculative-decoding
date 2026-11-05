@@ -1,0 +1,186 @@
+START 2026-11-05T01:20:42+00:00 job=3861946 nodes=nid007666 git=f6ecf736
+=== [2026-11-05T01:21:35Z] nid007666 skip rebind (done)
+=== [2026-11-05T01:21:35Z] nid007666 skip convert (done)
+=== [2026-11-05T01:21:35Z] nid007666 set aside unfinished data/prepared-train of prepare-train
+=== [2026-11-05T01:21:35Z] nid007666 begin prepare-train
+/opt/venv/lib/python3.12/site-packages/dill/_dill.py:423: PicklingWarning: Cannot locate reference to <class 'MonthDayNano'>.
+  StockPickler.save(self, obj, save_persistent_id)
+/opt/venv/lib/python3.12/site-packages/dill/_dill.py:423: PicklingWarning: Cannot pickle <class 'MonthDayNano'>: builtins.MonthDayNano has recursive self-references that trigger a RecursionError.
+  StockPickler.save(self, obj, save_persistent_id)
+Traceback (most recent call last):
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/dspark-adaptation/methods/dspark/train/adapt_dspark.py", line 502, in <module>
+    main()
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/dspark-adaptation/methods/dspark/train/adapt_dspark.py", line 496, in main
+    {"rebind": cmd_rebind, "convert": cmd_convert, "check-prepared": cmd_check_prepared,
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/dspark-adaptation/methods/dspark/train/adapt_dspark.py", line 241, in cmd_build_dataset
+    data = Dataset.from_dict(columns)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/arrow_dataset.py", line 1155, in from_dict
+    return cls(pa_table, info=info, split=split)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/arrow_dataset.py", line 772, in __init__
+    self._fingerprint = generate_fingerprint(self)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/fingerprint.py", line 242, in generate_fingerprint
+    hasher.update(state[key])
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/fingerprint.py", line 218, in update
+    value_for_update = self.hash(value)
+                       ^^^^^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/fingerprint.py", line 214, in hash
+    return cls.hash_bytes(dumps(value))
+                          ^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 120, in dumps
+    dump(obj, file)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 114, in dump
+    Pickler(file, recurse=True).dump(obj)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 429, in dump
+    StockPickler.dump(self, obj)
+  File "/usr/lib/python3.12/pickle.py", line 481, in dump
+    self.save(obj)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 597, in save
+    self.save_reduce(obj=obj, *rv)
+  File "/usr/lib/python3.12/pickle.py", line 711, in save_reduce
+    save(state)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1266, in save_module_dict
+    StockPickler.save_dict(pickler, obj)
+  File "/usr/lib/python3.12/pickle.py", line 966, in save_dict
+    self._batch_setitems(obj.items())
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 82, in _batch_setitems
+    return super()._batch_setitems(items, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pickle.py", line 995, in _batch_setitems
+    save(v)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 164, in _save_arrowTable
+    pickler.save_reduce(create_arrowTable, args, obj=obj)
+  File "/usr/lib/python3.12/pickle.py", line 685, in save_reduce
+    save(func)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 2046, in save_function
+    _save_with_postproc(pickler, (_create_function, (
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1150, in _save_with_postproc
+    pickler._batch_setitems(iter(source.items()))
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 82, in _batch_setitems
+    return super()._batch_setitems(items, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pickle.py", line 995, in _batch_setitems
+    save(v)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1745, in save_module
+    pickler.save_reduce(_import_module, (mod_name,), obj=obj, state=main_dict)
+  File "/usr/lib/python3.12/pickle.py", line 711, in save_reduce
+    save(state)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1266, in save_module_dict
+    StockPickler.save_dict(pickler, obj)
+  File "/usr/lib/python3.12/pickle.py", line 966, in save_dict
+    self._batch_setitems(obj.items())
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 82, in _batch_setitems
+    return super()._batch_setitems(items, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pickle.py", line 990, in _batch_setitems
+    save(v)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1893, in save_type
+    _save_with_postproc(pickler, (_create_type, (
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1135, in _save_with_postproc
+    pickler.save_reduce(*reduction, obj=obj)
+  File "/usr/lib/python3.12/pickle.py", line 686, in save_reduce
+    save(args)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pickle.py", line 896, in save_tuple
+    save(element)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1266, in save_module_dict
+    StockPickler.save_dict(pickler, obj)
+  File "/usr/lib/python3.12/pickle.py", line 966, in save_dict
+    self._batch_setitems(obj.items())
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 82, in _batch_setitems
+    return super()._batch_setitems(items, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pickle.py", line 990, in _batch_setitems
+    save(v)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 597, in save
+    self.save_reduce(obj=obj, *rv)
+  File "/usr/lib/python3.12/pickle.py", line 686, in save_reduce
+    save(args)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pickle.py", line 881, in save_tuple
+    save(element)
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/pydeps/datasets/utils/_dill.py", line 71, in save
+    dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 423, in save
+    StockPickler.save(self, obj, save_persistent_id)
+  File "/usr/lib/python3.12/pickle.py", line 554, in save
+    f(self, obj)  # Call unbound method with explicit self
+    ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/dill/_dill.py", line 1930, in save_type
+    StockPickler.save_global(pickler, obj, name=obj_name)
+  File "/usr/lib/python3.12/pickle.py", line 1063, in save_global
+    raise PicklingError(
+_pickle.PicklingError: Can't pickle <class 'MonthDayNano'>: it's not found as builtins.MonthDayNano
+srun: error: nid007666: task 0: Exited with exit code 1
+srun: Terminating StepId=3861946.0

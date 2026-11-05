@@ -1,0 +1,66 @@
+START 2026-11-05T01:12:36+00:00 job=3861814 nodes=nid007652 git=4088a8c4
+=== [2026-11-05T01:13:27Z] nid007652 skip rebind (done)
+=== [2026-11-05T01:13:27Z] nid007652 begin convert
+{
+ "train_file": {
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/rows/train-dev.jsonl",
+  "sha256": "58752e5a592501050469e4e1a1590ad4a71b9eecfd2648c17dbe7fa7bc085f93",
+  "rows": 8256,
+  "tokens": 4817409,
+  "loss_tokens": 3150311,
+  "mean_tokens": 583.5039970930233,
+  "max_tokens": 2722,
+  "over_max_len": 0,
+  "row_digests_sha256": "caad4e49fbd45e6da27580695bae336d38a07aa5d28ff3b1330e133aecdb330b"
+ },
+ "opb_file": {
+  "path": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/rows/opb-eval.jsonl",
+  "sha256": "c263cdc2cbb4ecd1a2121dcb520bf2a494ada046d79559445025282c822325e5",
+  "rows": 768,
+  "tokens": 561063,
+  "loss_tokens": 332469,
+  "mean_tokens": 730.55078125,
+  "max_tokens": 4252,
+  "over_max_len": 0,
+  "row_digests_sha256": "e01cd9f8207cba79d7eed52ca223854c7aa2435ce0f5b7a727bb1ce513f1a11e"
+ }
+}
+=== [2026-11-05T01:13:30Z] nid007652 done convert
+=== [2026-11-05T01:13:30Z] nid007652 begin prepare-train
+2026-11-05 02:13:38,482 - speculators.cli.prepare_data - INFO - ━━━━━━━━━━━━━━━━━━
+2026-11-05 02:13:38,482 - speculators.cli.prepare_data - INFO -   Preparing data
+2026-11-05 02:13:38,482 - speculators.cli.prepare_data - INFO - ━━━━━━━━━━━━━━━━━━
+2026-11-05 02:13:38,482 - speculators.cli.prepare_data - INFO -   Target Model │ /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+2026-11-05 02:13:38,482 - speculators.cli.prepare_data - INFO -   Dataset      │ ['/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/rows/train-dev.jsonl']
+2026-11-05 02:13:38,482 - speculators.cli.prepare_data - INFO -   Output Dir   │ /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-train
+2026-11-05 02:13:38,483 - speculators.data_generation.preprocessing - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-11-05 02:13:38,483 - speculators.data_generation.preprocessing - INFO -   Starting dataset preprocessing
+2026-11-05 02:13:38,483 - speculators.data_generation.preprocessing - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-11-05 02:13:38,483 - speculators.data_generation.preprocessing - INFO - 
+▸ Loading processor
+2026-11-05 02:13:43,804 - speculators.data_generation.preprocessing - INFO - 
+▸ Processing /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/rows/train-dev.jsonl
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 1894 examples [00:00, 14507.25 examples/s]Generating train split: 3796 examples [00:00, 14794.56 examples/s]Generating train split: 5708 examples [00:00, 14955.51 examples/s]Generating train split: 7647 examples [00:00, 15057.46 examples/s]Generating train split: 8256 examples [00:00, 14953.89 examples/s]
+2026-11-05 02:13:45,326 - speculators.data_generation.preprocessing - INFO -   Loaded 8256 samples
+2026-11-05 02:13:45,326 - speculators.data_generation.preprocessing - INFO -   Speculator-format rows: using their loss mask, skipping render
+Map (num_proc=54):   0%|          | 0/8256 [00:00<?, ? examples/s]Map (num_proc=54):   2%|▏         | 153/8256 [00:00<00:23, 349.76 examples/s]Map (num_proc=54):  61%|██████    | 5049/8256 [00:00<00:00, 12306.80 examples/s]Map (num_proc=54): 100%|██████████| 8256/8256 [00:00<00:00, 12363.04 examples/s]
+2026-11-05 02:13:46,072 - speculators.data_generation.preprocessing - INFO - 
+▸ Computing token frequency distribution
+Counting token frequencies:   0%|          | 0/8256 [00:00<?, ?it/s]Counting token frequencies:   2%|▏         | 188/8256 [00:00<00:04, 1871.44it/s]Counting token frequencies:   5%|▍         | 402/8256 [00:00<00:03, 2024.16it/s]Counting token frequencies:   7%|▋         | 611/8256 [00:00<00:03, 2050.39it/s]Counting token frequencies:  10%|▉         | 817/8256 [00:00<00:03, 1867.05it/s]Counting token frequencies:  12%|█▏        | 1022/8256 [00:00<00:03, 1928.00it/s]Counting token frequencies:  15%|█▍        | 1225/8256 [00:00<00:03, 1959.32it/s]Counting token frequencies:  17%|█▋        | 1427/8256 [00:00<00:03, 1975.92it/s]Counting token frequencies:  20%|█▉        | 1629/8256 [00:00<00:03, 1987.71it/s]Counting token frequencies:  22%|██▏       | 1829/8256 [00:00<00:03, 1983.93it/s]Counting token frequencies:  25%|██▍       | 2030/8256 [00:01<00:03, 1989.30it/s]Counting token frequencies:  27%|██▋       | 2230/8256 [00:01<00:03, 1989.47it/s]Counting token frequencies:  29%|██▉       | 2430/8256 [00:01<00:02, 1988.00it/s]Counting token frequencies:  32%|███▏      | 2629/8256 [00:01<00:02, 1987.63it/s]Counting token frequencies:  34%|███▍      | 2828/8256 [00:01<00:02, 1980.12it/s]Counting token frequencies:  37%|███▋      | 3027/8256 [00:01<00:02, 1961.04it/s]Counting token frequencies:  39%|███▉      | 3224/8256 [00:01<00:02, 1930.51it/s]Counting token frequencies:  41%|████▏     | 3418/8256 [00:01<00:02, 1905.11it/s]Counting token frequencies:  44%|████▎     | 3609/8256 [00:01<00:02, 1881.08it/s]Counting token frequencies:  46%|████▌     | 3798/8256 [00:01<00:02, 1860.98it/s]Counting token frequencies:  48%|████▊     | 3985/8256 [00:02<00:02, 1839.75it/s]Counting token frequencies:  51%|█████     | 4170/8256 [00:02<00:02, 1829.32it/s]Counting token frequencies:  53%|█████▎    | 4353/8256 [00:02<00:02, 1820.05it/s]Counting token frequencies:  55%|█████▍    | 4536/8256 [00:02<00:02, 1817.69it/s]Counting token frequencies:  57%|█████▋    | 4718/8256 [00:02<00:01, 1806.98it/s]Counting token frequencies:  59%|█████▉    | 4899/8256 [00:02<00:01, 1790.78it/s]Counting token frequencies:  62%|██████▏   | 5079/8256 [00:02<00:01, 1783.51it/s]Counting token frequencies:  64%|██████▎   | 5258/8256 [00:02<00:01, 1783.77it/s]Counting token frequencies:  66%|██████▌   | 5437/8256 [00:02<00:01, 1777.47it/s]Counting token frequencies:  68%|██████▊   | 5615/8256 [00:02<00:01, 1776.99it/s]Counting token frequencies:  70%|███████   | 5793/8256 [00:03<00:01, 1766.96it/s]Counting token frequencies:  72%|███████▏  | 5970/8256 [00:03<00:01, 1763.46it/s]Counting token frequencies:  74%|███████▍  | 6148/8256 [00:03<00:01, 1766.88it/s]Counting token frequencies:  77%|███████▋  | 6325/8256 [00:03<00:01, 1767.00it/s]Counting token frequencies:  79%|███████▉  | 6502/8256 [00:03<00:00, 1766.77it/s]Counting token frequencies:  81%|████████  | 6679/8256 [00:03<00:00, 1753.78it/s]Counting token frequencies:  83%|████████▎ | 6855/8256 [00:03<00:00, 1742.61it/s]Counting token frequencies:  85%|████████▌ | 7030/8256 [00:03<00:00, 1742.07it/s]Counting token frequencies:  87%|████████▋ | 7205/8256 [00:03<00:00, 1739.99it/s]Counting token frequencies:  89%|████████▉ | 7382/8256 [00:03<00:00, 1746.78it/s]Counting token frequencies:  92%|█████████▏| 7557/8256 [00:04<00:00, 1731.07it/s]Counting token frequencies:  94%|█████████▎| 7734/8256 [00:04<00:00, 1739.89it/s]Counting token frequencies:  96%|█████████▌| 7909/8256 [00:04<00:00, 1734.76it/s]Counting token frequencies:  98%|█████████▊| 8083/8256 [00:04<00:00, 1731.75it/s]Counting token frequencies: 100%|██████████| 8256/8256 [00:04<00:00, 1837.58it/s]
+2026-11-05 02:13:50,588 - speculators.data_generation.preprocessing - INFO - 
+▸ Visualizing sample
+2026-11-05 02:13:50,589 - speculators.data_generation.preprocessing - INFO -   SAMPLE #0
+2026-11-05 02:13:50,589 - speculators.data_generation.preprocessing - INFO -   HIGHLIGHTED TEXT (BLUE = trainable, GREY = masked)
+2026-11-05 02:13:50,590 - speculators.data_generation.preprocessing - INFO -   [90m<s><|system_start|>You are Apertus 1.5 Omni, a multimodal assistant developed by the Swiss AI Initiative. Extended from Apertus 1 via continued pretraining, you understand images and audio and respond in text.<|system_end|><|developer_start|>Deliberation: disabled
+Tool Capabilities: disabled<|developer_end|><|user_start|>Chi siamo noi? I campioni.<|user_end|><|assistant_start|>[38;5;153mSiamo un team di esperti pronti a rispondere alle tue domande e aiutarti in qualsiasi ambito tu abbia bisogno. Come posso assisterti oggi?<|assistant_end|>[0m
+2026-11-05 02:13:50,590 - speculators.data_generation.preprocessing - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-11-05 02:13:50,590 - speculators.data_generation.preprocessing - INFO -   Dataset preprocessing complete
+2026-11-05 02:13:50,590 - speculators.data_generation.preprocessing - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-11-05 02:13:50,590 - speculators.cli.prepare_data - INFO -   Done preparing data
+2026-11-05 02:13:50,590 - speculators.cli.prepare_data - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-11-05 02:13:50,590 - speculators.cli.prepare_data - INFO -   Writing dataset to /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-train
+2026-11-05 02:13:50,590 - speculators.cli.prepare_data - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Saving the dataset (0/1 shards):   0%|          | 0/8256 [00:00<?, ? examples/s]Saving the dataset (1/1 shards): 100%|██████████| 8256/8256 [00:00<00:00, 138571.45 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 8256/8256 [00:00<00:00, 137717.24 examples/s]
+prepared dataset check failed: {'data': '/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/prepared-train', 'expected': '/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/data/rows/train-dev.jsonl', 'rows': 8256, 'train_data_ratio': 0.969, 'train_rows': 8000, 'held_out_rows': 256, 'truncated_rows': 0, 'held_out_first_id': 'multilingual-fr-daaa3e1d29797a4a', 'problems': ['row 0 (multilingual-es-ba7571a2bc49ed36) differs', 'row 1 (multilingual-fr-891fbdaf1fd60886) differs', 'row 2 (multilingual-fr-a4ed89e946fd69a6) differs', 'row 3 (multilingual-fr-b27c7245026187ef) differs', 'row 4 (multilingual-de-0421127f7b671776) differs', 'row 5 (multilingual-fr-e2d682a64e9f90d9) differs'], 'passed': False}
+srun: error: nid007652: task 0: Exited with exit code 1
+srun: Terminating StepId=3861814.0

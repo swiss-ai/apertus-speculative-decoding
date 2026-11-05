@@ -1,0 +1,17 @@
+START 2026-11-04T21:00:31+00:00 job=3856449 nodes=nid007657 git=720d3624
+=== [2026-11-04T21:01:36Z] nid007657 begin rebind
+=== [2026-11-04T21:01:42Z] nid007657 done rebind
+=== [2026-11-04T21:01:42Z] nid007657 begin convert
+Traceback (most recent call last):
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/dspark-adaptation/methods/dspark/train/adapt_dspark.py", line 459, in <module>
+    main()
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/dspark-adaptation/methods/dspark/train/adapt_dspark.py", line 454, in main
+    {"rebind": cmd_rebind, "convert": cmd_convert, "check-prepared": cmd_check_prepared,
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/dspark-adaptation/methods/dspark/train/adapt_dspark.py", line 185, in cmd_convert
+    train = [trace_row(r) for r in jsonl(Path(plan["train"]))]
+             ^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/dspark-adaptation/methods/dspark/train/adapt_dspark.py", line 145, in trace_row
+    raise ValueError(f"{row['id']}: completion does not end at EOS")
+ValueError: multilingual-de-34fc707a0fe5ef42: completion does not end at EOS
+srun: error: nid007657: task 0: Exited with exit code 1
+srun: Terminating StepId=3856449.0
