@@ -1,0 +1,15 @@
+# Clariden (GH200) repeat of dspark-alps-1epoch.yaml, one arm per job so each
+# fits the 1.5 h debug partition: the same drafter, prompts, engine limits and
+# concurrencies as the Beverin eval (results/70b/sweeps/
+# dspark-alps-1epoch-beverin-20261104T185916Z), to tell training effects
+# (acceptance) from the MI300A serving stack (step cost).
+name: dspark-alps-1epoch-clariden-k3
+stage: 70b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64]
+arms:
+  - {name: dspark-e1-k3-tp4, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/heads/dspark-70b-opb-thinkoff-32n-alps-epoch1, k: 3, tensor_parallel_size: 4}
