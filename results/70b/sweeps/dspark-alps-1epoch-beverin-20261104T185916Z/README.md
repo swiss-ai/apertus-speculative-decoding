@@ -23,12 +23,13 @@ Acceptance (stable across concurrency):
 - k3: mean acceptance length 2.87; per position 0.79 0.61 0.48.
 - k7: 3.70; per position 0.76 0.56 0.42 0.32 0.26 0.21 0.18.
 
-Training's held-out validation reported acceptance length 4.36 for the full
-block; served k7 reaches 3.70 (greedy decoding of fresh target answers vs the
-regenerated, sampled answers in validation). DSpark wins at low concurrency and
-loses from C=32 on this hardware; the 8B DSpark was level with plain at k3
-under load on GH200, so the MI300A drafting cost (ROCm kernels, upstream
-vLLM DSpark path) is a suspect, not established.
+Training's greedy validation figure (`eal`) is 4.49 (4.36 is the
+rejection-sampling `accept_len`); served k7 reaches 3.70, about 0.8 of it,
+the same ratio as the 10-epoch 8B drafter (5.94 vs 4.78). DSpark wins at low
+concurrency and loses from C=32 on this hardware. The same drafter on Clariden
+GH200 has the same acceptance and wins at every load: see
+`../dspark-alps-1epoch-clariden-vs-beverin.md`. The loss here is the MI300A
+serving stack, not the drafter.
 
 `replica.out` engine logs are kept on the cluster next to the original
 output directory.
