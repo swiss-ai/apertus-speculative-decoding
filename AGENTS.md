@@ -18,6 +18,34 @@
 
 When the user refers to the "action items canvas", they mean [Spec Decoding Sync: Prioritized Actions and Owners](https://swissai-initiative.slack.com/docs/T0627JS49GT/F0C6431UBTP) (canvas ID: `F0C6431UBTP`) in Slack channel [#swiss-ai-spec-decode](https://swissai-initiative.slack.com/archives/C0C2QMYCQ5B) (channel ID: `C0C2QMYCQ5B`).
 
+## Reporting finished experiments
+
+After every experiment finishes (completed, negative, or stopped for good),
+post a results message to [#swiss-ai-spec-decode](https://swissai-initiative.slack.com/archives/C0C2QMYCQ5B)
+(channel ID: `C0C2QMYCQ5B`). Post once per experiment, after the write-up and
+results are committed and pushed, so the message can link to them. Follow the
+format of the earlier result posts in the channel:
+
+- **Title line:** model and experiment name, then the verdict in a few words,
+  e.g. `Apertus 1.5 8B — DSpark domain adaptation: done, don't use the adapted head.`
+- **What we tested:** the question the experiment answers and the setup
+  (drafter, data, recipe, workloads, draft lengths, concurrencies).
+- **Expectation:** the hypothesis and the frozen decision rule (thresholds,
+  forgetting limit, correctness gates) it was judged against.
+- **Result:** the key absolute numbers (before → after) and relative changes;
+  correctness-gate outcome; forgetting or regressions; why the result came out
+  as it did.
+- **Verdict:** use or don't use, and where (default head, specialist, conditional
+  operating point), plus the main caveats and limits.
+- **Footer:** compute used (GPU-hours, including failed attempts), cell and
+  failure counts, deployment status, and links pinned to a commit SHA: the
+  write-up (context, method, verdict) and the results directory (raw cells,
+  configs, hashes, provenance).
+
+Never quote restricted source text (training prompts or answers, served
+captures) in the message. Link only to commits that are pushed and reachable
+from a branch.
+
 ## Provenance
 
 Training, evaluation, and serving runs must retain reproducibility artifacts so runs can be recreated later. Follow the same provenance policy as Speculators, using this repository's own artifact formats and launchers.
