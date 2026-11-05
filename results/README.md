@@ -30,3 +30,6 @@ and both control kinds are specified in `../docs/protocol.md`.
   output across launches. Its `README.md` reports both generations side by side.
 - `deployment-failures/`: launches that never reached a serving endpoint, with the log excerpt and
   the design consequence. A failure that removes a factor level from the design is a result.
+- `8b/dspark-adaptation/`: DSpark e10 repeat of the T5 best adaptation setting (development
+  records, verdict, absolute serving cells, confirmation cell archive and sha256 manifest; greedy
+  captures, `requests.jsonl` and weights stay on the cluster). See `../docs/dspark-adaptation.md`.

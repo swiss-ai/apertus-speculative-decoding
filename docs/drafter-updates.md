@@ -88,6 +88,20 @@ and 32 successful renderer-parity checks. Those are usable training artifacts,
 not evidence of an adaptation benefit. Chat's source JSONL remains byte-identical:
 one NEL in dev and nine in the pool are legal string content, not record breaks.
 
+### DSpark repeat of the best setting (5 November 2026)
+
+The conditional follow-up ran on branch `experiment/dspark-adaptation`; see
+[dspark-adaptation.md](dspark-adaptation.md). The same 8,000 multilingual
+traces, 384 steps, LR 3e-5 and seed 1, warm-started from DSpark e10, raise
+dev EAL from 3.84 to 4.14 (+0.30, selected) with no OPB forgetting (−0.3%).
+
+In the unchanged GPU-swapped confirmation, multilingual throughput rises only
+3–5% at k3 (280 → 293 tok/s at C1) and 6–9% at k7, so no cell reaches the
+10% rule. One of 40 calibrated correctness gates also failed (`lang-spa`, k7,
+completion-length difference 131 against an allowance of 124). The result is
+`needs_repair`, with no substantial benefit either way: there is no case for
+adapting DSpark.
+
 ## Method
 
 ### Stand-in served traces (step A)
