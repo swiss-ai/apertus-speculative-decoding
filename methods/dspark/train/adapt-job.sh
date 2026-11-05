@@ -58,8 +58,9 @@ step() {  # step NAME CMD...: run once, if it fits before ADAPT_DEADLINE
 }
 
 prepare() {  # prepare IN OUT RATIO TRAIN_ROWS
-  python3 -m speculators prepare-data --model "${TARGET_MODEL}" --trust-remote-code --data "$1" \
-    --output "$2" --token-freq-path "$2/token_freq.pt" --no-skip-token-freq --seq-length 8192
+  # Not `speculators prepare-data`: it shuffles rows, and the trainer holds
+  # out the trailing rows by position (job 3861814's row check caught it).
+  "${TOOL[@]}" build-dataset --input "$1" --output "$2"
   "${TOOL[@]}" check-prepared --data "$2" --expected "$1" --ratio "$3" \
     --expected-train-rows "$4" --output "$2/row-check.json"
 }

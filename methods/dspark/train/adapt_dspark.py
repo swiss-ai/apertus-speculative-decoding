@@ -5,6 +5,7 @@ frozen settings are in methods/dspark/configs/8b/adapt-mult-n8k-r0.json):
 
     rebind          e10 with an accessible verifier path (weights symlinked)
     convert         traces -> speculators rows; OPB evaluation rows
+    build-dataset   prepare-data's arrow layout for these rows, without its shuffle
     check-prepared  the prepared dataset holds exactly those rows, in order
     compare         two checkpoints' tensors (lr-0 evaluations, real updates)
     export          a servable head from the final checkpoint, with hashes
@@ -215,6 +216,33 @@ def cmd_convert(args: argparse.Namespace) -> None:
     print(json.dumps({k: v for k, v in report.items() if k.endswith("_file")}, indent=1))
 
 
+def cmd_build_dataset(args: argparse.Namespace) -> None:
+    """The arrow dataset `speculators prepare-data` writes for speculator-format
+    rows (clip to 8,192 tokens, drop rows without supervised tokens, torch format),
+    without its two shuffles: the trainer holds out trailing rows by position, so
+    the dev/OPB rows must stay last. No token_freq.pt: like e10, the run uses the
+    full verifier vocabulary and never reads it."""
+    from datasets import Dataset
+
+    columns: dict[str, list] = {"input_ids": [], "loss_mask": [], "seq_len": []}
+    dropped = 0
+    for row in jsonl(args.input):
+        ids, mask = row["input_ids"][:MAX_LEN], row["loss_mask"][:MAX_LEN]
+        if len(row["input_ids"]) != len(row["loss_mask"]):
+            raise ValueError(f"{row['id']}: input_ids/loss_mask length mismatch")
+        if not any(mask):
+            dropped += 1
+            continue
+        columns["input_ids"].append(ids)
+        columns["loss_mask"].append(mask)
+        columns["seq_len"].append(len(ids))
+    if dropped:
+        raise ValueError(f"{dropped} rows without supervised tokens; the split would move")
+    data = Dataset.from_dict(columns)
+    data.set_format(type="torch")
+    data.save_to_disk(str(args.output))
+
+
 def cmd_check_prepared(args: argparse.Namespace) -> None:
     from datasets import load_from_disk
 
@@ -225,7 +253,7 @@ def cmd_check_prepared(args: argparse.Namespace) -> None:
         problems.append(f"rows {len(data)} != {len(expected)}")
     truncated = 0
     for i, (row, want) in enumerate(zip(data, expected)):
-        ids, mask = list(row["input_ids"]), list(row["loss_mask"])
+        ids, mask = row["input_ids"].tolist(), row["loss_mask"].tolist()
         n = min(len(want["input_ids"]), MAX_LEN)
         if len(want["input_ids"]) > MAX_LEN:
             truncated += 1
@@ -442,6 +470,9 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("convert")
     p.add_argument("--plan", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p = sub.add_parser("build-dataset")
+    p.add_argument("--input", type=Path, required=True)
+    p.add_argument("--output", type=Path, required=True)
     p = sub.add_parser("check-prepared")
     p.add_argument("--data", type=Path, required=True)
     p.add_argument("--expected", type=Path, required=True)
@@ -463,6 +494,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     {"rebind": cmd_rebind, "convert": cmd_convert, "check-prepared": cmd_check_prepared,
+     "build-dataset": cmd_build_dataset,
      "compare": cmd_compare, "export": cmd_export, "report": cmd_report}[args.action](args)  # fmt: skip
 
 
