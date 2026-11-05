@@ -591,9 +591,14 @@ async def run_arm(
         "tests": {},
     }
     status_path = arm_dir / "status.json"
-    cache = Path(os.environ.get("SWEEP_CACHE_ROOT", output / "vllm-cache")) / arm.name
+    cache_root = Path(os.environ.get("SWEEP_CACHE_ROOT", output / "vllm-cache"))
+    cache = cache_root / arm.name
     cache.mkdir(parents=True, exist_ok=True)
     env = {
+        # JIT kernel caches default to $HOME, which can be over quota (Clariden
+        # home is): keep them with the sweep's cache unless set explicitly.
+        "FLASHINFER_WORKSPACE_BASE": str(cache_root / "flashinfer"),
+        "TRITON_CACHE_DIR": str(cache_root / "triton"),
         **os.environ,
         "CUDA_VISIBLE_DEVICES": ",".join(str(gpu) for gpu in gpu_ids),
         "VLLM_CACHE_ROOT": str(cache),
