@@ -7,7 +7,8 @@ Branch `experiment/dspark-adaptation`. Cluster checkout
 | when (UTC) | job | state | next |
 | --- | --- | --- | --- |
 | 2026-11-04 18:52 | 3856327 (`dspark-8b-adapt`, normal, 6 h, source 01114fc6) | cancelled while pending (no start estimate on normal); no step ran | moved to debug chain |
-| 2026-11-04 19:34 | 3856449 (`dspark-8b-adapt`, debug, 1.5 h, source 720d3624) | pending | chain: after it ends, resubmit the same command until `ROOT/stages/report.done`; one debug job at a time, none while a `task-speed-*` job is on debug |
+| 2026-11-04 19:34 | 3856449 (debug, source 720d3624) | failed after 83 s at `convert`: 44 traces end at the 2,048-token cap, not EOS (rebind done) | fixed in 4088a8c4 (keep them, as the EAGLE run did) |
+| 2026-11-05 00:30 | 3861814 (debug, source 4088a8c4) | submitted | next chunk after it ends (one debug job at a time) |
 
 Resume: `adapt-job.sh` skips steps with markers in `ROOT/stages/` and stops
 before a step that does not fit the job's deadline; a cut step's outputs go to
