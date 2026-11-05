@@ -24,6 +24,7 @@ import os
 import re
 import shutil
 import socket
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -141,8 +142,11 @@ def trace_row(row: dict) -> dict:
     prompt, generated = list(row["prompt_ids"]), list(row["generated_ids"])
     if not prompt or not generated:
         raise ValueError(f"{row['id']}: empty prompt or completion")
-    if row.get("finish_reason") != "stop" or generated[-1] not in EOS_IDS:
-        raise ValueError(f"{row['id']}: completion does not end at EOS")
+    # 44 of the 8,000 multilingual traces stop at the 2,048-token generation cap;
+    # the EAGLE setting trained on them too, so they stay (counted in the report).
+    reason = row.get("finish_reason")
+    if reason not in ("stop", "length") or (reason == "stop" and generated[-1] not in EOS_IDS):
+        raise ValueError(f"{row['id']}: unexpected completion end ({reason})")
     ids = prompt + generated
     if len(ids) > MAX_LEN:
         raise ValueError(f"{row['id']}: {len(ids)} tokens exceed {MAX_LEN}")
@@ -182,8 +186,14 @@ def cmd_convert(args: argparse.Namespace) -> None:
         actual = sha256(Path(plan[key]))
         if actual != plan[key + "_sha256"]:
             raise ValueError(f"{key} input changed: {actual}")
-    train = [trace_row(r) for r in jsonl(Path(plan["train"]))]
-    dev = [trace_row(r) for r in jsonl(Path(plan["dev"]))]
+    raw_train, raw_dev = list(jsonl(Path(plan["train"]))), list(jsonl(Path(plan["dev"])))
+    finish = {
+        name: dict(Counter(r.get("finish_reason") for r in rows))
+        for name, rows in (("train", raw_train), ("dev", raw_dev))
+    }
+    train = [trace_row(r) for r in raw_train]
+    dev = [trace_row(r) for r in raw_dev]
+    del raw_train, raw_dev
     opb = [corpus_row(r) for r in jsonl(Path(plan["opb"]), plan["opb_limit"])]
     if (len(train), len(dev), len(opb)) != (plan["train_rows"], plan["dev_rows"], plan["opb_limit"]):
         raise ValueError("unexpected row counts")
@@ -198,6 +208,7 @@ def cmd_convert(args: argparse.Namespace) -> None:
         "opb_file": write_rows(args.output / "opb-eval.jsonl", dev + opb),
         "train_part": {"rows": len(train), "mean_tokens": sum(len(r["input_ids"]) for r in train) / len(train)},
         "split": plan["split"],
+        "finish_reasons": finish,
         "opb_rows_over_max_len": sum(len(r["input_ids"]) > MAX_LEN for r in opb),
     }
     write_new(args.output / "conversion.json", report)
