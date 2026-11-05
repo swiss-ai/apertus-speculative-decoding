@@ -1,0 +1,37 @@
+{
+  "name": "dspark-adapt-mult-n8k-r0-confirmation",
+  "stage": "8b",
+  "loadtests": [
+    {
+      "workload": "opb",
+      "concurrencies": [
+        1
+      ]
+    }
+  ],
+  "arms": [
+    {
+      "name": "paired",
+      "method": "command",
+      "gpus": 4,
+      "pythonpath": [
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/runtime/source-4bbc042b1a8a/methods/eagle"
+      ],
+      "command": [
+        "python3",
+        "-m",
+        "apertus_bench.adaptation_confirmation",
+        "--selection",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/confirmation-configs/debug-20261105/dspark-adapt-mult-n8k-r0-selection.json",
+        "--policy",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/drafter-updates/recovery-20261030-cache/preregistration.json",
+        "--environment",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/confirmations/debug-20261105/job-b-20261105T044026Z/environment.toml",
+        "--output",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/dspark-adaptation/adapt-mult-n8k-r0-20261104/confirmations/debug-20261105/paired",
+        "--repeats",
+        "b"
+      ]
+    }
+  ]
+}
