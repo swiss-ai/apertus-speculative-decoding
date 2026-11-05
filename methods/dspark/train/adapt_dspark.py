@@ -217,29 +217,23 @@ def cmd_convert(args: argparse.Namespace) -> None:
 
 
 def cmd_build_dataset(args: argparse.Namespace) -> None:
-    """The arrow dataset `speculators prepare-data` writes for speculator-format
-    rows (clip to 8,192 tokens, drop rows without supervised tokens, torch format),
-    without its two shuffles: the trainer holds out trailing rows by position, so
-    the dev/OPB rows must stay last. No token_freq.pt: like e10, the run uses the
-    full verifier vocabulary and never reads it."""
-    from datasets import Dataset
+    """`speculators prepare-data` for speculator-format rows, minus its two
+    shuffles: the same loader and pretokenized passthrough (clip to 8,192 tokens,
+    drop rows without supervised tokens, torch format, save_to_disk), but the
+    trainer holds out trailing rows by position, so the dev/OPB rows must stay
+    last. No token_freq.pt: like e10, the run uses the full verifier vocabulary
+    and never reads it."""
+    from speculators.data_generation.preprocessing import (
+        build_speculator_training_dataset,
+        load_raw_dataset,
+    )
 
-    columns: dict[str, list] = {"input_ids": [], "loss_mask": [], "seq_len": []}
-    dropped = 0
-    for row in jsonl(args.input):
-        ids, mask = row["input_ids"][:MAX_LEN], row["loss_mask"][:MAX_LEN]
-        if len(row["input_ids"]) != len(row["loss_mask"]):
-            raise ValueError(f"{row['id']}: input_ids/loss_mask length mismatch")
-        if not any(mask):
-            dropped += 1
-            continue
-        columns["input_ids"].append(ids)
-        columns["loss_mask"].append(mask)
-        columns["seq_len"].append(len(ids))
-    if dropped:
-        raise ValueError(f"{dropped} rows without supervised tokens; the split would move")
-    data = Dataset.from_dict(columns)
-    data.set_format(type="torch")
+    raw, normalize = load_raw_dataset(str(args.input))
+    if normalize is not None:
+        raise ValueError("expected speculator-format rows (input_ids, loss_mask)")
+    data = build_speculator_training_dataset(raw, None, MAX_LEN, num_proc=8)
+    if len(data) != len(raw):
+        raise ValueError(f"{len(raw) - len(data)} rows dropped; the held-out split would move")
     data.save_to_disk(str(args.output))
 
 
