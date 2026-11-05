@@ -1,0 +1,13 @@
+image = "/capstor/scratch/cscs/faruk_zahiragic/container-images/alps-vllm-rocm-7d95232cbc75.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users", "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-277edd39/results/70b/sweeps/dspark-alps-1epoch-beverin-20261104T185916Z/vllm-overlay/vllm/model_executor/models/qwen3_dspark.py:/opt/venv/lib/python3.12/site-packages/vllm/model_executor/models/qwen3_dspark.py", "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-277edd39/results/70b/sweeps/dspark-alps-1epoch-beverin-20261104T185916Z/vllm-overlay/vllm/v1/worker/gpu/spec_decode/dspark/utils.py:/opt/venv/lib/python3.12/site-packages/vllm/v1/worker/gpu/spec_decode/dspark/utils.py"]
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility"
+entrypoint = false
+
+[env]
+PYTHONNOUSERSITE = "1"
+HWLOC_COMPONENTS = "-gl"
+
+[annotations]
+"com.hooks.netstack.source" = "host"
+"com.hooks.cxi.enabled" = "false"
+"com.hooks.aws_ofi_nccl.enabled" = "false"
