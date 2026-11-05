@@ -304,7 +304,9 @@ def install(Trainer, torch):
             epoch = getattr(self, "current_epoch", 0)
             if not isinstance(epoch, int):
                 epoch = 0
-            local_step = int(getattr(self, "global_step", 0))
+            # Step within the epoch (multi_epoch.py records where it began).
+            local_step = int(getattr(self, "global_step", 0)) - int(
+                getattr(self, "_beverin_epoch_start_global", 0))
             if rank == 0:
                 print("BEVERIN_INTERRUPT_SAVE_VERIFIED " + json.dumps({
                     "epoch": epoch, "local_step": local_step, "global_step": self.global_step,

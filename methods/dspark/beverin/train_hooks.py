@@ -68,6 +68,10 @@ def install():
         from checkpoint_ring import install as install_checkpoint_ring
 
         install_checkpoint_ring(Trainer, torch)
+        from speculators.train.checkpointer import BaseCheckpointer
+        from multi_epoch import install as install_multi_epoch
+
+        install_multi_epoch(Trainer, BaseCheckpointer)
 
     profile_steps = int(os.environ.get("BEVERIN_PROFILE_STEPS", "0"))
     if profile_steps:
