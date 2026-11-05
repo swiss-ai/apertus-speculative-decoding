@@ -55,7 +55,12 @@ def audit(work, run_id, job_id, phase, return_code=0, completion_skip=False):
     if not any(a["checkpoint_saved"] for a in report["attempts"]) and not allow_unchanged:
         errors.append("no successful checkpoint save in the trainer log")
     if start_step and not authenticated_skip:
-        if initial.get("local_step", 0):
+        # multi_epoch.py logs the resume it corrects (epochs after the first).
+        multi = [json.loads(line.split(" ", 1)[1]) for line in content.splitlines()
+                 if line.startswith("BEVERIN_MULTI_EPOCH_RESUME ")]
+        if any(int(m.get("global_step", -1)) == start_step for m in multi):
+            resumed = True
+        elif initial.get("local_step", 0):
             resumed = any(int(n) == start_step for n in re.findall(
                 r"Resuming mid-epoch from.*?global_step=(\d+)", content, re.DOTALL
             ))
