@@ -17,7 +17,7 @@ Branch `experiment/dspark-adaptation`. Cluster checkout
 **Final state: done.** Verdict `correctness_gate_failed_and_no_substantial_repeatable_benefit`
 (`verdict.json`); write-up `docs/dspark-adaptation.md`. No jobs left running.
 
-Resume: `adapt-job.sh` skips steps with markers in `ROOT/stages/` and stops
+To reproduce: `adapt-job.sh` skips steps with markers in `ROOT/stages/` and stops
 before a step that does not fit the job's deadline; a cut step's outputs go to
 `ROOT/incomplete/` and it reruns. Submit (cluster checkout):
 `STAGE=8b MODE=adapt ADAPT_ROOT=ROOT TIME=01:30:00 DSPARK_PARTITION=debug SML_ENV_DIR=ROOT/env DSPARK_TRAIN_PATCH_DIR=/iopsstor/scratch/cscs/faruk_zahiragic/da-vp-train DSPARK_LOG_ROOT=ROOT/logs ./methods/dspark/train/submit-train.sh`.
