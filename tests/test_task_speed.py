@@ -274,11 +274,12 @@ def test_report_combines_controlled_and_live(tmp_path, monkeypatch):
         )
         for label, speedup in (("opb", 2.0), ("lang-amh", 0.9)):
             rate = 100.0 * (speedup if variant == "dspark" else 1.0)
-            _write(
-                live / name / label / label / "c1",
-                _summary(rate, spec if variant == "dspark" else None),
-                _metadata(route="gateway"),
-            )
+            summary = _summary(rate, spec if variant == "dspark" else None)
+            if name == "D1" and label == "lang-amh":
+                summary["warmup"]["failed"] = 1  # accepted: the guard is valid
+            cell = live / name / label / label / "c1"
+            _write(cell, summary, _metadata(route="gateway"))
+            (cell / "guard.json").write_text(json.dumps({"valid": True}))
     # A direct-route window of D1 must not enter the pairs, only the overhead table.
     windows.append({"name": "D1-direct", "variant": "dspark", "round": 1, "status": "ok",
                     "route": "direct"})  # fmt: skip

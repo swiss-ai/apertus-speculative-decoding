@@ -226,7 +226,14 @@ def verdict(ci: list[float] | None) -> str:
     return "inconclusive"
 
 
-def validate_pair(plain: dict, draft: dict, pm: dict, dm: dict, matched_extra: tuple) -> None:
+def validate_pair(
+    plain: dict,
+    draft: dict,
+    pm: dict,
+    dm: dict,
+    matched_extra: tuple,
+    guarded: bool = False,
+) -> None:
     """Refuse to compute a speedup from cells that differ in anything but the arm."""
     for key in ("workload_file_sha256", "prompt_ids"):
         if pm[key] != dm[key]:
@@ -244,7 +251,8 @@ def validate_pair(plain: dict, draft: dict, pm: dict, dm: dict, matched_extra: t
     for summary in (plain, draft):
         if summary["requests"]["success_rate"] < 0.99:
             raise ValueError("request success below 99%")
-        if summary["warmup"]["failed"]:
+        # A live cell's guard proves no leftover warmup request ran inside it.
+        if summary["warmup"]["failed"] and not guarded:
             raise ValueError("failed warmup")
     if plain["speculative_decoding"].get("enabled"):
         raise ValueError("baseline unexpectedly speculates")
@@ -287,6 +295,7 @@ def cell_rows(
     suite: dict[str, Any],
     pairs: dict[str, dict[str, Path]],
     matched_extra: tuple,
+    guarded: bool = False,
 ) -> dict[str, Any]:
     """Pair every (slice, C) cell over the deployment pairs.
 
@@ -306,7 +315,11 @@ def cell_rows(
                 plain, draft = [json.loads((c / "summary.json").read_text()) for c in cells]
                 pm, dm = [json.loads((c / "metadata.json").read_text()) for c in cells]
                 try:
-                    validate_pair(plain, draft, pm, dm, matched_extra)
+                    if guarded and not all(
+                        json.loads((c / "guard.json").read_text())["valid"] for c in cells
+                    ):
+                        raise ValueError("traffic guard not valid")
+                    validate_pair(plain, draft, pm, dm, matched_extra, guarded)
                 except ValueError as error:
                     rejected.append(f"{name} {label} c{concurrency}: {error}")
                     continue

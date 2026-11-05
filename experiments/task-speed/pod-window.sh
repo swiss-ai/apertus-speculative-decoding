@@ -5,7 +5,7 @@
 #   experiments/task-speed/pod-window.sh stage            # code + corpus + gateway key
 #   experiments/task-speed/pod-window.sh start P1 plain 1 [run-live.py options]
 #   experiments/task-speed/pod-window.sh log P1
-#   experiments/task-speed/pod-window.sh fetch            # results back to Clariden
+#   experiments/task-speed/pod-window.sh fetch "P1 P2"    # finished windows to Clariden
 # The key is piped into a 0600 file in the pod's emptyDir (never in argv or Git);
 # the pod identity file is captured here with kubectl, since the client pod has
 # no Kubernetes credentials. `start` refreshes it before the window.
@@ -65,8 +65,16 @@ sys.stdout.write(InitConfig.load().get_non_none_value("swissai_research_api_key"
     "${K[@]}" exec "${CLIENT}" -- sh -c "tail -n ${3:-20} \$(ls -t /work/${2:?window}*.log | head -1)"
     ;;
   fetch)
+    # One compressed stream per finished window (one large exec stream broke off);
+    # a window already on Clariden is never overwritten, toggles stay as written here.
     mkdir -p "${LIVE}/pod-logs"
-    "${K[@]}" exec "${CLIENT}" -- tar -C /work/live -c . | tar -x -C "${LIVE}"
+    for window in ${2:?windows to fetch, e.g. "P1 P2"}; do
+      test ! -e "${LIVE}/${window}" || { echo "${LIVE}/${window} exists; skipped" >&2; continue; }
+      tmp="$(mktemp -d "${LIVE}/.fetch-XXXX")"
+      "${K[@]}" exec "${CLIENT}" -- tar -C /work/live -czf - "${window}" | tar -xzf - -C "${tmp}"
+      mv "${tmp}/${window}" "${LIVE}/${window}" && rmdir "${tmp}"
+    done
+    "${K[@]}" exec "${CLIENT}" -- cat /work/live/windows.json > "${LIVE}/windows.json"
     "${K[@]}" exec "${CLIENT}" -- sh -c 'cd /work && tar -c *.log' | tar -x -C "${LIVE}/pod-logs"
     echo "fetched into ${LIVE}"
     ;;

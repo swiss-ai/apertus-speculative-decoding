@@ -222,8 +222,8 @@ def render(suite, result) -> str:
     return "\n".join(lines)
 
 
-def analyse(suite, pairs, match) -> dict:
-    data = task_speed.cell_rows(suite, pairs, match)
+def analyse(suite, pairs, match, guarded=False) -> dict:
+    data = task_speed.cell_rows(suite, pairs, match, guarded)
     data["pairs"] = list(pairs)
     data["classes"] = task_speed.class_summary(data["rows"])
     data["curves"] = task_speed.acceptance_curve(data["rows"])
@@ -242,7 +242,7 @@ def main() -> None:
     if args.controlled:
         result["controlled"] = analyse(suite, controlled_pairs(args.controlled), CONTROLLED_MATCH)
     if args.live:
-        result["live"] = analyse(suite, live_pairs(args.live), LIVE_MATCH)
+        result["live"] = analyse(suite, live_pairs(args.live), LIVE_MATCH, guarded=True)
         result["gateway_overhead"] = gateway_overhead(args.live)
     if args.controlled and args.live:
         controlled = {(r["slice"], r["concurrency"]): r for r in result["controlled"]["rows"]}
