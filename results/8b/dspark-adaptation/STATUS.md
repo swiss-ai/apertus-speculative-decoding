@@ -8,7 +8,10 @@ Branch `experiment/dspark-adaptation`. Cluster checkout
 | --- | --- | --- | --- |
 | 2026-11-04 18:52 | 3856327 (`dspark-8b-adapt`, normal, 6 h, source 01114fc6) | cancelled while pending (no start estimate on normal); no step ran | moved to debug chain |
 | 2026-11-04 19:34 | 3856449 (debug, source 720d3624) | failed after 83 s at `convert`: 44 traces end at the 2,048-token cap, not EOS (rebind done) | fixed in 4088a8c4 (keep them, as the EAGLE run did) |
-| 2026-11-05 00:30 | 3861814 (debug, source 4088a8c4) | submitted | next chunk after it ends (one debug job at a time) |
+| 2026-11-05 00:30 | 3861814 (debug, 4088a8c4) | failed at the row check: `speculators prepare-data` shuffles rows, moving dev rows into training | f6ecf736: build without shuffle |
+| 2026-11-05 01:16 | 3861946 (debug, f6ecf736) | failed: `Dataset.from_dict` cannot pickle the image's pyarrow types | 4bbc042b: use speculators' loader/passthrough |
+| 2026-11-05 01:24 | 3861955 (debug, 4bbc042b) | completed in 46 min, all steps: dev EAL 3.842 -> 4.142, OPB 6.269 -> 6.249, all gates, selected | `development/` |
+| 2026-11-05 03:34 | 3862494 (debug, confirmation round a, attempt `debug-20261105`) | submitted | round b after it ends (`submit_adapt_confirmation.py --attempt debug-20261105 --repeats b`) |
 
 Resume: `adapt-job.sh` skips steps with markers in `ROOT/stages/` and stops
 before a step that does not fit the job's deadline; a cut step's outputs go to
