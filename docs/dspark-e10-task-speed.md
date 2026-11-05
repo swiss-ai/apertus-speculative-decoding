@@ -1,7 +1,8 @@
 # DSpark e10 k=3: per-task speedups, in distribution and out of it
 
-Status 2026-11-05: live (deployed) campaign complete, 4 windows, 224 valid paired cells.
-Controlled Clariden run (job 3850624) still queued. Branch `experiment/dspark-e10-task-speed`.
+Status 2026-11-05: complete. Live (deployed) campaign: 4 windows, 224 valid paired
+cells. Controlled Clariden run: job 3850624, 4 pairs, 112 cells, none rejected;
+extension job 3867076 for the 2 inconclusive cells. Branch `experiment/dspark-e10-task-speed`.
 
 The epoch-10 DSpark head (thinking off, k=3) serves always-on on Kubernetes as
 `SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3`. This campaign
@@ -124,3 +125,31 @@ Caveats:
 - Someone else sent requests to the DSpark ID during D1 (every 30–60 s); cells with
   other traffic were rerun, and from the last D1 job on, cells with at most 2% foreign
   tokens were accepted (recorded per cell in `guard.json`).
+
+## Results: controlled (Clariden, same GPU) and transfer to the deployment
+
+Report: `results/8b/task-speed/report-20261105/REPORT.md` (controlled and live
+side by side, plus live ÷ controlled per cell). Run
+`controlled-20261104T133618Z` (job 3850624, node nid006248, 4 GPUs, 4 concurrent
+AB/BA pairs, 84 min); same corpus (sha256 7d8e60ef…), runtime re-hash passed.
+
+| Class | C=1 | C=8 | C=32 | C=128 | Acceptance length |
+|---|---|---|---|---|---|
+| ID | 2.61x (2.20–2.86) | 2.57x (2.19–2.83) | 2.15x (1.81–2.41) | 1.38x (1.23–1.45) | 3.50 |
+| Near-ID | 2.30x (2.00–2.63) | 2.16x (1.79–2.58) | 1.82x (1.47–2.12) | 1.25x (1.13–1.40) | 3.12 |
+| OOD task | 1.58x (1.31–2.24) | 1.44x (1.25–2.14) | 1.25x (1.07–1.76) | 0.99x (0.82–1.13) | 2.25 |
+| OOD language | 1.32x (1.09–1.63) | 1.36x (1.09–1.87) | 1.24x (1.00–1.88) | 0.85x (0.67–1.36) | 1.76 |
+
+- **The deployment delivers the controlled speedup.** Live ÷ controlled is
+  0.93–1.07 in nearly every cell. The exceptions are the short live cells
+  already flagged `?` above (json-schema C=8/32, lang-eng and lang-yor C=8,
+  translate-to-en C=32), where single gateway stream stalls dominate; their TPOT
+  ratios match the controlled ones. The gateway adds about 10 ms TTFT and no
+  decode cost.
+- **The same picture, with tighter intervals.** At C=128, 12 of 28 slices are
+  significantly slower in the controlled run: chat (0.91x), translate-from-en
+  (0.82x) and 10 of 12 non-English languages (0.67–0.92x); only Yoruba (1.36x)
+  and Romansh stay at or above break-even. The C=1 fit is
+  speedup ≈ 0.04 + 0.72·L (R² 0.98); break-even L ≈ 1.3 up to C=32 and 2.2 at C=128.
+- 110 of 112 controlled cells reach a verdict; lang-roh C=128 and lang-ara C=32
+  were inconclusive and got 4 extension pairs (see below).
