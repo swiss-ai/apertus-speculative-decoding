@@ -18,7 +18,7 @@ import csv
 import subprocess
 from pathlib import Path
 
-from apertus_eagle.adaptation_decision import final_verdict, immutable_json, read
+from apertus_eagle.adaptation_decision import classify_cell, final_verdict, immutable_json, read
 
 EAGLE_TRACE_JOBS = ("3769227", "3790165", "3802584", "3804324")
 EAGLE_TRACE_GPU_SECONDS = 11380  # EAGLE campaign receipt: all four trace jobs.
@@ -74,7 +74,40 @@ def main() -> None:
         ),
         "jobs": jobs,
     }
-    verdict = final_verdict({"selected": [selected]}, [report], read(args.policy), compute)
+    policy = read(args.policy)
+    if report["correctness_passed"]:
+        verdict = final_verdict({"selected": [selected]}, [report], policy, compute)
+    else:
+        # The frozen policy makes a correctness failure terminal (needs_repair) and
+        # final_verdict refuses it. Classify the cells with the same rule anyway, so
+        # the record shows whether a passing gate could have changed the outcome;
+        # nothing is recommended from a run whose correctness gate failed.
+        cells = [cell | classify_cell(cell["pairs"], policy) for cell in report["cells"]]
+        benefits = [
+            c for c in cells if c["role"] != "forgetting" and c["substantial_repeatable_benefit"]
+        ]
+        verdict = {
+            "state": "needs_repair",
+            "verdict": "correctness_gate_failed"
+            + ("" if benefits else "_and_no_substantial_repeatable_benefit"),
+            "failed_gates": [g for g in report["correctness"] if not g["passed"]],
+            "correctness_gates_passed": sum(g["passed"] for g in report["correctness"]),
+            "correctness_gates_total": len(report["correctness"]),
+            "selection": {"selected": [selected]},
+            "heads": [
+                {
+                    "name": selected["name"],
+                    "development": selected,
+                    "cells": cells,
+                    "recommendation": "do_not_implement_from_this_experiment",
+                }
+            ],  # fmt: skip
+            "compute": compute,
+            "claim_limits": [
+                "Calibrated correctness failed in one gate; no serving claim is made.",
+                "Cell classification is reported only to show the rule's outcome.",
+            ],
+        }
     verdict["scope_completed"] = (
         "Conditional DSpark e10 repeat of the EAGLE best setting (adapt-mult-n8k-r0), "
         "including the unchanged paired serving confirmation."
@@ -97,6 +130,11 @@ def main() -> None:
                     + [pair["adapted"][m] for m in metrics]
                 )  # fmt: skip
     print(verdict["verdict"], verdict["heads"][0]["recommendation"])
+    if report["correctness_passed"] is False:
+        print(
+            "correctness gate failed:",
+            [(g["k"], g["label"], g["repeat"]) for g in verdict["failed_gates"]],
+        )
 
 
 if __name__ == "__main__":
