@@ -1,7 +1,7 @@
 # DSpark e10 k=3: per-task speedups, in distribution and out of it
 
-Status 2026-11-04: harness built and tested; controlled pipeline smoke submitted.
-No measurement yet. Branch `experiment/dspark-e10-task-speed`.
+Status 2026-11-05: live (deployed) campaign complete, 4 windows, 224 valid paired cells.
+Controlled Clariden run (job 3850624) still queued. Branch `experiment/dspark-e10-task-speed`.
 
 The epoch-10 DSpark head (thinking off, k=3) serves always-on on Kubernetes as
 `SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3`. This campaign
@@ -82,6 +82,45 @@ The client and kubectl run together on Clariden debug nodes. The prompt corpus i
 - **Correctness:** dropped from Track A. Load-test cells store only output hashes, not text, so there is nothing to compare greedy outputs on. If it is wanted, `apertus-bench capture` and `correctness-gate` can run on the same corpus as a separate step.
 - **Drafter hash check in plain mode:** kept, not skipped. Plain mode verifies the same assets.
 
-## Results
+## Results: the deployed pod (live, through the gateway)
 
-Pending.
+Report: `results/8b/task-speed/report-live-20261105/REPORT.md` (tables per slice,
+per-request decode speedup, latency, acceptance fit); raw tree on Clariden
+(`live-20261104-raw.tar.gz`, sha256 in the run directory, file hashes in
+`artifact-manifest.json`). Windows D1 (DSpark), P1 (plain), P2 (plain, fresh pod),
+D2 (DSpark, fresh pod) on GH200 nid006597, 2026-11-04/05; two deployment pairs per
+cell (screening level, so intervals are narrow but rest on two pairs).
+
+Output-token throughput speedup, geometric mean over slices (range over slices):
+
+| Class | C=1 | C=8 | C=32 | C=128 | Acceptance length |
+|---|---|---|---|---|---|
+| ID | 2.59x (2.20–2.81) | 2.45x (2.14–2.65) | 2.12x (1.80–2.32) | 1.40x (1.24–1.46) | 3.50 |
+| Near-ID | 2.18x (1.94–2.48) | 1.84x (1.23–2.27) | 1.61x (1.02–1.99) | 1.20x (1.02–1.34) | 3.12 |
+| OOD task | 1.57x (1.30–2.22) | 1.44x (1.26–2.10) | 1.07x (0.74–1.25) | 1.02x (0.87–1.19) | 2.25 |
+| OOD language | 1.32x (1.08–1.61) | 1.28x (0.94–1.64) | 1.22x (0.98–1.74) | 0.87x (0.70–1.39) | 1.76 |
+
+- **In distribution, DSpark always wins.** Math, code, OPB and multi-turn run
+  2.2–2.8x faster at C=1 and still 1.24–1.46x at C=128. Time per output token drops
+  from 5.8 ms to 2.0 ms; time to first token is unchanged (about 30 ms).
+- **Acceptance length predicts the speedup.** At C=1, speedup ≈ 0.12 + 0.68·L
+  (R² 0.96). Break-even is L ≈ 1.3 up to C=32 but L ≈ 2.1 at C=128, so under heavy
+  load only tasks that accept more than about 2 tokens per step gain.
+- **Out of distribution, the gain shrinks and turns into a loss under load.** Chat
+  1.55x at C=1 but 0.92x at C=128; translation from English 0.87x; summarization
+  flat (1.03x); long context keeps 1.14x. Eleven of 28 slices are significantly
+  slower at C=128: chat, translate-from-en and 9 of 12 non-English languages
+  (0.70–0.89x). Arabic and Swahili (L ≈ 1.45) barely gain even at C=1 (1.08x, 1.13x).
+- **Live acceptance equals the offline measurements** (GSM8K 3.75 vs 3.74,
+  JSON 3.73 vs 3.73, German 1.61 vs 1.61), so the serving path loses nothing.
+
+Caveats:
+- Cells marked `?` (json-schema, tool-call and translate-to-en at C=32,
+  lang-eng/swa/yor at C=8) are short (a few seconds) and dominated by single
+  gateway stream stalls; the per-request decode speedup (TPOT ratio) in the
+  report is unaffected and shows the expected gain there.
+- The gateway dropped 39 of 256 streams in one long-context C=128 attempt and a few
+  elsewhere (`incomplete chunked read`); such cells were remeasured.
+- Someone else sent requests to the DSpark ID during D1 (every 30–60 s); cells with
+  other traffic were rerun, and from the last D1 job on, cells with at most 2% foreign
+  tokens were accepted (recorded per cell in `guard.json`).
