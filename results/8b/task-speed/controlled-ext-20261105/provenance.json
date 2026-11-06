@@ -1,0 +1,41 @@
+{
+  "branch": "experiment/dspark-e10-task-speed",
+  "revision": "684a6e4cedbfe51bacea155d86667b6586f08f7e",
+  "argv": [
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/experiments/task-speed/run-controlled.py",
+    "--suite",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/experiments/task-speed/suite.yaml",
+    "--pilot",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+    "--corpus",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+    "--select",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z.select-20261105.json",
+    "--gpus",
+    "0,1,2,3",
+    "--first-pair",
+    "5",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-ext-20261105"
+  ],
+  "slurm_job_id": "3867076",
+  "node": "nid007646",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "gpu_inventory": "index, uuid, name, memory.total [MiB], clocks.max.sm [MHz], power.limit [W]\n0, GPU-9ce9147e-8be6-90f7-3732-a8fd82a22f21, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n1, GPU-81b4baec-cc4b-528f-6687-d1838272bd2a, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n2, GPU-c92b1656-02e1-5d0a-a4a4-f5e3848fd09d, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n3, GPU-72514a2e-b436-f926-036c-785f3ce37e64, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n",
+  "pilot": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+  "first_pair": 5,
+  "select": {
+    "lang-roh": [
+      128
+    ],
+    "lang-ara": [
+      32
+    ]
+  },
+  "design": "one plain/DSpark deployment pair per GPU, run concurrently; order AB on even pairs, BA on odd pairs"
+}

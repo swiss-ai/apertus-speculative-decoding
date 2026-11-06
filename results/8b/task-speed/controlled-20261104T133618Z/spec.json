@@ -1,0 +1,566 @@
+{
+  "name": "dspark-e10-task-speed",
+  "stage": "8b",
+  "probe": false,
+  "target_model": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+  "node_gpus": 4,
+  "engine": {
+    "max_model_len": 32768,
+    "gpu_memory_utilization": 0.8,
+    "enable_prefix_caching": false,
+    "max_num_batched_tokens": 16384,
+    "max_num_seqs": 256
+  },
+  "loadtests": [
+    {
+      "label": "prewarm",
+      "workload": "prewarm",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        32
+      ],
+      "min_requests": 28,
+      "requests_per_slot": 1,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "opb",
+      "workload": "opb",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "math-gsm8k",
+      "workload": "math-gsm8k",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "probe-math",
+      "workload": "probe-math",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "probe-humaneval",
+      "workload": "probe-humaneval",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "multi-turn",
+      "workload": "multi-turn",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "code-multi",
+      "workload": "code-multi",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "json-schema",
+      "workload": "json-schema",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "tool-call",
+      "workload": "tool-call",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-eng",
+      "workload": "lang-eng",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "arena-hard-clean",
+      "workload": "arena-hard-clean",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "arena-hard-contaminated",
+      "workload": "arena-hard-contaminated",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "chat",
+      "workload": "chat",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "summarization",
+      "workload": "summarization",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "long-context",
+      "workload": "long-context",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "translate-to-en",
+      "workload": "translate-to-en",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "translate-from-en",
+      "workload": "translate-from-en",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-deu",
+      "workload": "lang-deu",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-fra",
+      "workload": "lang-fra",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-ita",
+      "workload": "lang-ita",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-spa",
+      "workload": "lang-spa",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-roh",
+      "workload": "lang-roh",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-zho",
+      "workload": "lang-zho",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-jpn",
+      "workload": "lang-jpn",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-hin",
+      "workload": "lang-hin",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-ara",
+      "workload": "lang-ara",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-swa",
+      "workload": "lang-swa",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-yor",
+      "workload": "lang-yor",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-amh",
+      "workload": "lang-amh",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z/corpus.jsonl",
+      "concurrencies": [
+        1,
+        8,
+        32,
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    }
+  ],
+  "arms": [
+    {
+      "name": "plain",
+      "method": "baseline",
+      "vllm_args": [
+        "--dtype",
+        "bfloat16",
+        "--no-enable-log-requests",
+        "--chat-template",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja",
+        "--chat-template-content-format",
+        "string"
+      ]
+    },
+    {
+      "name": "dspark",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 3,
+      "vllm_args": [
+        "--dtype",
+        "bfloat16",
+        "--no-enable-log-requests",
+        "--chat-template",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja",
+        "--chat-template-content-format",
+        "string"
+      ]
+    }
+  ]
+}
