@@ -54,7 +54,7 @@ case "${STAGE}" in
     test ! -e "${WORK}/runs/${RUN_ID}"
     export NODES=1 DATA="${SMOKE_DATA}" EPOCHS=3 CKPT_FREQ=0.25 BEVERIN_MILESTONE_INTERVAL=0
     export TIME=02:00:00 STOP_MARGIN=600 BEVERIN_POST_SCAN=0
-    first="$(BEVERIN_SEGMENT_STEPS="${SMOKE_STOP:-80}" bash "${REPO_ROOT}/methods/dspark/beverin/submit-train.sh" | tail -1 | awk '{print $2}')"
+    first="$(BEVERIN_SEGMENT_STEPS="${SMOKE_STOP:-36}" bash "${REPO_ROOT}/methods/dspark/beverin/submit-train.sh" | tail -1 | awk '{print $2}')"
     unset BEVERIN_SEGMENT_STEPS
     DEPENDENCY="afterok:${first}" bash "${REPO_ROOT}/methods/dspark/beverin/submit-train.sh"
     ;;
