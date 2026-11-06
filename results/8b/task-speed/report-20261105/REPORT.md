@@ -4,7 +4,7 @@ Speedup = DSpark output tokens/s ÷ plain output tokens/s on the same prompts, g
 
 ## Controlled (Clariden, plain and DSpark on the same GPU)
 
-Pairs: controlled-20261104T133618Z/pair-1, controlled-20261104T133618Z/pair-2, controlled-20261104T133618Z/pair-3, controlled-20261104T133618Z/pair-4.
+Pairs: controlled-20261104T133618Z/pair-1, controlled-20261104T133618Z/pair-2, controlled-20261104T133618Z/pair-3, controlled-20261104T133618Z/pair-4, controlled-ext-20261105/pair-5, controlled-ext-20261105/pair-6, controlled-ext-20261105/pair-7, controlled-ext-20261105/pair-8.
 
 ### By class
 
@@ -41,11 +41,11 @@ Class cells: geometric mean of the slices (range over slices).
 | lang-fra | ood-language | 1.84 | 1.40x [1.40, 1.41] | 1.38x [1.35, 1.41] | 1.25x [1.23, 1.28] | 0.82x [0.81, 0.82] ▼ |
 | lang-ita | ood-language | 1.66 | 1.25x [1.25, 1.26] | 1.31x [1.30, 1.31] | 1.14x [1.12, 1.16] | 0.84x [0.83, 0.85] ▼ |
 | lang-spa | ood-language | 1.98 | 1.49x [1.49, 1.50] | 1.69x [1.65, 1.73] | 1.36x [1.34, 1.38] | 0.92x [0.91, 0.93] ▼ |
-| lang-roh | ood-language | 1.76 | 1.32x [1.30, 1.34] | 1.23x [1.08, 1.41] | 1.49x [1.40, 1.62] | 0.97x [0.94, 0.99] ? |
+| lang-roh | ood-language | 1.76 | 1.32x [1.30, 1.34] | 1.23x [1.08, 1.41] | 1.49x [1.40, 1.62] | 0.95x [0.93, 0.97] ? |
 | lang-zho | ood-language | 1.93 | 1.46x [1.46, 1.47] | 1.48x [1.47, 1.48] | 1.33x [1.30, 1.35] | 0.85x [0.82, 0.87] ▼ |
 | lang-jpn | ood-language | 1.64 | 1.25x [1.24, 1.26] | 1.24x [1.21, 1.28] | 1.15x [1.13, 1.17] | 0.74x [0.74, 0.75] ▼ |
 | lang-hin | ood-language | 1.63 | 1.24x [1.22, 1.25] | 1.25x [1.24, 1.26] | 1.10x [1.07, 1.12] | 0.78x [0.76, 0.81] ▼ |
-| lang-ara | ood-language | 1.44 | 1.09x [1.09, 1.10] | 1.09x [1.09, 1.10] | 1.08x [1.03, 1.13] ? | 0.77x [0.76, 0.78] ▼ |
+| lang-ara | ood-language | 1.44 | 1.09x [1.09, 1.10] | 1.09x [1.09, 1.10] | 1.08x [1.05, 1.11] ? | 0.77x [0.76, 0.78] ▼ |
 | lang-swa | ood-language | 1.47 | 1.12x [1.10, 1.13] | 1.12x [1.05, 1.18] | 1.00x [0.96, 1.05] = | 0.67x [0.67, 0.68] ▼ |
 | lang-yor | ood-language | 2.00 | 1.44x [1.43, 1.44] | 1.87x [1.86, 1.88] | 1.88x [1.76, 2.00] | 1.36x [1.31, 1.41] |
 | lang-amh | ood-language | 2.13 | 1.63x [1.62, 1.64] | 1.65x [1.62, 1.67] | 1.26x [1.24, 1.29] | 0.86x [0.85, 0.87] ▼ |
@@ -76,7 +76,7 @@ Unaffected by a cell's slowest stream; throughput above includes queueing and ta
 | lang-fra | 1.44x | 1.46x | 1.25x | 0.74x |
 | lang-ita | 1.27x | 1.29x | 1.12x | 0.68x |
 | lang-spa | 1.48x | 1.49x | 1.29x | 0.75x |
-| lang-roh | 1.21x | 1.23x | 1.07x | 0.67x |
+| lang-roh | 1.21x | 1.23x | 1.07x | 0.68x |
 | lang-zho | 1.56x | 1.54x | 1.32x | 0.79x |
 | lang-jpn | 1.25x | 1.26x | 1.07x | 0.64x |
 | lang-hin | 1.21x | 1.21x | 1.08x | 0.65x |
@@ -126,6 +126,11 @@ Unaffected by a cell's slowest stream; throughput above includes queueing and ta
 | lang-swa | 21 | 25 | 5.8 | 5.7 | 607 | 610 |
 | lang-yor | 21 | 25 | 5.7 | 4.5 | 178 | 143 |
 | lang-amh | 29 | 30 | 5.8 | 3.6 | 2984 | 1736 |
+
+**Rejected pairs (0):**
+
+
+**Missing cells: 440.**
 
 ## Deployed (the Kubernetes pod, plain and DSpark windows via the gateway)
 
@@ -276,7 +281,7 @@ Unaffected by a cell's slowest stream; throughput above includes queueing and ta
 | lang-fra | 1.00 | 1.02 | 0.95 | 1.04 |
 | lang-ita | 1.00 | 0.99 | 1.04 | 1.05 |
 | lang-spa | 1.00 | 0.92 | 0.96 | 1.02 |
-| lang-roh | 1.01 | 0.86 | 0.97 | 1.08 |
+| lang-roh | 1.01 | 0.86 | 0.97 | 1.09 |
 | lang-zho | 0.99 | 1.02 | 0.99 | 0.93 |
 | lang-jpn | 1.01 | 0.98 | 0.98 | 1.00 |
 | lang-hin | 1.01 | 1.00 | 0.99 | 1.00 |

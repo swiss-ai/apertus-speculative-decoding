@@ -2,7 +2,7 @@
 
 Status 2026-11-05: complete. Live (deployed) campaign: 4 windows, 224 valid paired
 cells. Controlled Clariden run: job 3850624, 4 pairs, 112 cells, none rejected;
-extension job 3867076 for the 2 inconclusive cells. Branch `experiment/dspark-e10-task-speed`.
+extension job 3867076 for the 2 inconclusive cells (done). Branch `experiment/dspark-e10-task-speed`.
 
 The epoch-10 DSpark head (thinking off, k=3) serves always-on on Kubernetes as
 `SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3`. This campaign
@@ -151,5 +151,9 @@ AB/BA pairs, 84 min); same corpus (sha256 7d8e60ef…), runtime re-hash passed.
   (0.82x) and 10 of 12 non-English languages (0.67–0.92x); only Yoruba (1.36x)
   and Romansh stay at or above break-even. The C=1 fit is
   speedup ≈ 0.04 + 0.72·L (R² 0.98); break-even L ≈ 1.3 up to C=32 and 2.2 at C=128.
-- 110 of 112 controlled cells reach a verdict; lang-roh C=128 and lang-ara C=32
-  were inconclusive and got 4 extension pairs (see below).
+- 110 of 112 controlled cells reach a verdict with 4 pairs. lang-roh C=128 and
+  lang-ara C=32 got 4 extension pairs (`controlled-ext-20261105`, job 3867076,
+  8 arms ok). With 8 pairs they sit on the band edge and stay `?`:
+  lang-roh C=128 0.95x [0.93, 0.97] (about 5% slower), lang-ara C=32 1.08x
+  [1.05, 1.11] (about 8% faster). No further extension; neither changes a
+  class result or conclusion.
