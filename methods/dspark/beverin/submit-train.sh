@@ -88,6 +88,7 @@ cat > "${SCRIPT}" <<SBATCH
 set -euo pipefail
 export REPO_ROOT=${REPO_ROOT}
 $(pass_env)
+JOB_T0=\$(date +%s)
 echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} edf=${EDF}"
 cat "\${REPO_ROOT}/REVISION" 2> /dev/null || true
 export WORK=${WORK}
@@ -133,8 +134,10 @@ else
   image_hash_pid=\$!
 fi
 # The trainer saves and exits STOP_MARGIN s before the time limit
-# (speculators-deadline-stop.patch).
-export DSPARK_STOP_AT=\$(( \$(date +%s) + ${LIMIT_S} - ${STOP_MARGIN:-2400} ))
+# (speculators-deadline-stop.patch). Count from the job start: during the
+# 2026-11-13 Capstor incident the image hash above took 3.5 h, which pushed
+# a now-based deadline past the time limit (job 731837).
+export DSPARK_STOP_AT=\$(( JOB_T0 + ${LIMIT_S} - ${STOP_MARGIN:-2400} ))
 export HEAD_NODE=\$(scontrol show hostnames "\${SLURM_JOB_NODELIST}" | head -1)
 rc=0
 # shellcheck disable=SC2086
