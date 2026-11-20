@@ -15,8 +15,10 @@ revision, plan hash) and `logs/<job>.out`. Heads are backed up to
 | 2026-11-20 13:03/13:08 | none | watcher smoke submissions (afterok 3987876) | **rejected**: sbatch refuses afterok on a finished job; domain named `tool`, not `structured`. Fixed in 4864d7ff |
 | 2026-11-20 13:14 | 3988408 (debug, 4864d7ff) | smoke, root `dspark-pilot-20261120T131405Z` (pilot: 512 train / 64 dev per domain, 6 domains incl. `tool`) | COMPLETED 17:51 but **paused before train** (90-min step bound > debug time left). Done: lock, eval sets, e10 lr-0 evals (bitwise unchanged): pilot math dev eal 7.855 (accept len 7.646), OPB 32 rows eal 6.358; mixed head convert + prepare |
 | 2026-11-20 13:33 | none (debug) | smoke resubmit, same root | rejected: debug QOSMaxSubmitJobPerUserLimit (gpt-oss jobs 3988416/3988706 hold both slots); fixed in 4092e4aa/next commit (fail loudly, TRAIN_MINUTES=15) |
-| 2026-11-20 13:33 | 3988723 (normal, 1:30) | smoke resumed on the same root: mixed head 6 steps, export, backup, math/OPB evals | PENDING (QOSGrpNodeLimit) |
-| pending | (watcher, restarted 13:14) | full grid: baseline + 7 heads (afterok baseline), afterok smoke 3988723 | waits for all six `READY-<domain>` (math code chat summarization multilingual tool) |
+| 2026-11-20 13:33 | 3988723 (normal, 1:30) | smoke resumed on the same root | cancelled 13:35 in favour of debug (coordinator: domain jobs first on debug) |
+| 2026-11-20 13:35 | 3988743 (debug, fce616d2) | smoke resumed: mixed head (512 rows, 85-86 per domain, 520k tokens) 6 steps, export, backup, evals | FAILED 9:57 at **backup**: training ok (global step 6), export ok (42 tensors changed vs e10, reload bitwise equal); `cp -a` cannot preserve ACL permissions on capstor. Fixed in the next commit (`cp -r --preserve=timestamps`) |
+| 2026-11-20 13:47 | (detached `~/.local/state/domain-drafters-dspark/resubmit-smoke.sh`) | smoke resumed again (backup + mixed math/OPB evals, ~15 min) | waiting for a debug submit slot (gpt-oss 3988916/3988925 hold both); writes the id to `~/.local/state/domain-drafters-dspark/smoke` |
+| pending | (watcher, restarted 13:14) | full grid: baseline + 7 heads (afterok baseline), afterok on the smoke id in `~/.local/state/domain-drafters-dspark/smoke`, read at submit time | waits for all six `READY-<domain>` (math code chat summarization multilingual tool) |
 
 The watcher `methods/dspark/train/watch-domain-data.sh` runs on the
 workstation (state and log in `~/.local/state/domain-drafters-dspark/`) and
