@@ -48,12 +48,13 @@ def _add_variant(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--variant", required=True, help="stable label for the server variant")
     parser.add_argument(
         "--method",
-        choices=("none", "draft_model", "ngram", "eagle3", "dspark"),
+        choices=("none", "draft_model", "ngram", "eagle3", "dspark", "mtp", "dflash"),
         required=True,
         help=(
             "engine speculative method; E3/E3.1/P-EAGLE all use eagle3 "
             "and are distinguished by --algorithm; dspark is the colleague's "
-            "DSpark drafter"
+            "DSpark drafter; mtp is the target's native MTP layer and dflash "
+            "a DFlash/DFlash2 drafter (non-Apertus targets)"
         ),
     )
     parser.add_argument(
