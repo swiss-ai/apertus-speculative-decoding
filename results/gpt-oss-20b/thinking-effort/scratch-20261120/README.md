@@ -44,6 +44,25 @@ Campaigns live under `/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/scr
 Failed first attempt (preserved): `*-46451ee4`, data job 3987731 failed in 38 s while
 pip built Speculators into the over-quota `$HOME` cache; fixed in `f7898022`.
 
+## Smoke evaluation block-0 replaced (2026-11-20 13:46 CET)
+
+The smoke campaign completed data and training (all four scratch heads exported;
+train job 3987879). Faruk gave the debug partition to the domain experiments
+first, so the smoke controller (pid 27169 on ln001) was stopped and its pending
+evaluation block-0 **3988022 was cancelled** before blocks 1/2 were accepted. The
+old record is kept as `submissions/phase2-block-0/job.cancelled-3988022.json`,
+with `replacement.json` beside it.
+[`resubmit-smoke-block0-after-dspark-smoke.sh`](resubmit-smoke-block0-after-dspark-smoke.sh)
+runs on the workstation (pid 749870, log
+`~/.local/state/effort-scratch18/resubmit-block0.log`). It waits for the DSpark
+domain-grid watcher to write its smoke job ID, then resubmits block-0 with the
+unchanged campaign argv plus `--dependency=afterany:<DSpark smoke>`, retrying
+the debug submit limit. It writes the new `job.json` and `replacement.json`
+and restarts the identical controller. The controller reuses any existing
+`job.json`, so it waits on the new block-0 and submits blocks 1 and 2 itself.
+The full scratch and fine-tune campaigns run on the normal partition and are
+unaffected.
+
 ## Risks
 
 - Budget: the low-effort pool is about 7.4k × ~200 tokens ≈ 1.5M assistant tokens per
