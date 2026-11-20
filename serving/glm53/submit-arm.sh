@@ -114,6 +114,9 @@ srun --overlap --nodes=1 --ntasks=1 --environment="${OUT}/environment.toml" bash
   set -uo pipefail
   export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"
   # HOME is over quota: keep every cache, config and usage-stats write node-local.
+  # TileLang JIT kernels (GLM-5.3 mHC ops) cache under \$HOME/.tilelang, so move HOME
+  # itself (smoke 3987976 failed there); workload paths are absolute.
+  export HOME=/tmp/glm53-home; mkdir -p \${HOME}
   export VLLM_CACHE_ROOT=/tmp/vllm-cache TRITON_CACHE_DIR=/tmp/triton-cache FLASHINFER_WORKSPACE_BASE=/tmp/flashinfer
   export XDG_CACHE_HOME=/tmp/xdg-cache XDG_CONFIG_HOME=/tmp/xdg-config TORCHINDUCTOR_CACHE_DIR=/tmp/inductor-cache
   export VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
