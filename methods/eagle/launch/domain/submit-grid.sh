@@ -4,6 +4,7 @@
 #   methods/eagle/launch/domain/submit-grid.sh pilot   # 4-step smoke on the pilot slice
 #   methods/eagle/launch/domain/submit-grid.sh full    # one 1-node job per arm
 #   methods/eagle/launch/domain/submit-grid.sh status  # which READY markers exist
+#   methods/eagle/launch/domain/submit-grid.sh export-smoke  # 4 steps on OPB rows, no traces
 # Traces come from the domain-drafters data branch (contract: traces/<domain>/
 # {train,dev}.jsonl with a READY-<domain> marker; traces/pilot/<domain>/ with
 # READY-pilot). The mixed arm takes an equal share of every domain's first rows,
@@ -11,7 +12,7 @@
 set -euo pipefail
 LAUNCH_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${LAUNCH_DIR}/../../../.." && pwd)"
-MODE="${1:?pilot|full|status}"
+MODE="${1:?pilot|full|status|export-smoke}"
 DATA="${DOMAIN_DATA:-/iopsstor/scratch/cscs/${USER}/spec-exp-data/domain-drafters}"
 TRACES="${DATA}/traces"
 DOMAINS=(math code chat summarization multilingual structured)
@@ -20,6 +21,7 @@ export EAGLE_CUDA_DEVICES=0,1,2,3
 export EAGLE_TRAIN_PARTITION="${EAGLE_TRAIN_PARTITION:-normal}"
 # HOME is at its quota: keep the patched-vLLM overlay on scratch.
 export EAGLE_VLLM_PATCH_DIR="${EAGLE_VLLM_PATCH_DIR:-/iopsstor/scratch/cscs/${USER}/spec-exp-data/domain-drafters/eagle/vllm-patch-train}"
+export SML_ENV_DIR="${SML_ENV_DIR:-/iopsstor/scratch/cscs/${USER}/spec-exp-data/domain-drafters/eagle/sml-env}"
 
 ready() {  # domain -> 0 when its marker and files exist
   local d="$1"
@@ -38,6 +40,10 @@ case "${MODE}" in
 status)
   pilot_ready && echo "pilot: ready" || echo "pilot: not ready"
   for d in "${DOMAINS[@]}"; do ready "${d}" && echo "${d}: ready" || echo "${d}: not ready"; done
+  ;;
+export-smoke)
+  EAGLE_TRAIN_CONFIG="${CONFIGS}/domain-export-smoke.yaml" EAGLE_TRAIN_TIME="${EAGLE_TRAIN_TIME:-01:00:00}" \
+    "${REPO_ROOT}/methods/eagle/launch/submit-eagle-train.sh"
   ;;
 pilot)
   pilot_ready || { echo "pilot slice not ready" >&2; exit 3; }
