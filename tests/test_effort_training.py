@@ -4,9 +4,11 @@ import json
 import pytest
 
 from apertus_bench.effort_training import (
+    REPO,
     TRAINING_CONFIG,
     budget_examples,
     load_config,
+    resolve_budget,
     retain_responses,
     select_prompts,
     validate_parent,
@@ -185,3 +187,75 @@ def test_frozen_training_configuration_has_matched_integral_budgets():
     assert config["supervised_tokens_per_head"] % (3 * config["epochs"]) == 0
     assert config["checkpoint_selection"] == "lowest_development_loss"
     assert config["upstream_revision"] == "e3041ddb4e58d8d0fad86f938f44423bdf424ae9"
+
+
+SCRATCH = REPO / "experiments/thinking-effort/phase2-scratch.yaml"
+FINETUNE = REPO / "experiments/thinking-effort/phase2-scratch-finetune.yaml"
+
+
+def test_scratch_and_matched_finetune_differ_only_in_training_settings():
+    scratch, finetune = load_config(SCRATCH), load_config(FINETUNE)
+    assert scratch["initialization"] == "scratch" and finetune["initialization"] == "released"
+    assert scratch["scheduler"] == "cosine" and finetune["scheduler"] == "none"
+    assert finetune["learning_rate"] == load_config(TRAINING_CONFIG)["learning_rate"]
+    data_keys = set(scratch) - {"initialization", "learning_rate", "scheduler", "warmup_ratio"}
+    assert {k: scratch[k] for k in data_keys} == {k: finetune[k] for k in data_keys}
+    assert scratch["domains"] == ["math"] and scratch["epochs"] == 1
+
+
+def test_original_config_keeps_released_constant_math_and_code_defaults():
+    config = load_config(TRAINING_CONFIG)
+    assert config["initialization"] == "released"
+    assert config["scheduler"] == "none"
+    assert config["domains"] == ["math", "code"]
+
+
+def test_smallest_pool_budget_gives_each_head_at_most_one_pass():
+    config = {"supervised_tokens_per_head": "smallest_effort_pool"}
+    source = [{**s, "split": "train"} for s in samples()]
+    budget = resolve_budget(config, source)
+    # Every effort pool is 3 + 5 + 7 = 15 assistant tokens.
+    assert budget == 15
+    for role in ("low", "medium", "high", "mixed"):
+        rows = budget_examples(source, role, budget, 0)
+        keys = [(r["source_id"], r["effort"]) for r in rows]
+        assert len(keys) == len(set(keys))
+        assert sum(sum(r["loss_mask"]) for r in rows) == budget
+    assert resolve_budget({"supervised_tokens_per_head": 99}, source) == 99
+
+
+def test_invalid_scratch_settings_are_rejected(tmp_path):
+    import yaml
+
+    base = yaml.safe_load(SCRATCH.read_text())
+    for change in (
+        {"initialization": "random"},
+        {"scheduler": "linear"},
+        {"domains": ["chat"]},
+        {"epochs": 2},
+    ):
+        path = tmp_path / "config.yaml"
+        path.write_text(yaml.safe_dump({**base, **change}))
+        with pytest.raises(ValueError):
+            load_config(path)
+
+
+def test_all_remaining_tasks_train_after_the_development_split():
+    evaluation = [Prompt("eval", "math", [{"role": "user", "content": "held out"}], 10)]
+    domains = {
+        "math": [
+            {"id": f"math-{i}", "messages": [{"role": "user", "content": f"task {i}"}]}
+            for i in range(6)
+        ]
+        + [{"id": "dup", "messages": [{"role": "user", "content": "held  out"}]}]
+    }
+    config = {
+        "seed": 0,
+        "domains": ["math"],
+        "train_prompts_per_domain": "all",
+        "development_prompts_per_domain": 2,
+    }
+    train, dev = select_prompts(domains, evaluation, config)
+    assert len(dev) == 2 and len(train) == 4
+    assert {p["id"] for p in train}.isdisjoint({p["id"] for p in dev})
+    assert "dup" not in {p["id"] for p in train + dev}

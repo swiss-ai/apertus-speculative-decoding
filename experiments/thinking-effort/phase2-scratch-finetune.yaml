@@ -1,0 +1,41 @@
+# Canvas #18 control: effort-specific fine-tunes of the released head, same corpus as phase2-scratch.yaml.
+# Same released DFlash architecture/target taps; draft decoder weights are freshly
+# initialized (upstream config-only path), verifier embeddings/head/norm stay frozen.
+# One math dataset (full GSM8K train, disjoint from the 64 evaluation prompts),
+# one epoch per head. Every head gets the same supervised-token budget: the
+# smallest effort pool (low), so the low head sees its pool exactly once and no
+# head repeats a sequence. The mixed head takes one third from each effort.
+schema_version: 1
+upstream_revision: e3041ddb4e58d8d0fad86f938f44423bdf424ae9
+domains: [math]
+train_prompts_per_domain: all
+development_prompts_per_domain: 64
+seed: 0
+epochs: 1
+supervised_tokens_per_head: smallest_effort_pool
+maximum_training_sequence: 8192
+minimum_retained_train_prompts: 4096
+minimum_retained_development_prompts: 48
+generation_workers: 4
+# 16x the Oct-29 per-worker concurrency: 22k requests instead of 1.7k.
+generation_concurrency_per_worker: 32
+initialization: released
+# Frozen Oct-29 fine-tune recipe (784a951f phase2.yaml): constant AdamW 1e-5,
+# warm-started from the released head, on the scratch campaign's exact corpus (--data-reference).
+learning_rate: 0.00001
+scheduler: none
+warmup_ratio: 0.0
+optimizer: adamw
+weight_decay: 0.01
+loss_fn: ce
+loss_implementation: fused
+draft_attention_implementation: sdpa
+position_loss_weight: fixed-exp-decay
+position_loss_gamma: 4.0
+max_anchors: 512
+noise_std: 0.0
+checkpoint_selection: lowest_development_loss
+supervised_token_basis: assistant tokens presented across complete training epochs; excludes prompt and padding
+dataset_revisions:
+  openai/gsm8k: 740312add88f781978c0658806c59bc2815b9866
+  google-research-datasets/mbpp: 4bb6404fdc6cacfda99d4ac4205087b89d32030c
