@@ -1,0 +1,22 @@
+# GLM-5.3-Flash SGLang serving environment (one GH200 node, TP4).
+# SGLang (0.5.20 line) CI image: glm5_next with dflash_capture (hc_contract for mHC) and
+# DFlash v2 workers; used for the DFlash2 arm, which the vLLM 0.30 build cannot serve.
+image = "/capstor/store/cscs/swissai/infra01/container-images/ci/sglang_nvidia_alps-arm64.sqsh"
+
+mounts = [
+  "/capstor",
+  "/iopsstor",
+  "/users",
+  "/usr/lib64/libhwloc.so.15:/usr/lib/libhwloc.so.15",
+  "/usr/lib64/libpciaccess.so.0:/usr/lib/libpciaccess.so.0",
+  "/usr/lib64/libxml2.so.2:/usr/lib/libxml2.so.2",
+  "/usr/lib64/libnuma.so.1:/usr/lib/libnuma.so.1",
+]
+
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/glm53-specdec/repo"
+
+# Single node only: TP/EP traffic stays on NVLink, so no libfabric/CXI hooks
+# (a hook variant that does not match the image would break startup).
+[env]
+PYTHONNOUSERSITE = "1"
+VLLM_ALLREDUCE_USE_SYMM_MEM = "0"

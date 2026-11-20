@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Submit one GLM-5.3-Flash serving arm on one GH200 node (TP4, experts included)
 # and load-test it with the repo's bench client (src/apertus_bench loadtest).
-#   serving/glm53/submit-arm.sh ARM            # ARM: plain mtp-k1 mtp-k3 dflash-k3 dflash-k7
+#   serving/glm53/submit-arm.sh ARM            # ARM: plain mtp-k1 mtp-k3 dflash-k3 dflash-k7 sgl-dflash
+# sgl-dflash serves DFlash2 with SGLang (the drafter card's engine): this vLLM build's
+# Glm5Next lacks the EAGLE3 aux-hidden-state interface DFlash needs (smoke 3988221).
 # Settings (environment):
 #   GLM53_RUN       run directory (default results/glm53-flash/<stamp>-<arm>; one per deployment)
 #   GLM53_SMOKE=1   load the model and serve a few short requests only
@@ -15,6 +17,7 @@ REPO_ROOT="$(cd "${SERVING_DIR}/../.." && pwd)"
 TARGET="/capstor/store/cscs/swissai/infra01/hf_models/models/zai-org/GLM-5.3-Flash"
 DRAFTER="/capstor/store/cscs/swissai/infra01/hf_models/models/incoai/GLM-5.3-Flash-DFlash2"
 ENV_SOURCE="${REPO_ROOT}/experiments/glm53-flash/env.toml"
+[ "${1:-}" = sgl-dflash ] && ENV_SOURCE="${REPO_ROOT}/experiments/glm53-flash/env-sglang.toml"
 IMAGE="$(sed -n 's/^image = "\(.*\)"/\1/p' "${ENV_SOURCE}")"
 WORKLOADS="${GLM53_WORKLOADS:-${HOME}/apertus-spec-decoding/workloads/8b}"
 SMOKE="${GLM53_SMOKE:-0}"
@@ -34,6 +37,7 @@ case "${ARM}" in
   mtp-k3)    METHOD=mtp;    K=3;   SPEC='{"method": "mtp", "num_speculative_tokens": 3}' ;;
   dflash-k3) METHOD=dflash; K=3;   SPEC="{\"method\": \"dflash\", \"model\": \"${DRAFTER}\", \"num_speculative_tokens\": 3}" ;;
   dflash-k7) METHOD=dflash; K=7;   SPEC="{\"method\": \"dflash\", \"model\": \"${DRAFTER}\", \"num_speculative_tokens\": 7}" ;;
+  sgl-dflash) METHOD=dflash; K=7;  SPEC="" ;;
   *) echo "unknown arm ${ARM}" >&2; exit 2 ;;
 esac
 
@@ -54,6 +58,19 @@ SERVE=(
   --no-enable-prefix-caching
 )
 [ -n "${SPEC}" ] && SERVE+=(--speculative-config "${SPEC}")
+NO_METRICS=()
+if [ "${ARM}" = sgl-dflash ]; then
+  # Block 8 drafter (7 draft tokens). SGLang has no vLLM spec-decode counters:
+  # acceptance comes from its server log (accept len), so the client skips /metrics.
+  SERVE=(
+    python3 -m sglang.launch_server --model-path "${TARGET}" --served-model-name "${SERVED}"
+    --host 127.0.0.1 --port "${PORT}" --tp-size 4 --context-length 16384
+    --max-running-requests 128 --mem-fraction-static "${GLM53_GPU_UTIL:-0.92}"
+    --disable-radix-cache --speculative-algorithm DFLASH
+    --speculative-draft-model-path "${DRAFTER}"
+  )
+  NO_METRICS=(--no-metrics)
+fi
 
 if [ "${SMOKE}" = "1" ]; then
   # workload|concurrencies|extra client args
@@ -120,7 +137,9 @@ srun --overlap --nodes=1 --ntasks=1 --environment="${OUT}/environment.toml" bash
   export VLLM_CACHE_ROOT=/tmp/vllm-cache TRITON_CACHE_DIR=/tmp/triton-cache FLASHINFER_WORKSPACE_BASE=/tmp/flashinfer
   export XDG_CACHE_HOME=/tmp/xdg-cache XDG_CONFIG_HOME=/tmp/xdg-config TORCHINDUCTOR_CACHE_DIR=/tmp/inductor-cache
   export VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
-  python3 -c "import vllm, torch; print(\"vllm\", vllm.__version__, \"torch\", torch.__version__)" > "${OUT}/runtime-versions.txt" 2>&1
+  python3 -c "import torch; print(\"torch\", torch.__version__)" > "${OUT}/runtime-versions.txt" 2>&1
+  python3 -c "import vllm; print(\"vllm\", vllm.__version__)" >> "${OUT}/runtime-versions.txt" 2>&1
+  python3 -c "import sglang; print(\"sglang\", sglang.__version__)" >> "${OUT}/runtime-versions.txt" 2>&1
   pip freeze > "${OUT}/pip-freeze.txt" 2> /dev/null || true
   ${SERVE_Q} > "${OUT}/server.log" 2>&1 &
   SERVER=\$!
@@ -142,7 +161,7 @@ srun --overlap --nodes=1 --ntasks=1 --environment="${OUT}/environment.toml" bash
     file="${WORKLOADS}/arena-hard.jsonl"; [ "\${workload}" = probe ] && file="${WORKLOADS}/probe-speculator-benchmarks.jsonl"
     python3 -m apertus_bench loadtest --base-url http://127.0.0.1:${PORT} --model "${SERVED}" \
       --workloads "\${file}" --workload "\${workload}" --variant "${ARM}" ${BENCH_METHOD_Q} \
-      --concurrencies \${levels} \${extra} --metrics-interval 1 \
+      --concurrencies \${levels} \${extra} ${NO_METRICS[*]:---metrics-interval 1} \
       --metadata deployment_id=${DEPLOYMENT_ID} --metadata target_model=zai-org/GLM-5.3-Flash \
       --metadata target_tensor_parallel_size=4 --metadata expert_parallel=0 \
       --metadata image=${IMAGE} --metadata speculative_arm=${ARM} \
