@@ -92,6 +92,18 @@ JOB_T0=\$(date +%s)
 echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} edf=${EDF}"
 cat "\${REPO_ROOT}/REVISION" 2> /dev/null || true
 export WORK=${WORK}
+# Scratch cleanup deletes files that look idle. Python imports only stat the
+# .py sources (the cached .pyc is read instead), so the code trees never look
+# used: 275 files went on 2026-11-08 and 79 on 2026-11-19 from the speculators
+# checkout. Refresh every code file's times at each job start.
+for code_dir in "\${REPO_ROOT}" "\${SPECULATORS:-}" "\${SIDE_DEPS:-}"; do
+  [ -d "\${code_dir}" ] && find "\${code_dir}" -path '*/.git' -prune -o -type f -exec touch -c {} +
+done
+if [ -n "\${SPECULATORS:-}" ] && [ -n "\$(git -C "\${SPECULATORS}" ls-files --deleted 2> /dev/null | head -1)" ]; then
+  echo "speculators checkout is missing tracked files (scratch cleanup?):" >&2
+  git -C "\${SPECULATORS}" ls-files --deleted | head -20 >&2
+  exit 1
+fi
 export BEVERIN_DEPLOYMENT="\${WORK}/runs/\${RUN_ID}/deployments/\${SLURM_JOB_ID}"
 mkdir -p "\${BEVERIN_DEPLOYMENT}"
 cp "\$0" "\${BEVERIN_DEPLOYMENT}/launch.sbatch"
