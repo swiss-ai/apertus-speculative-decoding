@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Submit one GLM-5.3-Flash serving arm on one GH200 node (TP4 + expert parallel)
+# Submit one GLM-5.3-Flash serving arm on one GH200 node (TP4, experts included)
 # and load-test it with the repo's bench client (src/apertus_bench loadtest).
 #   serving/glm53/submit-arm.sh ARM            # ARM: plain mtp-k1 mtp-k3 dflash-k3 dflash-k7
 # Settings (environment):
@@ -43,7 +43,10 @@ SERVE=(
   vllm serve "${TARGET}"
   --served-model-name "${SERVED}"
   --host 127.0.0.1 --port "${PORT}"
-  --tensor-parallel-size 4 --enable-expert-parallel
+  # No --enable-expert-parallel: vLLM 0.30 copies it into the dense DFlash2
+  # drafter's parallel config and rejects it (no experts), so every arm uses
+  # plain TP4 for the experts as well, keeping the layouts identical.
+  --tensor-parallel-size 4
   --language-model-only
   --max-model-len 16384
   --max-num-seqs 128 --max-num-batched-tokens 16384
@@ -135,7 +138,7 @@ srun --overlap --nodes=1 --ntasks=1 --environment="${OUT}/environment.toml" bash
       --workloads "\${file}" --workload "\${workload}" --variant "${ARM}" ${BENCH_METHOD_Q} \
       --concurrencies \${levels} \${extra} --metrics-interval 1 \
       --metadata deployment_id=${DEPLOYMENT_ID} --metadata target_model=zai-org/GLM-5.3-Flash \
-      --metadata target_tensor_parallel_size=4 --metadata expert_parallel=1 \
+      --metadata target_tensor_parallel_size=4 --metadata expert_parallel=0 \
       --metadata image=${IMAGE} --metadata speculative_arm=${ARM} \
       --metadata slurm_job=\${SLURM_JOB_ID} \
       --output "${OUT}/cells/\${workload}" > "${OUT}/bench-\${workload}.log" 2>&1 \

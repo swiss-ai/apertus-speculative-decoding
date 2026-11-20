@@ -17,10 +17,13 @@ CSCS Inference Service deployment.
   registers the target, the `glm5_next_mtp` speculative type and
   `DFlash2DraftModel`. The drafter card documents SGLang; vLLM is used here to match
   the rest of this repository's measurements.
-- **Layout:** one node, TP4 with expert parallelism (EP4 experts, TP4 attention),
+- **Layout:** one node, TP4 for attention and experts alike,
   `--gpu-memory-utilization 0.94`, `--max-model-len 16384`, `--max-num-seqs 128`,
   prefix caching off. The FP8 weights take about 77 GiB of each GPU's 96 GB, so KV
-  capacity is small; this is recorded per arm in `server.log`.
+  capacity is small; this is recorded per arm in `server.log`. Expert parallelism
+  is not used: in this vLLM build the drafter inherits `enable_expert_parallel` and
+  fails validation because it has no experts (smoke job 3987975), so all arms use
+  the same EP-free layout. EP versus TP for the experts is a separate question.
 
 ## Arms and workloads
 
