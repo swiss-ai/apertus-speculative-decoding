@@ -111,7 +111,7 @@ head_run() {  # head_run DOMAIN|mixed
   local front
   front="$(python3 -c "import json; print(json.load(open('${H}/data/conversion.json'))['train_rows'])")"
   step "$S" 20 prepare "${H}/prepared" prepare "${H}/data/train-dev.jsonl" "${H}/prepared" "${front}"
-  step "$S" 90 train "${ROOT}/runs/train-${h}" trainer "train-${h}" "${H}/prepared" "${INIT}" "${LR_PLAN}" \
+  step "$S" "${TRAIN_MINUTES:-90}" train "${ROOT}/runs/train-${h}" trainer "train-${h}" "${H}/prepared" "${INIT}" "${LR_PLAN}" \
     "${EPOCHS_PLAN}" "${MAX_STEPS_PLAN}" "$(ratio_of "${H}/prepared")" \
     --scheduler-type cosine --scheduler-warmup-steps 19 --scheduler-num-cosine-cycles 0.5
   ckpt="$("${TOOL[@]}" pick-checkpoint --run "${ROOT}/runs/train-${h}" --max-steps "${MAX_STEPS_PLAN}")"

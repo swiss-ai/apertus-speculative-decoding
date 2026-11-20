@@ -54,6 +54,7 @@ if [ "${WHAT}" = runtime ]; then
   exit 0
 fi
 if [ "${WHAT}" = smoke ]; then
+  common+=(TRAIN_MINUTES=15)  # 6 steps; the 90-min full-run bound paused job 3988408
   id="$(submit "baseline mixed" debug 01:30:00 "${AFTER:+afterok:${AFTER}}")"
   record "baseline mixed" "${id}" "${AFTER:-}"
   echo "smoke ${id} root ${ROOT}"
