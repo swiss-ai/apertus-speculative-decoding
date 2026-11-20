@@ -13,7 +13,7 @@ set -euo pipefail
 : "${REPO_ROOT:?}" "${DOMAIN_ROOT:?}" "${DOMAIN_PLAN:?}" "${HEADS:?}"
 ROOT="${DOMAIN_ROOT}"
 export DSPARK_DIR="${ROOT}"
-export SIDE_DEPS="${ROOT}/runtime/pydeps"
+export SIDE_DEPS="${DOMAIN_SIDE_DEPS:-${ROOT}/runtime/pydeps}"
 export SPECULATORS="${SPECULATORS:-${REPO_ROOT}/scratch/speculators}"
 . "${REPO_ROOT}/methods/dspark/train/common.sh"
 export HEAD_NODE="$(hostname)"
@@ -79,7 +79,12 @@ front_rows() { python3 -c "import json; print(json.load(open('${EVAL_DATA}/eval-
 
 baseline() {
   local S="${ROOT}/shared/stages"
-  if ! check_side_deps 2> /dev/null; then install_side_deps; fi
+  if ! check_side_deps 2> /dev/null; then
+    if [ -n "${DOMAIN_SIDE_DEPS:-}" ] && [ "${INSTALL_SIDE_DEPS:-0}" != 1 ]; then
+      echo "shared side deps ${SIDE_DEPS} incomplete; run the runtime check first" >&2; exit 1
+    fi
+    install_side_deps
+  fi
   check_side_deps
   step "$S" 10 rebind "${INIT}" "${ADAPT[@]}" rebind --plan "${DOMAIN_PLAN}" \
     --contract "${REPO_ROOT}/targets/8b/contract.json" --output "${INIT}"

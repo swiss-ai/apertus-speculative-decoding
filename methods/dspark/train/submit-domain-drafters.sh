@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Submit the per-domain DSpark drafters (canvas A3) from the cluster checkout.
+#   WHAT=runtime ./methods/dspark/train/submit-domain-drafters.sh # no traces needed: side deps, rebind, e10 on OPB
 #   WHAT=smoke ./methods/dspark/train/submit-domain-drafters.sh   # pilot slice, debug, baseline+mixed
 #   WHAT=full  [AFTER=<jobid>] ./methods/dspark/train/submit-domain-drafters.sh
 # full = one baseline job (rebind, evaluation sets, e10 evaluations), then one
@@ -13,16 +14,19 @@ WHAT="${WHAT:?smoke or full}"
 DATA_BASE=/iopsstor/scratch/cscs/${USER}/spec-exp-data/domain-drafters
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 case "${WHAT}" in
+  runtime) PLAN=methods/dspark/configs/8b/domain-drafters-runtime.json
+         ROOT="${DOMAIN_ROOT:-${DATA_BASE}/dspark-runtime-${STAMP}}" ;;
   smoke) PLAN=methods/dspark/configs/8b/domain-drafters-pilot.json
          ROOT="${DOMAIN_ROOT:-${DATA_BASE}/dspark-pilot-${STAMP}}" ;;
   full)  PLAN=methods/dspark/configs/8b/domain-drafters.json
          ROOT="${DOMAIN_ROOT:-${DATA_BASE}/dspark-r0-${STAMP}}" ;;
-  *) echo "WHAT must be smoke or full" >&2; exit 2 ;;
+  *) echo "WHAT must be runtime, smoke or full" >&2; exit 2 ;;
 esac
 mkdir -p "${ROOT}/logs" "${ROOT}/env" "${ROOT}/submissions"
 REV="$(cat .source-revision 2> /dev/null || git rev-parse HEAD)"
 common=(STAGE=8b MODE=domain DOMAIN_ROOT="${ROOT}" DOMAIN_PLAN="${REPO_ROOT}/${PLAN}"
-  SML_ENV_DIR="${ROOT}/env" DSPARK_LOG_ROOT="${ROOT}/logs")
+  SML_ENV_DIR="${ROOT}/env" DSPARK_LOG_ROOT="${ROOT}/logs"
+  DOMAIN_SIDE_DEPS="${DATA_BASE}/dspark-runtime/pydeps")
 submit() {  # submit HEADS PARTITION TIME DEPENDENCY -> job id
   local out
   out="$(env "${common[@]}" HEADS="$1" DSPARK_PARTITION="$2" TIME="$3" DEPENDENCY="$4" \
@@ -34,6 +38,13 @@ submit() {  # submit HEADS PARTITION TIME DEPENDENCY -> job id
 record() { printf '{"what":"%s","heads":"%s","job":"%s","dependency":"%s","source_revision":"%s","plan":"%s","plan_sha256":"%s","submitted_at":"%s"}\n' \
   "${WHAT}" "$1" "$2" "$3" "${REV}" "${PLAN}" "$(sha256sum "${PLAN}" | cut -d' ' -f1)" "${STAMP}" >> "${ROOT}/submissions/submissions.jsonl"; }
 
+if [ "${WHAT}" = runtime ]; then
+  common+=(INSTALL_SIDE_DEPS=1)
+  id="$(submit baseline debug 01:30:00 "${AFTER:+afterok:${AFTER}}")"
+  record baseline "${id}" "${AFTER:-}"
+  echo "runtime ${id} root ${ROOT}"
+  exit 0
+fi
 if [ "${WHAT}" = smoke ]; then
   id="$(submit "baseline mixed" debug 01:30:00 "${AFTER:+afterok:${AFTER}}")"
   record "baseline mixed" "${id}" "${AFTER:-}"
