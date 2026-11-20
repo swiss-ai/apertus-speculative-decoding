@@ -106,6 +106,16 @@ def main() -> None:
     for arm in ARMS:
         (OUT / f"domain-{arm}-n8k.yaml").write_text(config(arm))
     (OUT / "domain-pilot-smoke.yaml").write_text(config("math", pilot=True))
+    # Pipeline smoke that needs no domain traces: start from the e10 export and
+    # take 4 steps on OPB held-out rows (eval-only data, never a training arm).
+    smoke = config("math", pilot=True)
+    smoke = smoke.replace(f"{DATA}/traces/pilot/math/train.jsonl", OPB)
+    head, _, tail = smoke.partition("  eval_data:")
+    tail = tail.split("  max_seq_length:", 1)[1]
+    smoke = (head + f"  eval_data: [{OPB}]\n  eval_limit: 16\n  max_seq_length:" + tail).replace(
+        "domain-math-pilot", "domain-export-smoke"
+    )
+    (OUT / "domain-export-smoke.yaml").write_text(smoke)
 
 
 if __name__ == "__main__":
