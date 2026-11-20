@@ -7,6 +7,8 @@
 #                         chat/summarization/multilingual with the T5 builder,
 #                         math/code/tool with build_domain_pools; stage
 #                         prompts/<domain>/{train,dev}.jsonl and a pilot slice.
+#   DOMAIN_MODE=pilot     pools if needed, then the pilot slice of all six
+#                         domains on four GPUs (READY-pilot).
 #   DOMAIN_MODE=generate  DOMAIN_LIST="math code tool": one domain per GPU,
 #                         pilot first (READY-pilot once all six exist), then
 #                         the full split (READY-<domain>), MANIFEST.json and a
@@ -79,7 +81,7 @@ stage_prompts() {
   touch "${PROMPTS}/${domain}/STAGED"
 }
 
-if [ "${DOMAIN_MODE}" = pools ]; then
+build_pools() {
   PROTECT=()
   for name in eagle-8b-test eagle-8b-validation eagle-8b-profile arena-hard opb-heldout opb-calib \
       probe-speculator-benchmarks probe-speculator-benchmarks-thinking; do
@@ -87,8 +89,8 @@ if [ "${DOMAIN_MODE}" = pools ]; then
   done
   # Container digest, off the generation critical path (generation jobs only need the path).
   ( image="$(python3 -c "import tomllib,sys;print(tomllib.load(open(sys.argv[1],'rb'))['image'])" "${SBATCH_ENVIRONMENT_FILE}")"
-    sha256sum "${image}" > "${DATA_ROOT}/image.sha256" ) &
-  hash_pid=$!
+    [ -f "${DATA_ROOT}/image.sha256" ] || { sha256sum "${image}" > "${DATA_ROOT}/image.sha256.tmp-${SLURM_JOB_ID}" \
+      && mv "${DATA_ROOT}/image.sha256.tmp-${SLURM_JOB_ID}" "${DATA_ROOT}/image.sha256"; } ) &
   export PYTHONPATH="${PYDEPS}:${PYTHONPATH:-}"
   if [ ! -f "${POOLS}/manifest-domain-pools.json" ]; then
     python3 -m apertus_eagle.build_domain_pools --contract "${CONTRACT}" --output-dir "${POOLS}" \
@@ -105,12 +107,23 @@ if [ "${DOMAIN_MODE}" = pools ]; then
   fi
   for domain in chat summarization multilingual; do stage_prompts "${domain}" "${POOLS}/${domain}"; done
   log "staged chat summarization multilingual"
-  wait "${hash_pid}" || log "image hash failed"
   log "pools done"
-  exit 0
-fi
+}
 
-[ "${DOMAIN_MODE}" = generate ] || { echo "DOMAIN_MODE must be pools or generate" >&2; exit 2; }
+ensure_pools() {
+  # Any mode builds the pools once (a lock keeps parallel jobs from racing).
+  (
+    flock 8
+    local missing=0
+    for domain in ${ALL_DOMAINS}; do [ -f "${PROMPTS}/${domain}/STAGED" ] || missing=1; done
+    if [ "${missing}" -eq 1 ]; then build_pools; else log "pools already staged"; fi
+  ) 8>"${DATA_ROOT}/.pools.lock"
+}
+
+
+case "${DOMAIN_MODE}" in pools|pilot|generate) ;; *) echo "DOMAIN_MODE must be pools, pilot or generate" >&2; exit 2 ;; esac
+ensure_pools
+[ "${DOMAIN_MODE}" = pools ] && exit 0
 
 finalize() {
   # MANIFEST.json over every finished split, READY markers, capstor backup.
@@ -194,6 +207,31 @@ run_domain() {
   finalize "${domain}"
   log "${domain}: full done"
 }
+
+run_pilot_slot() {
+  local gpu="$1"; shift
+  local domain
+  for domain in "$@"; do
+    if [ ! -f "${TRACES}/pilot/${domain}/generation-summary.json" ]; then
+      generate "${DATA_ROOT}/prompts-pilot/${domain}" "${TRACES}/pilot/${domain}" "${gpu}" \
+        || { log "${domain}: pilot failed"; continue; }
+    fi
+    finalize pilot
+    log "${domain}: pilot done"
+  done
+}
+
+if [ "${DOMAIN_MODE}" = pilot ]; then
+  mkdir -p "${TRACES}/pilot"
+  run_pilot_slot 0 math multilingual & p0=$!
+  run_pilot_slot 1 code tool & p1=$!
+  run_pilot_slot 2 chat & p2=$!
+  run_pilot_slot 3 summarization & p3=$!
+  wait "${p0}" "${p1}" "${p2}" "${p3}"
+  [ -f "${TRACES}/READY-pilot" ] || { log "pilot incomplete"; exit 1; }
+  log "pilot finished"
+  exit 0
+fi
 
 gpu=0
 pids=()

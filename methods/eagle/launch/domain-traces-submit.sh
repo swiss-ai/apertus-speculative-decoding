@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Submit the domain-drafters trace chain from a cluster checkout:
-# one CPU pools job, then generation jobs (afterok) with three domains each.
-#   methods/eagle/launch/domain-traces-submit.sh            # pools + 2 generation nodes
-#   DOMAIN_SKIP_POOLS=1 ...                                 # pools already staged
+# a debug pilot job (pools + pilot slice), then generation jobs with three domains each.
+#   methods/eagle/launch/domain-traces-submit.sh            # pilot + 2 generation nodes
+#   DOMAIN_SKIP_PILOT=1 ...                                 # generation jobs only
 # DOMAIN_PARTITION (normal), DOMAIN_TIME (04:00:00), DOMAIN_GROUPS ("math code tool;chat summarization multilingual").
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
@@ -47,17 +47,16 @@ SBATCH
   echo "${file}"
 }
 
-dep=()
-if [ -z "${DOMAIN_SKIP_POOLS:-}" ]; then
-  pools_file="$(write_job pools pools "" 0 "${DOMAIN_POOLS_TIME:-01:30:00}")"
-  pools_id="$(sbatch --parsable "${pools_file}")"
-  echo "pools job ${pools_id}"
-  dep=(--dependency="afterok:${pools_id}")
+# Pilot (pools + 512/64 pilot slice of all six domains) on the debug partition,
+# where a job starts quickly; full generation on normal, building the pools
+# itself if the pilot job has not staged them yet.
+if [ -z "${DOMAIN_SKIP_PILOT:-}" ]; then
+  pilot_file="$(write_job pilot pilot "" 4 "${DOMAIN_PILOT_TIME:-01:30:00}")"
+  sed -i "s|^#SBATCH --partition=.*|#SBATCH --partition=${DOMAIN_PILOT_PARTITION:-debug}|" "${pilot_file}"
+  echo "pilot job $(sbatch --parsable "${pilot_file}")"
 fi
 for index in "${!GROUPS_[@]}"; do
   list="${GROUPS_[$index]}"
-  gpus=$(wc -w <<< "${list}")
   file="$(write_job "gen${index}" generate "${list}" 4 "${DOMAIN_TIME:-04:00:00}")"
-  id="$(sbatch --parsable ${dep[@]+"${dep[@]}"} "${file}")"
-  echo "generate job ${id}: ${list} (${gpus} GPUs used)"
+  echo "generate job $(sbatch --parsable "${file}"): ${list}"
 done
