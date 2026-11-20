@@ -87,6 +87,26 @@ rejected. Per Faruk's standing rule (domain jobs first on debug):
   chain starting from the smoke, so at most one block uses debug at a time, and
   restarts the identical controller, which reuses all three `job.json` records.
 
+## Smoke evaluation blocks yielded a third time (2026-11-20 14:49 CET)
+
+The second waiter treated "DSpark smoke 3988743 ended" as its go signal. That
+smoke had **FAILED** (a DSpark backup bug, since fixed), so the waiter submitted
+block-0 **3988916**, which ran for 1 min 36 s, and block-1 **3988925**
+(pending, afterany 3988916). Together they blocked the domain smoke's roughly
+15-minute resume. Per Faruk's domain-first decision:
+
+- Killed the waiter (pid 948724). No controller was running yet.
+- Cancelled 3988916 and 3988925. The records are kept as
+  `job.cancelled-<id>.json` with `replacement.json` histories.
+- Moved block-0's partial measurement directory to
+  `cancelled-attempts/phase2-block-0-job3988916`. `phase2/` is empty again.
+- The waiter script now proceeds **only** once
+  `~/.local/state/domain-drafters-dspark/smoke-done` exists. The DSpark agent
+  creates that marker after its smoke succeeds. Smoke IDs and job end states are
+  ignored. If the marker is absent for 12 h, the waiter logs and exits.
+  Block-0 has no dependency and blocks 1 and 2 chain afterany. The restarted
+  waiter is pid 1006027 with the same log.
+
 ## Risks
 
 - Budget: the low-effort pool is about 7.4k × ~200 tokens ≈ 1.5M assistant tokens per
