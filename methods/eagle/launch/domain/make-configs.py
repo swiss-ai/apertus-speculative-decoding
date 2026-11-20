@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-DOMAINS = ("math", "code", "chat", "summarization", "multilingual", "structured")
+DOMAINS = ("math", "code", "chat", "summarization", "multilingual", "tool")
 ARMS = (*DOMAINS, "mixed")
 DATA = "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/domain-drafters"
 ROOT = f"{DATA}/eagle"

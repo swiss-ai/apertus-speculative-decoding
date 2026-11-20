@@ -21,7 +21,7 @@ See [drafter-updates.md](drafter-updates.md) and
 | item | setting |
 | --- | --- |
 | start | EAGLE 3.1 e10 thinking-off, served export: HF `faruk-zahiragic/Apertus-v1.5-8B-EAGLE3.1-e10-thinking-off` @ `4c9d4c9e`, SHA256SUMS verified (`model.safetensors` 42b05496…). The trainer checkpoint `checkpoints/best` (step 251,955) was emptied by the scratch cleaner, so `model.init_from` now also accepts an export: keys are mapped back with TorchSpec's `to_internal_keys`. Only the tensors that `export_head` drops (embedding, vocab maps) are filled from the fresh draft, and the frozen lm_head must still equal the target's. |
-| arms | math, code, chat, summarization, multilingual, structured (one head each) + **mixed** (8,000 rows: 1,334 or 1,333 of each domain's first rows, interleaved) |
+| arms | math, code, chat, summarization, multilingual, tool (tool use; the data branch's name for the structured domain) (one head each) + **mixed** (8,000 rows: 1,334 or 1,333 of each domain's first rows, interleaved) |
 | data | Target-answered traces from the sibling data branch: 8,000 train / 256 dev per domain, thinking off, deployment sampling. Contract: `spec-exp-data/domain-drafters/traces/<domain>/{train,dev}.jsonl` |
 | recipe | Identical for every arm = `adapt-mult-n8k-r0`: 1 node (4 ranks), 32 rows/step, constant LR 3e-5 after 19 warmup steps, 384 steps (12,288 rows, ~1.5 epochs of 8k), forward KL, TTT 7, seed 1, final checkpoint exported |
 | budget | Equal **rows** per arm, as in T5. Token budgets differ by domain (summarization rows are long); report tokens per arm with the result. |
