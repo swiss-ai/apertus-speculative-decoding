@@ -41,7 +41,10 @@ submit() {  # submit HEADS PARTITION TIME DEPENDENCY -> job id
     DSPARK_TRAIN_PATCH_DIR="${ROOT}/vllm-patch-${1// /-}-${STAMP}" \
     ./methods/dspark/train/submit-train.sh)"
   echo "${out}" >&2
-  sed -n 's/^submitted \([0-9]*\).*/\1/p' <<< "${out}" | tail -1
+  local id
+  id="$(sed -n 's/^submitted \([0-9]*\).*/\1/p' <<< "${out}" | tail -1)"
+  [ -n "${id}" ] || { echo "sbatch failed for $1" >&2; return 1; }
+  echo "${id}"
 }
 record() { printf '{"what":"%s","heads":"%s","job":"%s","dependency":"%s","source_revision":"%s","plan":"%s","plan_sha256":"%s","submitted_at":"%s"}\n' \
   "${WHAT}" "$1" "$2" "$3" "${REV}" "${PLAN}" "$(sha256sum "${PLAN}" | cut -d' ' -f1)" "${STAMP}" >> "${ROOT}/submissions/submissions.jsonl"; }
@@ -55,7 +58,7 @@ if [ "${WHAT}" = runtime ]; then
 fi
 if [ "${WHAT}" = smoke ]; then
   common+=(TRAIN_MINUTES=15)  # 6 steps; the 90-min full-run bound paused job 3988408
-  id="$(submit "baseline mixed" debug 01:30:00 "${AFTER:+afterok:${AFTER}}")"
+  id="$(submit "baseline mixed" "${SMOKE_PARTITION:-debug}" 01:30:00 "${AFTER:+afterok:${AFTER}}")"
   record "baseline mixed" "${id}" "${AFTER:-}"
   echo "smoke ${id} root ${ROOT}"
   exit 0
