@@ -27,6 +27,14 @@ REV="$(cat .source-revision 2> /dev/null || git rev-parse HEAD)"
 common=(STAGE=8b MODE=domain DOMAIN_ROOT="${ROOT}" DOMAIN_PLAN="${REPO_ROOT}/${PLAN}"
   SML_ENV_DIR="${ROOT}/env" DSPARK_LOG_ROOT="${ROOT}/logs"
   DOMAIN_SIDE_DEPS="${DATA_BASE}/dspark-runtime/pydeps")
+# AFTER only gates while that job is still queued or running: a finished job
+# (sbatch rejects afterok on it) is checked here instead, through sacct.
+if [ -n "${AFTER:-}" ] && [ -z "$(squeue -h -j "${AFTER}" -o %i 2> /dev/null)" ]; then
+  state="$(sacct -n -X -j "${AFTER}" -o State%20 | awk 'NF{print $1; exit}')"
+  if [ "${state}" != COMPLETED ]; then echo "AFTER job ${AFTER} ended ${state:-unknown}" >&2; exit 1; fi
+  echo "AFTER job ${AFTER} already COMPLETED; no dependency" >&2
+  AFTER=""
+fi
 submit() {  # submit HEADS PARTITION TIME DEPENDENCY -> job id
   local out
   out="$(env "${common[@]}" HEADS="$1" DSPARK_PARTITION="$2" TIME="$3" DEPENDENCY="$4" \
@@ -54,7 +62,7 @@ fi
 base="$(submit baseline normal 02:30:00 "${AFTER:+afterok:${AFTER}}")"
 record baseline "${base}" "${AFTER:-}"
 ids=()
-for h in math code chat summarization multilingual structured mixed; do
+for h in math code chat summarization multilingual tool mixed; do
   id="$(submit "${h}" normal 04:00:00 "afterok:${base}")"
   record "${h}" "${id}" "afterok:${base}"
   ids+=("${h}=${id}")

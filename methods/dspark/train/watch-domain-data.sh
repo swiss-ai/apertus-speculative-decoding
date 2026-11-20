@@ -12,7 +12,7 @@ CHECKOUT="${CHECKOUT:-/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/domain-dsp
 TRACES="${TRACES:-/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/domain-drafters/traces}"
 STATE_DIR="${STATE_DIR:-${HOME}/.local/state/domain-drafters-dspark}"
 POLL="${POLL:-300}"
-DOMAINS="math code chat summarization multilingual structured"
+DOMAINS="math code chat summarization multilingual tool"
 : "${RUNTIME_JOB:?}"
 mkdir -p "${STATE_DIR}"
 log() { echo "[$(date -u +%FT%TZ)] $*" >> "${STATE_DIR}/watch.log"; }

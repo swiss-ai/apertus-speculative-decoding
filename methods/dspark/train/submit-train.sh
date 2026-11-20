@@ -128,7 +128,7 @@ if [ "${DSPARK_VALIDATE_WARM_START:-0}" = 1 ]; then
   CMD="srun --nodes=1 --ntasks=1 --environment=${SML_ENVIRONMENT} python3 \
 ${REPO_ROOT}/methods/dspark/train/rebind_verifier.py verify \
 --initializer ${FROM_PRETRAINED} --contract ${REPO_ROOT}/targets/${STAGE}/contract.json \
---image ${IMAGE} --source-revision $(git rev-parse HEAD) \
+--image ${IMAGE} --source-revision $(cat .source-revision 2> /dev/null || git rev-parse HEAD) \
 --output ${DSPARK_DIR}/runs/${RUN_ID}/provenance/warm-start-\${SLURM_JOB_ID}.json
 ${CMD}"
 fi
@@ -151,7 +151,7 @@ cat > "${SCRIPT}" <<SBATCH
 set -euo pipefail
 export REPO_ROOT=${REPO_ROOT}
 $(pass_env)
-echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} git=$(git rev-parse --short HEAD)"
+echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} git=$(cat .source-revision 2> /dev/null || git rev-parse --short HEAD)"
 ${CMD}
 SBATCH
 
