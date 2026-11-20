@@ -113,7 +113,10 @@ IDENT=\$!
 srun --overlap --nodes=1 --ntasks=1 --environment="${OUT}/environment.toml" bash -c '
   set -uo pipefail
   export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"
+  # HOME is over quota: keep every cache, config and usage-stats write node-local.
   export VLLM_CACHE_ROOT=/tmp/vllm-cache TRITON_CACHE_DIR=/tmp/triton-cache FLASHINFER_WORKSPACE_BASE=/tmp/flashinfer
+  export XDG_CACHE_HOME=/tmp/xdg-cache XDG_CONFIG_HOME=/tmp/xdg-config TORCHINDUCTOR_CACHE_DIR=/tmp/inductor-cache
+  export VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
   python3 -c "import vllm, torch; print(\"vllm\", vllm.__version__, \"torch\", torch.__version__)" > "${OUT}/runtime-versions.txt" 2>&1
   pip freeze > "${OUT}/pip-freeze.txt" 2> /dev/null || true
   ${SERVE_Q} > "${OUT}/server.log" 2>&1 &
