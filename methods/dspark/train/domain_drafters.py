@@ -63,14 +63,14 @@ def cmd_lock_data(args: argparse.Namespace) -> None:
     plan = read(args.plan)
     files = {}
     for domain in plan["domains"]:
-        template = plan["data"].get("ready_marker")
-        marker = (
-            Path(template.format(traces_root=plan["data"]["traces_root"], domain=domain))
-            if template
-            else None
-        )
-        if marker is not None and not marker.exists():
-            raise SystemExit(f"data not ready: {marker}")
+        templates = plan["data"].get("ready_marker") or []
+        templates = [templates] if isinstance(templates, str) else templates
+        markers = [
+            Path(t.format(traces_root=plan["data"]["traces_root"], domain=domain))
+            for t in templates
+        ]
+        if markers and not any(m.exists() for m in markers):
+            raise SystemExit(f"data not ready: none of {markers}")
         for split, path in domain_files(plan, domain).items():
             files[f"{domain}/{split}"] = {"path": str(path), "sha256": sha256(path)}
     opb = plan["data"]["opb"]

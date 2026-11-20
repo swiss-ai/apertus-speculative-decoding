@@ -26,7 +26,11 @@
   },
   "data": {
     "traces_root": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp-data/domain-drafters/traces",
-    "ready_marker": "{traces_root}/READY-{domain}",
+    "ready_marker": [
+      "{traces_root}/READY-{domain}",
+      "{traces_root}/{domain}/READY-{domain}",
+      "{traces_root}/{domain}/READY"
+    ],
     "train_rows": 8000,
     "dev_rows": 256,
     "eval_placeholder_rows": 64,
