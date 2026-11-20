@@ -63,6 +63,30 @@ and restarts the identical controller. The controller reuses any existing
 The full scratch and fine-tune campaigns run on the normal partition and are
 unaffected.
 
+## Smoke evaluation blocks yielded again (2026-11-20 14:35 CET)
+
+The first waiter submitted block-0 as **3988416** (afterany DSpark smoke 3988408)
+and restarted the controller. The controller submitted block-1 as **3988706** with
+no dependency. DSpark smoke 3988408 ended without training (time bound), and the
+two blocks then held both debug submit slots, so the DSpark resubmission was
+rejected. Per Faruk's standing rule (domain jobs first on debug):
+
+- Stopped the controller (pid 216086 on ln001) and cancelled **3988416** (pending)
+  and **3988706**, which had run for 2 min 35 s. The records are kept as
+  `job.cancelled-<id>.json`, with a `replacement.json` history in each block directory.
+- Moved block-1's partial measurement directory to
+  `cancelled-attempts/phase2-block-1-job3988706`. The rerun refuses an existing
+  `phase2/block-1`.
+- Wrote the block-2 submission files with the controller's own `submit` in
+  validate-only mode. Nothing was submitted.
+- [`resubmit-smoke-blocks-after-dspark-debug-smoke.sh`](resubmit-smoke-blocks-after-dspark-debug-smoke.sh)
+  (workstation, log `~/.local/state/effort-scratch18/resubmit-blocks.log`)
+  replaces the first waiter. It waits for a new **debug** DSpark smoke ID in
+  `~/.local/state/domain-drafters-dspark/smoke` (not 3988408 or 3988723) and waits
+  until that job has **finished**. It then submits blocks 0 → 1 → 2 as an afterany
+  chain starting from the smoke, so at most one block uses debug at a time, and
+  restarts the identical controller, which reuses all three `job.json` records.
+
 ## Risks
 
 - Budget: the low-effort pool is about 7.4k × ~200 tokens ≈ 1.5M assistant tokens per
