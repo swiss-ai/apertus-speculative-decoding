@@ -117,7 +117,7 @@ head_run() {  # head_run DOMAIN|mixed
   ckpt="$("${TOOL[@]}" pick-checkpoint --run "${ROOT}/runs/train-${h}" --max-steps "${MAX_STEPS_PLAN}")"
   step "$S" 15 export "${H}/head" "${ADAPT[@]}" export --checkpoint "${ckpt}" --initializer "${INIT}" \
     --output "${H}/head"
-  step "$S" 10 backup "" bash -c "mkdir -p '${BACKUP}/${h}' && cp -a '${H}/head/.' '${BACKUP}/${h}/' \
+  step "$S" 10 backup "" bash -c "mkdir -p '${BACKUP}/${h}' && cp -r --preserve=timestamps '${H}/head/.' '${BACKUP}/${h}/' \
     && (cd '${BACKUP}/${h}' && sha256sum model.safetensors) > '${H}/backup-sha256.txt' \
     && grep -q \"\$(python3 -c \"import json;print(json.load(open('${H}/head/export-report.json'))['files']['model.safetensors']['sha256'])\")\" '${H}/backup-sha256.txt'"
   for set in ${SETS}; do
