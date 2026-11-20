@@ -399,6 +399,35 @@ def test_init_from_is_skipped_when_the_run_can_resume(tmp_path: Path) -> None:
     assert init_source(cfg, resume) is None
     with pytest.raises(SystemExit, match="no draft.safetensors"):
         init_source({"model": {"init_from": str(tmp_path / "missing")}}, tmp_path / "x")
+    export = tmp_path / "hf-export"
+    export.mkdir()
+    (export / "model.safetensors").write_bytes(b"")
+    assert init_source({"model": {"init_from": str(export)}}, tmp_path / "y") == export
+
+
+def test_export_state_is_completed_only_with_omitted_tensors() -> None:
+    np = pytest.importorskip("numpy")
+    from apertus_eagle.train_rollout import complete_export_state
+
+    class Arr(np.ndarray):
+        def clone(self):
+            return self.copy()
+
+    def arr(shape, value):
+        return np.full(shape, value).view(Arr)
+
+    current = {
+        "fc.weight": arr((4, 8), 0.0),
+        "embed_tokens.weight": arr((16, 4), 7.0),
+        "lm_head.weight": arr((16, 4), 1.0),
+    }
+    exported = {"fc.weight": arr((4, 8), 0.5), "lm_head.weight": arr((16, 4), 1.0)}
+    state, filled = complete_export_state(exported, current)
+    assert filled == ["embed_tokens.weight"]
+    assert (state["embed_tokens.weight"] == 7.0).all() and (state["fc.weight"] == 0.5).all()
+    # A trained tensor missing from the export is not papered over.
+    state, filled = complete_export_state({"lm_head.weight": exported["lm_head.weight"]}, current)
+    assert "fc.weight" not in state and filled == ["embed_tokens.weight"]
 
 
 def test_init_state_must_match_the_draft_and_its_frozen_copies() -> None:

@@ -272,9 +272,26 @@ def init_source(cfg: dict[str, Any], resume_dir: Path) -> Path | None:
     path = Path(value)
     if not path.is_absolute():
         path = REPO_ROOT / path
-    if not (path / "draft.safetensors").is_file():
-        raise SystemExit(f"model.init_from {path} has no draft.safetensors")
+    if not (path / "draft.safetensors").is_file() and not (path / "model.safetensors").is_file():
+        raise SystemExit(f"model.init_from {path} has no draft.safetensors or model.safetensors")
     return path
+
+
+# Tensors an export may legitimately omit: the input embedding (dropped when vLLM
+# shares the target's) and the vocabulary maps (always dropped by export_head).
+EXPORT_OMITTED = ("embed_tokens.weight", "t2d", "d2t")
+
+
+def complete_export_state(
+    internal: dict[str, Any], current: dict[str, Any]
+) -> tuple[dict[str, Any], list[str]]:
+    """A served export (``model.safetensors``, already mapped to internal keys) as a
+    full draft state: tensors the export omits are taken from the freshly built draft,
+    whose embedding is the target's copy. Returns the state and the filled keys.
+    Anything else missing stays missing, so ``init_state_problems`` refuses it.
+    """
+    filled = [k for k in EXPORT_OMITTED if k in current and k not in internal]
+    return {**internal, **{k: current[k].clone() for k in filled}}, filled
 
 
 def init_state_problems(
@@ -395,8 +412,21 @@ class RolloutTrainer:
             # Before the optimizer exists: its fp32 masters are copied from these weights.
             from safetensors.torch import load_file
 
-            source = load_file(str(init_from / "draft.safetensors"), device="cpu")
             current = draft.state_dict()
+            filled: list[str] = []
+            if (init_from / "draft.safetensors").is_file():
+                weights_file = init_from / "draft.safetensors"
+                source = load_file(str(weights_file), device="cpu")
+            else:
+                # Only the served export survives (e.g. the published e10 head).
+                from torchspec.models.draft.keymap import to_internal_keys
+
+                weights_file = init_from / "model.safetensors"
+                exported = load_file(str(weights_file), device="cpu")
+                internal = to_internal_keys(exported, current.keys())
+                source, filled = complete_export_state(
+                    internal, {k: v.cpu() for k, v in current.items()}
+                )
             frozen = [name for name, p in draft.named_parameters() if not p.requires_grad]
             problems = init_state_problems(source, current, frozen)
             if problems:
@@ -405,9 +435,9 @@ class RolloutTrainer:
             state_file = init_from / "state.json"
             self.init_report = {
                 "path": str(init_from),
-                "draft_sha256": hashlib.sha256(
-                    (init_from / "draft.safetensors").read_bytes()
-                ).hexdigest(),
+                "weights_file": weights_file.name,
+                "filled_from_target": filled,
+                "draft_sha256": hashlib.sha256(weights_file.read_bytes()).hexdigest(),
                 "state": json.loads(state_file.read_text()) if state_file.is_file() else None,
                 "tensors": len(source),
                 "frozen_checked": frozen,
