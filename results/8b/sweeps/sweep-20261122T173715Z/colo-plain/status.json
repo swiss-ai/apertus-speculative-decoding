@@ -1,0 +1,60 @@
+{
+  "arm": "colo-plain",
+  "deployment_id": "pd-compute-4004291-colo-plain",
+  "env": {
+    "CUDA_CACHE_PATH": "/tmp/pdc-cache/cuda",
+    "DO_NOT_TRACK": "1",
+    "FLASHINFER_WORKSPACE_BASE": "/tmp/pdc-cache/flashinfer-base",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/pdc-cache/inductor",
+    "TORCH_HOME": "/tmp/pdc-cache/torch",
+    "TRITON_CACHE_DIR": "/tmp/pdc-cache/triton",
+    "VLLM_CONFIG_ROOT": "/tmp/pdc-cache/vllm-config",
+    "VLLM_HTTP_TIMEOUT_KEEP_ALIVE": "300",
+    "VLLM_NO_USAGE_STATS": "1",
+    "XDG_CACHE_HOME": "/tmp/pdc-cache/xdg-cache",
+    "XDG_CONFIG_HOME": "/tmp/pdc-cache/xdg-config"
+  },
+  "finished": "2026-11-22T18:54:01+0100",
+  "gpus": [
+    2
+  ],
+  "port": 8101,
+  "ready_seconds": 231.1,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-colo-plain",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "512",
+    "--enable-mfu-metrics"
+  ],
+  "servers": [],
+  "started": "2026-11-22T18:37:37+0100",
+  "status": "ok",
+  "tests": {
+    "opb": {
+      "exit_code": 0
+    }
+  }
+}
