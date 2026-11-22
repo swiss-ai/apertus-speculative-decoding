@@ -367,8 +367,8 @@ def main() -> None:
         ax.set_xlabel("target entropy, mean over generated tokens (nats)")
         ax.set_ylabel(f"TV(target, {NAMES[d]}) at depth 1, mean")
         ax.set_title(
-            f"{NAMES[d]}: workload slices in (entropy, TV) space, k-means k={best_k}; "
-            "labels show replayed k=3 acceptance length",
+            f"{NAMES[d]}: slices in (entropy, TV) space, k-means k={best_k}\n"
+            "point labels: replayed k=3 acceptance length",
             fontsize=8.5, loc="left",
         )  # fmt: skip
         fig.tight_layout()
@@ -423,7 +423,7 @@ def main() -> None:
     axes[0].set_yticks(range(len(srt)))
     axes[0].set_yticklabels([f"{w} ({feat[w]['dspark_acc_k3']:.2f})" for w in srt], fontsize=7)
     handles = [plt.Line2D([], [], color=SERIES[j], lw=5, label=c) for j, c in enumerate(CLASSES)]
-    axes[2].legend(handles=handles, fontsize=7, frameon=False, loc="lower right")
+    axes[0].legend(handles=handles, fontsize=7, frameon=False, loc="lower right")
     fig.suptitle(
         "Per-token distributions per slice (bar = IQR, line = 10-90%, tick = median, "
         "dot = mean); slices sorted by replayed DSpark k=3 acceptance (in brackets)",
@@ -471,7 +471,7 @@ def main() -> None:
         "DSpark e10: acceptance gap to the ID slices = shape term + alignment term",
         fontsize=8.5, loc="left",
     )  # fmt: skip
-    ax.legend(fontsize=7, frameon=False, loc="lower right")
+    ax.legend(fontsize=7, frameon=False, loc="upper left")
     fig.tight_layout()
     fig.savefig(figs / "gap-decomposition-dspark.png", dpi=160)
     plt.close(fig)
