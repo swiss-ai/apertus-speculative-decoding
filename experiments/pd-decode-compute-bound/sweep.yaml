@@ -1,0 +1,43 @@
+# When does a disaggregated decode instance become compute-bound under
+# speculative decoding? (Yu, 2026-11-20 huddle; docs/pd-decode-compute-bound.md)
+# One node: 1 prefill + 1 decode GPU (NIXL) per P/D arm, and the same
+# configuration colocated on one GPU, plain and DSpark e10 / EAGLE e10 at
+# k = 1, 3, 7, on Yu's held-out prompts at C = 1..512. Every server exports
+# vLLM's analytic FLOP/byte counters (--enable-mfu-metrics); submit with
+# SWEEP_GPU_METRICS=1 for node-wide nsys GPU metrics (SM/tensor/DRAM activity).
+# The only change against the earlier P/D runs (HTTP500/ReadError at high C):
+# servers keep idle HTTP connections 300 s instead of 5 s, so the proxy's
+# pooled connections (httpx keep-alive 5 s) no longer race the server closing them.
+# Submit: SWEEP_PARTITION=normal SWEEP_TIME=04:00:00 SWEEP_ACCOUNT=d_research_serving
+name: pd-compute
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 512}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256, 512]
+    min_requests: 64
+x-common:
+  dspark: &dspark /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  eagle: &eagle /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se
+  mfu: &mfu [--enable-mfu-metrics]
+  env: &env {VLLM_HTTP_TIMEOUT_KEEP_ALIVE: "300"}
+  nixl: &nixl [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]
+  roles: &roles {prefill: {vllm_args: *mfu}, decode: {vllm_args: *mfu}}
+arms:
+  - {name: pd-plain, method: pd, serve_method: baseline, <<: *roles, env: *env, pythonpath: *nixl}
+  - {name: colo-plain, method: baseline, vllm_args: *mfu, env: *env}
+  - {name: colo-dspark-k1, method: dspark, drafter: *dspark, k: 1, vllm_args: *mfu, env: *env}
+  - {name: pd-dspark-k1, method: pd, serve_method: dspark, drafter: *dspark, k: 1, <<: *roles, env: *env, pythonpath: *nixl}
+  - {name: colo-dspark-k3, method: dspark, drafter: *dspark, k: 3, vllm_args: *mfu, env: *env}
+  - {name: colo-dspark-k7, method: dspark, drafter: *dspark, k: 7, vllm_args: *mfu, env: *env}
+  - {name: pd-dspark-k3, method: pd, serve_method: dspark, drafter: *dspark, k: 3, <<: *roles, env: *env, pythonpath: *nixl}
+  - {name: colo-eagle-k1, method: eagle, drafter: *eagle, k: 1, vllm_args: *mfu, env: *env}
+  - {name: colo-eagle-k3, method: eagle, drafter: *eagle, k: 3, vllm_args: *mfu, env: *env}
+  - {name: pd-dspark-k7, method: pd, serve_method: dspark, drafter: *dspark, k: 7, <<: *roles, env: *env, pythonpath: *nixl}
+  - {name: colo-eagle-k7, method: eagle, drafter: *eagle, k: 7, vllm_args: *mfu, env: *env}
+  - {name: colo-plain-again, method: baseline, vllm_args: *mfu, env: *env}
+  - {name: pd-eagle-k1, method: pd, serve_method: eagle, drafter: *eagle, k: 1, <<: *roles, env: *env, pythonpath: *nixl}
+  - {name: pd-eagle-k3, method: pd, serve_method: eagle, drafter: *eagle, k: 3, <<: *roles, env: *env, pythonpath: *nixl}
+  - {name: pd-eagle-k7, method: pd, serve_method: eagle, drafter: *eagle, k: 7, <<: *roles, env: *env, pythonpath: *nixl}

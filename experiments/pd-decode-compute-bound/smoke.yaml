@@ -1,0 +1,20 @@
+# Smoke for sweep.yaml (debug partition, ~30 min): one P/D DSpark arm and its
+# colocated twin plus colocated plain, two levels; checks NIXL P/D with
+# --enable-mfu-metrics, the keep-alive setting and the node-wide GPU-metrics sampler.
+# Submit: SWEEP_GPU_METRICS=1 SWEEP_ACCOUNT=d_research_serving SWEEP_TIME=00:45:00
+name: pd-compute-smoke
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 512}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [8, 256]
+x-common:
+  dspark: &dspark /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  mfu: &mfu [--enable-mfu-metrics]
+  env: &env {VLLM_HTTP_TIMEOUT_KEEP_ALIVE: "300"}
+arms:
+  - {name: pd-dspark-k3, method: pd, serve_method: dspark, drafter: *dspark, k: 3, prefill: {vllm_args: *mfu}, decode: {vllm_args: *mfu}, env: *env, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nixl-1.5.0]}
+  - {name: colo-dspark-k3, method: dspark, drafter: *dspark, k: 3, vllm_args: *mfu, env: *env}
+  - {name: colo-plain, method: baseline, vllm_args: *mfu, env: *env}
