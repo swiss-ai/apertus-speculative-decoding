@@ -25,7 +25,12 @@ loadtests:
 x-common:
   dspark: &dspark /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
   mfu: &mfu [--enable-mfu-metrics]
-  env: &env {VLLM_HTTP_TIMEOUT_KEEP_ALIVE: "300"}
+  # HOME is over quota: usage stats and JIT/compile caches go to node-local /tmp.
+  env: &env {VLLM_HTTP_TIMEOUT_KEEP_ALIVE: "300", VLLM_NO_USAGE_STATS: "1", DO_NOT_TRACK: "1",
+             VLLM_CONFIG_ROOT: /tmp/pdc-cache/vllm-config, XDG_CACHE_HOME: /tmp/pdc-cache/xdg-cache,
+             XDG_CONFIG_HOME: /tmp/pdc-cache/xdg-config, TRITON_CACHE_DIR: /tmp/pdc-cache/triton,
+             TORCHINDUCTOR_CACHE_DIR: /tmp/pdc-cache/inductor, CUDA_CACHE_PATH: /tmp/pdc-cache/cuda,
+             FLASHINFER_WORKSPACE_BASE: /tmp/pdc-cache/flashinfer-base, TORCH_HOME: /tmp/pdc-cache/torch}
   nixl: &nixl [/iopsstor/scratch/cscs/faruk_zahiragic/pd-decode-compute-bound/pydeps/nixl-1.5.0]
   roles: &roles {prefill: {vllm_args: *mfu}, decode: {vllm_args: *mfu}}
 arms:
