@@ -119,6 +119,22 @@ def test_controlled_spec_matches_live_engine_and_builds(tmp_path):
     ]
 
 
+def test_controlled_spec_k_grid_has_one_arm_per_k(tmp_path):
+    suite = task_speed.load_suite(SUITE)
+    spec = task_speed.controlled_spec(
+        suite, tmp_path / "c.jsonl", "/target", "/drafter", "/t.jinja", ks=[3, 5, 7]
+    )
+    plan = build_plan(spec, check_heads=False)
+    assert [arm.name for arm in plan.arms] == ["plain", "dspark-k3", "dspark-k5", "dspark-k7"]
+    for arm, k in zip(plan.arms[1:], (3, 5, 7), strict=True):
+        assert f'"num_speculative_tokens": {k}' in " ".join(arm.serve_argv)
+    engines = {
+        " ".join(a for a in arm.serve_argv if a.startswith("--max") or a.isdigit())
+        for arm in plan.arms
+    }
+    assert len(engines) == 1  # same engine settings on every arm
+
+
 def _summary(rate, spec=None):
     return {
         "requests": {"success_rate": 1.0, "attempted": 32, "successful": 32},

@@ -5,6 +5,10 @@ the live Deployment was frozen from), as the step of a Slurm job submitted by
 submit-controlled.sh. Each GPU runs a fresh plain and a fresh DSpark deployment
 one after the other; the order alternates across GPUs (AB, BA, AB, BA), so each
 GPU is one deployment pair. Pairs run concurrently on the node's GPUs.
+
+With --ks (a draft-length grid), each GPU runs plain and one DSpark arm per k,
+a block of deployments; the order is rotated across GPUs (GPU slot s starts at
+arm s), so with as many GPUs as arms every arm takes every position once.
 """
 
 from __future__ import annotations
@@ -115,6 +119,7 @@ async def campaign(args) -> None:
         profile["drafter"]["path"],
         str(args.pilot / "chat_template.jinja"),
         select,
+        args.ks,
     )
     write_json(args.output / "spec.json", spec)
     gpus = [int(g) for g in args.gpus.split(",")]
@@ -136,8 +141,14 @@ async def campaign(args) -> None:
         "pilot": str(args.pilot),
         "first_pair": args.first_pair,
         "select": select,
-        "design": "one plain/DSpark deployment pair per GPU, run concurrently; "
-        "order AB on even pairs, BA on odd pairs",
+        "ks": args.ks,
+        "design": (
+            "one plain/DSpark deployment pair per GPU, run concurrently; "
+            "order AB on even pairs, BA on odd pairs"
+            if args.ks is None
+            else "one block (plain + one DSpark arm per k) per GPU, run concurrently; "
+            "arm order rotated by the GPU slot (Latin square)"
+        ),
     }
     write_json(args.output / "provenance.json", provenance)
     statuses = []
@@ -145,11 +156,15 @@ async def campaign(args) -> None:
     async def one_pair(slot: int, gpu: int) -> None:
         pair = args.first_pair + slot
         plan = build_plan(spec)
-        order = (0, 1) if pair % 2 else (1, 0)  # pair 1 AB, pair 2 BA, ...
-        target = args.output / f"pair-{pair}"
+        arms = len(plan.arms)
+        if args.ks is None:
+            order = (0, 1) if pair % 2 else (1, 0)  # pair 1 AB, pair 2 BA, ...
+        else:
+            order = tuple((slot + i) % arms for i in range(arms))
+        target = args.output / f"{'pair' if args.ks is None else 'block'}-{pair}"
         for index in order:
             arm = plan.arms[index]
-            arm.index += 2 * slot  # distinct ports for the concurrent pairs
+            arm.index += arms * slot  # distinct ports for the concurrent pairs
             # This release requires the module API server for --model syntax.
             arm.serve_argv[:2] = [sys.executable, "-m", "vllm.entrypoints.openai.api_server"]
             arm.metadata.update(
@@ -194,6 +209,11 @@ def main() -> None:
     parser.add_argument("--gpus", default="0,1,2,3")
     parser.add_argument("--first-pair", type=int, default=1)
     parser.add_argument("--select", type=Path, help="JSON with the cells to extend")
+    parser.add_argument(
+        "--ks",
+        type=lambda text: [int(k) for k in text.split(",")],
+        help="draft-length grid, e.g. 3,5,7: one DSpark arm per k next to plain",
+    )
     args = parser.parse_args()
     if (args.inputs is None) == (args.corpus is None):
         parser.error("give exactly one of --inputs and --corpus")

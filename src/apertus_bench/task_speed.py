@@ -136,11 +136,14 @@ def controlled_spec(
     drafter: str,
     chat_template: str,
     select: dict[str, list[int]] | None = None,
+    ks: list[int] | None = None,
 ) -> dict[str, Any]:
     """A node_sweep spec for one plain/DSpark pair with the live engine settings.
 
     ``select`` limits the measured cells (slice -> concurrencies), for extra
-    pairs on comparisons that the first pairs left inconclusive.
+    pairs on comparisons that the first pairs left inconclusive. ``ks`` replaces
+    the single deployed k=3 arm (``dspark``) by one arm per draft length
+    (``dspark-k<k>``), all with the same engine settings.
     """
     generation = dict(suite["generation"])
     labels = [entry["label"] for entry in suite["slices"]]
@@ -189,13 +192,16 @@ def controlled_spec(
         "loadtests": loadtests,
         "arms": [
             {"name": "plain", "method": "baseline", "vllm_args": vllm_args},
-            {
-                "name": "dspark",
-                "method": "dspark",
-                "drafter": drafter,
-                "k": 3,
-                "vllm_args": vllm_args,
-            },
+            *(
+                {
+                    "name": "dspark" if ks is None else f"dspark-k{k}",
+                    "method": "dspark",
+                    "drafter": drafter,
+                    "k": k,
+                    "vllm_args": vllm_args,
+                }
+                for k in (ks or [3])
+            ),
         ],
     }
 

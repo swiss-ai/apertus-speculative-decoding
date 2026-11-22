@@ -9,6 +9,8 @@
 # Pipeline smoke on debug (2 slices, 2 prompts, 2 GPUs, minutes):
 #   TASK_SPEED_SUITE=experiments/task-speed/smoke-suite.yaml TASK_SPEED_PARTITION=debug \
 #   TASK_SPEED_TIME=01:00:00 TASK_SPEED_GPUS=0,1 experiments/task-speed/submit-controlled.sh
+# Draft-length grid on the same deployments (k-headline; plain, k3, k5, k7 per GPU):
+#   TASK_SPEED_KS=3,5,7 TASK_SPEED_ACCOUNT=d_research_serving experiments/task-speed/submit-controlled.sh
 # Only stages inputs and submits; VALIDATE_ONLY=1 writes job.sh without submitting.
 set -euo pipefail
 
@@ -62,6 +64,8 @@ PY
 fi
 SELECT_ARGS=""
 if [ -n "${TASK_SPEED_SELECT:-}" ]; then SELECT_ARGS="--select ${TASK_SPEED_SELECT}"; fi
+# Draft-length grid (plain + one DSpark arm per k on every GPU), e.g. 3,5,7.
+if [ -n "${TASK_SPEED_KS:-}" ]; then SELECT_ARGS="${SELECT_ARGS} --ks ${TASK_SPEED_KS}"; fi
 
 mkdir -p "$(dirname "${OUT}")"
 LAUNCH="${OUT}.launch"
@@ -89,6 +93,7 @@ kill \${SAMPLER} 2> /dev/null || true
 exit \${status:-0}
 EOF
 printf '%s\n' "branch=${BRANCH}" "revision=${REVISION}" "pilot=${PILOT}" "output=${OUT}" \
+  "account=${ACCOUNT}" "ks=${TASK_SPEED_KS:-}" \
   > "${LAUNCH}/launch.txt"
 if [ "${VALIDATE_ONLY:-0}" = "1" ]; then
   echo "validate_only=1; job script in ${LAUNCH}/job.sh"
