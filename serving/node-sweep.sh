@@ -79,7 +79,7 @@ git -C "${REPO_ROOT}" diff HEAD > "${OUT}/checkout.patch"
 {
   printf '%q ' "$0" "$@"
   echo
-  env | grep -E '^(SWEEP_[A-Z_]*|IMAGE|ENV_SOURCE|VLLM_PATCH_DIR)=' | sort || true
+  env | grep -E '^(SWEEP_[A-Z_0-9]*|IMAGE|ENV_SOURCE|VLLM_PATCH_DIR)=' | sort || true
 } > "${OUT}/submit-command.txt"
 python3 - "${OUT}/environment.toml" "${OUT}/mount-summary.json" <<'PY'
 import json, sys, tomllib
@@ -123,11 +123,26 @@ if [ "${SWEEP_DRAFT_KV_PREFLIGHT:-0}" = "1" ]; then
         exit \${status}
       }
 fi
+if [ "${SWEEP_GPU_METRICS:-0}" = "1" ]; then
+  # Node-wide GPU hardware counters for the whole sweep (serving/gpu-metrics-sampler.sh).
+  srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
+    bash "${SERVING_DIR}/gpu-metrics-sampler.sh" "${OUT}/gpu-metrics" \
+    "${SWEEP_GPU_METRICS_HZ:-20}" "${SWEEP_GPU_METRICS_CHUNK_S:-600}" &
+  GPU_METRICS=\$!
+fi
 srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
   env PYTHONNOUSERSITE=1 SWEEP_CACHE_ROOT="${CACHE_ROOT}" bash -c \
   'if [ "${SWEEP_DRAFT_KV:-0}" = "1" ]; then cd "${REPO_ROOT}"; fi; export PYTHONPATH="${REPO_ROOT}/src:\${PYTHONPATH:-}"; exec python3 -m apertus_bench.node_sweep run "${SPEC}" --output "${OUT}"' \
   || status=\$?
 kill \${SAMPLER} 2> /dev/null || true
+if [ "${SWEEP_GPU_METRICS:-0}" = "1" ]; then
+  kill \${GPU_METRICS} 2> /dev/null || true
+  wait \${GPU_METRICS} || true
+  # Per-second means and per-cell averages (never fatal: the reports stay).
+  srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
+    env PYTHONNOUSERSITE=1 PYTHONPATH="${REPO_ROOT}/src" \
+    python3 -m apertus_bench.gpu_metrics export "${OUT}" > "${OUT}/gpu-metrics/export.log" 2>&1 || true
+fi
 wait \${DIGEST} || true
 exit \${status:-0}
 EOF
