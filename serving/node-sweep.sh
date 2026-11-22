@@ -79,7 +79,7 @@ git -C "${REPO_ROOT}" diff HEAD > "${OUT}/checkout.patch"
 {
   printf '%q ' "$0" "$@"
   echo
-  env | grep -E '^(SWEEP_[A-Z_0-9]*|IMAGE|ENV_SOURCE|VLLM_PATCH_DIR)=' | sort || true
+  env | grep -E '^(SWEEP_[A-Z_0-9]*|IMAGE|ENV_SOURCE|VLLM_PATCH_DIR|NSYS)=' | sort || true
 } > "${OUT}/submit-command.txt"
 python3 - "${OUT}/environment.toml" "${OUT}/mount-summary.json" <<'PY'
 import json, sys, tomllib
