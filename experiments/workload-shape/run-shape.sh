@@ -20,6 +20,9 @@ export APERTUS_EAGLE_CONTRACT="${APERTUS_EAGLE_CONTRACT:-${REPO_ROOT}/targets/8b
 export HF_HOME="${HF_HOME:-/iopsstor/scratch/cscs/${USER}/hf_home}"
 export VLLM_CACHE_ROOT=/tmp/shape-cache/vllm TRITON_CACHE_DIR=/tmp/shape-cache/triton
 export TORCHINDUCTOR_CACHE_DIR=/tmp/shape-cache/inductor XDG_CACHE_HOME=/tmp/shape-cache/xdg
+# Home is over quota: FlashInfer's JIT locks and vLLM's usage stats default to it.
+export FLASHINFER_WORKSPACE_BASE=/tmp/shape-cache/flashinfer VLLM_CONFIG_ROOT=/tmp/shape-cache/vllm-config
+export VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
 W=/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape
 RAW="${RAW:-${W}/raw}"
 EAGLE_HEAD="${EAGLE_HEAD:-${W}/heads/eagle-e10}"
@@ -49,7 +52,9 @@ json.dump({
             "SLURM_JOB_ACCOUNT", "EAGLE_HEAD", "DSPARK", "RAW", "LIMIT", "STAGES", "SHAPE_IMAGE")},
 }, open(os.path.join(run, f"provenance-{job}.json"), "w"), indent=1)
 PY
-git diff HEAD > "${RUN_DIR}/logs/uncommitted-${SLURM_JOB_ID:-local}.patch" || true
+if git rev-parse --git-dir > /dev/null 2>&1; then
+  git diff HEAD > "${RUN_DIR}/logs/uncommitted-${SLURM_JOB_ID:-local}.patch" || true
+fi
 if [ -n "${SHAPE_IMAGE:-}" ] && [ ! -s "${RUN_DIR}/logs/image.sha256" ]; then
   (sha256sum "${SHAPE_IMAGE}" > "${RUN_DIR}/logs/image.sha256.tmp" \
     && mv "${RUN_DIR}/logs/image.sha256.tmp" "${RUN_DIR}/logs/image.sha256") &
