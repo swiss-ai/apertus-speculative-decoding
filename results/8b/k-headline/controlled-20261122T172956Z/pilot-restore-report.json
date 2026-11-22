@@ -1,0 +1,47 @@
+{
+  "restored_at": "2026-11-22T17:28:07.202592+00:00",
+  "passed": true,
+  "records_from": "results/8b/task-speed/controlled-20261104T133618Z",
+  "configmap": {
+    "source": "breithorn-poc/rob-poc@20b21600a1f9238610891d411bc626bb8c26e09d:swissai-research-platform/models/vllm-apertus-dspark-e10/configmap.yaml (last changed 9c86d5d8)",
+    "sha256": "c25a160416430881334c7fe694d6f92ae2a8e43fa7a656d1a9e44f77b31b7736"
+  },
+  "environment_changes": {
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a": "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/pilot-dev-dspark-12h-20261029-a-restored",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot/apertus15-8b-dspark-e10-dspark-20261029T134252610114Z": "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/pilot-dev-dspark-12h-20261029-a-restored/cache"
+  },
+  "environment_sha256": {
+    "recorded": "dfff176d1d448d2e887e65097fb4d88bb925b7b4c70b288447dddc4e70eeb91e",
+    "restored": "0e94b7dfb90b1d4df8afa1299cfe0a79039f565e601d61961a870446d890b0db"
+  },
+  "not_restored": [
+    "overlays/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py.orig"
+  ],
+  "checks": [
+    {
+      "file": "chat_template.jinja",
+      "expected": "7c5a2b5a7020a4b31b83e98f341b06d43474be0f340e27911776092d62de1eec",
+      "actual": "7c5a2b5a7020a4b31b83e98f341b06d43474be0f340e27911776092d62de1eec"
+    },
+    {
+      "file": "overlays/workspace/vllm/vllm/model_executor/models/interfaces.py",
+      "expected": "aa19923fdb16aad1f406f2c75a3d91b41925da9b7f740488db9e7bf1dafe2a70",
+      "actual": "aa19923fdb16aad1f406f2c75a3d91b41925da9b7f740488db9e7bf1dafe2a70"
+    },
+    {
+      "file": "overlays/workspace/vllm/vllm/transformers_utils/configs/speculators/algos.py",
+      "expected": "debc64af5f14ae5504c706b33403c51e27f43026c25582ee3217262fa89e0a96",
+      "actual": "debc64af5f14ae5504c706b33403c51e27f43026c25582ee3217262fa89e0a96"
+    },
+    {
+      "file": "overlays/workspace/vllm/vllm/v1/spec_decode/llm_base_proposer.py",
+      "expected": "0e58aca33210246d305e00546487523e671419c8cfc3731773233a5b2d98b3fc",
+      "actual": "0e58aca33210246d305e00546487523e671419c8cfc3731773233a5b2d98b3fc"
+    },
+    {
+      "file": "overlays/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py",
+      "expected": "cc8caf1533025f3d6e35d5525fac1e84e518ac38d142139ef9dfdea0fb6a1312",
+      "actual": "cc8caf1533025f3d6e35d5525fac1e84e518ac38d142139ef9dfdea0fb6a1312"
+    }
+  ]
+}
