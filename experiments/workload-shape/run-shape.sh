@@ -41,6 +41,8 @@ job = os.environ.get("SLURM_JOB_ID", "local")
 json.dump({
     "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     "git_revision": git("rev-parse", "HEAD"),
+    # Cluster copies made with git archive carry the source commit in SOURCE_REVISION.
+    "source_revision": open("SOURCE_REVISION").read().strip() if os.path.exists("SOURCE_REVISION") else None,
     "git_branch": git("rev-parse", "--abbrev-ref", "HEAD"),
     "git_dirty": git("status", "--porcelain", "--untracked-files=no"),
     "env": {k: os.environ.get(k) for k in ("SLURM_JOB_ID", "SLURM_JOB_NODELIST", "SLURM_JOB_PARTITION",
