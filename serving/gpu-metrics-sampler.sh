@@ -4,13 +4,15 @@
 # (SMs Active, Tensor Active, DRAM bandwidth, ...) with no CUDA tracing, so the
 # served processes run unprofiled. Sampling is device-wide, independent of
 # which process uses the GPU, and runs in chunks so a job killed at its time
-# limit loses at most the chunk in progress. apertus_bench.gpu_metrics turns
-# the reports into per-second means and per-cell averages.
+# limit loses at most the chunk in progress. To stop it cleanly, create
+# OUT_DIR/STOP and wait: the chunk in progress ends and is written first.
+# apertus_bench.gpu_metrics turns the reports into per-second means and
+# per-cell averages.
 #   gpu-metrics-sampler.sh OUT_DIR [FREQUENCY_HZ] [CHUNK_SECONDS]
 set -uo pipefail
 OUT="${1:?usage: gpu-metrics-sampler.sh OUT_DIR [FREQUENCY_HZ] [CHUNK_SECONDS]}"
 FREQUENCY="${2:-20}"
-CHUNK="${3:-600}"
+CHUNK="${3:-120}"
 NSYS="${NSYS:-/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys}"
 mkdir -p "${OUT}"
 if [ ! -x "${NSYS}" ]; then
@@ -28,7 +30,7 @@ stop() {
 }
 trap stop TERM INT
 number=0
-while true; do
+while [ ! -e "${OUT}/STOP" ]; do
   number=$((number + 1))
   name="$(printf 'chunk-%03d' "${number}")"
   echo "${name} launched_unix=$(date +%s.%N)" >> "${OUT}/chunks.txt"

@@ -127,7 +127,7 @@ if [ "${SWEEP_GPU_METRICS:-0}" = "1" ]; then
   # Node-wide GPU hardware counters for the whole sweep (serving/gpu-metrics-sampler.sh).
   srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
     bash "${SERVING_DIR}/gpu-metrics-sampler.sh" "${OUT}/gpu-metrics" \
-    "${SWEEP_GPU_METRICS_HZ:-20}" "${SWEEP_GPU_METRICS_CHUNK_S:-600}" &
+    "${SWEEP_GPU_METRICS_HZ:-20}" "${SWEEP_GPU_METRICS_CHUNK_S:-120}" &
   GPU_METRICS=\$!
 fi
 srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
@@ -136,8 +136,9 @@ srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
   || status=\$?
 kill \${SAMPLER} 2> /dev/null || true
 if [ "${SWEEP_GPU_METRICS:-0}" = "1" ]; then
-  kill \${GPU_METRICS} 2> /dev/null || true
-  wait \${GPU_METRICS} || true
+  # Let the chunk in progress finish and be written, then stop the sampler.
+  touch "${OUT}/gpu-metrics/STOP"
+  timeout 400 tail --pid=\${GPU_METRICS} -f /dev/null || kill \${GPU_METRICS} 2> /dev/null || true
   # Per-second means and per-cell averages (never fatal: the reports stay).
   srun --overlap --nodes=1 --ntasks=1 --environment="${SML_ENVIRONMENT}" \
     env PYTHONNOUSERSITE=1 PYTHONPATH="${REPO_ROOT}/src" \
