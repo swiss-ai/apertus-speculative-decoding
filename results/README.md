@@ -21,6 +21,10 @@ and both control kinds are specified in `../docs/protocol.md`.
 
 ## Recorded runs
 
+- `qwen3-235b/`: plain versus EAGLE3 (RedHat speculator, k3 and k5) for
+  Qwen3-235B-A22B-Instruct-2507-FP8 on one GH200 node at TP4 (jobs
+  4004146 and 4004250-4004252). k3 clears the +10% rule at every C up to 128, and k5
+  loses at C=128. See `qwen3-235b/README.md` and `../docs/qwen3-235b-specdec.md`.
 - `8b/drafter-kv/kv-sparsity-20261022-a/`: two independent DSpark thinking-off
   screening repeats with physical KV-page eviction. The 512-token importance
   policy reduced accounted drafter storage by 69%, but throughput and
