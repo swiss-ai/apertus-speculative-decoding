@@ -1,0 +1,387 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "apertus.swissai/checkpoint-sha256": "7a70125f58e3e57bbdaa30ea38a1cf8c01433a34507fe34696c10edd2d61ad4f",
+                    "apertus.swissai/restart": "window-P2b",
+                    "apertus.swissai/source-revision": "a23699122a9c6d2c108e2120a8f81e57da6d7b7c",
+                    "apertus.swissai/variant": "plain"
+                },
+                "creationTimestamp": "2026-11-05T10:28:13Z",
+                "generateName": "vllm-apertus-v1p5-8b-dspark-e10-6d5c4bf744-",
+                "generation": 1,
+                "labels": {
+                    "app": "vllm-apertus-v1p5-8b-dspark-e10",
+                    "pod-template-hash": "6d5c4bf744",
+                    "topology.kubernetes.io/zone": "breithorn"
+                },
+                "name": "vllm-apertus-v1p5-8b-dspark-e10-6d5c4bf744-q7gb9",
+                "namespace": "rob-poc",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "vllm-apertus-v1p5-8b-dspark-e10-6d5c4bf744",
+                        "uid": "ba1f40d3-cbdc-419e-bb76-9433812f95bc"
+                    }
+                ],
+                "resourceVersion": "542659557",
+                "uid": "2839bf05-9459-46f8-a9bd-7219d0b4f1bb"
+            },
+            "spec": {
+                "automountServiceAccountToken": false,
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/runtime/launch.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "GODEBUG",
+                                "value": "multipathtcp=0"
+                            },
+                            {
+                                "name": "POD_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.name"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_UID",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.uid"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "NODE_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "spec.nodeName"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "HF_HUB_OFFLINE",
+                                "value": "1"
+                            },
+                            {
+                                "name": "TRANSFORMERS_OFFLINE",
+                                "value": "1"
+                            },
+                            {
+                                "name": "HF_HOME",
+                                "value": "/tmp/hf"
+                            },
+                            {
+                                "name": "PYTHONUNBUFFERED",
+                                "value": "1"
+                            },
+                            {
+                                "name": "NO_PROXY",
+                                "value": "127.0.0.1,localhost,0.0.0.0,.svc,.cluster.local"
+                            },
+                            {
+                                "name": "no_proxy",
+                                "value": "127.0.0.1,localhost,0.0.0.0,.svc,.cluster.local"
+                            }
+                        ],
+                        "image": "ghcr.io/swiss-ai/vllm_apertus_1.5_release@sha256:8eb36e284fbefdd44c6f4dc23072eff9c06c1caed5643ce2f99ac7e0915a06ae",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 5,
+                            "httpGet": {
+                                "path": "/health",
+                                "port": "http",
+                                "scheme": "HTTP"
+                            },
+                            "periodSeconds": 30,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 10
+                        },
+                        "name": "vllm",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/health",
+                                "port": "http",
+                                "scheme": "HTTP"
+                            },
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 10
+                        },
+                        "resources": {
+                            "limits": {
+                                "memory": "96Gi",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "4",
+                                "ephemeral-storage": "20Gi",
+                                "memory": "48Gi",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "startupProbe": {
+                            "failureThreshold": 180,
+                            "httpGet": {
+                                "path": "/health",
+                                "port": "http",
+                                "scheme": "HTTP"
+                            },
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 10
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/assets",
+                                "name": "assets",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/logs",
+                                "name": "assets",
+                                "subPath": "runs"
+                            },
+                            {
+                                "mountPath": "/runtime",
+                                "name": "runtime",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/dev/shm",
+                                "name": "dshm"
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": false,
+                "imagePullSecrets": [
+                    {
+                        "name": "ghcr-pull-secret"
+                    }
+                ],
+                "nodeName": "nid006597",
+                "nodeSelector": {
+                    "kubernetes.io/arch": "arm64",
+                    "kubernetes.io/hostname": "nid006597"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 120,
+                "tolerations": [
+                    {
+                        "effect": "NoSchedule",
+                        "key": "hpc",
+                        "operator": "Equal",
+                        "value": "true"
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "hpc",
+                        "operator": "Equal",
+                        "value": "true"
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "assets",
+                        "persistentVolumeClaim": {
+                            "claimName": "vllm-apertus-v1p5-8b-dspark-e10-assets"
+                        }
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "vllm-apertus-v1p5-8b-dspark-e10-ea11927a4a03"
+                        },
+                        "name": "runtime"
+                    },
+                    {
+                        "emptyDir": {
+                            "medium": "Memory",
+                            "sizeLimit": "16Gi"
+                        },
+                        "name": "dshm"
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-11-05T10:28:15Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-11-05T10:28:13Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-11-05T10:32:13Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-11-05T10:32:13Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-11-05T10:28:13Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "allocatedResources": {
+                            "cpu": "4",
+                            "ephemeral-storage": "20Gi",
+                            "memory": "48Gi",
+                            "nvidia.com/gpu": "1"
+                        },
+                        "containerID": "containerd://628fa1fee4470207f3842f2dcfbcbacb6ee91039d58d48fb648910fbd5bd060d",
+                        "image": "sha256:11db8e1fa4c35c7fc839bdee5ca8d288c578d26de09d232f1533b61b93f26af1",
+                        "imageID": "ghcr.io/swiss-ai/vllm_apertus_1.5_release@sha256:634973c5d8a2bd542ae9f7b95bf7a271858a842cdc873b2214671079dd9c1ea9",
+                        "lastState": {},
+                        "name": "vllm",
+                        "ready": true,
+                        "resources": {
+                            "limits": {
+                                "memory": "96Gi",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "4",
+                                "ephemeral-storage": "20Gi",
+                                "memory": "48Gi",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-11-05T10:28:14Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/assets",
+                                "name": "assets",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            },
+                            {
+                                "mountPath": "/logs",
+                                "name": "assets"
+                            },
+                            {
+                                "mountPath": "/runtime",
+                                "name": "runtime",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            },
+                            {
+                                "mountPath": "/dev/shm",
+                                "name": "dshm"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.28.32.116",
+                "hostIPs": [
+                    {
+                        "ip": "172.28.32.116"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "10.42.11.24",
+                "podIPs": [
+                    {
+                        "ip": "10.42.11.24"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2026-11-05T10:28:13Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

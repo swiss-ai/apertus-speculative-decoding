@@ -1,0 +1,422 @@
+[
+  {
+    "pair": 1,
+    "arm": "plain",
+    "gpus": [
+      1
+    ],
+    "port": 8100,
+    "serve_argv": [
+      "/opt/venv/bin/python3",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-plain",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--dtype",
+      "bfloat16",
+      "--no-enable-log-requests",
+      "--chat-template",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja"
+    ],
+    "servers": [],
+    "env": {},
+    "deployment_id": "speed-pair-1-plain",
+    "tests": {
+      "id-opb-natural": {
+        "exit_code": 0
+      },
+      "id-opb-fixed": {
+        "exit_code": 0
+      },
+      "ood-chat-natural": {
+        "exit_code": 0
+      },
+      "ood-chat-fixed": {
+        "exit_code": 0
+      },
+      "ood-summary-natural": {
+        "exit_code": 0
+      },
+      "ood-summary-fixed": {
+        "exit_code": 0
+      }
+    },
+    "started": "2026-10-30T13:59:39+0100",
+    "ready_seconds": 203.0,
+    "status": "ok",
+    "finished": "2026-10-30T14:09:54+0100"
+  },
+  {
+    "pair": 1,
+    "arm": "dspark",
+    "gpus": [
+      1
+    ],
+    "port": 8101,
+    "serve_argv": [
+      "/opt/venv/bin/python3",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-dspark",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--speculative-config",
+      "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 3}",
+      "--dtype",
+      "bfloat16",
+      "--no-enable-log-requests",
+      "--chat-template",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja"
+    ],
+    "servers": [],
+    "env": {},
+    "deployment_id": "speed-pair-1-dspark",
+    "tests": {
+      "id-opb-natural": {
+        "exit_code": 0
+      },
+      "id-opb-fixed": {
+        "exit_code": 0
+      },
+      "ood-chat-natural": {
+        "exit_code": 0
+      },
+      "ood-chat-fixed": {
+        "exit_code": 0
+      },
+      "ood-summary-natural": {
+        "exit_code": 0
+      },
+      "ood-summary-fixed": {
+        "exit_code": 0
+      }
+    },
+    "started": "2026-10-30T14:09:54+0100",
+    "ready_seconds": 135.2,
+    "status": "ok",
+    "finished": "2026-10-30T14:16:44+0100"
+  },
+  {
+    "pair": 2,
+    "arm": "dspark",
+    "gpus": [
+      1
+    ],
+    "port": 8101,
+    "serve_argv": [
+      "/opt/venv/bin/python3",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-dspark",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--speculative-config",
+      "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 3}",
+      "--dtype",
+      "bfloat16",
+      "--no-enable-log-requests",
+      "--chat-template",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja"
+    ],
+    "servers": [],
+    "env": {},
+    "deployment_id": "speed-pair-2-dspark",
+    "tests": {
+      "id-opb-natural": {
+        "exit_code": 0
+      },
+      "id-opb-fixed": {
+        "exit_code": 0
+      },
+      "ood-chat-natural": {
+        "exit_code": 0
+      },
+      "ood-chat-fixed": {
+        "exit_code": 0
+      },
+      "ood-summary-natural": {
+        "exit_code": 0
+      },
+      "ood-summary-fixed": {
+        "exit_code": 0
+      }
+    },
+    "started": "2026-10-30T14:16:44+0100",
+    "ready_seconds": 130.2,
+    "status": "ok",
+    "finished": "2026-10-30T14:23:29+0100"
+  },
+  {
+    "pair": 2,
+    "arm": "plain",
+    "gpus": [
+      1
+    ],
+    "port": 8100,
+    "serve_argv": [
+      "/opt/venv/bin/python3",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-plain",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--dtype",
+      "bfloat16",
+      "--no-enable-log-requests",
+      "--chat-template",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja"
+    ],
+    "servers": [],
+    "env": {},
+    "deployment_id": "speed-pair-2-plain",
+    "tests": {
+      "id-opb-natural": {
+        "exit_code": 0
+      },
+      "id-opb-fixed": {
+        "exit_code": 0
+      },
+      "ood-chat-natural": {
+        "exit_code": 0
+      },
+      "ood-chat-fixed": {
+        "exit_code": 0
+      },
+      "ood-summary-natural": {
+        "exit_code": 0
+      },
+      "ood-summary-fixed": {
+        "exit_code": 0
+      }
+    },
+    "started": "2026-10-30T14:23:29+0100",
+    "ready_seconds": 115.2,
+    "status": "ok",
+    "finished": "2026-10-30T14:32:16+0100"
+  },
+  {
+    "pair": 3,
+    "arm": "plain",
+    "gpus": [
+      1
+    ],
+    "port": 8100,
+    "serve_argv": [
+      "/opt/venv/bin/python3",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-plain",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--dtype",
+      "bfloat16",
+      "--no-enable-log-requests",
+      "--chat-template",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja"
+    ],
+    "servers": [],
+    "env": {},
+    "deployment_id": "speed-pair-3-plain",
+    "tests": {
+      "id-opb-natural": {
+        "exit_code": 0
+      },
+      "id-opb-fixed": {
+        "exit_code": 0
+      },
+      "ood-chat-natural": {
+        "exit_code": 0
+      },
+      "ood-chat-fixed": {
+        "exit_code": 0
+      },
+      "ood-summary-natural": {
+        "exit_code": 0
+      },
+      "ood-summary-fixed": {
+        "exit_code": 0
+      }
+    },
+    "started": "2026-10-30T14:32:16+0100",
+    "ready_seconds": 115.2,
+    "status": "ok",
+    "finished": "2026-10-30T14:41:06+0100"
+  },
+  {
+    "pair": 3,
+    "arm": "dspark",
+    "gpus": [
+      1
+    ],
+    "port": 8101,
+    "serve_argv": [
+      "/opt/venv/bin/python3",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+      "--served-model-name",
+      "swiss-ai/Apertus-v1.5-8B-dspark",
+      "--host",
+      "127.0.0.1",
+      "--chat-template-content-format",
+      "string",
+      "--tensor-parallel-size",
+      "1",
+      "--enable-auto-tool-choice",
+      "--tool-call-parser",
+      "apertus",
+      "--compilation-config.pass_config.fuse_allreduce_rms",
+      "false",
+      "--gpu-memory-utilization",
+      "0.8",
+      "--no-enable-prefix-caching",
+      "--max-model-len",
+      "32768",
+      "--max-num-batched-tokens",
+      "16384",
+      "--max-num-seqs",
+      "256",
+      "--speculative-config",
+      "{\"method\": \"dspark\", \"model\": \"/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final\", \"num_speculative_tokens\": 3}",
+      "--dtype",
+      "bfloat16",
+      "--no-enable-log-requests",
+      "--chat-template",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja"
+    ],
+    "servers": [],
+    "env": {},
+    "deployment_id": "speed-pair-3-dspark",
+    "tests": {
+      "id-opb-natural": {
+        "exit_code": 0
+      },
+      "id-opb-fixed": {
+        "exit_code": 0
+      },
+      "ood-chat-natural": {
+        "exit_code": 0
+      },
+      "ood-chat-fixed": {
+        "exit_code": 0
+      },
+      "ood-summary-natural": {
+        "exit_code": 0
+      },
+      "ood-summary-fixed": {
+        "exit_code": 0
+      }
+    },
+    "started": "2026-10-30T14:41:06+0100",
+    "ready_seconds": 130.2,
+    "status": "ok",
+    "finished": "2026-10-30T14:48:02+0100"
+  }
+]

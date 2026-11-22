@@ -1,0 +1,28 @@
+{
+  "recorded_at": "2026-10-28T00:47:06.401261+00:00",
+  "source_revision": "82a7a05ece452bb6897ed09bce9caca736c3f54a",
+  "source_checkout": "/users/faruk_zahiragic/apertus-effort-phase2-82a7a05e",
+  "upstream_revision": "e3041ddb4e58d8d0fad86f938f44423bdf424ae9",
+  "upstream_checkout": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb",
+  "phase1_reference": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da",
+  "phase2_campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-82a7a05e",
+  "qualification_job": "3771335",
+  "qualification_directory": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/phase2-prerequisites/prereq-20261028-b",
+  "superseded_qualification": {
+    "job": "3771229",
+    "state": "cancelled while pending",
+    "reason": "local CPU checks identified missing required package installation/metadata; corrected before GPU resources were used"
+  },
+  "configuration": "experiments/thinking-effort/phase2.yaml",
+  "validation": {
+    "main_suite": "205 passed, 1 optional integration skipped",
+    "upstream_converter_and_targets": "18 passed with Torch 2.13 CPU and Transformers 5.17",
+    "upstream_dataset_contract": "1 passed in isolated CPU environment",
+    "training_cli": "configuration accepted by pinned upstream",
+    "prompt_data": "512 training and 64 development prompts selected from pinned training subsets; evaluation duplicates excluded",
+    "slurm_scripts": "bash syntax checked"
+  },
+  "progress": "durable controller launched; waiting for qualification job 3771335; four fine-tunes and evaluation will follow only after gates pass",
+  "workflow": "qualification -> data and feature preflight -> four matched fine-tunes -> three paired evaluation blocks; controller stops on failed gates",
+  "controller_pid": 129861
+}

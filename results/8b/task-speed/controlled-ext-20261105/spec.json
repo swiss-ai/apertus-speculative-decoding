@@ -1,0 +1,92 @@
+{
+  "name": "dspark-e10-task-speed",
+  "stage": "8b",
+  "probe": false,
+  "target_model": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+  "node_gpus": 4,
+  "engine": {
+    "max_model_len": 32768,
+    "gpu_memory_utilization": 0.8,
+    "enable_prefix_caching": false,
+    "max_num_batched_tokens": 16384,
+    "max_num_seqs": 256
+  },
+  "loadtests": [
+    {
+      "label": "prewarm",
+      "workload": "prewarm",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-ext-20261105/corpus.jsonl",
+      "concurrencies": [
+        1,
+        32
+      ],
+      "min_requests": 28,
+      "requests_per_slot": 1,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-roh",
+      "workload": "lang-roh",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-ext-20261105/corpus.jsonl",
+      "concurrencies": [
+        128
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    },
+    {
+      "label": "lang-ara",
+      "workload": "lang-ara",
+      "workloads_file": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-ext-20261105/corpus.jsonl",
+      "concurrencies": [
+        32
+      ],
+      "min_requests": 32,
+      "requests_per_slot": 2,
+      "generation": {
+        "temperature": 0,
+        "top_p": 1,
+        "seed": 1
+      }
+    }
+  ],
+  "arms": [
+    {
+      "name": "plain",
+      "method": "baseline",
+      "vllm_args": [
+        "--dtype",
+        "bfloat16",
+        "--no-enable-log-requests",
+        "--chat-template",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja",
+        "--chat-template-content-format",
+        "string"
+      ]
+    },
+    {
+      "name": "dspark",
+      "method": "dspark",
+      "drafter": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final",
+      "k": 3,
+      "vllm_args": [
+        "--dtype",
+        "bfloat16",
+        "--no-enable-log-requests",
+        "--chat-template",
+        "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja",
+        "--chat-template-content-format",
+        "string"
+      ]
+    }
+  ]
+}

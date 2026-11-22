@@ -7,6 +7,7 @@ set -euo pipefail
 LAUNCH_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${LAUNCH_DIR}/.." && pwd)"
 MODEL_LAUNCH_ROOT="${MODEL_LAUNCH_ROOT:-../model-launch}"
+SML_BIN="${SML_BIN:-sml}"
 if [ -n "${STAGE:-}" ]; then
   # shellcheck source=serving/stage-defaults.sh
   . "${LAUNCH_DIR}/stage-defaults.sh"
@@ -49,7 +50,7 @@ fi
 
 cd "${MODEL_LAUNCH_ROOT}"
 # shellcheck disable=SC2086
-sml advanced \
+"${SML_BIN}" advanced \
   --system clariden \
   --partition "${SML_PARTITION}" \
   --nodes-per-replica 1 \

@@ -31,6 +31,8 @@ class GenerationSettings:
     seed: int = 1
     max_tokens: int | None = None
     ignore_eos: bool = False
+    reasoning_effort: str | None = None
+    min_p: float | None = None
 
 
 @dataclass(frozen=True)
@@ -102,6 +104,8 @@ async def _execute_requests(
                 temperature=generation.temperature,
                 top_p=generation.top_p,
                 top_k=generation.top_k,
+                min_p=generation.min_p,
+                reasoning_effort=generation.reasoning_effort,
                 seed=generation.seed + request_index,
                 max_tokens=generation.max_tokens,
                 ignore_eos=generation.ignore_eos,
@@ -168,6 +172,7 @@ async def run_cell(
     metrics_interval: float | None = None,
     tolerate_warmup_failures: bool = False,
     profile: WindowSettings | None = None,
+    metrics_client: StreamingChatClient | None = None,
 ) -> dict[str, object]:
     """Run one cell. ``metrics_interval`` also samples load gauges during it.
     ``profile`` opens one Nsight capture window inside the measured requests
@@ -199,14 +204,15 @@ async def run_cell(
                 f"{len(warmup_failures)}/{len(warmup)} warmup requests failed: {first_error}"
             )
 
-    raw_before = await _fetch_metrics(client, metrics_url)
+    metric_reader = metrics_client or client
+    raw_before = await _fetch_metrics(metric_reader, metrics_url)
     before = (
         parse_speculative_snapshot(raw_before, model=model) if raw_before else SpeculativeSnapshot()
     )
     sampler = None
     if metrics_interval and metrics_url:
         sampler = MetricsSampler(
-            lambda: _fetch_metrics(client, metrics_url), metrics_interval, model=model
+            lambda: _fetch_metrics(metric_reader, metrics_url), metrics_interval, model=model
         )
         sampler.start()
     started_at = datetime.now(UTC)
@@ -239,7 +245,7 @@ async def run_cell(
     ended_at = datetime.now(UTC)
     if sampler is not None:
         await sampler.stop()
-    raw_after = await _fetch_metrics(client, metrics_url)
+    raw_after = await _fetch_metrics(metric_reader, metrics_url)
     after = (
         parse_speculative_snapshot(raw_after, model=model) if raw_after else SpeculativeSnapshot()
     )
