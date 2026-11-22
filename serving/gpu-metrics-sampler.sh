@@ -13,6 +13,10 @@ FREQUENCY="${2:-20}"
 CHUNK="${3:-600}"
 NSYS="${NSYS:-/iopsstor/scratch/cscs/faruk_zahiragic/pydeps/nsight-systems-2025.6.3/opt/nvidia/nsight-systems/2025.6.3/target-linux-sbsa-armv8/nsys}"
 mkdir -p "${OUT}"
+if [ ! -x "${NSYS}" ]; then
+  echo "nsys not found: ${NSYS} (set NSYS)" > "${OUT}/sampler.log"
+  exit 1
+fi
 # Physical index <-> PCI bus of each GPU, to map nsys GPU ids to the indices
 # the arms were given (CUDA_VISIBLE_DEVICES).
 nvidia-smi --query-gpu=index,pci.bus_id,uuid,name --format=csv > "${OUT}/gpus.csv" 2>&1
@@ -33,6 +37,9 @@ while true; do
     --duration "${CHUNK}" --force-overwrite true --output "${OUT}/${name}" \
     sleep "$((CHUNK + 120))" >> "${OUT}/sampler.log" 2>&1 &
   child=$!
+  started=${SECONDS}
   wait "${child}"
   echo "${name} exit=$? ended_unix=$(date +%s.%N)" >> "${OUT}/chunks.txt"
+  # A chunk that ends early failed: do not spin.
+  if [ $((SECONDS - started)) -lt 30 ]; then sleep 30; fi
 done
