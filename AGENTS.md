@@ -23,11 +23,21 @@ When the user refers to the "action items canvas", they mean [Spec Decoding Sync
 After every experiment finishes (completed, negative, or stopped for good),
 post a results message to [#swiss-ai-spec-decode](https://swissai-initiative.slack.com/archives/C0C2QMYCQ5B)
 (channel ID: `C0C2QMYCQ5B`). Post once per experiment, after the write-up and
-results are committed and pushed, so the message can link to them. Follow the
-format of the earlier result posts in the channel:
+results are committed and pushed, so the message can link to them. Split it
+into a short top-level message and the details in its thread:
+
+**Top-level message (short; most people read only this):**
 
 - **Title line:** model and experiment name, then the verdict in a few words,
   e.g. `Apertus 1.5 8B — DSpark domain adaptation: done, don't use the adapted head.`
+- **Two to four headline bullets:** the key numbers only (e.g. speedup per
+  load), one line each, no setup or method.
+- **One visualization** attached when it makes the result clearer (a single
+  chart from the results; upload the image, don't link it).
+- **Last line:** `Details (setup, decision rule, caveats, compute, links) in the thread 🧵`
+
+**Thread reply (the details):**
+
 - **What we tested:** the question the experiment answers and the setup
   (drafter, data, recipe, workloads, draft lengths, concurrencies).
 - **Expectation:** the hypothesis and the frozen decision rule (thresholds,
