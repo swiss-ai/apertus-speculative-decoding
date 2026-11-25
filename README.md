@@ -1,18 +1,17 @@
 # Apertus speculative decoding
 
-This repository studies whether speculative decoding should be enabled for
-`swiss-ai/Apertus-v1.5-70B` on a four-GH200 Clariden node. It compares the plain 70B server,
-8B draft-model speculation, and model-free n-gram speculation under controlled, repeated,
-production-facing workloads.
+This repository contains drafter training, serving recipes, and reproducible benchmarks for
+speculative decoding on Apertus v1.5 8B and 70B. It covers DSpark and EAGLE, with comparisons
+against plain serving, standalone draft models, and n-gram speculation. The experiments measure
+throughput, latency, draft acceptance, memory use, and correctness across workloads and loads.
 
-The next experiments are specified in [the diagnostics and improvement plan](docs/diagnostics-plan.md)
-and [the EAGLE 3.1 execution plan: 8B first, then 70B](docs/eagle-execution-plan.md).
-The EAGLE plan starts with a bounded Apertus 1.5 8B integration pilot, retaining EAGLE-3 as a
-fallback for a demonstrated 3.1-specific issue. Stage A (8B) is implemented: training pipeline in
-`methods/eagle/apertus_eagle/`, stage-aware launchers, and results in
-[docs/eagle-8b-report.md](docs/eagle-8b-report.md). Progress is in [docs/eagle-progress.md](docs/eagle-progress.md).
-A 3× decode speedup is a stretch target. Each target needs its own trained head; the public
-Apertus-8B-Instruct-2509 head is not a substitute for either Apertus 1.5 target.
+Start with the [results index](results/README.md) for reports, raw measurements, and run
+provenance. For 8B serving, see [controlled and live DSpark draft-length measurements](docs/dspark-e10-k-headline.md)
+and [high-concurrency serving layouts](docs/high-concurrency-8b.md). For drafter training, see
+the [8B EAGLE report](docs/eagle-8b-report.md) and
+[70B DSpark training on Beverin](docs/beverin-feasibility.md).
+
+## Selected 8B studies
 
 The completed [8B drafter KV sparsity study](docs/drafter-kv-sparsity.md) reduced
 physical drafter storage but failed the throughput and acceptance gates. Its
@@ -75,36 +74,25 @@ with no speed or implementation claim. The depth serving overlay is
 campaign and cost models are in `methods/dspark/`, and evidence is under
 `results/8b/small-drafter/` and `results/8b/sweeps/small-trunc-*`.
 
-The project is scoped as an 8 ECTS semester research project. It goes beyond a one-off speed
-test: it measures latency, throughput, acceptance, serving capacity, memory trade-offs, and the
-conditions under which a configuration wins or loses.
-
 ## Research questions
 
-1. How does speedup vary across open chat, code, and long-context summarization at concurrency
-   1, 8, and 32?
-2. How strongly do draft acceptance rate and mean accepted length predict TTFT, TPOT, and output
-   throughput?
-3. Which combination of speculative depth `{2,3,5,8}` and draft TP is best, and when does draft
-   overhead outweigh accepted work? Draft TP is pinned to 4 for now: the pinned vLLM refuses draft
-   TP != target TP, so only a depth sweep is answerable
-   (`results/70b/deployment-failures/draft-n3-tp1-3392110/`).
-4. When is n-gram speculation a better operational choice than the 8B draft model?
-5. Does the winning setting increase sustainable request rate without unacceptable tail latency
-   or loss of KV-cache capacity?
+1. How do draft acceptance, throughput, and latency vary with workload, thinking mode, and load?
+2. How do draft length, parallelism, and prefill/decode disaggregation affect serving efficiency
+   and KV-cache capacity?
+3. Where do drafter specialization and adaptation improve serving performance while meeting the
+   correctness checks?
+4. Which configurations improve sustainable throughput while meeting tail-latency and memory limits?
 
-The full experimental contract is in [docs/protocol.md](docs/protocol.md), the initial reading map
-is in [docs/literature.md](docs/literature.md), and the staged matrix is machine-readable in
-[experiments/smoke-70b/experiment.yaml](experiments/smoke-70b/experiment.yaml).
-
-**Current findings:** [docs/hackathon-20260915.md](docs/hackathon-20260915.md) is the standing
-summary of what has been measured — the headline result, the step-cost decomposition that explains
-it, the platform bugs it surfaced, the diff against the published `model-launch` speculative-decoding
-example, and what remains unanswered.
+The [experimental protocol](docs/protocol.md) describes the benchmark design and correctness gate.
+The [initial 70B study](docs/hackathon-20260915.md) documents the original draft-model and n-gram
+comparison, including its [smoke matrix](experiments/smoke-70b/experiment.yaml). The
+[literature notes](docs/literature.md) cover the methods behind those experiments.
 
 ## What is implemented
 
-- parameterized baseline, draft-model, and n-gram `sml` launchers using Capstor model paths;
+- DSpark and EAGLE drafter training, export, and evaluation tools;
+- vLLM serving launchers and source overlays, including Kubernetes recipes for 8B DSpark;
+- parameterized plain, draft-model, and n-gram `sml` launchers using Capstor model paths;
 - a streaming OpenAI-compatible client measuring per-request E2E, TTFT, conventional TPOT, and
   stream-event gaps;
 - before/after snapshots of vLLM's exact speculative-decoding Prometheus counters;
@@ -141,12 +129,11 @@ workloads/           corpora; workloads/<stage>/ holds manifests (restricted tex
 results/<stage>/     raw cells and reports, by target (8b, 70b) and then method
 ```
 
-The [results index](results/README.md) lists run records and links to the experiment write-ups.
-
 ## Setup
 
-Keep this repository next to a `model-launch` checkout at the pinned revision (or a reviewed newer
-revision containing the Apertus 1.5 release environment):
+The 70B serving examples below use the `model-launch` Apertus 1.5 release environment. Keep this
+repository next to a `model-launch` checkout at the pinned revision or a reviewed newer revision
+that contains this environment.
 
 ```text
 Projects/
