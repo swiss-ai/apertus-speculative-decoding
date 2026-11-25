@@ -1,0 +1,28 @@
+loadtest multi-turn concurrency=1 requests=64
+{
+  "workload": "multi-turn",
+  "variant": "dspark-e10-k7",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 463.1823677276499,
+      "ttft_p50_ms": 27.802407003036933,
+      "ttft_p95_ms": 38.18102915029158,
+      "tpot_p50_ms": 1.9628834576775116,
+      "tpot_p95_ms": 3.4983348216146712,
+      "e2e_p95_ms": 1258.4477740008874,
+      "kv_cache_usage_mean": 0.0018702867041997292,
+      "kv_cache_usage_max": 0.003594855155349075,
+      "kv_cache_tokens_peak": 1232,
+      "kv_cache_size_tokens": 342693,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.8215376782077395,
+      "acceptance_rate": 0.4030768111725342
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+# Whole-node layouts with pipeline parallelism, plain target only: neither drafter
+# can be served with PP > 1 on this image (pp-smoke, job 3721313,
+# results/deployment-failures/pp-spec-decode-20261022/). PP4 and PP2xDP2 against
+# in-job controls: plain DP4 (the reference of docs/system-optimizations-8b.md),
+# plain TP4, and DSpark e10 k=7 on DP4 (the best speculative layout there).
+# Concurrency is per node. SWEEP_PATCHES: none.
+name: multigpu-pp
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+loadtests:
+  - workload: summarization
+    concurrencies: [4, 32, 128, 256, 512]
+arms:
+  - {name: plain-dp4, method: baseline, engine: {data_parallel_size: 4}}
+  - {name: plain-pp4, method: baseline, engine: {pipeline_parallel_size: 4}}
+  - {name: plain-pp2dp2, method: baseline, engine: {pipeline_parallel_size: 2, data_parallel_size: 2}}
+  - {name: plain-tp4, method: baseline, tensor_parallel_size: 4}
+  - {name: dspark-e10-k7-dp4, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, engine: {data_parallel_size: 4}}

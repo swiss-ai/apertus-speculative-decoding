@@ -1,0 +1,28 @@
+loadtest translate-to-en concurrency=1 requests=64
+{
+  "workload": "translate-to-en",
+  "variant": "eagle-e10-k1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 258.91694494789465,
+      "ttft_p50_ms": 26.294062030501664,
+      "ttft_p95_ms": 30.105810886016112,
+      "tpot_p50_ms": 3.542339295289287,
+      "tpot_p95_ms": 3.7462777982079487,
+      "e2e_p95_ms": 610.2813950274139,
+      "kv_cache_usage_mean": 0.0006092344003540307,
+      "kv_cache_usage_max": 0.0009219648915769207,
+      "kv_cache_tokens_peak": 400,
+      "kv_cache_size_tokens": 433872,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.8045556805399325,
+      "acceptance_rate": 0.8045556805399325
+    }
+  ]
+}

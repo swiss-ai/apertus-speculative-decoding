@@ -1,0 +1,50 @@
+{
+  "arm": "pp2-eagle-k3-mrv1",
+  "deployment_id": "pp-smoke-3721313-pp2-eagle-k3-mrv1",
+  "env": {
+    "VLLM_USE_V2_MODEL_RUNNER": "0"
+  },
+  "error": "RuntimeError: pp2-eagle-k3-mrv1: a server exited with 1",
+  "finished": "2026-10-22T14:52:34+0200",
+  "gpus": [
+    2,
+    3
+  ],
+  "port": 8103,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-pp2-eagle-k3-mrv1",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--pipeline-parallel-size",
+    "2",
+    "--speculative-config",
+    "{\"draft_tensor_parallel_size\": 1, \"method\": \"eagle3\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se\", \"num_speculative_tokens\": 3}"
+  ],
+  "servers": [],
+  "started": "2026-10-22T14:51:59+0200",
+  "status": "failed",
+  "tests": {}
+}

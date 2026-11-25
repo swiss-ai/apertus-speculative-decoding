@@ -1,0 +1,20 @@
+# Does the fork serve a drafter with pipeline parallelism? The model runner
+# v2 refuses eagle3/dspark with PP > 1 (vllm/v1/worker/gpu/model_runner.py,
+# spec_decode/dspark/utils.py); this checks it at launch, plus EAGLE on the
+# v1 model runner (no DSpark there) and a plain PP2 reference. Short chat cell.
+# SWEEP_PATCHES: none (the standard serving/patches only).
+name: pp-smoke
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256, pipeline_parallel_size: 2}
+probe: false
+loadtests:
+  - workload: chat
+    concurrencies: [4]
+    min_requests: 16
+    requests_per_slot: 1
+    max_tokens: 128
+arms:
+  - {name: pp2-dspark-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
+  - {name: pp2-eagle-k3, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3}
+  - {name: pp2-plain, method: baseline}
+  - {name: pp2-eagle-k3-mrv1, method: eagle, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-eagle/8b/heads/e31-opb-thinkoff-stage1-se, k: 3, env: {VLLM_USE_V2_MODEL_RUNNER: "0"}}

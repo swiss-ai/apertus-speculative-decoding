@@ -1,0 +1,28 @@
+loadtest lang-zho concurrency=1 requests=64
+{
+  "workload": "lang-zho",
+  "variant": "dspark-e10-k3",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 242.87182043712042,
+      "ttft_p50_ms": 26.107608999154763,
+      "ttft_p95_ms": 26.77834724963759,
+      "tpot_p50_ms": 3.8235692995825286,
+      "tpot_p95_ms": 4.853820615757645,
+      "e2e_p95_ms": 2192.4186569518492,
+      "kv_cache_usage_mean": 0.0007852105860663558,
+      "kv_cache_usage_max": 0.0017269141910341013,
+      "kv_cache_tokens_peak": 592,
+      "kv_cache_size_tokens": 342789,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.918509895227008,
+      "acceptance_rate": 0.3061699650756694
+    }
+  ]
+}

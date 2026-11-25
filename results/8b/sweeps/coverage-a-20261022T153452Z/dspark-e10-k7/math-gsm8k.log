@@ -1,0 +1,28 @@
+loadtest math-gsm8k concurrency=1 requests=64
+{
+  "workload": "math-gsm8k",
+  "variant": "dspark-e10-k7",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 819.6839122771247,
+      "ttft_p50_ms": 26.22549099760363,
+      "ttft_p95_ms": 26.649763403838733,
+      "tpot_p50_ms": 1.1345980439898162,
+      "tpot_p95_ms": 1.3149771272592377,
+      "e2e_p95_ms": 617.2757136533618,
+      "kv_cache_usage_mean": 0.0010625187651278163,
+      "kv_cache_usage_max": 0.0019608300847359095,
+      "kv_cache_tokens_peak": 672,
+      "kv_cache_size_tokens": 342693,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 6.716614240777809,
+      "acceptance_rate": 0.8166591772539727
+    }
+  ]
+}

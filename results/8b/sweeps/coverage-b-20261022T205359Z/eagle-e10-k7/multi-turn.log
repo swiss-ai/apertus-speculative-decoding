@@ -1,0 +1,28 @@
+loadtest multi-turn concurrency=1 requests=64
+{
+  "workload": "multi-turn",
+  "variant": "eagle-e10-k7",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 358.24962900118146,
+      "ttft_p50_ms": 36.23418649658561,
+      "ttft_p95_ms": 51.53888158965856,
+      "tpot_p50_ms": 2.6315218745512197,
+      "tpot_p95_ms": 4.1205437338789475,
+      "e2e_p95_ms": 1547.8897687455171,
+      "kv_cache_usage_mean": 0.0015866576753138305,
+      "kv_cache_usage_max": 0.0026921374834045775,
+      "kv_cache_tokens_peak": 1168,
+      "kv_cache_size_tokens": 433872,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.6667491340920337,
+      "acceptance_rate": 0.38096416201314764
+    }
+  ]
+}

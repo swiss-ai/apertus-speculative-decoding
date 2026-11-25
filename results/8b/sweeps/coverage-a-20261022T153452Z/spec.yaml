@@ -1,0 +1,35 @@
+# Workload coverage: acceptance of dspark-e10 at k=1/3/5/7 on the coverage slices
+# (apertus_bench.coverage_workloads; cluster-only file, manifest in
+# workloads/coverage/manifest.json), one cell per slice at C=1, plus C=128 on
+# three slices as the load check. EAGLE e10 is coverage-b. SWEEP_PATCHES: none.
+name: coverage-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - {workload: lang-eng, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-deu, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1, 128], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-fra, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-ita, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-spa, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-roh, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1, 128], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-zho, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-jpn, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-hin, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-ara, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-swa, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-yor, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: lang-amh, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: code-multi, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: math-gsm8k, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: long-context, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: tool-call, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1, 128], requests_per_slot: 1, min_requests: 64}
+  - {workload: json-schema, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: translate-from-en, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: translate-to-en, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+  - {workload: multi-turn, workloads_file: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl, concurrencies: [1], requests_per_slot: 1, min_requests: 64}
+arms:
+  - {name: dspark-e10-k1, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 1}
+  - {name: dspark-e10-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
+  - {name: dspark-e10-k5, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 5}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
