@@ -1,0 +1,27 @@
+{
+  "torch": "2.15.0+cpu",
+  "source_sha256": "4d003aba2d0c7fcc24875845802e45edb4475a51a037e2caaa7b46c3944c0dae",
+  "source_functions": [
+    "_adjust_lr",
+    "_single_tensor_muon",
+    "_zeropower_via_newtonschulz"
+  ],
+  "results": [
+    {
+      "nesterov": true,
+      "momentum_buffer_preserved": true,
+      "actual_buffer_value": 0.1923828125,
+      "expected_buffer_value": 0.1923828125,
+      "parameters_finite": true
+    },
+    {
+      "nesterov": false,
+      "momentum_buffer_preserved": false,
+      "actual_buffer_value": 0.1767578125,
+      "expected_buffer_value": 0.1923828125,
+      "parameters_finite": true
+    }
+  ],
+  "production_configuration": "build_optimizers does not override the image Muon constructor's nesterov=True default",
+  "limitation": "Exact pinned function bodies with host CPU torch; no ROCm or DTensor kernels tested."
+}

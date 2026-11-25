@@ -1,0 +1,173 @@
+W1025 14:30:09.616353   18992 agent.cpp:245] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:30:09.630681   18992 agent.cpp:245] Conflicting visibility of agent-5 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:30:13.996000 18992 torch/distributed/run.py:874] 
+W1025 14:30:13.996000 18992 torch/distributed/run.py:874] *****************************************
+W1025 14:30:13.996000 18992 torch/distributed/run.py:874] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W1025 14:30:13.996000 18992 torch/distributed/run.py:874] *****************************************
+W1025 14:30:24.689667   19095 agent.cpp:245] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:30:24.701692   19095 agent.cpp:245] Conflicting visibility of agent-5 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:30:24.716760   19094 agent.cpp:245] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:30:24.732997   19094 agent.cpp:245] Conflicting visibility of agent-5 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+BEVERIN_HOOKS {"reduce_dtype": "fp32", "segment_steps": 20, "empty_cache_on_save": "1", "profile_steps": 0}
+BEVERIN_HOOKS {"reduce_dtype": "fp32", "segment_steps": 20, "empty_cache_on_save": "1", "profile_steps": 0}
+[14:30:40] INFO     Started distributed with local_rank=0,    distributed.py:163
+                    dp_size=2, sp_size=1                                        
+[14:30:40] INFO     Started distributed with local_rank=1,    distributed.py:163
+                    dp_size=2, sp_size=1                                        
+           INFO     speculator_type='dspark', dry_run=0, seed=42,  logger.py:736
+                    deterministic_cuda=0,                                       
+                    verifier/verifier_name_or_path='/capstor/store              
+                    /cscs/swissai/infra01/hf_models/models/swiss-a              
+                    i/Apertus-v1.5-70B',                                        
+                    verifier/trust_remote_code=0,                               
+                    draft/from_pretrained='',                                   
+                    draft/draft_config='', draft/num_layers=5,                  
+                    draft/draft_arch='qwen3',                                   
+                    draft/draft_hidden_act='silu',                              
+                    draft/draft_mrope_full_head_hack=1,                         
+                    draft/target_layer_ids=[1, 20, 39, 58, 77],                 
+                    draft/token_freq_path=None,                                 
+                    draft/draft_vocab_size=None,                                
+                    draft/d2t_path=None, draft/t2d_path=None,                   
+                    draft/mask_token_id=None,                                   
+                    draft/norm_before_residual=1,                               
+                    draft/embed_requires_grad=0,                                
+                    draft/norm_before_fc=0, draft/fc_norm=0,                    
+                    draft/norm_output=0,                                        
+                    draft/sliding_window=2048,                                  
+                    draft/full_attention_indices=[],                            
+                    draft/sliding_window_non_causal=0,                          
+                    draft/draft_attn_impl='simple_flex_attention',              
+                    data/data_path='/iopsstor/scratch/cscs/faruk_z              
+                    ahiragic/apertus-dspark70b/data',                           
+                    data/hidden_states_backend='file',                          
+                    data/total_seq_len=8192,                                    
+                    data/train_data_ratio=0.900,                                
+                    data/noise_std=0.050,                                       
+                    data/hidden_states_dtype='bfloat16',                        
+                    data/num_workers=1, data/prefetch_factor=1,                 
+                    data/max_anchors=512,                                       
+                    generation/vllm_endpoint='http://localhost:800              
+                    1/v1', generation/on_missing='generate',                    
+                    generation/on_generate='delete',                            
+                    generation/request_timeout=120.000,                         
+                    generation/max_retries=3,                                   
+                    generation/generation_validation_retries=2,                 
+                    generation/max_consecutive_generation_failures              
+                    =20, loss/loss_implementation='eager',                      
+                    loss/loss_fn='{"ce":0.1,"tv":0.9}',                         
+                    loss/ttt_steps=3,                                           
+                    loss/ttt_step_loss_decay=1.000,                             
+                    optimizer/optimizer='muon',                                 
+                    optimizer/lr=1.50e-04,                                      
+                    optimizer/weight_decay=0.010,                               
+                    optimizer/muon_lr=1.50e-04,                                 
+                    optimizer/muon_momentum=0.950,                              
+                    optimizer/muon_weight_decay=0.100,                          
+                    optimizer/muon_ns_steps=5,                                  
+                    optimizer/muon_adjust_lr_fn='match_rms_adamw',              
+                    scheduler/scheduler_type='linear',                          
+                    scheduler/scheduler_warmup_steps=None,                      
+                    scheduler/scheduler_warmup_ratio=None,                      
+                    scheduler/scheduler_total_steps=None,                       
+                    scheduler/scheduler_num_cosine_cycles=0.500,                
+                    trainer/epochs=10,                                          
+                    trainer/checkpoint_freq=0.016,                              
+                    trainer/save_best=0,                                        
+                    trainer/no_resume_from_checkpoint=0,                        
+                    trainer/log_freq=1,                                         
+                    trainer/save_path='/iopsstor/scratch/cscs/faru              
+                    k_zahiragic/beverin-feasibility/runs/opb-think              
+                    off-1n-beverin-pilot-v2/checkpoints',                       
+                    trainer/fsdp_shard=1,                                       
+                    trainer/gradient_checkpointing=0,                           
+                    trainer/max_steps=None, logging/logger='',                  
+                    logging/log_dir='./logs',                                   
+                    logging/run_name=None, dflash/block_size=8,                 
+                    dflash/sample_from_anchor=None,                             
+                    dflash/dflash_decay_gamma=4.000,                            
+                    dflash/per_position_loss_weight='fixed-exp-dec              
+                    ay', dflash/dpace_alpha=0.500,                              
+                    dflash2/conv_kernel_size=2,                                 
+                    dflash2/conv_group_size=16,                                 
+                    dflash2/selector_rank=256,                                  
+                    dflash2/selector_top_k=16,                                  
+                    dflash2/selector_loss_alpha=1.000,                          
+                    dspark/markov_rank=256,                                     
+                    dspark/markov_head_type='vanilla',                          
+                    dspark/enable_confidence_head=1,                            
+                    dspark/confidence_head_with_markov=1,                       
+                    dspark/confidence_head_alpha=1.000,                         
+                    peagle/num_depths=8,                                        
+                    peagle/down_sample_ratio=0.700,                             
+                    peagle/down_sample_ratio_min=0.200,                         
+                    mtp/num_speculative_steps=3,                                
+                    mtp/step_weight_beta=0.600,                                 
+                    hidden_states_backend_args/hidden_states_path=              
+                    '/tmp/hidden_states'                                        
+           WARNING  No vocab mappings found, and can't generate new   cli.py:398
+                    ones because either                                         
+                    token_freq_path='/iopsstor/scratch/cscs/faruk_zah           
+                    iragic/apertus-dspark70b/data/token_freq.pt'                
+                    doesn't exist or --draft-vocab-size is None.                
+                    Using full verifier vocab                                   
+           INFO     All 5 draft layers using sliding window attention cli.py:532
+                    (window=2048). To use full attention on specific            
+                    layers, pass '--full-attention-indices                      
+                    <layer_ids>'.                                               
+[14:30:48] WARNING  Added <|MASK|> to tokenizer,                     utils.py:48
+                    mask_token_id=266440 (tokenizer len=266441,                 
+                    vocab_size=266752)                                          
+2026-10-25 14:31:50.657 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-25 14:31:50.695 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-25 14:31:50.711 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-25 14:31:51.157 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-25 14:31:51.159 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-25 14:31:51.160 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+[14:32:36] INFO     Found checkpoint at                           trainer.py:260
+                    /iopsstor/scratch/cscs/faruk_zahiragic/beveri               
+                    n-feasibility/runs/opb-thinkoff-1n-beverin-pi               
+                    lot-v2/checkpoints/0.                                       
+           INFO     Resuming mid-epoch from epoch=0 local_step=10 trainer.py:276
+                    global_step=10.                                             
+[14:33:22] INFO     Muon optimizer: 36 2D params via Muon, 26   optimizers.py:88
+                    params via AdamW.                                           
+[14:38:33] INFO     Training epoch 1/10 started                   trainer.py:752
+           INFO     Fast-skipping 10 batches via sampler slice    trainer.py:463
+                    (no vLLM calls for skipped batches). epoch=0,               
+                    global_step=10.                                             
+W1025 14:38:34.033639   22141 agent.cpp:245] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:38:34.045809   22141 agent.cpp:245] Conflicting visibility of agent-5 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:38:34.260594   22145 agent.cpp:245] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 14:38:34.272825   22145 agent.cpp:245] Conflicting visibility of agent-5 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+[14:44:06] INFO     train/confidence_loss=0.139,                  trainer.py:571
+                    train/confidence_abs_error=0.249,                           
+                    train/confidence_pred_mean=0.249,                           
+                    train/confidence_cumprod_bias=0.040,                        
+                    train/loss=1.426, train/ce_loss=8.459,                      
+                    train/tv_loss=0.490,                                        
+                    train/accept_rate=6.09e-05,                                 
+                    train/accept_len=1.000,                                     
+                    train/full_acc=0.00e+00,                                    
+                    train/position_0_acc=0.00e+00,                              
+                    train/position_1_acc=0.00e+00,                              
+                    train/position_2_acc=0.00e+00,                              
+                    train/position_3_acc=0.00e+00,                              
+                    train/position_4_acc=0.00e+00,                              
+                    train/position_5_acc=0.00e+00,                              
+                    train/position_6_acc=0.00e+00,                              
+                    train/position_7_acc=0.00e+00,                              
+                    train/eal=1.000,                                            
+                    train/error_records=0.00e+00,                               
+                    profile/fetch_ms=2.49e+04,                                  
+                    profile/fwd_ms=1.65e+04,                                    
+                    profile/bwd_ms=5.55e+04,                                    
+                    profile/opt_ms=2.35e+05,                                    
+                    profile/step_ms=3.32e+05,                                   
+                    profile/tokens_per_s=23.639,                                
+                    profile/fetch_frac=0.075, epoch=0,                          
+                    lr/Muon=1.06e-07, lr/AdamW=1.06e-07,                        
+                    global_step=10                                              
+W1025 14:46:47.025000 18992 torch/distributed/elastic/agent/server/api.py:753] Received 1 death signal, shutting down workers
+W1025 14:46:47.027000 18992 torch/distributed/elastic/multiprocessing/api.py:1028] Sending process 19094 closing signal SIGHUP
+W1025 14:46:47.040000 18992 torch/distributed/elastic/multiprocessing/api.py:1028] Sending process 19095 closing signal SIGHUP

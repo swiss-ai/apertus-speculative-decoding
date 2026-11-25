@@ -15,6 +15,7 @@ DP=$(( 4 / TP ))
 PORT="${PORT:-8000}"
 CONCURRENCY="${CONCURRENCY:-512}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-256}"
+GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.90}"
 BUDGET_SECONDS="${BUDGET_SECONDS:-42600}"
 started=$(date +%s)
 LOG_DIR="$(dirname "${OUT}")/logs"
@@ -24,10 +25,10 @@ check_side_deps
 
 done_rows=0
 [ -f "${OUT}" ] && done_rows=$(wc -l < "${OUT}")
-stamp "${NAME}: $(wc -l < "${IN}") conversations in ${IN}; ${done_rows} rows already; TP=${TP} DP=${DP} job=${SLURM_JOB_ID:-}"
+stamp "${NAME}: $(wc -l < "${IN}") conversations in ${IN}; ${done_rows} rows already; TP=${TP} DP=${DP} mem=${GPU_MEMORY_UTILIZATION} seqs=${MAX_NUM_SEQS} job=${SLURM_JOB_ID:-}"
 setsid vllm serve "${TARGET_MODEL}" --tensor-parallel-size "${TP}" --data-parallel-size "${DP}" \
   --trust-remote-code --skip-mm-profiling --chat-template-content-format string \
-  --max-model-len 8192 --gpu-memory-utilization 0.90 --max-num-seqs "${MAX_NUM_SEQS}" \
+  --max-model-len 8192 --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION}" --max-num-seqs "${MAX_NUM_SEQS}" \
   --compilation-config.pass_config.fuse_allreduce_rms false \
   --port "${PORT}" ${VLLM_EXTRA:-} > "${LOG_DIR}/vllm-${NAME}-${SLURM_JOB_ID:-local}.log" 2>&1 &
 server=$!

@@ -1,0 +1,90 @@
+{
+  "job": "710498",
+  "wide_only": true,
+  "raw_files_verified": 43,
+  "raw_bytes": 719865,
+  "cells": {
+    "upstream": {
+      "rank_count": 2,
+      "rank_cases": 24,
+      "torch": "2.13.0+git733fca1",
+      "torch_git": "733fca1901cfa5094481cfa9dfc8f8483e18f491",
+      "hip": "7.2.53211",
+      "function_sha256": "99e2359a95e1a914345207e49f072a658866333f4458b7b45faafa35c628f7c4",
+      "native_sources": {
+        "pointwise_ops": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/distributed/tensor/_ops/_pointwise_ops.py",
+          "sha256": "b25444743c8c707cf30aaa3e27a9b2d850a59f6309ed93eca4a466244b3a73db"
+        },
+        "math_ops": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/distributed/tensor/_ops/_math_ops.py",
+          "sha256": "3f6ad29c5164e418ee6c6f7f5ca7eab6d82214abc7697dc3edf373d496a3eb2d"
+        }
+      },
+      "nonfinite": 0,
+      "max_relative_l2_error": 0.002159394951472798,
+      "max_norm_relative_error": 0.006369426751592357,
+      "rank_one_relative_l2_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shapes": [
+        [
+          16,
+          80
+        ],
+        [
+          8192,
+          40960
+        ]
+      ]
+    },
+    "alps": {
+      "rank_count": 2,
+      "rank_cases": 24,
+      "torch": "2.13.0+rocm10.0.0",
+      "torch_git": "6596a0dea537c1c78520c73cc6678214781a9d06",
+      "hip": "7.15.26333",
+      "function_sha256": "99e2359a95e1a914345207e49f072a658866333f4458b7b45faafa35c628f7c4",
+      "native_sources": {
+        "pointwise_ops": {
+          "path": "/opt/venv/lib/python3.12/site-packages/torch/distributed/tensor/_ops/_pointwise_ops.py",
+          "sha256": "b25444743c8c707cf30aaa3e27a9b2d850a59f6309ed93eca4a466244b3a73db"
+        },
+        "math_ops": {
+          "path": "/opt/venv/lib/python3.12/site-packages/torch/distributed/tensor/_ops/_math_ops.py",
+          "sha256": "3f6ad29c5164e418ee6c6f7f5ca7eab6d82214abc7697dc3edf373d496a3eb2d"
+        }
+      },
+      "nonfinite": 0,
+      "max_relative_l2_error": 0.002362600770407043,
+      "max_norm_relative_error": 0.006369426751592357,
+      "rank_one_relative_l2_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shapes": [
+        [
+          16,
+          80
+        ],
+        [
+          8192,
+          40960
+        ]
+      ]
+    }
+  }
+}

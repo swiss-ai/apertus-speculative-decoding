@@ -1,0 +1,35 @@
+--- a/src/speculators/train/trainer.py
++++ b/src/speculators/train/trainer.py
+@@ -1,3 +1,4 @@
++import faulthandler
+ import json
+ import logging
+ import os
+@@ -578,6 +579,11 @@
+                     extra={"step": self.global_step},
+                 )
+             self.global_step += 1
++            # Re-armed every step: if the next one does not finish in time, a C
++            # watchdog thread prints every thread's stack (where a stalled rank waits).
++            faulthandler.dump_traceback_later(
++                int(os.environ.get("DSPARK_STALL_DUMP_S", "600")), exit=False
++            )
+ 
+             if (
+                 self.config.max_steps is not None
+@@ -683,6 +689,7 @@
+         return bool(flag.item())
+ 
+     def maybe_save_checkpoint(self, epoch: int | str, local_step: int = 0):
++        faulthandler.cancel_dump_traceback_later()  # saves may take long
+         if epoch != "interrupted" and (
+             self.config.save_best
+             or (
+@@ -760,6 +767,7 @@
+                 root_logger.warning("No val loader, skipping validation epoch")
+             else:
+                 root_logger.info(f"Validation epoch {epoch + 1}/{n_epochs} started")
++                faulthandler.cancel_dump_traceback_later()
+                 val_metrics = self.val_epoch(epoch)
+                 root_logger.info(f"Validation epoch {epoch + 1}/{n_epochs} completed")
+ 

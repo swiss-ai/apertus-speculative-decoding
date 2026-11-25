@@ -1,0 +1,257 @@
+"""
+MIT License
+
+Copyright (c) 2023 One
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Adapted from https://github.com/imoneoi/multipack_sampler.
+"""
+
+# Standard
+import warnings
+from heapq import heapreplace
+from typing import NamedTuple
+
+import numpy as np
+
+# Third Party
+from numpy.typing import ArrayLike, NDArray
+from torch.utils.data import Sampler
+
+
+## Multipack Distributed Batch Sampler
+class _Bin(NamedTuple):
+    """Helper named tuple for `lpt_packed_batch`"""
+
+    fill: int  # sum of items in _Bin
+    slot: int  # heap slot id (0..num_replicas-1)
+
+
+def _lpt_packed_batch(
+    lengths: np.ndarray,
+    max_len: int,
+    num_replicas: int,
+    start_index: int,
+    rank: int,
+    rotation: int,
+) -> None | list:
+    """
+    Check if lengths can be distributed into `num_replicas` machines with at most
+    `max_len` tokens per machine and return this rank's batch.
+
+    Uses the LPT (Longest processing time first scheduling) algorithm
+    Time: O(|lengths| log |lengths| + |lengths| log replicas)
+
+    Bins are packed to a token budget, which leaves sample counts skewed: with every
+    bin empty the heap tie-breaks on slot id, so slot 0 always takes the largest sample
+    and the highest slot absorbs the small ones. `rotation` re-maps slots to ranks so
+    that role cycles across batches.
+
+    Returns:
+    `None` if unable to find a valid packing. Otherwise, return the batch indices that
+    correspond to `rank`.
+    """
+
+    # Greedily assign lengths (in decreasing order) to the least full slot until they
+    # are all assigned or we run out of space.
+    local_batch = []
+    heap = [_Bin(0, i) for i in range(num_replicas)]
+
+    target_slot = (rank - rotation) % num_replicas
+
+    # sort in descending order
+    indices = np.argsort(lengths)[::-1]
+
+    for idx, size in zip(indices, lengths[indices], strict=True):
+        new_fill = heap[0].fill + size
+        if new_fill > max_len:
+            # Size doesn't fit in least full batch (or any others), report failure.
+            return None
+
+        if heap[0].slot == target_slot:
+            # minimum bucket corresponds to this rank -> add idx to local batch
+            local_batch.append(start_index + idx)
+
+        _ = heapreplace(heap, _Bin(new_fill, heap[0].slot))
+
+    return local_batch
+
+
+def _assign_to_packed_batches(
+    lengths: np.ndarray, max_len: int, rank: int, replicas: int
+) -> list[NDArray]:
+    """Distribute lengths to batches across all ranks, while respecting max_length.
+    Uses a binary search + LPT algorithm.
+
+    Args:
+        lengths (np.ndarray): array of dataset sample lengths
+        max_len (int): maximum allowed sum of lengths in batch
+        rank (int): global rank to collect batches for
+        replicas (int): world size to distribute batches to
+
+    Returns:
+        tuple[list, int, int]:
+            - list of np.arrays containing the indices for each batch on this rank
+            - sum of dataset lengths included (total sum of lengths in dataset minus any
+              that were dropped at end of dataset)
+            - total token capacity if each batch maxed out max_length
+    """
+
+    lengths_so_far = 0
+    ind = 0
+    result: list = []
+    lengths_cumsum = np.cumsum(lengths)
+
+    # binary search for max integer x such that the next x elements in shuffled lengths
+    # array can be packed into `replicas` batches.
+    # Add this rank's batch to `result` and repeat until end of dataset
+    while True:
+        if len(lengths) - ind < replicas:
+            # Not enough lengths left to pack into `num_replicas` batches
+            # Break and drop whatever lengths we have left
+            break
+
+        # binary search in [1, 1 + upper bound for x)
+        left = 1
+        right = 1 + np.searchsorted(
+            lengths_cumsum[ind:], lengths_so_far + max_len * replicas, "right"
+        )
+
+        # Cycle the slot->rank mapping so no rank is permanently the many-samples one.
+        rotation = len(result)
+
+        batch = None
+        while right - left > 1 and right > replicas:
+            mid = (left + right) // 2
+            batch = _lpt_packed_batch(
+                lengths[ind : ind + mid], max_len, replicas, ind, rank, rotation
+            )
+            if batch is None:
+                right = mid
+            else:
+                left = mid
+
+        if batch is None:
+            batch = _lpt_packed_batch(
+                lengths[ind : ind + left], max_len, replicas, ind, rank, rotation
+            )
+
+        ind += left
+        lengths_so_far = lengths_cumsum[ind - 1]
+
+        # append only result for this rank (already filtered in lpt_packed_batch)
+        result.append(batch)
+
+    return result
+
+
+class MultipackDistributedBatchSamplerV2(Sampler):
+    def __init__(
+        self,
+        batch_max_length: int,
+        lengths: ArrayLike,
+        num_replicas: int,
+        rank: int,
+        truncate_long_samples: bool = True,
+        seed: int = 0,
+        max_batches: int | None = None,
+    ):
+        """Efficient distributed packing sampler for linear attention style models
+
+        Args:
+            batch_max_length (int): max number of tokens in a single batch per device
+            lengths (ArrayLike[int]): the lengths of each sample in the dataset
+            num_replicas (int): The number of replicas to split the dataset across.
+            rank (int): The global rank to collect batches for.
+            truncate_long_samples (bool, optional): Whether to truncate long samples
+            (True) or drop them (False). Default is True.
+            seed (int, optional): Seed for RNG, must be the same on all ranks. Default 0
+            max_batches (int, optional): Limit batches exposed per epoch. Used by
+                bounded benchmarks to prevent workers from prefetching beyond the
+                measured run.
+        """
+        self.num_replicas = num_replicas
+        self.rank = rank
+        self.seed = seed
+        self.epoch = 0
+        self.batch_max_length = batch_max_length
+        self.max_batches = max_batches
+        self.lengths = np.array(lengths)
+
+        self.valid_indices = np.nonzero(self.lengths <= self.batch_max_length)[0]
+        if len(self.valid_indices) < len(self.lengths):
+            if truncate_long_samples:
+                msg = (
+                    f"Found {len(self.lengths) - len(self.valid_indices)}"
+                    f"/{len(self.lengths)} samples longer than batch_max_length. "
+                    "These samples will be truncated to batch_max_length."
+                )
+                self.valid_indices = np.arange(len(self.lengths))
+                self.lengths = np.clip(self.lengths, 0, self.batch_max_length)
+            else:
+                msg = (
+                    f"Dropping {len(self.lengths) - len(self.valid_indices)}"
+                    f"/{len(self.lengths)} samples longer than batch_max_length. Ensure"
+                    " that the right max_batch_length is used during data processing."
+                )
+
+            if self.rank == 0:
+                warnings.warn(msg, stacklevel=1)
+
+        self._cached_generated_batches = (-1, [])
+
+    def __iter__(self):
+        batches = self._generate_batches(self.epoch)
+        return iter(batches)
+
+    def __len__(self):
+        batches = self._generate_batches(self.epoch)
+        return len(batches)
+
+    def set_epoch(self, epoch: int):
+        self.epoch = epoch
+
+    def _generate_batches(self, epoch: int) -> list[NDArray]:
+        """Generate batches for this rank
+
+        Returns:
+            list[NDArray]: list of np.arrays containing the indices for each batch on
+            this rank
+        """
+        if self._cached_generated_batches[0] == epoch:
+            return self._cached_generated_batches[1]
+
+        rng = np.random.default_rng(seed=self.seed + epoch)
+        indices = rng.permutation(self.valid_indices)
+
+        batches = _assign_to_packed_batches(
+            self.lengths[indices], self.batch_max_length, self.rank, self.num_replicas
+        )
+
+        # The indices in batches are relative to the shuffled self.lengths[indices]
+        # Translate them so that they are instead relative to the overall unshuffled
+        # self.lengths array.
+        batches = [indices[batch] for batch in batches]
+        if self.max_batches is not None:
+            batches = batches[: self.max_batches]
+
+        # Cache result
+        self._cached_generated_batches = (epoch, batches)
+        return batches

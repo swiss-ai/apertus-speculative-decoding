@@ -1,0 +1,21 @@
+{
+  "source_revision": "e6c84030860b5f0ceb819fe439b59f605703fb65",
+  "source_branch": "fix/beverin-nonfinite-diagnosis-20261030",
+  "runtime": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-e6c84030",
+  "run": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/guard-preflight-20261030-e6c84030",
+  "archive_sha256": "cdf7de98658d810a0c1e3f413155afa84ee1c44bcbd3e7454b99af025c3100f6",
+  "archive_paths": [
+    "methods/dspark",
+    "docs/beverin-handoff.md",
+    "docs/beverin-feasibility.md"
+  ],
+  "image": "/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm-v0.31.0.sqsh",
+  "image_sha256_expected": "b58797bb6a430d7587f1c10ec24ac71f198bd8d590bde98dbbe68d7744a9816f",
+  "nodes": 1,
+  "gpus": 4,
+  "trainer_ranks": 2,
+  "walltime": "00:20:00",
+  "target_model": null,
+  "command": "torchrun --standalone --nproc-per-node=2 /iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-e6c84030/methods/dspark/beverin/check_numerical_guard.py",
+  "purpose": "Validate finite update and synchronized input/gradient rejection under actual ROCm FSDP before larger diagnostic"
+}

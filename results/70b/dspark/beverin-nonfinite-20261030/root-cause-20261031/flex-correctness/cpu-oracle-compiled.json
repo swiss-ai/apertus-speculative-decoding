@@ -1,0 +1,22 @@
+{
+  "torch": "2.15.0+cpu",
+  "cases": [
+    {
+      "padded": false,
+      "q_len": 64,
+      "kv_len": 128,
+      "zero_attention_columns": 10,
+      "oracle_max_error": 2.513854093777468e-07,
+      "compiled_mask_builder_passed": true
+    },
+    {
+      "padded": true,
+      "q_len": 64,
+      "kv_len": 128,
+      "zero_attention_columns": 28,
+      "oracle_max_error": 3.5559804256735106e-07,
+      "compiled_mask_builder_passed": true
+    }
+  ],
+  "status": "passed"
+}

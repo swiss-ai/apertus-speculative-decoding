@@ -1,0 +1,28 @@
+START 2026-10-25T12:02:44+00:00 job=694389 nodes=nid[002746,002764] edf=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-6e2d7693/methods/dspark/beverin/env-vllm031.toml
+6e2d7693
+=== [2026-10-25T12:03:46Z] nid002746 node 0/2 head=nid002746 run=comm-2n-20261025-bf16 data=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/data extract=0,1 (TP2) train=2,3 rdzv_threshold=0 dtensor_allgather=1
+=== [2026-10-25T12:03:47Z] nid002764 node 1/2 head=nid002746 run=comm-2n-20261025-bf16 data=/iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/data extract=0,1 (TP2) train=2,3 rdzv_threshold=0 dtensor_allgather=1
+=== [2026-10-25T12:21:38Z] nid002746 EXTRACTION_SERVER_FAILED
+    raise ValueError(
+ValueError: No available memory for the cache blocks. Try increasing `gpu_memory_utilization` when initializing the engine (this flag also controls CPU memory reservation on the CPU backend, despite its name). See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more details.
+Traceback (most recent call last):
+    raise RuntimeError(
+RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+srun: error: nid002746: task 0: Exited with exit code 1
+srun: Terminating StepId=694389.0
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-6e2d7693/methods/dspark/train/common.sh: line 91: seq: command not found
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-6e2d7693/methods/dspark/train/common.sh: line 97: 168130 Hangup                  if command -v nvidia-smi > /dev/null; then
+    nvidia-smi --query-gpu=timestamp,index,utilization.gpu,memory.used --format=csv,noheader -l 60;
+else
+    while sleep 60; do
+        echo "$(date -u +%FT%TZ) $(amd-smi metric -u -m --csv 2> /dev/null | tail -n +2 | tr '\n' ' ')";
+    done;
+fi > "${LOG}/gpu-${JOB}-node${NODE_RANK}.csv" 2> /dev/null
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-6e2d7693/methods/dspark/train/common.sh: line 97: 168131 Hangup                  ( while sleep 300; do
+    echo "$(date -u +%FT%TZ) $(free -g | awk '/Mem:/ {print "used_gb=" $3}') tmp=$(du -sh ${HS} 2> /dev/null | cut -f1)";
+done ) > "${LOG}/host-${JOB}-node${NODE_RANK}.log"
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-6e2d7693/methods/dspark/train/common.sh: line 97: 174902 Hangup                  sleep 10
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-6e2d7693/methods/dspark/train/common.sh: line 96: seq: command not found
+srun: error: nid002764: task 1: Terminated
+srun: Force Terminated StepId=694389.0
+FINISH 2026-10-25T12:21:44+00:00 rc=143

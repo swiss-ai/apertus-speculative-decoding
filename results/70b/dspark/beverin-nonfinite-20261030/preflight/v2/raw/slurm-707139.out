@@ -1,0 +1,25 @@
+START 2026-10-30T10:52:32+00:00 job=707139 nodes=nid002778
+W1030 11:52:48.967023  175253 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:52:48.979274  175253 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:52:58.836840  175400 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:52:58.849870  175400 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:53:00.121000 175400 torch/distributed/run.py:874] 
+W1030 11:53:00.121000 175400 torch/distributed/run.py:874] *****************************************
+W1030 11:53:00.121000 175400 torch/distributed/run.py:874] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W1030 11:53:00.121000 175400 torch/distributed/run.py:874] *****************************************
+W1030 11:53:00.892274  175481 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:53:00.908666  175481 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:53:00.937025  175482 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:53:00.952118  175482 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+BEVERIN_GUARD_PROBE_PASS {"mode": "finite", "torch": "2.13.0+git733fca1", "hip": "7.2.53211"}
+BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:53:27Z", "global_step": 0, "phase": "inputs", "rank": 1, "job_id": "707139", "attempt": "4f309947-0a38-4414-832b-7ec4ebd5d5bf", "bad_tensors": [{"name": "/x", "shape": [4, 64], "dtype": "torch.bfloat16", "nonfinite": 1}]}
+BEVERIN_GUARD_PROBE_PASS {"mode": "input", "torch": "2.13.0+git733fca1", "hip": "7.2.53211"}
+BEVERIN_NUMERICAL_FAILURE {"utc": "2026-10-30T10:53:27Z", "global_step": 0, "phase": "backward-gradients", "rank": 0, "job_id": "707139", "attempt": "4f309947-0a38-4414-832b-7ec4ebd5d5bf", "bad_tensors": [{"name": "fc.weight", "shape": [32, 64], "dtype": "torch.bfloat16", "nonfinite": 2048}, {"name": "fc.bias", "shape": [32], "dtype": "torch.bfloat16", "nonfinite": 32}]}
+BEVERIN_GUARD_PROBE_PASS {"mode": "gradient", "torch": "2.13.0+git733fca1", "hip": "7.2.53211"}
+W1030 11:53:30.518863  175667 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 11:53:30.531026  175667 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+BEVERIN_GUARD_CAPTURE_PASS {"mode": "input", "ranks": [0, 1]}
+BEVERIN_GUARD_CAPTURE_PASS {"mode": "gradient", "ranks": [0, 1]}
+FINISH 2026-10-30T10:54:06+00:00 rc=0

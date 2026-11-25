@@ -1,0 +1,33 @@
+START 2026-11-04T18:59:19+00:00 job=720056 node=nid002410
+
+WARNING: FI_CXI_RDZV_PROTO=alt_read is configured, but the Slurm network is
+not set to disable rendezvous GET. Performance/stability may be impacted.
+
+Expected Slurm launch:
+  srun --network=disable_rdzv_get ...
+or
+  SLURM_NETWORK=disable_rdzv_get srun ...
+
+Context:
+  SLURM_NETWORK=<unset>
+  FI_PROVIDER=cxi
+  FI_CXI_RDZV_PROTO=alt_read
+
+patching file vllm/model_executor/models/qwen3_dspark.py
+patching file vllm/v1/worker/gpu/spec_decode/dspark/utils.py
+
+WARNING: FI_CXI_RDZV_PROTO=alt_read is configured, but the Slurm network is
+not set to disable rendezvous GET. Performance/stability may be impacted.
+
+Expected Slurm launch:
+  srun --network=disable_rdzv_get ...
+or
+  SLURM_NETWORK=disable_rdzv_get srun ...
+
+Context:
+  SLURM_NETWORK=<unset>
+  FI_PROVIDER=cxi
+  FI_CXI_RDZV_PROTO=alt_read
+
+vllm 0.31.0 torch 2.13.0+rocm10.0.0
+{"output": "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-277edd39/results/70b/sweeps/dspark-alps-1epoch-beverin-20261104T185916Z", "failed": []}

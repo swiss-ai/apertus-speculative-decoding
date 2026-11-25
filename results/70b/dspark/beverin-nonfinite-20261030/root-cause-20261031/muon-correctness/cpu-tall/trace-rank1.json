@@ -1,0 +1,372 @@
+{
+  "rank": 1,
+  "torch": "2.15.0+cpu",
+  "host_dispatch_only": true,
+  "shape": [
+    80,
+    16
+  ],
+  "traces": [
+    {
+      "fixture": "rank-one-ones",
+      "step": null,
+      "operation": "transpose",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": null,
+      "operation": "normalize",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 0,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 0,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 0,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 1,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 1,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 1,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 2,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 2,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 2,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 3,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 3,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 3,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 4,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 4,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": 4,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "rank-one-ones",
+      "step": null,
+      "operation": "final-transpose",
+      "placements": [
+        "Shard(dim=0)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": null,
+      "operation": "transpose",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": null,
+      "operation": "normalize",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.0,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 0,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0030802878929183358,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 0,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0039033955575842787,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 0,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.001233520330107457,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 1,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.0033845290087975237,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 1,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.004220498805324246,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 1,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.006931279725950615,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 2,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.013100496983743708,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 2,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.006667992803427541,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 2,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.017018298763647462,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 3,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.031208981828675434,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 3,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.018455434239695406,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 3,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.024418443856145493,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 4,
+      "operation": "gram",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.04666021413231275,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 4,
+      "operation": "gram-update-addmm",
+      "placements": [
+        "Partial(sum)"
+      ],
+      "relative_l2_error": 0.024018828859623132,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": 4,
+      "operation": "ortho-update-addmm",
+      "placements": [
+        "Shard(dim=1)"
+      ],
+      "relative_l2_error": 0.033088175197604715,
+      "nonfinite": 0
+    },
+    {
+      "fixture": "random",
+      "step": null,
+      "operation": "final-transpose",
+      "placements": [
+        "Shard(dim=0)"
+      ],
+      "relative_l2_error": 0.033088175197604715,
+      "nonfinite": 0
+    }
+  ],
+  "status": "passed"
+}

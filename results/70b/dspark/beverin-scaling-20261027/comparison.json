@@ -1,0 +1,59 @@
+{
+  "one_node_production_reference": {
+    "n": 200,
+    "mean_step_s": 14.49025,
+    "median_step_s": 14.8,
+    "epoch_steps": 141472,
+    "train_hours_per_epoch": 569.4346244444445,
+    "train_days_per_epoch": 23.726442685185187
+  },
+  "measured_scaling": [
+    {
+      "nodes": 16,
+      "steady_samples": 197,
+      "mean_step_s": 18.035786802030458,
+      "median_step_s": 18.2,
+      "epoch_steps": 8179,
+      "train_hours_per_epoch": 40.97630562605753,
+      "train_node_hours_per_epoch": 655.6208900169205,
+      "save_hours_per_epoch": 1.31485452581335,
+      "train_plus_save_hours_per_epoch": 42.29116015187088,
+      "train_plus_save_node_hours_per_epoch": 676.6585624299341,
+      "ten_epoch_training_days": 17.073460677523972,
+      "ten_epoch_train_plus_save_days": 17.6213167299462
+    },
+    {
+      "nodes": 32,
+      "steady_samples": 195,
+      "mean_step_s": 19.709948717948716,
+      "median_step_s": 19.7,
+      "epoch_steps": 4077,
+      "train_hours_per_epoch": 22.32151692307692,
+      "train_node_hours_per_epoch": 714.2885415384615,
+      "save_hours_per_epoch": 1.5071464046902125,
+      "train_plus_save_hours_per_epoch": 23.82866332776713,
+      "train_plus_save_node_hours_per_epoch": 762.5172264885482,
+      "ten_epoch_training_days": 9.30063205128205,
+      "ten_epoch_train_plus_save_days": 9.92860971990297
+    }
+  ],
+  "32_vs_16": {
+    "training_speedup": 1.8357312259407652,
+    "extra_training_node_hours_fraction": 0.08948410951339092,
+    "speedup_including_estimated_saves": 1.774802034430094,
+    "extra_node_hours_fraction_including_estimated_saves": 0.1268862448888386
+  },
+  "32_vs_1": {
+    "epoch_training_speedup": 25.51057020034956,
+    "parallel_efficiency": 0.7972053187609237
+  },
+  "recommendation": "32 nodes for faster turnaround: 44% shorter epoch including estimated saves for 13% more node-hours than 16. Sixteen nodes retains a smaller global batch and lower compute cost.",
+  "limitations": [
+    "No training-quality equivalence or multi-day stability established by 200-step pilots.",
+    "LR values are square-root batch-scaling heuristics.",
+    "Validation, repeated startup/resume and queue waits are excluded from the forecast.",
+    "Reference one-node timing varies by window; older 38-sample pilot was faster.",
+    "Only 16/32 were measured in these follow-up pilots."
+  ],
+  "full_multi_node_production_chain_submitted": false
+}

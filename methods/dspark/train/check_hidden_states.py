@@ -80,6 +80,12 @@ def main() -> int:
             shape_ok = tuple(hs.shape) == (len(ids), args.layers + 1, hidden)
             same_ids = tok.tolist() == ids
             finite = bool(torch.isfinite(hs).all())
+            if not shape_ok:
+                # e.g. positions served from the prefix cache left out (job 693726)
+                print(f"row {row['id']}: shape {tuple(hs.shape)}, expected "
+                      f"{(len(ids), args.layers + 1, hidden)}; ids {same_ids}", flush=True)
+                ok = False
+                continue
             x = hs[:, -1].float()
             x = x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + eps) * norm
             pred = (x.to(head.dtype) @ head.T).argmax(-1)

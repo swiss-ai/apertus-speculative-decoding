@@ -1,0 +1,90 @@
+test_authentication_notifies_once_and_suspends_ssh (test_beverin_monitor.MonitorTests.test_authentication_notifies_once_and_suspends_ssh) ... ok
+test_final_completion_and_exhaustion_stop_remote_polling (test_beverin_monitor.MonitorTests.test_final_completion_and_exhaustion_stop_remote_polling) ... ok
+test_major_slowdown_and_recovery_notify_once_each (test_beverin_monitor.MonitorTests.test_major_slowdown_and_recovery_notify_once_each) ... ok
+test_regular_progress_and_saves_are_quiet (test_beverin_monitor.MonitorTests.test_regular_progress_and_saves_are_quiet) ... ok
+test_sender_uses_exact_thread_and_drops_inherited_thread (test_beverin_monitor.MonitorTests.test_sender_uses_exact_thread_and_drops_inherited_thread) ... ok
+test_state_resume_validation_and_errors_are_material (test_beverin_monitor.MonitorTests.test_state_resume_validation_and_errors_are_material) ... ok
+test_three_hour_heartbeat_without_save_spam (test_beverin_monitor.MonitorTests.test_three_hour_heartbeat_without_save_spam) ... ok
+test_transport_failures_retry_and_do_not_claim_job_failure (test_beverin_monitor.MonitorTests.test_transport_failures_retry_and_do_not_claim_job_failure) ... ERROR:root:Read-only snapshot failed; training state is unknown, not failed
+Traceback (most recent call last):
+  File "/home/projects/apertus-speculative-decoding-beverin-nan/methods/dspark/beverin/monitor_one_epoch.py", line 181, in poll
+    raise RuntimeError(result.stderr[-600:])
+RuntimeError: Connection timed out
+ERROR:root:Read-only snapshot failed; training state is unknown, not failed
+Traceback (most recent call last):
+  File "/home/projects/apertus-speculative-decoding-beverin-nan/methods/dspark/beverin/monitor_one_epoch.py", line 181, in poll
+    raise RuntimeError(result.stderr[-600:])
+RuntimeError: Connection timed out
+ERROR:root:Read-only snapshot failed; training state is unknown, not failed
+Traceback (most recent call last):
+  File "/home/projects/apertus-speculative-decoding-beverin-nan/methods/dspark/beverin/monitor_one_epoch.py", line 181, in poll
+    raise RuntimeError(result.stderr[-600:])
+RuntimeError: Connection timed out
+ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.017s
+
+OK
+{
+  "utc": "2026-10-27T18:00:00Z",
+  "run": "opb-thinkoff-32n-1epoch-beverin-20261027",
+  "jobs": [
+    {
+      "JobIDRaw": "698072",
+      "State": "RUNNING"
+    },
+    {
+      "JobIDRaw": "698073",
+      "State": "PENDING"
+    }
+  ],
+  "active_job": "698072",
+  "phase": "training",
+  "attempt": "train-698072-node0.log",
+  "global_step": 200,
+  "checkpoint": {
+    "global_step": 192
+  },
+  "ready_nodes": 32,
+  "step_seconds": {
+    "n": 50,
+    "mean": 19,
+    "median": 19
+  },
+  "completion": null,
+  "completion_error": null,
+  "error": null,
+  "eta_training_and_saves_hours": 21.90222222222222
+}
+{
+  "utc": "2026-10-27T18:00:00Z",
+  "run": "opb-thinkoff-32n-1epoch-beverin-20261027",
+  "jobs": [
+    {
+      "JobIDRaw": "698072",
+      "State": "RUNNING"
+    },
+    {
+      "JobIDRaw": "698073",
+      "State": "PENDING"
+    }
+  ],
+  "active_job": "698072",
+  "phase": "training",
+  "attempt": "train-698072-node0.log",
+  "global_step": 200,
+  "checkpoint": {
+    "global_step": 192
+  },
+  "ready_nodes": 32,
+  "step_seconds": {
+    "n": 50,
+    "mean": 19,
+    "median": 19
+  },
+  "completion": null,
+  "completion_error": null,
+  "error": null,
+  "eta_training_and_saves_hours": 21.90222222222222
+}

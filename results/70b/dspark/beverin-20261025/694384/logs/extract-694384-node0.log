@@ -1,0 +1,256 @@
+W1025 12:59:29.274356    4105 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 12:59:29.287463    4105 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/scripts/launch_vllm.py:533: UserWarning: Using custom target layer ids [1, 20, 39, 58, 77, 80]. These must also be explicitly passed into the training script.
+  cmd = _build_train_cmd(args, vllm_args)
+Running command:
+/usr/bin/python3 -m vllm.entrypoints.cli.main serve /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B --speculative_config {"method": "extract_hidden_states", "num_speculative_tokens": 1, "draft_model_config": {"hf_config": {"eagle_aux_hidden_state_layer_ids": [1, 20, 39, 58, 77, 80]}}} --kv_transfer_config {"kv_connector": "ExampleHiddenStatesConnector", "kv_role": "kv_producer", "kv_connector_extra_config": {"shared_storage_path": "/tmp/hidden_states"}} --enable-scale-out --api-server-count 9 --renderer-num-workers 2 --tensor-parallel-size 2 --enforce-eager --trust-remote-code --port 8001 --gpu-memory-utilization 0.56 --max-model-len 8192
+W1025 13:01:40.398558    4105 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:01:40.411786    4105 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+(MainProcess pid=4105) INFO 10-25 13:01:54 [api_utils.py:347] 
+(MainProcess pid=4105) INFO 10-25 13:01:54 [api_utils.py:347]        █     █     █▄   ▄█
+(MainProcess pid=4105) INFO 10-25 13:01:54 [api_utils.py:347]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.31.0
+(MainProcess pid=4105) INFO 10-25 13:01:54 [api_utils.py:347]   █▄█▀ █     █     █     █  model   /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+(MainProcess pid=4105) INFO 10-25 13:01:54 [api_utils.py:347]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(MainProcess pid=4105) INFO 10-25 13:01:54 [api_utils.py:347] 
+(MainProcess pid=4105) INFO 10-25 13:01:54 [api_utils.py:286] non-default args: {'model_tag': '/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', 'api_server_count': 9, 'enable_scale_out': True, 'port': 8001, 'model': '/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', 'trust_remote_code': True, 'max_model_len': 8192, 'enforce_eager': True, 'renderer_num_workers': 2, 'tensor_parallel_size': 2, 'gpu_memory_utilization': 0.56, 'speculative_config': {'method': 'extract_hidden_states', 'num_speculative_tokens': 1, 'draft_model_config': {'hf_config': {'eagle_aux_hidden_state_layer_ids': [1, 20, 39, 58, 77, 80]}}}, 'kv_transfer_config': KVTransferConfig(kv_connector='ExampleHiddenStatesConnector', engine_id='cffa871f-593a-41d5-829e-43a13dfa540e', kv_buffer_device='cuda', kv_buffer_size=1000000000.0, kv_role='kv_producer', kv_rank=None, kv_parallel_size=1, kv_ip='127.0.0.1', kv_port=14579, kv_connector_extra_config={'shared_storage_path': '/tmp/hidden_states'}, kv_connector_module_path=None, enable_permute_local_kv=False, kv_load_failure_policy='fail')}
+(MainProcess pid=4105) INFO 10-25 13:02:06 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(MainProcess pid=4105) INFO 10-25 13:02:06 [model.py:2109] Using max model len 8192
+(MainProcess pid=4105) INFO 10-25 13:02:18 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(MainProcess pid=4105) WARNING 10-25 13:02:18 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(MainProcess pid=4105) WARNING 10-25 13:02:18 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(MainProcess pid=4105) INFO 10-25 13:02:18 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(MainProcess pid=4105) INFO 10-25 13:02:18 [vllm.py:1968] Cudagraph is disabled under eager mode
+(MainProcess pid=4105) INFO 10-25 13:02:18 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(MainProcess pid=4105) INFO 10-25 13:02:18 [utils.py:254] Started 9 API server processes
+W1025 13:02:19.238494    5183 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.252593    5183 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.418850    5187 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.434037    5184 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.443090    5189 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.467403    5187 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.479846    5184 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.486542    5190 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.486599    5189 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.487062    5185 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.487199    5188 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.499132    5182 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.499436    5186 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.499448    5191 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.513387    5190 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.514462    5185 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.515077    5188 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.524054    5191 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.524061    5186 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:19.524294    5182 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+(ApiServer_6 pid=5189) INFO 10-25 13:02:32 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_6 pid=5189) INFO 10-25 13:02:32 [model.py:2109] Using max model len 8192
+(ApiServer_6 pid=5189) INFO 10-25 13:02:32 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_6 pid=5189) WARNING 10-25 13:02:32 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_6 pid=5189) WARNING 10-25 13:02:32 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_6 pid=5189) INFO 10-25 13:02:32 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_6 pid=5189) INFO 10-25 13:02:32 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_6 pid=5189) INFO 10-25 13:02:32 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_0 pid=5183) INFO 10-25 13:02:32 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_0 pid=5183) INFO 10-25 13:02:32 [model.py:2109] Using max model len 8192
+(ApiServer_0 pid=5183) INFO 10-25 13:02:32 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_0 pid=5183) WARNING 10-25 13:02:32 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_0 pid=5183) WARNING 10-25 13:02:32 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_0 pid=5183) INFO 10-25 13:02:32 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_0 pid=5183) INFO 10-25 13:02:32 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_0 pid=5183) INFO 10-25 13:02:32 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_2 pid=5185) INFO 10-25 13:02:32 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_2 pid=5185) INFO 10-25 13:02:32 [model.py:2109] Using max model len 8192
+(ApiServer_2 pid=5185) INFO 10-25 13:02:32 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_2 pid=5185) WARNING 10-25 13:02:32 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_2 pid=5185) WARNING 10-25 13:02:32 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_2 pid=5185) INFO 10-25 13:02:32 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_2 pid=5185) INFO 10-25 13:02:32 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_2 pid=5185) INFO 10-25 13:02:32 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_1 pid=5184) INFO 10-25 13:02:32 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_1 pid=5184) INFO 10-25 13:02:32 [model.py:2109] Using max model len 8192
+(ApiServer_1 pid=5184) INFO 10-25 13:02:32 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_1 pid=5184) WARNING 10-25 13:02:32 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_1 pid=5184) WARNING 10-25 13:02:32 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_1 pid=5184) INFO 10-25 13:02:32 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_1 pid=5184) INFO 10-25 13:02:32 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_1 pid=5184) INFO 10-25 13:02:32 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_7 pid=5190) INFO 10-25 13:02:32 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_7 pid=5190) INFO 10-25 13:02:32 [model.py:2109] Using max model len 8192
+(ApiServer_7 pid=5190) INFO 10-25 13:02:32 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_7 pid=5190) WARNING 10-25 13:02:32 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_7 pid=5190) WARNING 10-25 13:02:32 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_7 pid=5190) INFO 10-25 13:02:32 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_7 pid=5190) INFO 10-25 13:02:32 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_7 pid=5190) INFO 10-25 13:02:32 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_5 pid=5188) INFO 10-25 13:02:33 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_5 pid=5188) INFO 10-25 13:02:33 [model.py:2109] Using max model len 8192
+(ApiServer_5 pid=5188) INFO 10-25 13:02:33 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_5 pid=5188) WARNING 10-25 13:02:33 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_5 pid=5188) WARNING 10-25 13:02:33 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_5 pid=5188) INFO 10-25 13:02:33 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_5 pid=5188) INFO 10-25 13:02:33 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_5 pid=5188) INFO 10-25 13:02:33 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_3 pid=5186) INFO 10-25 13:02:33 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_3 pid=5186) INFO 10-25 13:02:33 [model.py:2109] Using max model len 8192
+(ApiServer_4 pid=5187) INFO 10-25 13:02:33 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_4 pid=5187) INFO 10-25 13:02:33 [model.py:2109] Using max model len 8192
+(ApiServer_3 pid=5186) INFO 10-25 13:02:33 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_3 pid=5186) WARNING 10-25 13:02:33 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_3 pid=5186) WARNING 10-25 13:02:33 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_4 pid=5187) INFO 10-25 13:02:33 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_3 pid=5186) INFO 10-25 13:02:33 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_3 pid=5186) INFO 10-25 13:02:33 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_4 pid=5187) WARNING 10-25 13:02:33 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_4 pid=5187) WARNING 10-25 13:02:33 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_4 pid=5187) INFO 10-25 13:02:33 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_4 pid=5187) INFO 10-25 13:02:33 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_3 pid=5186) INFO 10-25 13:02:33 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_4 pid=5187) INFO 10-25 13:02:33 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_8 pid=5191) INFO 10-25 13:02:33 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_8 pid=5191) INFO 10-25 13:02:33 [model.py:2109] Using max model len 8192
+(ApiServer_8 pid=5191) INFO 10-25 13:02:33 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_8 pid=5191) WARNING 10-25 13:02:33 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_8 pid=5191) WARNING 10-25 13:02:33 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_8 pid=5191) INFO 10-25 13:02:33 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_8 pid=5191) INFO 10-25 13:02:33 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_8 pid=5191) INFO 10-25 13:02:33 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(EngineCore pid=5182) INFO 10-25 13:02:49 [core.py:129] Initializing a V1 LLM engine (v0.31.0) with config: model='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', speculative_config=SpeculativeConfig(method='extract_hidden_states', model=None, num_spec_tokens=1), tokenizer='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=2, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=True, aux_output_config=AuxOutputConfig(enable_return_routed_experts=False, max_bytes=None), kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['+sparse_attn_indexer', 'all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_mla_dual_rms_norm': False, 'fuse_rope_kvcache': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=False, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)
+(EngineCore pid=5182) INFO 10-25 13:02:49 [multiproc_executor.py:153] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=172.28.11.5 (local), world_size=2, local_world_size=2
+W1025 13:02:50.065675    5451 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:50.073037    5450 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:50.084861    5451 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:02:50.089316    5450 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+(Worker pid=5451) INFO 10-25 13:03:00 [parallel_state.py:1825] world_size=2 rank=1 local_rank=1 distributed_init_method=file:///tmp/vllm_dist_61ec8cb9205f418f9893b10f602bab20 backend=nccl
+(Worker pid=5450) INFO 10-25 13:03:02 [parallel_state.py:1825] world_size=2 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_61ec8cb9205f418f9893b10f602bab20 backend=nccl
+(Worker pid=5450) INFO 10-25 13:03:02 [pynccl.py:148] vLLM is using nccl==2.27.7
+(Worker pid=5450) INFO 10-25 13:03:12 [flashinfer_all_reduce.py:372] FlashInfer All Reduce is disabled because flashinfer is not available
+(Worker pid=5451) INFO 10-25 13:03:12 [flashinfer_all_reduce.py:372] FlashInfer All Reduce is disabled because flashinfer is not available
+(Worker pid=5450) INFO 10-25 13:03:12 [cuda_communicator.py:326] Using ['CUSTOM', 'PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['FLASHINFER_PCIE_IPC', 'FLASHINFER', 'NCCL_SYMM_MEM', 'QUICK_REDUCE', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=5450) INFO 10-25 13:03:12 [parallel_state.py:2269] rank 0 in world size 2 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, ETP rank 0, EP rank N/A, EPLB rank N/A
+(Worker pid=5450) INFO 10-25 13:03:12 [gpu_worker.py:479] Using V2 Model Runner
+(Worker_TP0 pid=5450) INFO 10-25 13:03:15 [model_runner.py:375] Loading model from scratch...
+(Worker_TP0 pid=5450) INFO 10-25 13:03:16 [rocm.py:797] Found incompatible backend(s) [TURBOQUANT] with AttentionType.DECODER. Overriding with ROCM_AITER_UNIFIED_ATTN out of potential backends: ['ROCM_AITER_UNIFIED_ATTN', 'TRITON_ATTN'].
+(Worker_TP0 pid=5450) INFO 10-25 13:03:16 [rocm_aiter_unified_attn.py:181] Using aiter unified attention for RocmAiterUnifiedAttentionImpl
+(Worker_TP1 pid=5451) INFO 10-25 13:03:16 [rocm.py:797] Found incompatible backend(s) [TURBOQUANT] with AttentionType.DECODER. Overriding with ROCM_AITER_UNIFIED_ATTN out of potential backends: ['ROCM_AITER_UNIFIED_ATTN', 'TRITON_ATTN'].
+[aiter] import [module_aiter_core] under /usr/local/lib/python3.12/dist-packages/aiter/jit/module_aiter_core.so
+[aiter] import [module_aiter_core] under /usr/local/lib/python3.12/dist-packages/aiter/jit/module_aiter_core.so
+(Worker_TP0 pid=5450) WARNING 10-25 13:03:21 [activation.py:735] CUDA-fused xIELU not available (No module named 'xielu') – falling back to a Python version.
+(Worker_TP0 pid=5450) WARNING 10-25 13:03:21 [activation.py:735] For CUDA xIELU (experimental), `pip install git+https://github.com/nickjbrowning/XIELU`
+(Worker_TP1 pid=5451) INFO 10-25 13:03:24 [weight_utils.py:1025] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(Worker_TP1 pid=5451) INFO 10-25 13:03:25 [weight_utils.py:997] Prefetching checkpoint files: 10% (1/2)
+(Worker_TP0 pid=5450) WARNING 10-25 13:03:30 [compilation.py:1350] Op 'sparse_attn_indexer' doesn't exist (or wasn't imported/registered), enabling with '+sparse_attn_indexer' has no effect
+(Worker_TP0 pid=5450) INFO 10-25 13:03:30 [weight_utils.py:1063] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 134.67 GiB. Available RAM: 300.00 GiB.
+(Worker_TP0 pid=5450) INFO 10-25 13:03:30 [weight_utils.py:1025] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+(Worker_TP0 pid=5450) INFO 10-25 13:03:30 [weight_utils.py:997] Prefetching checkpoint files: 10% (1/3)
+(Worker_TP0 pid=5450) INFO 10-25 13:03:39 [weight_utils.py:997] Prefetching checkpoint files: 20% (2/3)
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:23<01:33, 23.48s/it]
+(Worker_TP1 pid=5451) INFO 10-25 13:03:59 [weight_utils.py:997] Prefetching checkpoint files: 20% (2/2)
+(Worker_TP1 pid=5451) INFO 10-25 13:03:59 [weight_utils.py:1020] Prefetching checkpoint files into page cache finished in 34.85s
+(Worker_TP0 pid=5450) INFO 10-25 13:04:06 [weight_utils.py:997] Prefetching checkpoint files: 30% (3/3)
+(Worker_TP0 pid=5450) INFO 10-25 13:04:06 [weight_utils.py:1020] Prefetching checkpoint files into page cache finished in 36.13s
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [03:25<05:50, 116.91s/it]
+Loading safetensors checkpoint shards:  60% Completed | 3/5 [08:01<06:18, 189.46s/it]
+Loading safetensors checkpoint shards:  80% Completed | 4/5 [08:02<01:55, 115.02s/it]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [08:03<00:00, 73.84s/it]
+ Loading safetensors checkpoint shards: 100% Completed | 5/5 [08:03<00:00, 96.66s/it]
+
+(Worker_TP0 pid=5450) INFO 10-25 13:11:33 [default_loader.py:484] Loading weights took 483.73 seconds
+(Worker_TP0 pid=5450) INFO 10-25 13:11:34 [eagle3_utils.py:27] Using Eagle3 auxiliary layers from config: (1, 20, 39, 58, 77, 80)
+(Worker_TP0 pid=5450) INFO 10-25 13:11:34 [default_loader.py:484] Loading weights took 2768849.80 seconds
+(Worker_TP1 pid=5451) INFO 10-25 13:11:34 [eagle3_utils.py:27] Using Eagle3 auxiliary layers from config: (1, 20, 39, 58, 77, 80)
+(Worker_TP1 pid=5451) INFO 10-25 13:11:36 [model_runner.py:407] Model loading took 66.85 GiB memory and 502.069696 seconds
+(Worker_TP0 pid=5450) INFO 10-25 13:11:36 [model_runner.py:407] Model loading took 66.85 GiB memory and 502.789087 seconds
+(EngineCore pid=5182) WARNING 10-25 13:11:36 [utils.py:334] KV connector cache layout LBNHC does not satisfy every supported set; valid layouts: ['LBHNC']. Using LBHNC instead.
+(EngineCore pid=5182) INFO 10-25 13:11:36 [utils.py:343] Using LBHNC KV cache layout.
+/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.
+  return func(*args, **kwargs)
+/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.
+  return func(*args, **kwargs)
+(Worker_TP0 pid=5450) INFO 10-25 13:12:24 [gpu_worker.py:692] Available KV cache memory: -1.16 GiB
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433] EngineCore failed to start.
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433] Traceback (most recent call last):
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1395, in run_engine_core
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 175, in sync_wrapper
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     return func(*args, **kwargs)
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1151, in __init__
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     super().__init__(
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 151, in __init__
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 175, in sync_wrapper
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     return func(*args, **kwargs)
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 320, in _initialize_kv_caches
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     kv_cache_configs = get_kv_cache_configs(
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]                        ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py", line 2795, in get_kv_cache_configs
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     _check_enough_kv_cache_memory(
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py", line 905, in _check_enough_kv_cache_memory
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433]     raise ValueError(
+(EngineCore pid=5182) ERROR 10-25 13:12:24 [core.py:1433] ValueError: No available memory for the cache blocks. Try increasing `gpu_memory_utilization` when initializing the engine (this flag also controls CPU memory reservation on the CPU backend, despite its name). See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more details.
+(EngineCore pid=5182) ERROR 10-25 13:12:32 [multiproc_executor.py:314] Worker proc VllmWorker-1 died unexpectedly (exit code: None), shutting down executor.
+(EngineCore pid=5182) INFO 10-25 13:12:32 [multiproc_executor.py:474] [shutdown] Executor: waiting for worker exit count=2
+Process EngineCore:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1437, in run_engine_core
+    raise e
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1395, in run_engine_core
+    engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 175, in sync_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1151, in __init__
+    super().__init__(
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 151, in __init__
+    kv_cache_config = self._initialize_kv_caches(vllm_config)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 175, in sync_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 320, in _initialize_kv_caches
+    kv_cache_configs = get_kv_cache_configs(
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py", line 2795, in get_kv_cache_configs
+    _check_enough_kv_cache_memory(
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py", line 905, in _check_enough_kv_cache_memory
+    raise ValueError(
+ValueError: No available memory for the cache blocks. Try increasing `gpu_memory_utilization` when initializing the engine (this flag also controls CPU memory reservation on the CPU backend, despite its name). See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more details.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/cli/main.py", line 124, in <module>
+    main()
+  File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/cli/main.py", line 118, in main
+    args.dispatch_function(args)
+  File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/cli/serve.py", line 150, in cmd
+    run_multi_api_server(args)
+  File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/cli/serve.py", line 334, in run_multi_api_server
+    with launch_core_engines(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py", line 1268, in launch_core_engines
+    wait_for_engine_startup(
+  File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py", line 1348, in wait_for_engine_startup
+    raise RuntimeError(
+RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_0
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_1
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_2
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_3
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_4
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_5
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_6
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_7
+(MainProcess pid=4105) INFO 10-25 13:12:40 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_8
+/usr/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 2 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

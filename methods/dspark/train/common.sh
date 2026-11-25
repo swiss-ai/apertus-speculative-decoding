@@ -65,11 +65,18 @@ check_side_deps() {
     || { echo "speculators does not import: run the prep job first" >&2; return 1; }
 }
 
+# health PORT: the server answers /health. curl does not load in the Beverin
+# ROCm image (libldap_r missing), so fall back to Python.
+health() {
+  curl -sf "localhost:$1/health" > /dev/null 2>&1 \
+    || python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:$1/health', timeout=5)" 2> /dev/null
+}
+
 # wait_health PORT PID SECONDS: the 70B takes ~10 min to load from capstor.
 wait_health() {
   local i
   for i in $(seq 1 $(( $3 / 10 ))); do
-    curl -sf "localhost:$1/health" > /dev/null && return 0
+    health "$1" && return 0
     kill -0 "$2" 2> /dev/null || return 1
     sleep 10
   done
@@ -88,6 +95,7 @@ stop_server() {
   done
   kill -KILL -- "-$1" 2> /dev/null || true
   for i in $(seq 1 30); do
+    command -v nvidia-smi > /dev/null || return 0
     [ "$(nvidia-smi --query-compute-apps=pid --format=csv,noheader | wc -l)" = 0 ] && return 0
     sleep 2
   done

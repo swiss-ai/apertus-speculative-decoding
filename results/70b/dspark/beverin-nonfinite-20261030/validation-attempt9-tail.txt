@@ -1,0 +1,191 @@
+                                
+                    optimizer/lr=8.49e-04,                                      
+                    optimizer/weight_decay=0.010,                               
+                    optimizer/muon_lr=8.49e-04,                                 
+                    optimizer/muon_momentum=0.950,                              
+                    optimizer/muon_weight_decay=0.100,                          
+                    optimizer/muon_ns_steps=5,                                  
+                    optimizer/muon_adjust_lr_fn='match_rms_adamw',              
+                    scheduler/scheduler_type='linear',                          
+                    scheduler/scheduler_warmup_steps=None,                      
+                    scheduler/scheduler_warmup_ratio=None,                      
+                    scheduler/scheduler_total_steps=None,                       
+                    scheduler/scheduler_num_cosine_cycles=0.500,                
+                    trainer/epochs=1,                                           
+                    trainer/checkpoint_freq=0.016,                              
+                    trainer/save_best=0,                                        
+                    trainer/no_resume_from_checkpoint=0,                        
+                    trainer/log_freq=1,                                         
+                    trainer/save_path='/iopsstor/scratch/cscs/faru              
+                    k_zahiragic/beverin-feasibility/runs/opb-think              
+                    off-32n-1epoch-beverin-20261027/checkpoints',               
+                    trainer/fsdp_shard=1,                                       
+                    trainer/gradient_checkpointing=0,                           
+                    trainer/max_steps=None, logging/logger='',                  
+                    logging/log_dir='./logs',                                   
+                    logging/run_name=None, dflash/block_size=8,                 
+                    dflash/sample_from_anchor=None,                             
+                    dflash/dflash_decay_gamma=4.000,                            
+                    dflash/per_position_loss_weight='fixed-exp-dec              
+                    ay', dflash/dpace_alpha=0.500,                              
+                    dflash2/conv_kernel_size=2,                                 
+                    dflash2/conv_group_size=16,                                 
+                    dflash2/selector_rank=256,                                  
+                    dflash2/selector_top_k=16,                                  
+                    dflash2/selector_loss_alpha=1.000,                          
+                    dspark/markov_rank=256,                                     
+                    dspark/markov_head_type='vanilla',                          
+                    dspark/enable_confidence_head=1,                            
+                    dspark/confidence_head_with_markov=1,                       
+                    dspark/confidence_head_alpha=1.000,                         
+                    peagle/num_depths=8,                                        
+                    peagle/down_sample_ratio=0.700,                             
+                    peagle/down_sample_ratio_min=0.200,                         
+                    mtp/num_speculative_steps=3,                                
+                    mtp/step_weight_beta=0.600,                                 
+                    hidden_states_backend_args/hidden_states_path=              
+                    '/tmp/hidden_states'                                        
+           WARNING  No vocab mappings found, and can't generate new   cli.py:398
+                    ones because either                                         
+                    token_freq_path='/iopsstor/scratch/cscs/faruk_zah           
+                    iragic/apertus-dspark70b/data/token_freq.pt'                
+                    doesn't exist or --draft-vocab-size is None.                
+                    Using full verifier vocab                                   
+           INFO     All 5 draft layers using sliding window attention cli.py:532
+                    (window=2048). To use full attention on specific            
+                    layers, pass '--full-attention-indices                      
+                    <layer_ids>'.                                               
+[08:56:37] WARNING  Added <|MASK|> to tokenizer,                     utils.py:48
+                    mask_token_id=266440 (tokenizer len=266441,                 
+                    vocab_size=266752)                                          
+2026-10-30 08:57:35.840 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-30 08:57:35.851 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-30 08:57:35.858 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-30 08:57:50.540 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-30 08:57:50.543 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+2026-10-30 08:57:50.544 | INFO     | speculators.utils.loading:_resolve_file:153 - Loading from local directory: /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+[08:58:14] INFO     Found checkpoint at                           trainer.py:260
+                    /iopsstor/scratch/cscs/faruk_zahiragic/beveri               
+                    n-feasibility/runs/opb-thinkoff-32n-1epoch-be               
+                    verin-20261027/checkpoints/0.                               
+           INFO     Resuming training on epoch 1.                 trainer.py:286
+[08:59:22] INFO     Muon optimizer: 36 2D params via Muon, 26   optimizers.py:88
+                    params via AdamW.                                           
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/__main__.py:23: FutureWarning: `torch.distributed._functional_collectives.all_gather_tensor` is deprecated. Please use `torch.distributed._functional_collectives.all_gather_single` instead.
+  out = funcol.all_gather_tensor(input, gather_dim, (mesh, mesh_dim))
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/__main__.py:23: FutureWarning: `torch.distributed._functional_collectives.all_gather_tensor` is deprecated. Please use `torch.distributed._functional_collectives.all_gather_single` instead.
+  out = funcol.all_gather_tensor(input, gather_dim, (mesh, mesh_dim))
+[09:00:49] INFO     BEVERIN_VALIDATION_ONLY: resuming final  single_epoch.py:140
+                    validation at step 4077                                     
+           INFO     Training epoch 1/1 started                    trainer.py:752
+           INFO     BEVERIN_VALIDATION_ONLY: preserving      single_epoch.py:101
+                    completed training at step 4077                             
+           INFO     Training epoch 1/1 completed                  trainer.py:754
+[09:00:51] INFO     Validation epoch 1/1 started                  trainer.py:769
+W1030 09:00:53.205328   44593 agent.cpp:245] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 09:00:53.221001   44593 agent.cpp:245] Conflicting visibility of agent-5 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 09:00:53.276375   44595 agent.cpp:245] Conflicting visibility of agent-4 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1030 09:00:53.289256   44595 agent.cpp:245] Conflicting visibility of agent-5 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+Epoch 0 100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━ 453/453  [ 1:48:48 < 0:00:00 , 0 it/s ]
+[10:49:41] INFO     val/confidence_loss_epoch=nan,                trainer.py:670
+                    val/confidence_abs_error_epoch=nan,                         
+                    val/confidence_pred_mean_epoch=nan,                         
+                    val/confidence_cumprod_bias_epoch=nan,                      
+                    val/loss_epoch=nan, val/ce_loss_epoch=nan,                  
+                    val/tv_loss_epoch=nan,                                      
+                    val/accept_rate_epoch=nan,                                  
+                    val/accept_len_epoch=nan,                                   
+                    val/full_acc_epoch=0.00e+00,                                
+                    val/position_0_acc_epoch=0.00e+00,                          
+                    val/position_1_acc_epoch=0.00e+00,                          
+                    val/position_2_acc_epoch=0.00e+00,                          
+                    val/position_3_acc_epoch=0.00e+00,                          
+                    val/position_4_acc_epoch=0.00e+00,                          
+                    val/position_5_acc_epoch=0.00e+00,                          
+                    val/position_6_acc_epoch=0.00e+00,                          
+                    val/position_7_acc_epoch=0.00e+00,                          
+                    val/eal_epoch=1.000, epoch=0                                
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a/methods/dspark/beverin/apertus15_run.py", line 25, in <module>
+[rank0]:     runpy.run_module(module, run_name="__main__", alter_sys=True)
+[rank0]:   File "<frozen runpy>", line 226, in run_module
+[rank0]:   File "<frozen runpy>", line 98, in _run_module_code
+[rank0]:   File "<frozen runpy>", line 88, in _run_code
+[rank0]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/__main__.py", line 41, in <module>
+[rank0]:     main(TrainConfig.resolve())
+[rank0]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/cli.py", line 745, in main
+[rank0]:     trainer.run_training()
+[rank0]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a/methods/dspark/beverin/single_epoch.py", line 141, in run
+[rank0]:     result = original_run(self)
+[rank0]:              ^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/graceful_shutdown.py", line 139, in wrapper
+[rank0]:     return fn(self, *args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/trainer.py", line 771, in run_training
+[rank0]:     val_metrics = self.val_epoch(epoch)
+[rank0]:                   ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a/methods/dspark/beverin/single_epoch.py", line 114, in val
+[rank0]:     raise ValueError("Final validation did not return finite loss and metrics")
+[rank0]: ValueError: Final validation did not return finite loss and metrics
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a/methods/dspark/beverin/apertus15_run.py", line 25, in <module>
+[rank1]:     runpy.run_module(module, run_name="__main__", alter_sys=True)
+[rank1]:   File "<frozen runpy>", line 226, in run_module
+[rank1]:   File "<frozen runpy>", line 98, in _run_module_code
+[rank1]:   File "<frozen runpy>", line 88, in _run_code
+[rank1]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/__main__.py", line 41, in <module>
+[rank1]:     main(TrainConfig.resolve())
+[rank1]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/cli.py", line 745, in main
+[rank1]:     trainer.run_training()
+[rank1]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a/methods/dspark/beverin/single_epoch.py", line 141, in run
+[rank1]:     result = original_run(self)
+[rank1]:              ^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/graceful_shutdown.py", line 139, in wrapper
+[rank1]:     return fn(self, *args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/src/speculators/train/trainer.py", line 771, in run_training
+[rank1]:     val_metrics = self.val_epoch(epoch)
+[rank1]:                   ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-dd96fe2a/methods/dspark/beverin/single_epoch.py", line 114, in val
+[rank1]:     raise ValueError("Final validation did not return finite loss and metrics")
+[rank1]: ValueError: Final validation did not return finite loss and metrics
+W1030 10:49:51.841000 42266 torch/distributed/elastic/multiprocessing/api.py:1028] Sending process 42361 closing signal SIGTERM
+E1030 10:49:51.956000 42266 torch/distributed/elastic/multiprocessing/api.py:1002] failed (exitcode: 1) local_rank: 0 (pid: 42360) of binary: bash
+Traceback (most recent call last):
+  File "/usr/local/bin/torchrun", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 367, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/distributed/run.py", line 1028, in main
+    run(args)
+  File "/usr/local/lib/python3.12/dist-packages/torch/distributed/run.py", line 1019, in run
+    elastic_launch(
+  File "/usr/local/lib/python3.12/dist-packages/torch/distributed/launcher/api.py", line 194, in __call__
+    return launch_agent(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/distributed/launcher/api.py", line 383, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+bash FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-10-30_10:49:51
+  host      : nid002920
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 42361) 
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-10-30_10:49:51
+  host      : nid002920
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 42360) 
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

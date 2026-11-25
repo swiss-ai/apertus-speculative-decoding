@@ -1,0 +1,9 @@
+START 2026-10-25T12:20:08+00:00 job=694431 nodes=nid[002732,002734] edf=/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/repo-c977af19/methods/dspark/beverin/env-vllm031-host-rocm6.toml
+c977af19
+mkdir: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by /lib64/libselinux.so.1)
+mkdir: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by /lib64/libselinux.so.1)
+srun: error: nid002734: task 1: Exited with exit code 1
+srun: Terminating StepId=694431.0
+srun: error: nid002732: task 0: Exited with exit code 1
+BEVERIN_AUDIT {"job_id": "694431", "initial_step": 0, "final_step": 0, "status": "needs_attention", "errors": ["srun return code 1", "checkpoint global_step did not advance", "no successful checkpoint save in the trainer log"]}
+FINISH 2026-10-25T12:21:41+00:00 rc=1

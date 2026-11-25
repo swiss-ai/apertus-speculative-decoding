@@ -1,0 +1,52 @@
+{
+  "arm": "dspark-e1-k7-tp4",
+  "deployment_id": "dspark-alps-1epoch-720056-dspark-e1-k7-tp4",
+  "env": {},
+  "finished": "2026-11-04T21:17:36+0100",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "port": 8101,
+  "ready_seconds": 911.5,
+  "serve_argv": [
+    "vllm",
+    "serve",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-70B-dspark-e1-k7-tp4",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "4",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "131072",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--speculative-config",
+    "{\"method\": \"dspark\", \"model\": \"/iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/heads/dspark-70b-opb-thinkoff-32n-alps-epoch1\", \"num_speculative_tokens\": 7}"
+  ],
+  "servers": [],
+  "started": "2026-11-04T20:39:15+0100",
+  "status": "ok",
+  "tests": {
+    "opb": {
+      "exit_code": 0
+    }
+  }
+}

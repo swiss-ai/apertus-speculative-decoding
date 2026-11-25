@@ -1,0 +1,44 @@
+--- a/src/speculators/train/__main__.py
++++ b/src/speculators/train/__main__.py
+@@ -1,13 +1,41 @@
+ """Enable ``torchrun -m speculators.train config.yaml``."""
+ 
+ import faulthandler
++import os
+ import signal
+ 
+ from speculators.train.cli import main
+ from speculators.train.config import TrainConfig
+ 
++
++def _shard_dim_alltoall_via_allgather() -> None:
++    """Redistribute DTensor shards with all-gather + chunk instead of all-to-all.
++
++    torch's own CPU fallback for shard_dim_alltoall, used here on GPUs: the same
++    result with a different collective. Opt-in (DSPARK_DTENSOR_ALLGATHER=1) for
++    when NCCL all-to-all hangs, as in Muon's FSDP Newton-Schulz on Alps.
++    """
++    import torch
++    import torch.distributed._functional_collectives as funcol
++    from torch.distributed.tensor import _collective_utils, placement_types
++
++    def shard_dim_alltoall(input, gather_dim, shard_dim, mesh, mesh_dim):
++        out = funcol.all_gather_tensor(input, gather_dim, (mesh, mesh_dim))
++        if isinstance(out, funcol.AsyncCollectiveTensor):
++            out = out.wait()
++        out = torch.chunk(out, mesh.size(mesh_dim), dim=shard_dim)[
++            mesh.get_local_rank(mesh_dim)
++        ]
++        return out.contiguous()
++
++    _collective_utils.shard_dim_alltoall = shard_dim_alltoall
++    placement_types.shard_dim_alltoall = shard_dim_alltoall
++
++
+ if __name__ == "__main__":
+     # SIGUSR1 prints every thread's stack to stderr; forked dataloader workers
+     # inherit it. Lets a stall monitor show where a hung rank waits.
+     faulthandler.register(signal.SIGUSR1, all_threads=True)
++    if os.environ.get("DSPARK_DTENSOR_ALLGATHER") == "1":
++        _shard_dim_alltoall_via_allgather()
+     main(TrainConfig.resolve())

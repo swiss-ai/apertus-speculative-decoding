@@ -1,0 +1,85 @@
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                      async_compile.wait (dynamo_timed)        33.70%        5.817s        33.72%        5.821s        2.910s             2  
+enumerate(DataLoader)#_MultiProcessingDataLoaderIter...        32.97%        5.690s        32.97%        5.690s        2.845s             2  
+                                          aten::nonzero        12.35%        2.132s        12.36%        2.133s     355.481ms             6  
+                                            aten::copy_         6.34%        1.095s         6.34%        1.095s     443.025us          2471  
+## Call CompiledFxGraph foldilatcatcdtafjky5cfoiinzr...         5.05%     871.775ms         5.05%     872.099ms     436.050ms             2  
+                                            aten::empty         2.30%     396.885ms         2.30%     397.259ms     225.331us          1763  
+                                     record_param_comms         1.24%     213.644ms         1.24%     213.644ms      83.979us          2544  
+                                               aten::ne         1.17%     202.239ms         1.17%     202.239ms     101.119ms             2  
+                                         PythonSubclass         0.88%     152.276ms         3.01%     519.612ms     229.713us          2262  
+                                     PythonDispatchMode         0.67%     115.749ms         1.01%     174.341ms      34.185us          5100  
+CachingAutotuner.benchmark_all_configs (dynamo_timed...         0.36%      62.562ms         1.26%     217.625ms     217.625ms             1  
+                                            aten::addmm         0.20%      34.894ms         2.05%     354.165ms     242.247us          1462  
+                            build_guards (dynamo_timed)         0.17%      29.791ms         0.17%      29.791ms      14.896ms             2  
+                _c10d_functional::_wrap_tensor_autograd         0.14%      24.693ms         0.14%      24.693ms      19.691us          1254  
+                       Scheduler.codegen (dynamo_timed)         0.12%      20.552ms         0.12%      20.552ms      20.552ms             1  
+                        bytecode_tracing (dynamo_timed)         0.12%      20.427ms         0.18%      31.361ms      10.454ms             3  
+                                       c10d::allreduce_         0.11%      19.545ms         0.69%     118.280ms     169.942us           696  
+                                       aten::_chunk_cat         0.10%      18.063ms         0.24%      42.002ms       3.500ms            12  
+                  fx_codegen_and_compile (dynamo_timed)         0.10%      16.522ms        34.04%        5.875s        5.875s             1  
+                                               aten::mm         0.10%      16.481ms         0.72%     124.615ms     126.129us           988  
+                          _c10d_functional::wait_tensor         0.09%      15.892ms         0.20%      33.941ms      27.066us          1254  
+                                       aten::as_strided         0.08%      13.032ms         0.43%      73.407ms       8.353us          8788  
+triton_poi_fused__to_copy_ones_like_scatter_add_zero...         0.07%      11.667ms         0.07%      11.667ms      18.431us           633  
+                               Optimizer.step#Muon.step         0.07%      11.362ms         2.96%     511.286ms     255.643ms             2  
+                                            aten::fill_         0.06%      11.000ms         0.06%      11.017ms       8.779us          1255  
+                       compile_attempt_1 (dynamo_timed)         0.05%       9.166ms         0.15%      26.551ms      26.551ms             1  
+                                    aten::empty_strided         0.05%       9.112ms         0.06%       9.901ms       6.509us          1521  
+          create_aot_dispatcher_function (dynamo_timed)         0.05%       8.820ms        34.22%        5.907s        5.907s             1  
+          OutputGraph.call_user_compiler (dynamo_timed)         0.05%       8.264ms        34.33%        5.925s        2.963s             2  
+                       compile_attempt_0 (dynamo_timed)         0.04%       7.328ms        34.47%        5.950s        2.975s             2  
+                                            aten::clone         0.04%       6.685ms         0.45%      77.735ms      21.768us          3571  
+                                   aten::_foreach_copy_         0.04%       6.247ms         0.04%       6.296ms     143.080us            44  
+                      Scheduler.__init__ (dynamo_timed)         0.03%       5.939ms         0.04%       7.418ms       7.418ms             1  
+                 c10d::allgather_into_tensor_coalesced_         0.03%       5.443ms         0.43%      74.968ms     162.975us           460  
+                               TorchDynamo Cache Lookup         0.03%       4.821ms         0.03%       4.821ms      96.417us            50  
+                                            aten::zero_         0.03%       4.550ms         0.28%      47.905ms      19.363us          2474  
+                                     aten::scatter_add_         0.03%       4.509ms         0.08%      13.215ms       1.201ms            11  
+                            aten::split_with_sizes_copy         0.03%       4.491ms         0.03%       5.744ms     261.099us            22  
+## Call CompiledFxGraph fcq3qfjkjklc3wdpniz3ecbpmffz...         0.02%       4.279ms         0.06%      10.272ms       1.284ms             8  
+StaticAutotunerFuture.warm_precompile (dynamo_timed)...         0.02%       3.961ms         0.02%       3.961ms       3.961ms             1  
+                                      gc (dynamo_timed)         0.02%       3.713ms         0.02%       3.713ms       1.856ms             2  
+                                              aten::cat         0.02%       3.272ms         0.02%       3.272ms      19.244us           170  
+                                                 dynamo         0.02%       3.261ms        34.86%        6.016s        3.008s             2  
+                           _c10d_functional::all_reduce         0.02%       3.064ms         0.71%     122.466ms     176.464us           694  
+          AOTAutogradCache.inductor_load (dynamo_timed)         0.02%       2.974ms         0.05%       8.830ms       8.830ms             1  
+                       GraphLowering.run (dynamo_timed)         0.02%       2.883ms         0.02%       2.936ms       2.936ms             1  
+                                              aten::pow         0.02%       2.623ms         0.07%      11.821ms      53.246us           222  
+            PyCodeCache.load_by_key_path (dynamo_timed)         0.02%       2.609ms        33.74%        5.823s        2.912s             2  
+                                          aten::permute         0.01%       2.551ms         0.07%      11.252ms      14.065us           800  
+## Call CompiledFxGraph fdugcl2dk5towusbhh7rb55z5vvq...         0.01%       2.544ms         0.03%       5.489ms     686.101us             8  
+                               CompiledFunctionBackward         0.01%       2.511ms         5.15%     889.468ms      49.415ms            18  
+                                             aten::set_         0.01%       2.391ms         0.01%       2.391ms     298.826us             8  
+         insert_deferred_runtime_asserts (dynamo_timed)         0.01%       2.379ms         0.01%       2.379ms       1.189ms             2  
+                  _compile.compile_inner (dynamo_timed)         0.01%       2.339ms        34.84%        6.013s        3.006s             2  
+                                             aten::view         0.01%       2.335ms         0.01%       2.335ms       5.055us           462  
+                               aten::linalg_vector_norm         0.01%       2.192ms         0.04%       6.723ms      45.428us           148  
+                   TritonBundler.collect (dynamo_timed)         0.01%       2.157ms         0.01%       2.157ms       2.157ms             1  
+                                           aten::narrow         0.01%       2.003ms         0.08%      14.635ms       6.314us          2318  
+                                            aten::slice         0.01%       1.918ms         0.02%       2.988ms       1.331us          2244  
+                  FSDP::post_backward_reduce (layers.4)         0.01%       1.856ms         2.18%     375.559ms     187.780ms             2  
+                                         aten::_to_copy         0.01%       1.789ms         6.27%        1.082s       5.227ms           207  
+                             Torch-Compiled Region: 1/0         0.01%       1.708ms         6.96%        1.202s     601.088ms             2  
+               _c10d_functional::all_gather_into_tensor         0.01%       1.688ms         0.46%      78.581ms     170.829us           460  
+                                       CompiledFunction         0.01%       1.670ms         0.07%      11.816ms     656.459us            18  
+                            Torch-Compiled Region: 14/1         0.01%       1.608ms         1.28%     221.233ms     110.617ms             2  
+                                    aten::_foreach_norm         0.01%       1.551ms         0.02%       4.138ms       1.035ms             4  
+                            FSDP::all_gather (layers.4)         0.01%       1.511ms         0.06%      10.613ms       2.653ms             4  
+                              Optimizer.step#AdamW.step         0.01%       1.445ms         0.02%       3.498ms       1.749ms             2  
+                                             aten::mul_         0.01%       1.424ms         0.03%       5.553ms      38.562us           144  
+                                    aten::_foreach_mul_         0.01%       1.415ms         0.02%       3.119ms     259.915us            12  
+                   Scheduler.fused_nodes (dynamo_timed)         0.01%       1.414ms         0.01%       1.414ms       1.414ms             1  
+autograd::engine::evaluate_function: CompiledFunctio...         0.01%       1.365ms         5.31%     916.861ms      50.937ms            18  
+                 c10d::reduce_scatter_tensor_coalesced_         0.01%       1.298ms         0.09%      15.035ms     150.347us           100  
+                                             aten::add_         0.01%       1.284ms         0.08%      14.590ms      71.520us           204  
+                            Torch-Compiled Region: 12/0         0.01%       1.270ms        41.77%        7.211s        3.605s             2  
+           PythonWrapperCodegen.generate (dynamo_timed)         0.01%       1.239ms         0.01%       1.239ms       1.239ms             1  
+                    aot_collect_metadata (dynamo_timed)         0.01%       1.221ms         0.03%       4.446ms       4.446ms             1  
+                                       aten::empty_like         0.01%       1.199ms         0.03%       5.367ms       5.206us          1031  
+                            FSDP::all_gather (layers.3)         0.01%       1.186ms         0.02%       3.624ms     906.022us             4  
+## Call CompiledFxGraph fu3xjqal5xm6xfcix57ylczjiqzz...         0.01%       1.180ms         1.27%     219.554ms     109.777ms             2  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 17.261s

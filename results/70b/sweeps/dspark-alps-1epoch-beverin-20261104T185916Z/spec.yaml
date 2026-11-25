@@ -1,0 +1,17 @@
+# First serving eval of the 70B DSpark drafter trained one epoch on 32 Beverin
+# nodes (results/70b/dspark/beverin-32n-alps-1epoch-20261101): k3/k7, then plain
+# whole-node TP4 engines run one after another, on the held-out OPB prompts of
+# the 8B evaluation (same conversation split; workloads/8b/opb-heldout.jsonl,
+# cluster only). Export with methods/dspark/train/export-head.sh first.
+name: dspark-alps-1epoch
+stage: 70b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64]
+arms:
+  - {name: dspark-e1-k3-tp4, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/heads/dspark-70b-opb-thinkoff-32n-alps-epoch1, k: 3, tensor_parallel_size: 4}
+  - {name: dspark-e1-k7-tp4, method: dspark, drafter: /iopsstor/scratch/cscs/faruk_zahiragic/apertus-dspark70b/heads/dspark-70b-opb-thinkoff-32n-alps-epoch1, k: 7, tensor_parallel_size: 4}
+  - {name: plain-tp4, method: baseline, tensor_parallel_size: 4}

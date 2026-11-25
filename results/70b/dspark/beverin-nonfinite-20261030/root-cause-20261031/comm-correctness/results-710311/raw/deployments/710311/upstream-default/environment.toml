@@ -1,0 +1,10 @@
+image = "/capstor/scratch/cscs/faruk_zahiragic/container-images/vllm-openai-rocm-v0.31.0.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users"]
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs/comm-correctness-20261031T154107Z/deployments/710311"
+entrypoint = false
+[env]
+PYTHONNOUSERSITE = "1"
+HWLOC_COMPONENTS = "-gl"
+[annotations]
+"com.hooks.aws_ofi_nccl.enabled" = "true"
+"com.hooks.aws_ofi_nccl.variant" = "rocm6"

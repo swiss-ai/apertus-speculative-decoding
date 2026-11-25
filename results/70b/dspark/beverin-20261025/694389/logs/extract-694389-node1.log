@@ -1,0 +1,1046 @@
+W1025 13:03:50.382781  168132 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:03:50.395953  168132 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/speculators-7046ac6-provenance/scripts/launch_vllm.py:533: UserWarning: Using custom target layer ids [1, 20, 39, 58, 77, 80]. These must also be explicitly passed into the training script.
+  cmd = _build_train_cmd(args, vllm_args)
+Running command:
+/usr/bin/python3 -m vllm.entrypoints.cli.main serve /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B --speculative_config {"method": "extract_hidden_states", "num_speculative_tokens": 1, "draft_model_config": {"hf_config": {"eagle_aux_hidden_state_layer_ids": [1, 20, 39, 58, 77, 80]}}} --kv_transfer_config {"kv_connector": "ExampleHiddenStatesConnector", "kv_role": "kv_producer", "kv_connector_extra_config": {"shared_storage_path": "/tmp/hidden_states"}} --enable-scale-out --api-server-count 9 --renderer-num-workers 2 --tensor-parallel-size 2 --enforce-eager --trust-remote-code --port 8001 --gpu-memory-utilization 0.56 --max-model-len 8192
+W1025 13:06:03.707696  168132 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:03.719786  168132 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+(MainProcess pid=168132) INFO 10-25 13:06:28 [api_utils.py:347] 
+(MainProcess pid=168132) INFO 10-25 13:06:28 [api_utils.py:347]        █     █     █▄   ▄█
+(MainProcess pid=168132) INFO 10-25 13:06:28 [api_utils.py:347]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.31.0
+(MainProcess pid=168132) INFO 10-25 13:06:28 [api_utils.py:347]   █▄█▀ █     █     █     █  model   /capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B
+(MainProcess pid=168132) INFO 10-25 13:06:28 [api_utils.py:347]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(MainProcess pid=168132) INFO 10-25 13:06:28 [api_utils.py:347] 
+(MainProcess pid=168132) INFO 10-25 13:06:28 [api_utils.py:286] non-default args: {'model_tag': '/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', 'api_server_count': 9, 'enable_scale_out': True, 'port': 8001, 'model': '/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', 'trust_remote_code': True, 'max_model_len': 8192, 'enforce_eager': True, 'renderer_num_workers': 2, 'tensor_parallel_size': 2, 'gpu_memory_utilization': 0.56, 'speculative_config': {'method': 'extract_hidden_states', 'num_speculative_tokens': 1, 'draft_model_config': {'hf_config': {'eagle_aux_hidden_state_layer_ids': [1, 20, 39, 58, 77, 80]}}}, 'kv_transfer_config': KVTransferConfig(kv_connector='ExampleHiddenStatesConnector', engine_id='c0a8cf4f-6fde-4af9-b507-71e469f32906', kv_buffer_device='cuda', kv_buffer_size=1000000000.0, kv_role='kv_producer', kv_rank=None, kv_parallel_size=1, kv_ip='127.0.0.1', kv_port=14579, kv_connector_extra_config={'shared_storage_path': '/tmp/hidden_states'}, kv_connector_module_path=None, enable_permute_local_kv=False, kv_load_failure_policy='fail')}
+(MainProcess pid=168132) INFO 10-25 13:06:41 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(MainProcess pid=168132) INFO 10-25 13:06:41 [model.py:2109] Using max model len 8192
+(MainProcess pid=168132) INFO 10-25 13:06:54 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(MainProcess pid=168132) WARNING 10-25 13:06:54 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(MainProcess pid=168132) WARNING 10-25 13:06:54 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(MainProcess pid=168132) INFO 10-25 13:06:54 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(MainProcess pid=168132) INFO 10-25 13:06:54 [vllm.py:1968] Cudagraph is disabled under eager mode
+(MainProcess pid=168132) INFO 10-25 13:06:54 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(MainProcess pid=168132) INFO 10-25 13:06:54 [utils.py:254] Started 9 API server processes
+W1025 13:06:55.629878  169469 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.639418  169468 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.639739  169471 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.692483  169469 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.698563  169471 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.698563  169468 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.704871  169470 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.705953  169467 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.706232  169474 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.708987  169472 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.709018  169475 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.710627  169473 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.710630  169476 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.748672  169470 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.750041  169467 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.750522  169474 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.753337  169475 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.753357  169472 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.754416  169476 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:06:55.754418  169473 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+(ApiServer_1 pid=169469) INFO 10-25 13:07:09 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_1 pid=169469) INFO 10-25 13:07:09 [model.py:2109] Using max model len 8192
+(ApiServer_1 pid=169469) INFO 10-25 13:07:09 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_1 pid=169469) WARNING 10-25 13:07:09 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_1 pid=169469) WARNING 10-25 13:07:09 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_1 pid=169469) INFO 10-25 13:07:09 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_1 pid=169469) INFO 10-25 13:07:09 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_1 pid=169469) INFO 10-25 13:07:09 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_5 pid=169473) INFO 10-25 13:07:10 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_5 pid=169473) INFO 10-25 13:07:10 [model.py:2109] Using max model len 8192
+(ApiServer_5 pid=169473) INFO 10-25 13:07:10 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_5 pid=169473) WARNING 10-25 13:07:10 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_5 pid=169473) WARNING 10-25 13:07:10 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_5 pid=169473) INFO 10-25 13:07:10 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_5 pid=169473) INFO 10-25 13:07:10 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_5 pid=169473) INFO 10-25 13:07:10 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_0 pid=169468) INFO 10-25 13:07:10 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_0 pid=169468) INFO 10-25 13:07:10 [model.py:2109] Using max model len 8192
+(ApiServer_0 pid=169468) INFO 10-25 13:07:10 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_0 pid=169468) WARNING 10-25 13:07:10 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_0 pid=169468) WARNING 10-25 13:07:10 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_0 pid=169468) INFO 10-25 13:07:10 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_0 pid=169468) INFO 10-25 13:07:10 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_0 pid=169468) INFO 10-25 13:07:10 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_7 pid=169475) INFO 10-25 13:07:10 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_7 pid=169475) INFO 10-25 13:07:10 [model.py:2109] Using max model len 8192
+(ApiServer_7 pid=169475) INFO 10-25 13:07:10 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_7 pid=169475) WARNING 10-25 13:07:10 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_7 pid=169475) WARNING 10-25 13:07:10 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_7 pid=169475) INFO 10-25 13:07:10 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_7 pid=169475) INFO 10-25 13:07:10 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_7 pid=169475) INFO 10-25 13:07:10 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_8 pid=169476) INFO 10-25 13:07:10 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_8 pid=169476) INFO 10-25 13:07:10 [model.py:2109] Using max model len 8192
+(ApiServer_8 pid=169476) INFO 10-25 13:07:10 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_8 pid=169476) WARNING 10-25 13:07:10 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_8 pid=169476) WARNING 10-25 13:07:10 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_8 pid=169476) INFO 10-25 13:07:10 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_8 pid=169476) INFO 10-25 13:07:10 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_8 pid=169476) INFO 10-25 13:07:10 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_4 pid=169472) INFO 10-25 13:07:11 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_4 pid=169472) INFO 10-25 13:07:11 [model.py:2109] Using max model len 8192
+(ApiServer_4 pid=169472) INFO 10-25 13:07:11 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_4 pid=169472) WARNING 10-25 13:07:11 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_4 pid=169472) WARNING 10-25 13:07:11 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_4 pid=169472) INFO 10-25 13:07:11 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_4 pid=169472) INFO 10-25 13:07:11 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_4 pid=169472) INFO 10-25 13:07:11 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_6 pid=169474) INFO 10-25 13:07:11 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_6 pid=169474) INFO 10-25 13:07:11 [model.py:2109] Using max model len 8192
+(ApiServer_6 pid=169474) INFO 10-25 13:07:11 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_6 pid=169474) WARNING 10-25 13:07:11 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_6 pid=169474) WARNING 10-25 13:07:11 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_6 pid=169474) INFO 10-25 13:07:11 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_6 pid=169474) INFO 10-25 13:07:11 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_6 pid=169474) INFO 10-25 13:07:11 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_3 pid=169471) INFO 10-25 13:07:11 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_3 pid=169471) INFO 10-25 13:07:11 [model.py:2109] Using max model len 8192
+(ApiServer_3 pid=169471) INFO 10-25 13:07:11 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_3 pid=169471) WARNING 10-25 13:07:11 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_3 pid=169471) WARNING 10-25 13:07:11 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_3 pid=169471) INFO 10-25 13:07:11 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_3 pid=169471) INFO 10-25 13:07:11 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_3 pid=169471) INFO 10-25 13:07:11 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(ApiServer_2 pid=169470) INFO 10-25 13:07:11 [model.py:699] Resolved architecture: Apertus1p5ForConditionalGeneration
+(ApiServer_2 pid=169470) INFO 10-25 13:07:11 [model.py:2109] Using max model len 8192
+(ApiServer_2 pid=169470) INFO 10-25 13:07:11 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(ApiServer_2 pid=169470) WARNING 10-25 13:07:11 [vllm.py:1706] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(ApiServer_2 pid=169470) WARNING 10-25 13:07:11 [vllm.py:1750] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(ApiServer_2 pid=169470) INFO 10-25 13:07:11 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native'])
+(ApiServer_2 pid=169470) INFO 10-25 13:07:11 [vllm.py:1968] Cudagraph is disabled under eager mode
+(ApiServer_2 pid=169470) INFO 10-25 13:07:11 [compilation.py:331] Enabled custom fusions: norm_quant, act_quant
+(EngineCore pid=169467) INFO 10-25 13:07:27 [core.py:129] Initializing a V1 LLM engine (v0.31.0) with config: model='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', speculative_config=SpeculativeConfig(method='extract_hidden_states', model=None, num_spec_tokens=1), tokenizer='/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=2, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=True, aux_output_config=AuxOutputConfig(enable_return_routed_experts=False, max_bytes=None), kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-70B, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['+sparse_attn_indexer', 'all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_mla_dual_rms_norm': False, 'fuse_rope_kvcache': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=False, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)
+(EngineCore pid=169467) INFO 10-25 13:07:27 [multiproc_executor.py:153] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=172.28.9.245 (local), world_size=2, local_world_size=2
+W1025 13:07:28.461875  169742 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:07:28.462495  169741 agent.cpp:245] Conflicting visibility of agent-6 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:07:28.483159  169742 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+W1025 13:07:28.483877  169741 agent.cpp:245] Conflicting visibility of agent-7 between CUDA_VISIBLE_DEVICES and GPU_DEVICE_ORDINAL. Assuming CUDA_VISIBLE_DEVICES supersedes GPU_DEVICE_ORDINAL
+(Worker pid=169742) INFO 10-25 13:07:40 [parallel_state.py:1825] world_size=2 rank=1 local_rank=1 distributed_init_method=file:///tmp/vllm_dist_84983556ab834568a1bcf45c27a6555c backend=nccl
+nid002764:169742:169742 [1] NCCL INFO [rocprofiler-sdk-rccl][ = 169742 ] rocprofiler-register returned code = 0 : Success
+(Worker pid=169741) INFO 10-25 13:07:41 [parallel_state.py:1825] world_size=2 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_84983556ab834568a1bcf45c27a6555c backend=nccl
+nid002764:169741:169741 [0] NCCL INFO [rocprofiler-sdk-rccl][ = 169741 ] rocprofiler-register returned code = 0 : Success
+nid002764:169741:169741 [0] NCCL INFO Kernel version: 6.4.0-150600.23.125-default
+nid002764:169741:169741 [0] NCCL INFO Hipruntime version: 70253211, firmware version: 177
+nid002764:169741:169741 [0] NCCL INFO NCCL_SOCKET_IFNAME set to hsn
+(Worker pid=169741) INFO 10-25 13:07:41 [pynccl.py:148] vLLM is using nccl==2.27.7
+nid002764:169741:169741 [0] NCCL INFO ROCr version 1.18
+nid002764:169741:169741 [0] NCCL INFO Dmabuf feature disabled without NCCL_DMABUF_ENABLE=1
+nid002764:169741:169741 [0] NCCL INFO Kernel version: 6.4.0-150600.23.125-default
+nid002764:169741:169741 [0] NCCL INFO RCCL version : 2.27.7-HEAD:96a25b5
+HIP version  : 7.2.53211-c2d9476115
+ROCm version : 7.2.3.0-90-c2d9476115
+Hostname     : nid002764
+Librccl path : /opt/rocm/lib/librccl.so.1
+nid002764:169742:169742 [1] NCCL INFO ROCr version 1.18
+nid002764:169742:169742 [1] NCCL INFO Dmabuf feature disabled without NCCL_DMABUF_ENABLE=1
+nid002764:169742:169742 [1] NCCL INFO Kernel version: 6.4.0-150600.23.125-default
+nid002764:169742:169742 [1] NCCL INFO Hipruntime version: 70253211, firmware version: 177
+nid002764:169742:169742 [1] NCCL INFO NCCL_SOCKET_IFNAME set to hsn
+nid002764:169742:169742 [1] NCCL INFO RCCL version : 2.27.7-HEAD:96a25b5
+HIP version  : 7.2.53211-c2d9476115
+ROCm version : 7.2.3.0-90-c2d9476115
+Hostname     : nid002764
+Librccl path : /opt/rocm/lib/librccl.so.1
+nid002764:169742:169742 [1] NCCL INFO NET/Plugin: Plugin name set by env to librccl-net-ofi.so
+nid002764:169742:169742 [1] NCCL INFO NET/Plugin: Loaded net plugin AWS Libfabric (v10)
+nid002764:169742:169742 [1] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v10 symbol.
+nid002764:169742:169742 [1] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v9 symbol.
+nid002764:169742:169742 [1] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v8 symbol.
+nid002764:169741:169741 [0] NCCL INFO NET/Plugin: Plugin name set by env to librccl-net-ofi.so
+nid002764:169742:169742 [1] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v7 symbol.
+nid002764:169741:169741 [0] NCCL INFO NET/Plugin: Loaded net plugin AWS Libfabric (v10)
+nid002764:169742:169742 [1] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v6 symbol.
+nid002764:169741:169741 [0] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v10 symbol.
+nid002764:169742:169742 [1] NCCL INFO Successfully loaded external plugin ofi
+nid002764:169741:169741 [0] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v9 symbol.
+nid002764:169741:169741 [0] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v8 symbol.
+nid002764:169741:169741 [0] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v7 symbol.
+
+[2026-10-25 13:07:52] nid002764:169742:169742 [1] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):188 NCCL WARN NET/OFI Initializing aws-ofi-nccl 1.20.0
+nid002764:169741:169741 [0] NCCL INFO NET/Plugin: Failed to find ncclCollNetPlugin_v6 symbol.
+
+[2026-10-25 13:07:52] nid002764:169742:169742 [1] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):194 NCCL WARN NET/OFI Using Libfabric version 2.6
+nid002764:169741:169741 [0] NCCL INFO Successfully loaded external plugin ofi
+
+[2026-10-25 13:07:52] nid002764:169742:169742 [1] int nccl_net_ofi_gpu_init():43 NCCL WARN NET/OFI Using HIP driver version 70253211 with runtime 70253211
+
+[2026-10-25 13:07:52] nid002764:169741:169741 [0] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):188 NCCL WARN NET/OFI Initializing aws-ofi-nccl 1.20.0
+
+[2026-10-25 13:07:52] nid002764:169741:169741 [0] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):194 NCCL WARN NET/OFI Using Libfabric version 2.6
+
+[2026-10-25 13:07:52] nid002764:169741:169741 [0] int nccl_net_ofi_gpu_init():43 NCCL WARN NET/OFI Using HIP driver version 70253211 with runtime 70253211
+
+[2026-10-25 13:07:52] nid002764:169742:169742 [1] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):232 NCCL WARN NET/OFI Plugin selected platform: Default
+
+[2026-10-25 13:07:52] nid002764:169741:169741 [0] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):232 NCCL WARN NET/OFI Plugin selected platform: Default
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] int nccl_net_ofi_query_provider_capabilities(const fi_info*, unsigned int):644 NCCL WARN NET/OFI Selected provider is cxi, fabric is cxi (found 4 nics)
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] int nccl_net_ofi_query_provider_capabilities(const fi_info*, unsigned int):644 NCCL WARN NET/OFI Selected provider is cxi, fabric is cxi (found 4 nics)
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 0 device #0 0000:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 1 device #0 0001:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 2 device #0 0002:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 3 device #0 0003:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 0 device #0 0000:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 1 device #0 0001:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 2 device #0 0002:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] void print_nic_groups(nccl_ofi_topo_t*):1133 NCCL WARN NET/OFI NIC group 3 device #0 0003:01:00.0
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] int nccl_net_ofi_query_provider_capabilities(const fi_info*, unsigned int):644 NCCL WARN NET/OFI Selected provider is cxi, fabric is cxi (found 4 nics)
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):339 NCCL WARN NET/OFI Using transport protocol SENDRECV
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] int nccl_net_ofi_query_provider_capabilities(const fi_info*, unsigned int):644 NCCL WARN NET/OFI Selected provider is cxi, fabric is cxi (found 4 nics)
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):339 NCCL WARN NET/OFI Using transport protocol SENDRECV
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):375 NCCL WARN NET/OFI Support for global registrations: false
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):377 NCCL WARN NET/OFI Support for DMA-BUF registrations: true
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):375 NCCL WARN NET/OFI Support for global registrations: false
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t**):377 NCCL WARN NET/OFI Support for DMA-BUF registrations: true
+
+[2026-10-25 13:07:53] nid002764:169741:169741 [0] nccl_ofi_mr_cache::~nccl_ofi_mr_cache():36 NCCL WARN NET/OFI MR cache 0 hits 0 misses
+nid002764:169741:169741 [0] NCCL INFO Initialized NET plugin AWS Libfabric
+nid002764:169741:169741 [0] NCCL INFO Assigned NET plugin AWS Libfabric to comm
+nid002764:169741:169741 [0] NCCL INFO Using network AWS Libfabric
+
+[2026-10-25 13:07:53] nid002764:169742:169742 [1] nccl_ofi_mr_cache::~nccl_ofi_mr_cache():36 NCCL WARN NET/OFI MR cache 0 hits 0 misses
+nid002764:169742:169742 [1] NCCL INFO Initialized NET plugin AWS Libfabric
+nid002764:169742:169742 [1] NCCL INFO Assigned NET plugin AWS Libfabric to comm
+nid002764:169742:169742 [1] NCCL INFO Using network AWS Libfabric
+nid002764:169741:169741 [0] NCCL INFO [node_id = 6; gpu_id = 53900; unique_id = 2547981603004412040; location_id = 8589935104; bdf = 8589935104; domain = 2; partition = 0], 
+nid002764:169741:169741 [0] NCCL INFO [node_id = 5; gpu_id = 11624; unique_id = 6318487045343772588; location_id = 4294967808; bdf = 4294967808; domain = 1; partition = 0], 
+nid002764:169741:169741 [0] NCCL INFO [node_id = 4; gpu_id = 47157; unique_id = 6778733301408739870; location_id = 512; bdf = 512; domain = 0; partition = 0], 
+nid002764:169741:169741 [0] NCCL INFO [node_id = 7; gpu_id = 18385; unique_id = 6949612796197356742; location_id = 12884902400; bdf = 12884902400; domain = 3; partition = 0], 
+nid002764:169742:169742 [1] NCCL INFO [node_id = 6; gpu_id = 53900; unique_id = 2547981603004412040; location_id = 8589935104; bdf = 8589935104; domain = 2; partition = 0], 
+nid002764:169742:169742 [1] NCCL INFO [node_id = 5; gpu_id = 11624; unique_id = 6318487045343772588; location_id = 4294967808; bdf = 4294967808; domain = 1; partition = 0], 
+nid002764:169742:169742 [1] NCCL INFO [node_id = 4; gpu_id = 47157; unique_id = 6778733301408739870; location_id = 512; bdf = 512; domain = 0; partition = 0], 
+nid002764:169742:169742 [1] NCCL INFO [node_id = 7; gpu_id = 18385; unique_id = 6949612796197356742; location_id = 12884902400; bdf = 12884902400; domain = 3; partition = 0], 
+nid002764:169741:169741 [0] NCCL INFO initialized internal alternative rsmi functionality
+nid002764:169742:169742 [1] NCCL INFO initialized internal alternative rsmi functionality
+nid002764:169742:169742 [1] NCCL INFO ncclCommInitRank_impl comm 0x46dcdea0 rank 1 nranks 2 cudaDev 1 nvmlDev 1 busId 102000 commId 0xbb63781c442bf0fe - Init START
+nid002764:169741:169741 [0] NCCL INFO ncclCommInitRank_impl comm 0x28570a70 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 2000 commId 0xbb63781c442bf0fe - Init START
+nid002764:169741:169741 [0] NCCL INFO RAS client listening socket at ::1<28028>
+nid002764:169742:169742 [1] NCCL INFO RAS client listening socket at ::1<28028>
+nid002764:169741:169741 [0] NCCL INFO initialized internal alternative rsmi functionality
+nid002764:169742:169742 [1] NCCL INFO initialized internal alternative rsmi functionality
+nid002764:169741:169741 [0] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 0 'cxi0'
+nid002764:169742:169742 [1] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 0 'cxi0'
+nid002764:169741:169741 [0] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 1 'cxi1'
+nid002764:169742:169742 [1] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 1 'cxi1'
+nid002764:169741:169741 [0] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 2 'cxi2'
+nid002764:169742:169742 [1] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 2 'cxi2'
+nid002764:169742:169742 [1] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 3 'cxi3'
+nid002764:169741:169741 [0] NCCL INFO NET/AWS Libfabric : GPU Direct RDMA Enabled for HCA 3 'cxi3'
+nid002764:169741:169741 [0] NCCL INFO NCCL_NET_GDR_LEVEL set by environment to PHB
+nid002764:169741:169741 [0] NCCL INFO GPU Direct RDMA Enabled for GPU 0 / HCA 0 (distance 8 <= 8), read 1 mode Default
+nid002764:169741:169741 [0] NCCL INFO GPU Direct RDMA Enabled for GPU 1 / HCA 1 (distance 8 <= 8), read 1 mode Default
+nid002764:169741:169741 [0] NCCL INFO Setting affinity for GPU 0 to 0-23,96-119
+nid002764:169742:169742 [1] NCCL INFO NCCL_NET_GDR_LEVEL set by environment to PHB
+nid002764:169742:169742 [1] NCCL INFO GPU Direct RDMA Enabled for GPU 0 / HCA 0 (distance 8 <= 8), read 1 mode Default
+nid002764:169742:169742 [1] NCCL INFO GPU Direct RDMA Enabled for GPU 1 / HCA 1 (distance 8 <= 8), read 1 mode Default
+nid002764:169742:169742 [1] NCCL INFO Setting affinity for GPU 1 to 24-47,120-143
+nid002764:169741:169741 [0] NCCL INFO GFX9 cheap fence is ON
+nid002764:169742:169742 [1] NCCL INFO GFX9 cheap fence is ON
+nid002764:169742:169742 [1] NCCL INFO comm 0x46dcdea0 rank 1 nRanks 2 nNodes 1 localRanks 2 localRank 1 MNNVL 0
+nid002764:169741:169741 [0] NCCL INFO comm 0x28570a70 rank 0 nRanks 2 nNodes 1 localRanks 2 localRank 0 MNNVL 0
+nid002764:169742:169742 [1] NCCL INFO Trees [0] -1/-1/-1->1->0 [1] -1/-1/-1->1->0 [2] 0/-1/-1->1->-1 [3] 0/-1/-1->1->-1 [4] -1/-1/-1->1->0 [5] -1/-1/-1->1->0 [6] 0/-1/-1->1->-1 [7] 0/-1/-1->1->-1 [8] -1/-1/-1->1->0 [9] -1/-1/-1->1->0 [10] 0/-1/-1->1->-1 [11] 0/-1/-1->1->-1 [12] -1/-1/-1->1->0 [13] -1/-1/-1->1->0 [14] 0/-1/-1->1->-1 [15] 0/-1/-1->1->-1 [16] -1/-1/-1->1->0 [17] -1/-1/-1->1->0 [18] 0/-1/-1->1->-1 [19] 0/-1/-1->1->-1 [20] -1/-1/-1->1->0 [21] -1/-1/-1->1->0 [22] 0/-1/-1->1->-1 [23] 0/-1/-1->1->-1 [24] -1/-1/-1->1->0 [25] -1/-1/-1->1->0 [26] 0/-1/-1->1->-1 [27] 0/-1/-1->1->-1 [28] -1/-1/-1->1->0 [29] -1/-1/-1->1->0 [30] 0/-1/-1->1->-1 [31] 0/-1/-1->1->-1 [32] -1/-1/-1->1->0 [33] -1/-1/-1->1->0 [34] 0/-1/-1->1->-1 [35] 0/-1/-1->1->-1 [36] -1/-1/-1->1->0 [37] -1/-1/-1->1->0 [38] 0/-1/-1->1->-1 [39] 0/-1/-1->1->-1 [40] -1/-1/-1->1->0 [41] -1/-1/-1->1->0 [42] 0/-1/-1->1->-1 [43] 0/-1/-1->1->-1 [44] -1/-1/-1->1->0 [45] -1/-1/-1->1->0 [46] 0/-1/-1->1->-1 [47] 0/-1/-1->1->-1 [48] -1/-1/-1->1->0 [49] -1/-
+nid002764:169741:169741 [0] NCCL INFO Channel 00/64 : 0 1
+nid002764:169742:169742 [1] NCCL INFO P2P Chunksize set to 524288
+nid002764:169741:169741 [0] NCCL INFO Channel 01/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 02/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 03/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 04/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 05/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 06/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 07/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 08/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 09/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 10/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 11/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 12/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 13/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 14/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 15/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 16/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 17/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 18/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 19/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 20/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 21/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 22/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 23/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 24/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 25/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 26/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 27/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 28/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 29/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 30/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 31/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 32/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 33/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 34/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 35/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 36/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 37/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 38/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 39/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 40/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 41/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 42/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 43/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 44/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 45/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 46/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 47/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 48/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 49/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 50/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 51/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 52/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 53/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 54/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 55/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 56/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 57/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 58/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 59/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 60/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 61/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 62/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Channel 63/64 : 0 1
+nid002764:169741:169741 [0] NCCL INFO Trees [0] 1/-1/-1->0->-1 [1] 1/-1/-1->0->-1 [2] -1/-1/-1->0->1 [3] -1/-1/-1->0->1 [4] 1/-1/-1->0->-1 [5] 1/-1/-1->0->-1 [6] -1/-1/-1->0->1 [7] -1/-1/-1->0->1 [8] 1/-1/-1->0->-1 [9] 1/-1/-1->0->-1 [10] -1/-1/-1->0->1 [11] -1/-1/-1->0->1 [12] 1/-1/-1->0->-1 [13] 1/-1/-1->0->-1 [14] -1/-1/-1->0->1 [15] -1/-1/-1->0->1 [16] 1/-1/-1->0->-1 [17] 1/-1/-1->0->-1 [18] -1/-1/-1->0->1 [19] -1/-1/-1->0->1 [20] 1/-1/-1->0->-1 [21] 1/-1/-1->0->-1 [22] -1/-1/-1->0->1 [23] -1/-1/-1->0->1 [24] 1/-1/-1->0->-1 [25] 1/-1/-1->0->-1 [26] -1/-1/-1->0->1 [27] -1/-1/-1->0->1 [28] 1/-1/-1->0->-1 [29] 1/-1/-1->0->-1 [30] -1/-1/-1->0->1 [31] -1/-1/-1->0->1 [32] 1/-1/-1->0->-1 [33] 1/-1/-1->0->-1 [34] -1/-1/-1->0->1 [35] -1/-1/-1->0->1 [36] 1/-1/-1->0->-1 [37] 1/-1/-1->0->-1 [38] -1/-1/-1->0->1 [39] -1/-1/-1->0->1 [40] 1/-1/-1->0->-1 [41] 1/-1/-1->0->-1 [42] -1/-1/-1->0->1 [43] -1/-1/-1->0->1 [44] 1/-1/-1->0->-1 [45] 1/-1/-1->0->-1 [46] -1/-1/-1->0->1 [47] -1/-1/-1->0->1 [48] 1/-1/-1->0->-1 [49] 1/-1
+nid002764:169741:169741 [0] NCCL INFO P2P Chunksize set to 524288
+nid002764:169742:169742 [1] NCCL INFO PROFILER/Plugin: Could not find: librccl-profiler.so. 
+nid002764:169742:169953 [1] NCCL INFO [Proxy Service] Device 1 CPU core 37
+nid002764:169742:169954 [1] NCCL INFO [Proxy Service UDS] Device 1 CPU core 31
+nid002764:169741:169741 [0] NCCL INFO PROFILER/Plugin: Could not find: librccl-profiler.so. 
+nid002764:169741:169741 [0] NCCL INFO Check P2P Type isAllDirectP2p 1 directMode 0
+nid002764:169741:169955 [0] NCCL INFO [Proxy Service] Device 0 CPU core 21
+nid002764:169741:169956 [0] NCCL INFO [Proxy Service UDS] Device 0 CPU core 11
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 0 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80012d0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 0 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00012d0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 1 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001348
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 2 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80013c0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 3 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001438
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 1 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001348
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 4 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80014b0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 2 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00013c0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 5 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001528
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 3 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001438
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 6 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80015a0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 4 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00014b0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 7 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001618
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 5 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001528
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 8 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001690
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 6 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00015a0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 9 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001708
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 7 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001618
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 10 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001780
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 8 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001690
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 11 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80017f8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 9 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001708
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 12 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001870
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 10 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001780
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 13 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80018e8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 11 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00017f8
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 14 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001960
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 12 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001870
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 15 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80019d8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 13 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00018e8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 14 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001960
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 16 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001a50
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 15 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00019d8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 16 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001a50
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 17 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001ac8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 17 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001ac8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 18 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001b40
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 18 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001b40
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 19 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001bb8
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 19 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 20 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001bb8
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001c30
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 21 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001ca8
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 20 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001c30
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 22 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001d20
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 21 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001ca8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 23 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001d98
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 22 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001d20
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 24 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001e10
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 23 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001d98
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 25 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001e88
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 24 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001e10
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 26 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001f00
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 25 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001e88
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 27 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001f78
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 26 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001f00
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 28 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0001ff0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 27 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001f78
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 29 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002068
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 28 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8001ff0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 29 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002068
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 30 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00020e0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 30 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80020e0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 31 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002158
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 31 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002158
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 32 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80021d0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 33 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002248
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 32 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00021d0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 34 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80022c0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 33 from local rank 0, transport 0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 35 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002248
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002338
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 36 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 34 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80023b0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00022c0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 37 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002428
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 35 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002338
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 38 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 36 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80024a0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00023b0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 39 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 37 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002518
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002428
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 40 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 38 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002590
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00024a0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 39 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002518
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 41 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002608
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 40 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002590
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 42 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002680
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 41 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002608
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 43 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80026f8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 42 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002680
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 44 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 43 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002770
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00026f8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 44 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002770
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 45 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80027e8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 45 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00027e8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 46 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002860
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 46 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002860
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 47 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00028d8
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 47 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80028d8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 48 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002950
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 48 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002950
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 49 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00029c8
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 49 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80029c8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 50 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002a40
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 50 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002a40
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 51 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002ab8
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 51 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002ab8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 52 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002b30
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 52 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002b30
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 53 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002ba8
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 53 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002ba8
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 54 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002c20
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 54 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002c20
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 55 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002c98
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 55 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002c98
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 56 from local rank 0, transport 0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 56 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002d10
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002d10
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 57 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002d88
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 57 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002d88
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 58 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002e00
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 59 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002e78
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 58 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002e00
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 60 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002ef0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 61 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002f68
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 59 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002e78
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 62 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8002fe0
+nid002764:169742:169953 [1] NCCL INFO New proxy recv connection 63 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003058
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 60 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002ef0
+nid002764:169742:169742 [1] NCCL INFO Channel 00/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 64 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 61 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80030d0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002f68
+nid002764:169742:169742 [1] NCCL INFO Channel 01/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 65 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003148
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 62 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0002fe0
+nid002764:169742:169742 [1] NCCL INFO Channel 02/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 66 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80031c0
+nid002764:169741:169955 [0] NCCL INFO New proxy recv connection 63 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003058
+nid002764:169742:169742 [1] NCCL INFO Channel 03/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 67 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003238
+nid002764:169741:169741 [0] NCCL INFO Channel 00/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 64 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00030d0
+nid002764:169742:169742 [1] NCCL INFO Channel 04/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 68 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80032b0
+nid002764:169741:169741 [0] NCCL INFO Channel 01/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 65 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003148
+nid002764:169742:169742 [1] NCCL INFO Channel 05/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 69 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003328
+nid002764:169741:169741 [0] NCCL INFO Channel 02/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 66 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00031c0
+nid002764:169742:169742 [1] NCCL INFO Channel 06/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 70 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80033a0
+nid002764:169742:169742 [1] NCCL INFO Channel 07/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 71 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003418
+nid002764:169741:169741 [0] NCCL INFO Channel 03/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 67 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003238
+nid002764:169742:169742 [1] NCCL INFO Channel 08/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 72 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003490
+nid002764:169742:169742 [1] NCCL INFO Channel 09/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 73 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003508
+nid002764:169741:169741 [0] NCCL INFO Channel 04/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 68 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00032b0
+nid002764:169742:169742 [1] NCCL INFO Channel 10/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 74 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003580
+nid002764:169742:169742 [1] NCCL INFO Channel 11/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 75 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80035f8
+nid002764:169741:169741 [0] NCCL INFO Channel 05/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 69 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003328
+nid002764:169741:169741 [0] NCCL INFO Channel 06/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 70 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00033a0
+nid002764:169742:169742 [1] NCCL INFO Channel 12/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 76 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003670
+nid002764:169741:169741 [0] NCCL INFO Channel 07/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 71 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003418
+nid002764:169741:169741 [0] NCCL INFO Channel 08/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 72 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003490
+nid002764:169742:169742 [1] NCCL INFO Channel 13/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 77 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80036e8
+nid002764:169741:169741 [0] NCCL INFO Channel 09/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 73 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003508
+nid002764:169742:169742 [1] NCCL INFO Channel 14/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 78 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003760
+nid002764:169741:169741 [0] NCCL INFO Channel 10/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 74 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003580
+nid002764:169742:169742 [1] NCCL INFO Channel 15/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 79 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80037d8
+nid002764:169741:169741 [0] NCCL INFO Channel 11/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 75 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00035f8
+nid002764:169742:169742 [1] NCCL INFO Channel 16/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 80 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003850
+nid002764:169741:169741 [0] NCCL INFO Channel 12/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 76 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003670
+nid002764:169742:169742 [1] NCCL INFO Channel 17/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 81 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80038c8
+nid002764:169741:169741 [0] NCCL INFO Channel 13/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 77 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00036e8
+nid002764:169742:169742 [1] NCCL INFO Channel 18/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 82 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003940
+nid002764:169741:169741 [0] NCCL INFO Channel 14/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 78 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003760
+nid002764:169742:169742 [1] NCCL INFO Channel 19/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 83 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80039b8
+nid002764:169741:169741 [0] NCCL INFO Channel 15/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 79 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00037d8
+nid002764:169742:169742 [1] NCCL INFO Channel 20/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 84 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003a30
+nid002764:169741:169741 [0] NCCL INFO Channel 16/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 80 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003850
+nid002764:169742:169742 [1] NCCL INFO Channel 21/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 85 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003aa8
+nid002764:169741:169741 [0] NCCL INFO Channel 17/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 81 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00038c8
+nid002764:169742:169742 [1] NCCL INFO Channel 22/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 86 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003b20
+nid002764:169741:169741 [0] NCCL INFO Channel 18/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 82 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003940
+nid002764:169742:169742 [1] NCCL INFO Channel 23/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 87 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003b98
+nid002764:169741:169741 [0] NCCL INFO Channel 19/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 83 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00039b8
+nid002764:169742:169742 [1] NCCL INFO Channel 24/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 88 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003c10
+nid002764:169741:169741 [0] NCCL INFO Channel 20/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 84 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003a30
+nid002764:169742:169742 [1] NCCL INFO Channel 25/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 89 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003c88
+nid002764:169741:169741 [0] NCCL INFO Channel 21/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 85 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003aa8
+nid002764:169742:169742 [1] NCCL INFO Channel 26/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 90 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003d00
+nid002764:169741:169741 [0] NCCL INFO Channel 22/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 86 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003b20
+nid002764:169742:169742 [1] NCCL INFO Channel 27/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 91 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003d78
+nid002764:169741:169741 [0] NCCL INFO Channel 23/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 87 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003b98
+nid002764:169742:169742 [1] NCCL INFO Channel 28/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 92 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003df0
+nid002764:169741:169741 [0] NCCL INFO Channel 24/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 88 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003c10
+nid002764:169742:169742 [1] NCCL INFO Channel 29/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 93 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003e68
+nid002764:169741:169741 [0] NCCL INFO Channel 25/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 89 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003c88
+nid002764:169742:169742 [1] NCCL INFO Channel 30/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 94 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Channel 26/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003ee0
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 90 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003d00
+nid002764:169742:169742 [1] NCCL INFO Channel 31/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169741 [0] NCCL INFO Channel 27/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 95 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 91 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003f58
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003d78
+nid002764:169742:169742 [1] NCCL INFO Channel 32/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169741 [0] NCCL INFO Channel 28/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 96 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 92 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8003fd0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003df0
+nid002764:169741:169741 [0] NCCL INFO Channel 29/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 93 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Channel 33/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003e68
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 97 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004048
+nid002764:169741:169741 [0] NCCL INFO Channel 30/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Channel 34/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 94 from local rank 0, transport 0
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 98 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003ee0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80040c0
+nid002764:169742:169742 [1] NCCL INFO Channel 35/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169741 [0] NCCL INFO Channel 31/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 99 from local rank 1, transport 0
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 95 from local rank 0, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004138
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003f58
+nid002764:169741:169741 [0] NCCL INFO Channel 32/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Channel 36/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 96 from local rank 0, transport 0
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 100 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0003fd0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80041b0
+nid002764:169741:169741 [0] NCCL INFO Channel 33/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Channel 37/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 97 from local rank 0, transport 0
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 101 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004048
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004228
+nid002764:169741:169741 [0] NCCL INFO Channel 34/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Channel 38/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 98 from local rank 0, transport 0
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 102 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00040c0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80042a0
+nid002764:169742:169742 [1] NCCL INFO Channel 39/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 103 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004318
+nid002764:169741:169741 [0] NCCL INFO Channel 35/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 99 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004138
+nid002764:169742:169742 [1] NCCL INFO Channel 40/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 104 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004390
+nid002764:169741:169741 [0] NCCL INFO Channel 36/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 100 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00041b0
+nid002764:169742:169742 [1] NCCL INFO Channel 41/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 105 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004408
+nid002764:169741:169741 [0] NCCL INFO Channel 37/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 101 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004228
+nid002764:169742:169742 [1] NCCL INFO Channel 42/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 106 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004480
+nid002764:169741:169741 [0] NCCL INFO Channel 38/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 102 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00042a0
+nid002764:169742:169742 [1] NCCL INFO Channel 43/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 107 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80044f8
+nid002764:169741:169741 [0] NCCL INFO Channel 39/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 103 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004318
+nid002764:169742:169742 [1] NCCL INFO Channel 44/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 108 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004570
+nid002764:169741:169741 [0] NCCL INFO Channel 40/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 104 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004390
+nid002764:169742:169742 [1] NCCL INFO Channel 45/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 109 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80045e8
+nid002764:169741:169741 [0] NCCL INFO Channel 41/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 105 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004408
+nid002764:169742:169742 [1] NCCL INFO Channel 46/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 110 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004660
+nid002764:169741:169741 [0] NCCL INFO Channel 42/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 106 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004480
+nid002764:169742:169742 [1] NCCL INFO Channel 47/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 111 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80046d8
+nid002764:169741:169741 [0] NCCL INFO Channel 43/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 107 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00044f8
+nid002764:169742:169742 [1] NCCL INFO Channel 48/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 112 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004750
+nid002764:169741:169741 [0] NCCL INFO Channel 44/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 108 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004570
+nid002764:169742:169742 [1] NCCL INFO Channel 49/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 113 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80047c8
+nid002764:169741:169741 [0] NCCL INFO Channel 45/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 109 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00045e8
+nid002764:169742:169742 [1] NCCL INFO Channel 50/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 114 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004840
+nid002764:169741:169741 [0] NCCL INFO Channel 46/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 110 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004660
+nid002764:169742:169742 [1] NCCL INFO Channel 51/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 115 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80048b8
+nid002764:169741:169741 [0] NCCL INFO Channel 47/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 111 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00046d8
+nid002764:169742:169742 [1] NCCL INFO Channel 52/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 116 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004930
+nid002764:169741:169741 [0] NCCL INFO Channel 48/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 112 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004750
+nid002764:169742:169742 [1] NCCL INFO Channel 53/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 117 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c80049a8
+nid002764:169741:169741 [0] NCCL INFO Channel 49/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 113 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00047c8
+nid002764:169742:169742 [1] NCCL INFO Channel 54/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 118 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004a20
+nid002764:169741:169741 [0] NCCL INFO Channel 50/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 114 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004840
+nid002764:169742:169742 [1] NCCL INFO Channel 55/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 119 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004a98
+nid002764:169741:169741 [0] NCCL INFO Channel 51/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 115 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00048b8
+nid002764:169742:169742 [1] NCCL INFO Channel 56/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 120 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004b10
+nid002764:169741:169741 [0] NCCL INFO Channel 52/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 116 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004930
+nid002764:169742:169742 [1] NCCL INFO Channel 57/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 121 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004b88
+nid002764:169741:169741 [0] NCCL INFO Channel 53/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 117 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f00049a8
+nid002764:169742:169742 [1] NCCL INFO Channel 58/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 122 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004c00
+nid002764:169741:169741 [0] NCCL INFO Channel 54/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 118 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004a20
+nid002764:169742:169742 [1] NCCL INFO Channel 59/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 123 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004c78
+nid002764:169741:169741 [0] NCCL INFO Channel 55/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 119 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004a98
+nid002764:169742:169742 [1] NCCL INFO Channel 60/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 124 from local rank 1, transport 0
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004cf0
+nid002764:169741:169741 [0] NCCL INFO Channel 56/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 120 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004b10
+nid002764:169742:169742 [1] NCCL INFO Channel 61/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 125 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Channel 57/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004d68
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 121 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004b88
+nid002764:169742:169742 [1] NCCL INFO Channel 62/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 126 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Channel 58/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004de0
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 122 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004c00
+nid002764:169742:169742 [1] NCCL INFO Channel 63/0 : 1[102000] -> 0[2000] via P2P/IPC comm 0x46dcdea0 nRanks 02
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 127 from local rank 1, transport 0
+nid002764:169741:169741 [0] NCCL INFO Channel 59/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8004e58
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 123 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004c78
+nid002764:169741:169741 [0] NCCL INFO Channel 60/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 124 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004cf0
+nid002764:169741:169741 [0] NCCL INFO Channel 61/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 125 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004d68
+nid002764:169741:169741 [0] NCCL INFO Channel 62/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 126 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004de0
+nid002764:169741:169741 [0] NCCL INFO Channel 63/0 : 0[2000] -> 1[102000] via P2P/IPC comm 0x28570a70 nRanks 02
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 127 from local rank 0, transport 0
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0004e58
+nid002764:169741:169741 [0] NCCL INFO Connected all rings, use ring PXN 0 GDR 1
+nid002764:169742:169742 [1] NCCL INFO Connected all rings, use ring PXN 0 GDR 1
+nid002764:169741:169741 [0] NCCL INFO Connected all trees
+nid002764:169742:169742 [1] NCCL INFO Connected all trees
+nid002764:169742:169953 [1] NCCL INFO New proxy send connection 128 from local rank 1, transport 2
+nid002764:169742:169742 [1] NCCL INFO Connected to proxy localRank 1 -> connection 0x1507c8144990
+nid002764:169742:169957 [1] NCCL INFO [Proxy Progress] Device 1 CPU core 34
+nid002764:169741:169955 [0] NCCL INFO New proxy send connection 128 from local rank 0, transport 2
+nid002764:169741:169741 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0x14e7f0144990
+nid002764:169741:169958 [0] NCCL INFO [Proxy Progress] Device 0 CPU core 21
+nid002764:169742:169742 [1] NCCL INFO RCCL Tuning index:0
+nid002764:169742:169742 [1] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 256 | 256
+nid002764:169742:169742 [1] NCCL INFO comm:0x46dcdea0, nRanks:2, nNodes:1, coll channels:64 collnet channels:64, nvls channels:0, p2p channels:64, p2p channels per peer:16
+nid002764:169741:169741 [0] NCCL INFO RCCL Tuning index:0
+nid002764:169741:169741 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 256 | 256
+nid002764:169741:169741 [0] NCCL INFO comm:0x28570a70, nRanks:2, nNodes:1, coll channels:64 collnet channels:64, nvls channels:0, p2p channels:64, p2p channels per peer:16
+nid002764:169741:169741 [0] NCCL INFO CC Off, workFifoBytes 4194304
+nid002764:169742:169742 [1] NCCL INFO RCCL Unroll Factor (pre-set): 2
+nid002764:169741:169741 [0] NCCL INFO RCCL Unroll Factor (pre-set): 2
+nid002764:169742:169742 [1] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so. Using internal tuner plugin.
+nid002764:169741:169741 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so. Using internal tuner plugin.
+nid002764:169742:169742 [1] NCCL INFO ncclCommInitRank_impl comm 0x46dcdea0 rank 1 nranks 2 cudaDev 1 nvmlDev 1 busId 102000 commId 0xbb63781c442bf0fe - Init COMPLETE
+nid002764:169742:169742 [1] NCCL INFO Init timings - ncclCommInitRank_impl: rank 1 nranks 2 total 12.54 (kernels 9.19, alloc 2.88, bootstrap 0.00, allgathers 0.00, topo 0.18, graphs 0.00, connections 0.27, rest 0.01)
+nid002764:169741:169741 [0] NCCL INFO ncclCommInitRank_impl comm 0x28570a70 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 2000 commId 0xbb63781c442bf0fe - Init COMPLETE
+nid002764:169741:169741 [0] NCCL INFO Init timings - ncclCommInitRank_impl: rank 0 nranks 2 total 12.61 (kernels 9.53, alloc 2.62, bootstrap 0.00, allgathers 0.00, topo 0.18, graphs 0.00, connections 0.27, rest 0.01)
+nid002764:169742:169742 [1] NCCL INFO AllReduce: opCount 0 sendbuff 0x15075c200000 recvbuff 0x15075c200200 acc (nil) count 1 datatype 7 op 0 root 0 comm 0x46dcdea0 [nranks=2] stream 0x45aec800 task 0 globalrank 1
+nid002764:169742:169742 [1] NCCL INFO pre-adjustment threadThreshold:8 nBytes:4 nc:64
+nid002764:169742:169742 [1] NCCL INFO minNChannels:-2
+nid002764:169742:169742 [1] NCCL INFO post-adjustment based on threadThreshold:8 nBytes:4 nc:1
+nid002764:169741:169741 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x14e785400000 recvbuff 0x14e785400200 acc (nil) count 1 datatype 7 op 0 root 0 comm 0x28570a70 [nranks=2] stream 0x2737e6d0 task 0 globalrank 0
+nid002764:169741:169741 [0] NCCL INFO pre-adjustment threadThreshold:8 nBytes:4 nc:64
+nid002764:169741:169741 [0] NCCL INFO minNChannels:-2
+nid002764:169741:169741 [0] NCCL INFO post-adjustment based on threadThreshold:8 nBytes:4 nc:1
+(Worker pid=169742) INFO 10-25 13:07:54 [flashinfer_all_reduce.py:372] FlashInfer All Reduce is disabled because flashinfer is not available
+(Worker pid=169741) INFO 10-25 13:07:54 [flashinfer_all_reduce.py:372] FlashInfer All Reduce is disabled because flashinfer is not available
+(Worker pid=169741) INFO 10-25 13:07:54 [cuda_communicator.py:326] Using ['CUSTOM', 'PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['FLASHINFER_PCIE_IPC', 'FLASHINFER', 'NCCL_SYMM_MEM', 'QUICK_REDUCE', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=169741) INFO 10-25 13:07:54 [parallel_state.py:2269] rank 0 in world size 2 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, ETP rank 0, EP rank N/A, EPLB rank N/A
+(Worker pid=169741) INFO 10-25 13:07:54 [gpu_worker.py:479] Using V2 Model Runner
+(Worker_TP0 pid=169741) INFO 10-25 13:07:56 [model_runner.py:375] Loading model from scratch...
+(Worker_TP1 pid=169742) INFO 10-25 13:07:58 [rocm.py:797] Found incompatible backend(s) [TURBOQUANT] with AttentionType.DECODER. Overriding with ROCM_AITER_UNIFIED_ATTN out of potential backends: ['ROCM_AITER_UNIFIED_ATTN', 'TRITON_ATTN'].
+(Worker_TP0 pid=169741) INFO 10-25 13:07:58 [rocm.py:797] Found incompatible backend(s) [TURBOQUANT] with AttentionType.DECODER. Overriding with ROCM_AITER_UNIFIED_ATTN out of potential backends: ['ROCM_AITER_UNIFIED_ATTN', 'TRITON_ATTN'].
+(Worker_TP0 pid=169741) INFO 10-25 13:07:58 [rocm_aiter_unified_attn.py:181] Using aiter unified attention for RocmAiterUnifiedAttentionImpl
+[aiter] import [module_aiter_core] under /usr/local/lib/python3.12/dist-packages/aiter/jit/module_aiter_core.so
+[aiter] import [module_aiter_core] under /usr/local/lib/python3.12/dist-packages/aiter/jit/module_aiter_core.so
+(Worker_TP0 pid=169741) WARNING 10-25 13:08:09 [activation.py:735] CUDA-fused xIELU not available (No module named 'xielu') – falling back to a Python version.
+(Worker_TP0 pid=169741) WARNING 10-25 13:08:09 [activation.py:735] For CUDA xIELU (experimental), `pip install git+https://github.com/nickjbrowning/XIELU`
+(Worker_TP1 pid=169742) INFO 10-25 13:08:15 [weight_utils.py:1025] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(Worker_TP1 pid=169742) INFO 10-25 13:08:16 [weight_utils.py:997] Prefetching checkpoint files: 10% (1/2)
+(Worker_TP1 pid=169742) INFO 10-25 13:08:45 [weight_utils.py:997] Prefetching checkpoint files: 20% (2/2)
+(Worker_TP1 pid=169742) INFO 10-25 13:08:45 [weight_utils.py:1020] Prefetching checkpoint files into page cache finished in 30.14s
+(Worker_TP0 pid=169741) WARNING 10-25 13:09:02 [compilation.py:1350] Op 'sparse_attn_indexer' doesn't exist (or wasn't imported/registered), enabling with '+sparse_attn_indexer' has no effect
+(Worker_TP0 pid=169741) INFO 10-25 13:09:02 [weight_utils.py:1063] Filesystem type for checkpoints: LUSTRE. Checkpoint size: 134.67 GiB. Available RAM: 308.36 GiB.
+(Worker_TP0 pid=169741) INFO 10-25 13:09:02 [weight_utils.py:1025] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+(Worker_TP0 pid=169741) INFO 10-25 13:09:03 [weight_utils.py:997] Prefetching checkpoint files: 10% (1/3)
+(Worker_TP0 pid=169741) INFO 10-25 13:09:28 [weight_utils.py:997] Prefetching checkpoint files: 20% (2/3)
+(Worker_TP0 pid=169741) INFO 10-25 13:09:50 [weight_utils.py:997] Prefetching checkpoint files: 30% (3/3)
+(Worker_TP0 pid=169741) INFO 10-25 13:09:50 [weight_utils.py:1020] Prefetching checkpoint files into page cache finished in 48.26s
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:48<03:14, 48.57s/it]
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [06:06<10:20, 206.79s/it]
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_0
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_1
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_2
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_3
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_4
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_5
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_6
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_7
+(MainProcess pid=168132) INFO 10-25 13:21:41 [utils.py:638] [shutdown] Process manager: send sigterm to process ApiServer_8

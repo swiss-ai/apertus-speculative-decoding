@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/tmp/beverin-numerics-20261030/bin/python",
+    "-B",
+    "-m",
+    "torch.distributed.run",
+    "--standalone",
+    "--nproc-per-node=4",
+    "results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/comm-correctness/probe.py",
+    "--cpu",
+    "--output",
+    "results/70b/dspark/beverin-nonfinite-20261030/root-cause-20261031/comm-correctness/cpu-preflight-final",
+    "--iterations",
+    "2",
+    "--shapes",
+    "4x16"
+  ],
+  "return_code": 0,
+  "ranks": 4,
+  "checks_per_rank": 48,
+  "total_checks": 192,
+  "all_nonfinite_zero": true,
+  "all_mismatches_zero": true,
+  "torch": "2.15.0+cpu",
+  "probe_sha256": "667943d8116d8a960089a9983fab4a38bbace79456c2df2c7bb2415cf40271aa"
+}

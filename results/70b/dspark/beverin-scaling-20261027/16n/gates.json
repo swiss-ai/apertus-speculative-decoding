@@ -1,0 +1,30 @@
+{
+  "job_id": "697549",
+  "nodes": 16,
+  "checks": {
+    "slurm_completed": true,
+    "audit_ok": true,
+    "started_fresh": true,
+    "first_save_at_100": true,
+    "first_segment_last_metric_99": true,
+    "first_resumed_metric_100": true,
+    "last_resumed_metric_199": true,
+    "final_checkpoint_200": true,
+    "epoch_length_consistent": true,
+    "at_least_100_steady_samples": true,
+    "all_nodes_confirm_rocblas_unprofiled": true,
+    "no_reported_data_recovery_errors": true,
+    "no_nonfinite_losses": true,
+    "lr_resumed_above_zero": true,
+    "lr_continues_forward": true
+  },
+  "status": "passed",
+  "last_lr_before_save": 7.27e-05,
+  "first_lr_after_resume": 7.34e-05,
+  "notes": [
+    "Cursor and logged LR continuity are checked; bitwise RNG equivalence is not claimed.",
+    "Large weights/optimizer remain at the cluster paths; the batch-node audit verifies their presence."
+  ],
+  "eligible_for_32n": true,
+  "decision_reason": "16-node pilot completed200steps with exact100-step resume, clean audit, no data errors and comfortable memory headroom; mean step time supports the conditional32-node comparison."
+}
