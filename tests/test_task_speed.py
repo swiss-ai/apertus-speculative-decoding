@@ -555,3 +555,10 @@ def test_live_window_in_cluster_mode_reads_service_metrics(tmp_path, monkeypatch
     assert record["status"] == "ok" and set(urls) == {url}
     metadata = json.loads((tmp_path / "live/P1/opb/opb/c1/metadata.json").read_text())
     assert metadata["metrics_url"] == url and metadata["extra"]["node"] == "nid006597"
+
+
+def test_live_variants_map_to_draft_lengths():
+    live = _live_module()
+    assert {v: live.draft_length(v) for v in live.model_ids()} == {
+        "dspark": 3, "dspark-k5": 5, "dspark-k7": 7, "plain": None,
+    }  # fmt: skip
