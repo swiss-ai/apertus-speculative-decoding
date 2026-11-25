@@ -1,0 +1,23 @@
+# Upstream DSpark adaptive verification (vllm-project/vllm#47808) on the
+# vLLM v0.31.0 + Apertus 1.5 image (serving/images/vllm-apertus15-upstream),
+# stock settings: enable_adaptive_verification over a k=7 draft, step costs
+# profiled at the default 8192-token context. Against fixed k=3 and k=7 and
+# plain on the same image, on the 128 held-out test prompts
+# (workloads/8b/opb-heldout.jsonl, cluster only), as paper-eval and draft-cut
+# measured our own scheduler. Two jobs (upstream-av-a/b) with the arms in
+# reverse order, on swapped GPUs.
+# Submit with ENV_SOURCE=serving/images/vllm-apertus15-upstream/env.toml
+#   SWEEP_BASE_PATCHES="" (the image carries its fixes).
+name: upstream-av-a
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 256}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [1, 8, 32, 64, 128, 256]
+arms:
+  - {name: plain, method: baseline}
+  - {name: dspark-e10-k3, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 3}
+  - {name: dspark-e10-k7, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7}
+  - {name: dspark-e10-k7-adaptive, method: dspark, drafter: /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final, k: 7, speculative: {enable_adaptive_verification: true}}

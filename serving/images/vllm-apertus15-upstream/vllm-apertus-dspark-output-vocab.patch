@@ -1,0 +1,71 @@
+Size the DSpark draft against the vocabulary the target samples from, not the
+one it embeds. Apertus 1.5 embeds 266752 ids (text and media tokens) but its
+LM head has 131072 rows (text_config.output_vocab_size). The e10 drafter
+embeds the target's 266752 ids and drafts over the head's 131072, sharing
+both from the target. Upstream compared the draft vocabulary with the
+embedding size, called it reduced and refused to load (smoke job 3672166):
+
+    ValueError: Reduced-vocabulary Qwen3 DSpark checkpoints must include
+    lm_head weights; the full target lm_head cannot be shared.
+
+The draft vocabulary (the d2t decision, the reduced-vocabulary check and LM
+head sharing) is now compared with output_vocab_size when the target config
+has one; the input vocabulary and embedding sharing still use the embedding
+size (comparing those with the head size fails the other way, job 3672211).
+Applies after vllm-apertus-dspark-mrv2-inner.
+
+--- a/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py
++++ b/workspace/vllm/vllm/model_executor/models/qwen3_dspark.py
+@@ -256,10 +256,16 @@ class Qwen3DSparkForCausalLM(DFlashQwen3ForCausalLM):
+             self.config.draft_vocab_size, scale=logit_scale
+         )
+         self.target_vocab_size = vllm_config.model_config.get_vocab_size()
++        # The vocabulary the target samples from: its LM head's rows. Apertus
++        # 1.5 embeds 266752 ids (text and media) but its head has 131072.
++        self.target_output_vocab_size = (
++            getattr(vllm_config.model_config.hf_text_config, "output_vocab_size", None)
++            or self.target_vocab_size
++        )
+         # Only a pruned draft (subset of the target vocab) needs a d2t mapping to
+         # scatter ids up. A draft >= the target vocab (e.g. padded to the target's
+         # physical embedding size) maps identically, so no d2t is needed.
+-        if self.config.draft_vocab_size < self.target_vocab_size:
++        if self.config.draft_vocab_size < self.target_output_vocab_size:
+             self.draft_id_to_target_id = nn.Parameter(
+                 torch.zeros(self.config.draft_vocab_size, dtype=torch.long),
+                 requires_grad=False,
+@@ -339,7 +345,9 @@ class Qwen3DSparkForCausalLM(DFlashQwen3ForCausalLM):
+         # embed_tokens / lm_head are optional; when omitted they are shared from
+         # the target by load_dspark_model, so skip the unloaded params here.
+         uses_expanded_input_vocab = self.config.vocab_size > self.target_vocab_size
+-        uses_reduced_vocab = self.config.draft_vocab_size < self.target_vocab_size
++        uses_reduced_vocab = (
++            self.config.draft_vocab_size < self.target_output_vocab_size
++        )
+         if uses_expanded_input_vocab and not includes_embed_tokens:
+             raise ValueError(
+                 "Qwen3 DSpark checkpoints whose input vocab_size is larger than "
+--- a/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py
++++ b/workspace/vllm/vllm/v1/worker/gpu/spec_decode/dspark/utils.py
+@@ -117,6 +117,12 @@ def load_dspark_model(target_model: nn.Module, vllm_config: VllmConfig) -> nn.Mo
+     target_inner = getattr(target_language_model, "model", target_language_model)
+     draft_inner = draft_model.model
+     target_vocab_size = vllm_config.model_config.get_vocab_size()
++    # The LM head can have fewer rows than the embedding: Apertus 1.5 embeds
++    # text and media ids but only samples text ids.
++    target_output_vocab_size = (
++        getattr(vllm_config.model_config.hf_text_config, "output_vocab_size", None)
++        or target_vocab_size
++    )
+ 
+     if draft_model_config.get_vocab_size() <= target_vocab_size:
+         maybe_share_target_embed(draft_model, draft_inner, target_inner)
+@@ -129,7 +135,7 @@ def load_dspark_model(target_model: nn.Module, vllm_config: VllmConfig) -> nn.Mo
+     )
+     if (
+         target_lm_head is not None
+-        and draft_output_vocab_size == target_vocab_size
++        and draft_output_vocab_size == target_output_vocab_size
+         and _should_share(draft_model, "has_own_lm_head", draft_lm_head, target_lm_head)
+     ):
+         if draft_lm_head is not None:

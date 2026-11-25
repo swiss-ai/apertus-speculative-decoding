@@ -1,0 +1,119 @@
+Port the Apertus 1.5 multimodal model (swiss-ai/vllm apertus-1-5, upstream
+PR #50496) to the v0.31.0 APIs. The branch merges without conflicts but was
+written against older ones, and the engine failed at startup (jobs 3672072,
+3672141):
+
+    TypeError: BaseMultiModalProcessor.__init__() got an unexpected keyword
+    argument 'cache'
+    TypeError: AutoWeightsLoader.__init__() got an unexpected keyword
+    argument 'skip_prefixes'
+
+- Processor: the renderer now tokenizes the prompt and the HF processor sees
+  only the media. The processor no longer takes a cache, _call_hf_processor
+  takes (hf_data, hf_kwargs), and the tokens-only hook is gone. Apertus HF
+  needs one placeholder per media item in its text, so _get_hf_mm_text
+  supplies the dummy builder's placeholder text; the per-item crop is
+  unchanged.
+- Weights: AutoWeightsLoader lost skip_prefixes (#53106). Apertus 1.5 skipped
+  only lm_head with tied embeddings, which __init__ already rejects, so it
+  loads like upstream ApertusForCausalLM.
+
+--- a/workspace/vllm/vllm/model_executor/models/apertus_mm.py
++++ b/workspace/vllm/vllm/model_executor/models/apertus_mm.py
+@@ -234,29 +234,12 @@ class Apertus1p5MultiModalProcessor(BaseMultiModalProcessor[Apertus1p5Processing
+         self,
+         info: Apertus1p5ProcessingInfo,
+         dummy_inputs: BaseDummyInputsBuilder,
+-        *,
+-        cache: object | None = None,
+     ) -> None:
+-        super().__init__(info, dummy_inputs, cache=cache)
++        super().__init__(info, dummy_inputs)
+         config = info.get_hf_config()
+         self.image_token_id = getattr(config, "image_token_id", _DEFAULT_IMAGE_TOKEN_ID)
+         self.audio_token_id = getattr(config, "audio_token_id", _DEFAULT_AUDIO_TOKEN_ID)
+ 
+-    def _apply_hf_processor_tokens_only(
+-        self,
+-        prompt_tokens: list[int],
+-    ) -> list[int]:
+-        tokenizer = self.info.get_tokenizer()
+-        bos_token_id = tokenizer.bos_token_id
+-
+-        # Keep raw token prompts aligned with HF's text-processing path.
+-        if bos_token_id is not None and (
+-            not prompt_tokens or prompt_tokens[0] != bos_token_id
+-        ):
+-            return [bos_token_id, *prompt_tokens]
+-
+-        return prompt_tokens
+-
+     def _get_mm_fields_config(
+         self,
+         hf_inputs: BatchFeature,
+@@ -325,42 +308,22 @@ class Apertus1p5MultiModalProcessor(BaseMultiModalProcessor[Apertus1p5Processing
+             ),
+         ]
+ 
++    def _get_hf_mm_text(self, mm_counts: Mapping[str, int]) -> str | None:
++        # The renderer tokenizes the real prompt; the HF processor only sees the
++        # media, and Apertus HF requires exactly one placeholder per media item.
++        return self.dummy_inputs.get_dummy_text(mm_counts)
++
+     def _call_hf_processor(
+         self,
+-        prompt: str,
+-        mm_data: Mapping[str, object],
+-        mm_kwargs: Mapping[str, object],
+-        tok_kwargs: Mapping[str, object],
++        hf_data: Mapping[str, object],
++        hf_kwargs: Mapping[str, object],
+     ) -> BatchFeature:
+-        if not mm_data.get("images", []) and not mm_data.get("audios", []):
+-            # Apertus HF rejects raw MM markers without their media. The cache's
+-            # text-only pass needs those raw markers so BaseMultiModalProcessor
+-            # can apply the cached PromptReplacement entries itself.
+-            tokenizer = self.info.get_tokenizer()
+-            prompt_ids = tokenizer.encode(
+-                prompt,
+-                add_special_tokens=tok_kwargs.get("add_special_tokens", True),
+-            )
+-            prompt_ids = self._apply_hf_processor_tokens_only(prompt_ids)
+-            return BatchFeature(dict(input_ids=[prompt_ids]), tensor_type="pt")
+-
+-        item_processor_data = dict(mm_data)
+-        audios = item_processor_data.pop("audios", [])
+-        if audios:
+-            # MultiModalDataItems uses the plural modality key; HF uses audio.
+-            item_processor_data["audio"] = audios
+-            feature_extractor = self.info.get_feature_extractor(**mm_kwargs)
+-            mm_kwargs = dict(
+-                **mm_kwargs,
+-                sampling_rate=feature_extractor.sampling_rate,
+-            )
++        hf_kwargs = {**hf_kwargs, "padding": True}
++        if hf_data.get("audio"):
++            feature_extractor = self.info.get_feature_extractor(**hf_kwargs)
++            hf_kwargs["sampling_rate"] = feature_extractor.sampling_rate
+ 
+-        processed_outputs = super()._call_hf_processor(
+-            prompt=prompt,
+-            mm_data=item_processor_data,
+-            mm_kwargs=mm_kwargs,
+-            tok_kwargs={**tok_kwargs, "padding": True},
+-        )
++        processed_outputs = super()._call_hf_processor(hf_data, hf_kwargs)
+ 
+         if "pixel_values" in processed_outputs:
+             pixel_values = processed_outputs["pixel_values"]
+@@ -516,8 +479,8 @@ class Apertus1p5ForConditionalGeneration(
+         self,
+         weights: Iterable[tuple[str, torch.Tensor]],
+     ) -> set[str]:
+-        skip_prefixes = ["lm_head."] if self.config.tie_word_embeddings else []
+-        loader = AutoWeightsLoader(self, skip_prefixes=skip_prefixes)
++        # Tied embeddings are rejected in __init__, so nothing to skip.
++        loader = AutoWeightsLoader(self)
+         return loader.load_weights(weights, mapper=self.hf_to_vllm_mapper)
+ 
+     def _get_module_device_dtype(
