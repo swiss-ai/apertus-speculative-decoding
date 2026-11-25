@@ -46,14 +46,35 @@ from apertus_bench.effort_report import build_report
 from apertus_bench.workloads import file_sha256, load_prompts
 
 TRAINING_CONFIG = REPO / "experiments/thinking-effort/phase2.yaml"
+SMALLEST_POOL = "smallest_effort_pool"
+# Settings that change only how heads are trained from an identical corpus.
+TRAINING_ONLY_KEYS = {"optimizer", "initialization", "learning_rate", "scheduler", "warmup_ratio"}
+CONFIG_DEFAULTS = {
+    "initialization": "released",
+    "scheduler": "none",
+    "warmup_ratio": 0.0,
+    "domains": ["math", "code"],
+}
 
 
 def load_config(path: Path) -> dict[str, Any]:
-    config = yaml.safe_load(path.read_text())
+    config = {**CONFIG_DEFAULTS, **yaml.safe_load(path.read_text())}
     if config["schema_version"] != 1:
         raise ValueError("unsupported Phase 2 configuration")
-    if config["supervised_tokens_per_head"] % (3 * config["epochs"]):
+    budget = config["supervised_tokens_per_head"]
+    if budget == SMALLEST_POOL:
+        if config["epochs"] != 1:
+            raise ValueError("the smallest-effort-pool budget is defined for one epoch")
+    elif budget % (3 * config["epochs"]):
         raise ValueError("per-head budget must divide exactly into three efforts and epochs")
+    if config["initialization"] not in {"released", "scratch"}:
+        raise ValueError("initialization must be the released head or scratch")
+    if config["scheduler"] not in {"none", "cosine"}:
+        raise ValueError("scheduler must be none (constant) or cosine")
+    if not set(config["domains"]) <= {"math", "code"} or not config["domains"]:
+        raise ValueError("domains must be a non-empty subset of math and code")
+    if config["train_prompts_per_domain"] != "all" and int(config["train_prompts_per_domain"]) < 1:
+        raise ValueError("train_prompts_per_domain must be positive or 'all'")
     if config["checkpoint_selection"] != "lowest_development_loss":
         raise ValueError("the frozen checkpoint rule is lowest development loss")
     if config.get("optimizer") != "adamw":
@@ -86,10 +107,12 @@ def select_prompts(
     forbidden_ids = {p.id for p in evaluation}
     seen = set(forbidden)
     train, development = [], []
-    for domain in ("math", "code"):
+    for domain in config.get("domains", ("math", "code")):
         candidates = sorted(domains[domain], key=lambda p: sha_json([config["seed"], p["id"]]))
         selected = []
-        total = config["train_prompts_per_domain"] + config["development_prompts_per_domain"]
+        dev = config["development_prompts_per_domain"]
+        use_all = config["train_prompts_per_domain"] == "all"
+        total = None if use_all else config["train_prompts_per_domain"] + dev
         for prompt in candidates:
             text = normalized_task(prompt["messages"])
             if prompt["id"] in forbidden_ids or text in seen:
@@ -98,12 +121,43 @@ def select_prompts(
             selected.append(prompt)
             if len(selected) == total:
                 break
+        if use_all:
+            # Every remaining disjoint task trains; development is the first `dev`.
+            if len(selected) <= dev:
+                raise ValueError(f"insufficient disjoint {domain} tasks")
+            development.extend(selected[:dev])
+            train.extend(selected[dev:])
+            continue
         if len(selected) != total:
             raise ValueError(f"insufficient disjoint {domain} tasks")
         boundary = config["train_prompts_per_domain"]
         train.extend(selected[:boundary])
         development.extend(selected[boundary:])
     return train, development
+
+
+def resolve_budget(config: dict[str, Any], training: list[dict[str, Any]]) -> int:
+    """Per-head supervised tokens; the smallest pool gives every head one pass at most."""
+    budget = config["supervised_tokens_per_head"]
+    if budget != SMALLEST_POOL:
+        return int(budget)
+    pools = {
+        effort: sum(
+            len(s["token_ids"]) - s["prompt_tokens"] for s in training if s["effort"] == effort
+        )
+        for effort in EFFORTS
+    }
+    resolved = min(pools.values()) // 3 * 3
+    if resolved <= 0:
+        raise ValueError(f"empty effort pool: {pools}")
+    return resolved
+
+
+def head_budget(campaign: Path, config: dict[str, Any]) -> int:
+    budget = config["supervised_tokens_per_head"]
+    if budget != SMALLEST_POOL:
+        return int(budget)
+    return int(json.loads((campaign / "training-data/budget.json").read_text())["per_head"])
 
 
 def budget_examples(
@@ -194,6 +248,8 @@ def prepare_prompts(campaign: Path, config: dict[str, Any]) -> None:
         ("math", "openai/gsm8k", "main"),
         ("code", "google-research-datasets/mbpp", "full"),
     ):
+        if domain not in config["domains"]:
+            continue
         revision = config["dataset_revisions"][repo]
         api.dataset_info(
             repo, revision=revision
@@ -457,12 +513,14 @@ def retain_responses(
         ("train", "minimum_retained_train_prompts"),
         ("development", "minimum_retained_development_prompts"),
     ):
-        ids = {s["id"] for s in samples if s["split"] == split}
-        if len(ids) < config[key]:
+        efforts_by_id: dict[str, set[str]] = {}
+        for sample in samples:
+            if sample["split"] == split:
+                efforts_by_id.setdefault(sample["id"], set()).add(sample["effort"])
+        if len(efforts_by_id) < config[key]:
             raise ValueError(f"insufficient complete shared {split} tasks")
-        for identifier in ids:
-            if {s["effort"] for s in samples if s["id"] == identifier} != set(EFFORTS):
-                raise ValueError("an effort is missing for a retained training task")
+        if any(efforts != set(EFFORTS) for efforts in efforts_by_id.values()):
+            raise ValueError("an effort is missing for a retained training task")
     return samples, bad
 
 
@@ -537,12 +595,26 @@ def package_datasets(campaign: Path, config: dict[str, Any], samples: list[dict[
     training = [sample for sample in samples if sample["split"] == "train"]
     development = [sample for sample in samples if sample["split"] == "development"]
     manifests = {}
+    budget = resolve_budget(config, training)
+    write_json(
+        data / "budget.json",
+        {
+            "rule": str(config["supervised_tokens_per_head"]),
+            "per_head": budget,
+            "train_pool_tokens_by_effort": {
+                effort: sum(
+                    len(s["token_ids"]) - s["prompt_tokens"]
+                    for s in training
+                    if s["effort"] == effort
+                )
+                for effort in EFFORTS
+            },
+        },
+    )
     for role in ROLES:
         root = data / "roles" / role
         root.mkdir(parents=True, exist_ok=False)
-        train_rows = budget_examples(
-            training, role, config["supervised_tokens_per_head"] // config["epochs"], config["seed"]
-        )
+        train_rows = budget_examples(training, role, budget // config["epochs"], config["seed"])
         allowed = EFFORTS if role == "mixed" else (role,)
         dev_rows = [
             {
@@ -684,9 +756,11 @@ async def data_stage(
         campaign / "optimizer.json",
         {
             "optimizer": "AdamW",
+            "initialization": config["initialization"],
             "learning_rate": config["learning_rate"],
             "weight_decay": config["weight_decay"],
-            "scheduler": "constant",
+            "scheduler": "constant" if config["scheduler"] == "none" else config["scheduler"],
+            "warmup_ratio": config["warmup_ratio"],
             "draft_attention_implementation": config["draft_attention_implementation"],
             "epochs": config["epochs"],
             "seed": config["seed"],
@@ -705,15 +779,19 @@ async def data_stage(
             "checkpoint_selection": config["checkpoint_selection"],
         },
     )
-    training_plan(
-        parent,
-        campaign / "training-handoff",
-        campaign / "training-data/train-prompts.jsonl",
-        campaign / "training-data/development-prompts.jsonl",
-        config["supervised_tokens_per_head"],
-        campaign / "optimizer.json",
-    )
+
+    def plan() -> None:
+        training_plan(
+            parent,
+            campaign / "training-handoff",
+            campaign / "training-data/train-prompts.jsonl",
+            campaign / "training-data/development-prompts.jsonl",
+            head_budget(campaign, config),
+            campaign / "optimizer.json",
+        )
+
     if data_reference:
+        plan()
         write_json(
             campaign / "data-status.json",
             {
@@ -732,6 +810,7 @@ async def data_stage(
         await extract_features(campaign, config, urls, samples)
     write_json(campaign / "training-data/feature-manifest.json", samples)
     package_datasets(campaign, config, samples)
+    plan()
     write_json(
         campaign / "data-status.json",
         {
@@ -746,9 +825,9 @@ def validate_reused_data(campaign: Path, reference: Path, config: dict[str, Any]
     """Reuse immutable data only when every data/budget setting and model matches."""
     if json.loads((reference / "data-status.json").read_text())["status"] != "complete":
         raise ValueError("data reference is incomplete")
-    previous = yaml.safe_load((reference / "phase2.yaml").read_text())
-    if {k: v for k, v in previous.items() if k != "optimizer"} != {
-        k: v for k, v in config.items() if k != "optimizer"
+    previous = {**CONFIG_DEFAULTS, **yaml.safe_load((reference / "phase2.yaml").read_text())}
+    if {k: v for k, v in previous.items() if k not in TRAINING_ONLY_KEYS} != {
+        k: v for k, v in config.items() if k not in TRAINING_ONLY_KEYS
     }:
         raise ValueError("data reference configuration or training budget changed")
     before = json.loads((reference / "inputs/lock.json").read_text())
@@ -779,7 +858,7 @@ def validate_optimizer_contract(resolved, config: dict[str, Any]) -> None:
         actual.optimizer != config["optimizer"]
         or actual.lr != config["learning_rate"]
         or actual.weight_decay != config["weight_decay"]
-        or resolved.scheduler.scheduler_type != "none"
+        or resolved.scheduler.scheduler_type != config.get("scheduler", "none")
     ):
         raise ValueError("resolved upstream optimizer/scheduler differs from the frozen contract")
 
@@ -820,15 +899,28 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
     source = Path(lock["spec"]["drafter_path"])
     converted = root / "initialization"
     DFlashConverter().convert(source, converted, base_model=lock["spec"]["target_path"])
+    if config["initialization"] == "scratch":
+        # Upstream treats a config-only directory as "initialize fresh draft weights
+        # from this speculator config" and still pulls the frozen verifier weights.
+        scratch = root / "initialization-config"
+        scratch.mkdir()
+        shutil.copyfile(converted / "config.json", scratch / "config.json")
+        write_json(
+            root / "initialization.json",
+            {
+                "mode": "scratch",
+                "architecture_config_sha256": file_sha256(scratch / "config.json"),
+                "architecture_source": str(source),
+            },
+        )
+        converted = scratch
+    budget = head_budget(campaign, config)
     dataset = campaign / "training-data/roles" / role
     manifest = json.loads((dataset / "training-manifest.json").read_text())
     for name, evidence in manifest["dataset_files"].items():
         if file_sha256(dataset / name) != evidence["sha256"]:
             raise ValueError(f"prepared training corpus changed: {role}/{name}")
-    assert (
-        manifest["supervised_tokens_per_epoch"] * config["epochs"]
-        == config["supervised_tokens_per_head"]
-    )
+    assert manifest["supervised_tokens_per_epoch"] * config["epochs"] == budget
     checkpoint = root / "checkpoints"
     argv = [
         "--verifier-name-or-path",
@@ -852,7 +944,12 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
         "--weight-decay",
         str(config["weight_decay"]),
         "--scheduler-type",
-        "none",
+        config["scheduler"],
+        *(
+            ["--scheduler-warmup-ratio", str(config["warmup_ratio"])]
+            if config["scheduler"] != "none"
+            else []
+        ),
         "--total-seq-len",
         str(config["maximum_training_sequence"]),
         "--train-data-ratio",
@@ -921,7 +1018,7 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
     validations = [row for row in history if "val" in row]
     if len(validations) != config["epochs"]:
         raise ValueError("training did not finish every budgeted epoch and development pass")
-    if observed["supervised_tokens"] != config["supervised_tokens_per_head"]:
+    if observed["supervised_tokens"] != budget:
         raise ValueError(f"upstream loader changed the supervised-token budget: {observed}")
     if any(not math.isfinite(row["val"]["loss_epoch"]) for row in validations):
         raise ValueError("non-finite development loss")
@@ -948,10 +1045,11 @@ def train_role(campaign: Path, config: dict[str, Any], upstream: Path, role: str
     provenance = {
         "target_sha256": lock["target"]["sha256"],
         "effort": role,
+        "initialization": config["initialization"],
         "initialization_sha256": lock["drafter"]["sha256"],
         "architecture_sha256": file_sha256(source / "config.json"),
         "optimizer_schedule_sha256": file_sha256(campaign / "optimizer.json"),
-        "supervised_tokens": config["supervised_tokens_per_head"],
+        "supervised_tokens": budget,
         "training_seed": config["seed"],
         "resolved_optimizer": resolved.optimizer.model_dump(),
         "resolved_scheduler": resolved.scheduler.model_dump(),
