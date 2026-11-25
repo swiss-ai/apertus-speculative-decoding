@@ -1,0 +1,32 @@
+{
+  "branch": "experiment/dspark-e10-task-speed",
+  "revision": "684a6e4cedbfe51bacea155d86667b6586f08f7e",
+  "argv": [
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/experiments/task-speed/run-controlled.py",
+    "--suite",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/experiments/task-speed/suite.yaml",
+    "--pilot",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+    "--inputs",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/workloads/8b/task-speed-input",
+    "--gpus",
+    "0,1,2,3",
+    "--first-pair",
+    "1",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-task-speed-code/results/8b/task-speed/controlled-20261104T133618Z"
+  ],
+  "slurm_job_id": "3850624",
+  "node": "nid007348",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "gpu_inventory": "index, uuid, name, memory.total [MiB], clocks.max.sm [MHz], power.limit [W]\n0, GPU-18e2838e-18ea-23df-49b1-08b54a775d16, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n1, GPU-ea4fbb2e-12c4-959a-ebe4-4f44da6b81f3, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n2, GPU-fe9f1e83-11ff-d18e-e2b8-39116872609f, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n3, GPU-a8e0fbae-ebe7-825a-7402-d76eadfba990, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n",
+  "pilot": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+  "first_pair": 1,
+  "select": null,
+  "design": "one plain/DSpark deployment pair per GPU, run concurrently; order AB on even pairs, BA on odd pairs"
+}

@@ -125,3 +125,77 @@ async def test_streaming_client_sends_chat_template_kwargs_only_when_set() -> No
             )
     assert "chat_template_kwargs" not in seen[0]
     assert seen[1]["chat_template_kwargs"] == {"enable_thinking": True}
+
+
+@pytest.mark.parametrize("field", ["reasoning", "reasoning_content"])
+async def test_native_effort_preserves_channels_and_raw_stream(field: str) -> None:
+    async def handler(request):
+        payload = json.loads(request.content)
+        assert payload["reasoning_effort"] == "high"
+        assert payload["min_p"] == 0
+        events = [
+            {"choices": [{"delta": {field: "Let me think."}}]},
+            {"choices": [{"delta": {"content": "42"}, "finish_reason": "stop"}]},
+            {
+                "choices": [],
+                "usage": {
+                    "prompt_tokens": 8,
+                    "completion_tokens": 12,
+                    "completion_tokens_details": {"reasoning_tokens": 7},
+                },
+            },
+        ]
+        return httpx.Response(
+            200,
+            text="".join(f"data: {json.dumps(event)}\n\n" for event in events) + "data: [DONE]\n\n",
+        )
+
+    client = StreamingChatClient(
+        "http://test", "m", None, timeout_seconds=1, token_counter=lambda text: len(text.split())
+    )
+    await client.http.aclose()
+    client.http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    async with client:
+        result = await client.request(
+            Prompt("p", "math", [{"role": "user", "content": "q"}], 100),
+            0,
+            temperature=1,
+            top_p=1,
+            min_p=0,
+            reasoning_effort="high",
+            seed=0,
+            max_tokens=100,
+            ignore_eos=False,
+            store_output=True,
+            store_stream=True,
+        )
+    assert result.reasoning_output == "Let me think."
+    assert result.final_output == "42"
+    assert result.reasoning_tokens == 3
+    assert result.final_tokens == 1
+    assert result.server_reasoning_tokens == 7
+    assert result.channel_token_count_source == "tokenizer_reencoding"
+    assert len(result.stream_events) == 3
+    assert result.stream_events[0]["event"]["choices"][0]["delta"][field] == "Let me think."
+
+
+async def test_conflicting_effort_is_refused_before_sending_request() -> None:
+    async with StreamingChatClient("http://unused", "m", None, timeout_seconds=1) as client:
+        with pytest.raises(ValueError, match="conflicts"):
+            await client.request(
+                Prompt(
+                    "p",
+                    "math",
+                    [{"role": "user", "content": "q"}],
+                    10,
+                    chat_template_kwargs={"reasoning_effort": "low"},
+                ),
+                0,
+                temperature=1,
+                top_p=1,
+                seed=0,
+                max_tokens=10,
+                ignore_eos=False,
+                store_output=True,
+                reasoning_effort="high",
+            )

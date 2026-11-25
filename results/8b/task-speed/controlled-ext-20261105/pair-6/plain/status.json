@@ -1,0 +1,61 @@
+{
+  "arm": "plain",
+  "deployment_id": "task-speed-pair-6-plain",
+  "env": {},
+  "finished": "2026-11-05T18:35:12+0100",
+  "gpus": [
+    1
+  ],
+  "port": 8102,
+  "ready_seconds": 125.2,
+  "serve_argv": [
+    "/opt/venv/bin/python3",
+    "-m",
+    "vllm.entrypoints.openai.api_server",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "--served-model-name",
+    "swiss-ai/Apertus-v1.5-8B-plain",
+    "--host",
+    "127.0.0.1",
+    "--chat-template-content-format",
+    "string",
+    "--tensor-parallel-size",
+    "1",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "apertus",
+    "--compilation-config.pass_config.fuse_allreduce_rms",
+    "false",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--max-model-len",
+    "32768",
+    "--max-num-batched-tokens",
+    "16384",
+    "--max-num-seqs",
+    "256",
+    "--dtype",
+    "bfloat16",
+    "--no-enable-log-requests",
+    "--chat-template",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/chat_template.jinja",
+    "--chat-template-content-format",
+    "string"
+  ],
+  "servers": [],
+  "started": "2026-11-05T18:31:45+0100",
+  "status": "ok",
+  "tests": {
+    "lang-ara": {
+      "exit_code": 0
+    },
+    "lang-roh": {
+      "exit_code": 0
+    },
+    "prewarm": {
+      "exit_code": 0
+    }
+  }
+}

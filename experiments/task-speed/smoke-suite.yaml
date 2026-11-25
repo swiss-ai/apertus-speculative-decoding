@@ -1,0 +1,33 @@
+# Pipeline smoke for run-controlled.py; not a measurement. Same seed and sources as suite.yaml.
+name: dspark-e10-task-speed-smoke
+seed: task-speed-20261104
+prompts_per_slice: 2
+concurrencies:
+- 1
+- 4
+min_requests: 2
+requests_per_slot: 1
+generation:
+  temperature: 0
+  top_p: 1
+  seed: 1
+chat_template_kwargs:
+  enable_thinking: false
+sources:
+  opb-heldout:
+    file: opb-heldout.jsonl
+    origin: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    sha256: 186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b
+  coverage:
+    file: coverage.jsonl
+    origin: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl
+    sha256: ddb921feb7481dbbeedb6996666ef366ce2f20241d3e0101f96efae90a997804
+slices:
+- label: opb
+  class: id
+  source: opb-heldout
+  workload: opb
+- label: lang-deu
+  class: ood-language
+  source: coverage
+  workload: lang-deu

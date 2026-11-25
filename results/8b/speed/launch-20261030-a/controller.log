@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-speed-code/experiments/serving-pilot/speed-id-ood.py", line 195, in <module>
+    main()
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-speed-code/experiments/serving-pilot/speed-id-ood.py", line 191, in main
+    asyncio.run(campaign(args))
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-speed-code/experiments/serving-pilot/speed-id-ood.py", line 111, in campaign
+    manifest = prepare_corpus(args.workloads, corpus)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-speed-code/experiments/serving-pilot/speed-id-ood.py", line 37, in prepare_corpus
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+                                         ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl'
+srun: error: nid007257: task 0: Exited with exit code 1
+srun: Terminating StepId=3791982.7

@@ -1,0 +1,164 @@
+{
+  "base_url": "http://172.28.41.76:8080",
+  "created_at": "2026-10-29T13:42:52.612582+00:00",
+  "demo_route": "direct worker; dev gateway remains unavailable",
+  "deployment_id": "apertus15-8b-dspark-e10-dspark-20261029T134252610114Z",
+  "fallback_model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain",
+  "gateway": "https://apidev.swissai.svc.cscs.ch",
+  "job_id": "3791982",
+  "log_dir": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/logs/3791982",
+  "model": "faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3",
+  "operator": "faruk_zahiragic",
+  "platform": "dev",
+  "preflight": {
+    "at": "2026-10-30T04:14:58.662775+00:00",
+    "chat_template_sha256": "7c5a2b5a7020a4b31b83e98f341b06d43474be0f340e27911776092d62de1eec",
+    "corpora": {
+      "probe": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/source/workloads/8b/probe-speculator-benchmarks.jsonl",
+        "sha256": "8a42d20bc7062ae82f1a8247c9f1425069b7573c2c138351023b04119a80b7dc"
+      },
+      "smoke": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/source/experiments/serving-pilot/smoke.jsonl",
+        "sha256": "3f3be8d1467704ff6585c2d6ce63d6e0651ab2f5e87073951fe72580f0115f7a"
+      },
+      "workloads": {
+        "path": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/source/workloads/8b/eagle-8b-test.jsonl",
+        "sha256": "70812a8c52f7f619ecc9e6afc9d7e31938b88a97caf324d4be7987c4459f830f"
+      }
+    },
+    "drafter": {
+      "checkpoint_sha256": "7a70125f58e3e57bbdaa30ea38a1cf8c01433a34507fe34696c10edd2d61ad4f",
+      "complete": true,
+      "config": {
+        "architectures": [
+          "DSparkDraftModel"
+        ],
+        "auto_map": {
+          "": "config.DSparkSpeculatorConfig"
+        },
+        "aux_hidden_state_layer_ids": [
+          1,
+          8,
+          15,
+          22,
+          29
+        ],
+        "block_size": 8,
+        "confidence_head_with_markov": true,
+        "draft_vocab_size": 131072,
+        "dtype": "bfloat16",
+        "enable_confidence_head": true,
+        "markov_head_type": "vanilla",
+        "markov_rank": 256,
+        "mask_token_id": 266440,
+        "sample_from_anchor": true,
+        "sliding_window_non_causal": false,
+        "speculators_config": {
+          "algorithm": "dspark",
+          "default_proposal_method": "greedy",
+          "proposal_methods": [
+            {
+              "accept_tolerance": 0.0,
+              "proposal_type": "greedy",
+              "speculative_tokens": 8,
+              "verifier_accept_k": 1
+            }
+          ],
+          "verifier": {
+            "architectures": [
+              "Apertus1p5ForConditionalGeneration"
+            ],
+            "name_or_path": "/capstor/scratch/cscs/zyu/spec/hf/hub/models--swiss-ai--Apertus-v1.5-8B/snapshots/a411d838600baf0e3635a3daf66fb7c55fc97bb6"
+          }
+        },
+        "speculators_model_type": "dspark",
+        "speculators_version": "0.9.0.dev36",
+        "target_hidden_size": null,
+        "tie_word_embeddings": false,
+        "transformer_layer_config": {
+          "attention_bias": false,
+          "attention_dropout": 0.0,
+          "bos_token_id": null,
+          "eos_token_id": null,
+          "head_dim": 128,
+          "hidden_act": "silu",
+          "hidden_size": 4096,
+          "initializer_range": 0.02,
+          "intermediate_size": 21504,
+          "layer_types": [
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention"
+          ],
+          "max_position_embeddings": 262144,
+          "max_window_layers": 28,
+          "model_type": "qwen3",
+          "num_attention_heads": 32,
+          "num_hidden_layers": 5,
+          "num_key_value_heads": 8,
+          "output_vocab_size": 131072,
+          "pad_token_id": null,
+          "rms_norm_eps": 1e-05,
+          "rope_parameters": {
+            "factor": 32.0,
+            "high_freq_factor": 4.0,
+            "low_freq_factor": 1.0,
+            "original_max_position_embeddings": 8192,
+            "rope_theta": 4000000,
+            "rope_type": "llama3"
+          },
+          "sliding_window": 2048,
+          "tie_word_embeddings": false,
+          "use_cache": true,
+          "use_sliding_window": true,
+          "vocab_size": 266752
+        },
+        "transformers_version": "5.14.0.dev0"
+      },
+      "files": {
+        "config.json": "7da65275c084673689a3afd1c36f4f131c9aa64f6959caf53ff95c1d733b3498",
+        "model.safetensors": "002d1167be0cd49f0e3ecb04bb0978552936f04567d0ab7c7f5f2180b03eb56a"
+      }
+    },
+    "image_sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5",
+    "node": "nid007257",
+    "node_list": "nid007257",
+    "opentela_sha256": "9f9cae8755dcf1be4fd5269de433fd7978aa5b9e816d6b8cb87a4892d33a50aa",
+    "opentela_version": "OpenTela version sai-v0.0.7 (commit: 00933f1) (built at: 2026-09-05T07:30:35Z)",
+    "packages": {
+      "safetensors": "0.8.0",
+      "torch": "2.11.0+cu130",
+      "transformers": "5.14.0.dev0",
+      "triton": "3.6.0",
+      "vllm": "0.23.1rc1.dev1029+ga601a9d99.precompiled"
+    },
+    "slurm_job_id": "3791982",
+    "status": "passed",
+    "target_files": {
+      "chat_template.jinja": "d23af2850029e9df88bb017e06e0c14a0462604588f1dbe4f519cdfac3e260e0",
+      "config.json": "391963f8b992c8445f68123306c8fb4aff1df62ddb5477989efd5cd2d491b686",
+      "generation_config.json": "9131f56adebe0d591ba8ddc2d18d18edaf762a1ebce6750b24319c86b1d7d6d5",
+      "model-apertus-model-00001-of-00004.safetensors": "60d31e2d767d389ba990972a21cd0524e18c1ed39b65fcc727285db613ea81dc",
+      "model-apertus-model-00002-of-00004.safetensors": "8a0ae0ba1c37a5571276f042085c8f782b6f02c68a888acf1ae35c33b8253bd9",
+      "model-apertus-model-00003-of-00004.safetensors": "17f4ce43b67eacee899b6f23664d6b457259b2fbc89f5561cd69831d34a412c0",
+      "model-apertus-model-00004-of-00004.safetensors": "40bf7c8ba48bfe6748b6cf796bfe65cea0115fe74d0aa38ad5fcdb6af2cf3e0d",
+      "model-vision_tokenizer-model.safetensors": "0f358b3c908d216172675cd57184ff6ce310705e385fedfd31c6f34e8197f9c8",
+      "model-wavtokenizer-model.safetensors": "b2632390709c3cb1319d1a0c1387d5364587b8a78a00efa2e93f15185ae82c02",
+      "model.safetensors.index.json": "d7277f7abd8d669b6711987f41c90acffadf3a36e8589d7b9172275220836818",
+      "special_tokens_map.json": "358c249e2fb29060c6b73157d428853b0c48710deffc8ee670ab1013880946c9",
+      "tokenizer.json": "1f2f6198ea5789e5a90ec7c5ec5cf0d5242cf5b8de007105537c91d777581582",
+      "tokenizer_config.json": "43cdc9d1f25c45ae88cd4ee6509ec63a8088a19af1dc7300d13b874a626de871"
+    },
+    "vllm_revision": "a601a9d998ddeb488f0c17e8512874b116aa7658"
+  },
+  "profile_sha256": "2192f57f9df793335048413e0d775ec63250e8b8e03a76ba715924aa7dbd0e52",
+  "run": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a",
+  "schema_version": 1,
+  "slurm": "3791982|RUNNING|nid007257|05:14:16|Unknown|07:53:53|billing=1,cpu=288,gres/gpu=4,mem=450G,node=1",
+  "startup_validation_report": "/iopsstor/scratch/cscs/faruk_zahiragic/apertus-pilot-code/results/8b/serving-pilot/dev-dspark-12h-20261029-a/checks/20261030T041928708055Z/report.json",
+  "submitted_at": "2026-10-29T13:42:58.838996+00:00",
+  "variant": "dspark"
+}

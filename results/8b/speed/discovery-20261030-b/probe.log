@@ -1,0 +1,72 @@
+2026-10-30T14:03:18.197+0100	[35mDEBUG[0m	cmd/start.go:28	Cleaning slate
+2026-10-30T14:03:18.264+0100	[34mINFO[0m	protocol/host.go:112	ephemeral-identity: using a fresh in-memory identity (not persisted)
+2026-10-30T14:03:18.277+0100	[33mWARN[0m	protocol/host.go:312	host is not *basichost.BasicHost; hole punching disabled
+2026-10-30T14:03:18.279+0100	[35mDEBUG[0m	common/filesystem.go:9	path does not exist: results/8b/speed/discovery-20261030-b/data/ocfcore/ocfcore.QmfYYz48aFR1Y3vSWQEy1iHtMqrBc1fmfhCxo7pL6Kyjjo.db, skipping
+2026-10-30T14:03:18.279+0100	[35mDEBUG[0m	server/server.go:46	Wallet account not set, skipping wallet init
+2026-10-30T14:03:18.279+0100	[35mDEBUG[0m	protocol/crdt.go:45	Creating CRDT store, dbpath: results/8b/speed/discovery-20261030-b/data/ocfcore/ocfcore.QmfYYz48aFR1Y3vSWQEy1iHtMqrBc1fmfhCxo7pL6Kyjjo.db
+2026-10-30T14:03:18.309+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:21.313+0100	[35mDEBUG[0m	go-ds-crdt/migrations.go:165	Migration v0 to v1 finished (0 elements affected)
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	go-ds-crdt/migrations.go:70	CRDT database format v1
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:342	crdt Datastore created. Number of heads: 0. Current max-height: 0. Dirty: false
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	protocol/host.go:419	No active P2P connections; attempting reconnect to bootstraps
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:598	store is marked clean. No need to repair
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	protocol/host.go:492	Failed to connect to bootstrap: failed to dial: failed to dial QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9: all dials failed
+  * [/ip4/148.187.108.177/tcp/43905] dial backoff	{"peer": "QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"}
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	protocol/host.go:506	Reconnect attempt failed; no bootstrap peers reachable
+2026-10-30T14:03:21.315+0100	[35mDEBUG[0m	protocol/host.go:422	Reconnect will retry after 6.594370881s	{"attempt": 2}
+2026-10-30T14:03:21.315+0100	[34mINFO[0m	protocol/node_table.go:599	Build attestation verified
+2026-10-30T14:03:21.518+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1420	processing generated block bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna
+2026-10-30T14:03:21.519+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna (priority: 1)
+2026-10-30T14:03:21.519+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:135	adding new DAG head: bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna (height: 1)
+2026-10-30T14:03:21.520+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna]
+2026-10-30T14:03:21.521+0100	[34mINFO[0m	server/server.go:149	Load balancing policy: random
+2026-10-30T14:03:21.521+0100	[35mDEBUG[0m	server/tracer.go:24	AXIOM_DATASET not set, tracing disabled
+2026-10-30T14:03:21.521+0100	[34mINFO[0m	server/server.go:357	Server started: id=QmfYYz48aFR1Y3vSWQEy1iHtMqrBc1fmfhCxo7pL6Kyjjo bootstrap_connected=false
+[GIN] 2026/10/30 - 14:03:26 | 200 | 24.479µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:03:27.910+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:27.914+0100	[35mDEBUG[0m	protocol/host.go:492	Failed to connect to bootstrap: failed to dial: failed to dial QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9: all dials failed
+  * [/ip4/148.187.108.177/tcp/43905] failed to negotiate security protocol: peer id mismatch: expected QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9, but remote key matches QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z	{"peer": "QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"}
+2026-10-30T14:03:27.914+0100	[35mDEBUG[0m	protocol/host.go:506	Reconnect attempt failed; no bootstrap peers reachable
+2026-10-30T14:03:27.914+0100	[35mDEBUG[0m	protocol/host.go:422	Reconnect will retry after 10.135291985s	{"attempt": 3}
+2026-10-30T14:03:31.170+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna]
+[GIN] 2026/10/30 - 14:03:34 | 200 |  40.03µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:03:36.315+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:36.315+0100	[33mWARN[0m	protocol/connectivity.go:96	Connectivity incomplete: bootstrap_connected=false relay_reserved=false; retrying
+2026-10-30T14:03:36.315+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:36.319+0100	[35mDEBUG[0m	protocol/host.go:492	Failed to connect to bootstrap: failed to dial: failed to dial QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9: all dials failed
+  * [/ip4/148.187.108.177/tcp/43905] failed to negotiate security protocol: peer id mismatch: expected QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9, but remote key matches QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z	{"peer": "QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"}
+2026-10-30T14:03:36.319+0100	[35mDEBUG[0m	protocol/host.go:506	Reconnect attempt failed; no bootstrap peers reachable
+2026-10-30T14:03:38.050+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:38.050+0100	[35mDEBUG[0m	protocol/host.go:492	Failed to connect to bootstrap: failed to dial: failed to dial QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9: all dials failed
+  * [/ip4/148.187.108.177/tcp/43905] dial backoff	{"peer": "QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"}
+2026-10-30T14:03:38.050+0100	[35mDEBUG[0m	protocol/host.go:506	Reconnect attempt failed; no bootstrap peers reachable
+2026-10-30T14:03:38.050+0100	[35mDEBUG[0m	protocol/host.go:422	Reconnect will retry after 23.455501992s	{"attempt": 4}
+2026-10-30T14:03:40.046+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna]
+2026-10-30T14:03:41.982+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:41.982+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:41.982+0100	[35mDEBUG[0m	protocol/host.go:492	Failed to connect to bootstrap: failed to dial: failed to dial QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9: all dials failed
+  * [/ip4/148.187.108.177/tcp/43905] dial backoff	{"peer": "QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"}
+2026-10-30T14:03:41.982+0100	[35mDEBUG[0m	protocol/host.go:506	Reconnect attempt failed; no bootstrap peers reachable
+[GIN] 2026/10/30 - 14:03:42 | 200 | 21.215µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:03:50.213+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna]
+[GIN] 2026/10/30 - 14:03:50 | 200 | 23.103µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:03:51.521+0100	[35mDEBUG[0m	protocol/clock.go:90	Verification Summary: 0 alive peers, 0 unreachable peers
+2026-10-30T14:03:53.983+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:53.983+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:03:53.987+0100	[35mDEBUG[0m	protocol/host.go:492	Failed to connect to bootstrap: failed to dial: failed to dial QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9: all dials failed
+  * [/ip4/148.187.108.177/tcp/43905] failed to negotiate security protocol: peer id mismatch: expected QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9, but remote key matches QmTnRyTRyUs2UCpDJHAgSz9CVeYQL1K3KiW1MdTjKEN55z	{"peer": "QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"}
+2026-10-30T14:03:53.987+0100	[35mDEBUG[0m	protocol/host.go:506	Reconnect attempt failed; no bootstrap peers reachable
+[GIN] 2026/10/30 - 14:03:58 | 200 | 21.376µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:04:00.079+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna]
+2026-10-30T14:04:01.506+0100	[35mDEBUG[0m	protocol/bootstrap.go:45	Bootstrap peers: [/ip4/148.187.108.177/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9]
+2026-10-30T14:04:01.506+0100	[35mDEBUG[0m	protocol/host.go:492	Failed to connect to bootstrap: failed to dial: failed to dial QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9: all dials failed
+  * [/ip4/148.187.108.177/tcp/43905] dial backoff	{"peer": "QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZC1f2yAGLoeBMn9"}
+2026-10-30T14:04:01.506+0100	[35mDEBUG[0m	protocol/host.go:506	Reconnect attempt failed; no bootstrap peers reachable
+2026-10-30T14:04:01.506+0100	[35mDEBUG[0m	protocol/host.go:422	Reconnect will retry after 40.081916583s	{"attempt": 5}
+[GIN] 2026/10/30 - 14:04:06 | 200 | 20.031µs |       127.0.0.1 | GET      "/v1/dnt/table"
+2026-10-30T14:04:06.219+0100	[34mINFO[0m	protocol/node_table.go:336	Leaving network
+2026-10-30T14:04:06.220+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1420	processing generated block bafybeidpepb5f27qzspfo7glnt557znih7qul64da7mue6w3tmvmjuylai
+2026-10-30T14:04:06.222+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:943	merged delta from bafybeidpepb5f27qzspfo7glnt557znih7qul64da7mue6w3tmvmjuylai (priority: 2)
+2026-10-30T14:04:06.222+0100	[35mDEBUG[0m	go-ds-crdt/heads.go:91	replacing DAG head: bafybeia46443dkzbjbjy6ctfgpjlty34wx2ww5hlh2kmslm47hcuxlvvna -> bafybeidpepb5f27qzspfo7glnt557znih7qul64da7mue6w3tmvmjuylai (new height: 2)
+2026-10-30T14:04:06.222+0100	[35mDEBUG[0m	go-ds-crdt/crdt.go:1455	broadcasting [bafybeidpepb5f27qzspfo7glnt557znih7qul64da7mue6w3tmvmjuylai]

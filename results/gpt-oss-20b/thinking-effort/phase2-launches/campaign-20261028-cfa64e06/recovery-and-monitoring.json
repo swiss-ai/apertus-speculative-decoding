@@ -1,0 +1,27 @@
+{
+  "recorded_at": "2026-10-28T12:22:47.284513+00:00",
+  "supersedes_qualification": {
+    "job_id": "3782362",
+    "state": "FAILED",
+    "cause": "Torch FlexAttention Inductor NoValidChoicesError during synthetic backward qualification; native conversion preserved all 123 tensors",
+    "training_started": false
+  },
+  "fix": "upstream supported SDPA attention backend for qualification and all four fine-tunes; architecture, objective and token budgets unchanged",
+  "source_revision": "cfa64e06fee0748942a7aeabbd0877d168b62884",
+  "qualification_job": "3782492",
+  "qualification_attempt": "prereq-20261028-d",
+  "state_at_submission": "PENDING",
+  "controller_pid": 98557,
+  "monitor": {
+    "schedule": "every five minutes",
+    "script": "tools/monitor-effort-jobs.py",
+    "state_directory": "/home/agent/.local/state/apertus-thinking-effort-monitor",
+    "scope": "latest GPT-OSS DFlash effort Phase 2 campaign",
+    "behavior": "Detect terminal Slurm failures or stopped/failed controller; queue and start repairs in this same conversation without waiting for user. Preserve failed attempts and completed raw cells. Stop monitoring after final collection.",
+    "source_revision": "00a426da970ee3f8b42267addba7883e8e01ae46",
+    "installation_verified": true,
+    "native_queue_delivery_verified": true,
+    "remote_snapshot_verified": true
+  },
+  "validation": "13 training/controller unit tests, 14 monitor tests, 2 upstream integration tests pass; SDPA reference loss and gradient equivalence checked; Ruff passes"
+}

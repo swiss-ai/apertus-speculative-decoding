@@ -1,0 +1,88 @@
+{
+  "deployment": {
+    "account": "infra01",
+    "active_gpus": 1,
+    "allocated_gpus": 4,
+    "fallback_model_id": "faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-plain",
+    "gateway": {
+      "dev": "https://apidev.swissai.svc.cscs.ch",
+      "research": "https://api.swissai.svc.cscs.ch"
+    },
+    "model_id": "faruk_zahiragic/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3",
+    "partition": "debug",
+    "platform": "dev",
+    "time": "01:30:00"
+  },
+  "drafter": {
+    "k": 3,
+    "path": "/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final"
+  },
+  "engine": {
+    "dtype": "bfloat16",
+    "enable_prefix_caching": false,
+    "enable_thinking": false,
+    "gpu_memory_utilization": 0.8,
+    "max_model_len": 32768,
+    "max_num_batched_tokens": 16384,
+    "max_num_seqs": 256,
+    "target_tensor_parallel_size": 1
+  },
+  "name": "apertus15-8b-dspark-e10",
+  "owner": "faruk_zahiragic",
+  "runtime": {
+    "environment": "/users/faruk_zahiragic/model-launch-apertus/src/swiss_ai_model_launch/assets/envs/vllm_apertus_1.5_release.toml",
+    "image": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-arm64.sqsh",
+    "image_sha256": "f5fc017ff794fa8d80b73dd9a788028a1872dbfc2e21c0de043fb7738c11a0b5",
+    "min_opentela_version": "0.0.6",
+    "model_launch_root": "/users/faruk_zahiragic/model-launch-apertus",
+    "opentela_binary": "/capstor/store/cscs/swissai/infra01/opentela-share/prod/otela-arm64-sai-v0.0.7-00933f1",
+    "patches": [
+      "serving/patches/vllm-apertus-image-token.patch",
+      "serving/patches/vllm-apertus-eagle3-aux-layers.patch",
+      "serving/patches/vllm-apertus-dspark-mrv2-inner.patch",
+      "serving/patches/vllm-apertus-dspark-anchor-layout.patch"
+    ],
+    "sml_bin": "/users/faruk_zahiragic/venvs/sml-apertus/bin/sml",
+    "vllm_revision": "a601a9d998ddeb488f0c17e8512874b116aa7658"
+  },
+  "schema_version": 1,
+  "target": {
+    "contract": "targets/8b/contract.json",
+    "model": "swiss-ai/Apertus-v1.5-8B",
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B",
+    "revision": "a411d838600baf0e3635a3daf66fb7c55fc97bb6"
+  },
+  "validation": {
+    "concurrencies": [
+      1,
+      8,
+      32
+    ],
+    "correctness_max_tokens": 128,
+    "max_p95_regression": 0.1,
+    "max_tokens": 384,
+    "open_loop": {
+      "duration_seconds": 180,
+      "image": "/capstor/store/cscs/swissai/infra01/container-images/ci/k6.sqsh",
+      "max_tokens": 128,
+      "max_vus": 32,
+      "preallocated_vus": 8,
+      "rate": 2
+    },
+    "probe": "workloads/8b/probe-speculator-benchmarks.jsonl",
+    "smoke": "experiments/serving-pilot/smoke.jsonl",
+    "soak_seconds": 7200,
+    "temperature": 0.7,
+    "tolerance": {
+      "common_prefix_fraction_margin": 0.05,
+      "completion_token_difference_margin": 2,
+      "normalized_edit_distance_margin": 0.05
+    },
+    "top_p": 0.8,
+    "workload_names": [
+      "chat",
+      "summarization"
+    ],
+    "workloads": "workloads/8b/eagle-8b-test.jsonl"
+  }
+}

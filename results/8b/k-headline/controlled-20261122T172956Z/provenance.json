@@ -1,0 +1,39 @@
+{
+  "branch": "experiment/dspark-e10-k-headline",
+  "revision": "288126c40e9a505ebaaebca1331b9c7b37084ae8",
+  "argv": [
+    "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/code/experiments/task-speed/run-controlled.py",
+    "--suite",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/code/experiments/task-speed/suite.yaml",
+    "--pilot",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/pilot-dev-dspark-12h-20261029-a-restored",
+    "--inputs",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/code/workloads/8b/task-speed-input",
+    "--ks",
+    "3,5,7",
+    "--gpus",
+    "0,1,2,3",
+    "--first-pair",
+    "1",
+    "--output",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/code/results/8b/k-headline/controlled-20261122T172956Z"
+  ],
+  "slurm_job_id": "4004240",
+  "node": "nid006764",
+  "gpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "gpu_inventory": "index, uuid, name, memory.total [MiB], clocks.max.sm [MHz], power.limit [W]\n0, GPU-d09591dd-7ef8-3fcc-2fd5-c8f66302a30a, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n1, GPU-84fc57d9-403a-1e91-829c-c70555ae8a24, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n2, GPU-61924909-29ad-5444-ec9c-92601decb7b5, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n3, GPU-7985e9bb-a468-65b3-21c6-09d55fbf16a9, NVIDIA GH200 120GB, 97871 MiB, 1980 MHz, 900.00 W\n",
+  "pilot": "/iopsstor/scratch/cscs/faruk_zahiragic/k-headline/pilot-dev-dspark-12h-20261029-a-restored",
+  "first_pair": 1,
+  "select": null,
+  "ks": [
+    3,
+    5,
+    7
+  ],
+  "design": "one block (plain + one DSpark arm per k) per GPU, run concurrently; arm order rotated by the GPU slot (Latin square)"
+}
