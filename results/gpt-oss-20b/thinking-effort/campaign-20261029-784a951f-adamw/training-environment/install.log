@@ -1,0 +1,126 @@
+Collecting datasets==5.0.1
+  Using cached datasets-5.0.1-py3-none-any.whl.metadata (23 kB)
+Requirement already satisfied: loguru==0.7.3 in /opt/conda/lib/python3.12/site-packages (0.7.3)
+Collecting pydantic-settings==2.16.1
+  Using cached pydantic_settings-2.16.1-py3-none-any.whl.metadata (4.0 kB)
+Requirement already satisfied: rich==15.0.0 in /opt/conda/lib/python3.12/site-packages (15.0.0)
+Collecting typer==0.27.3
+  Using cached typer-0.27.3-py3-none-any.whl.metadata (16 kB)
+Requirement already satisfied: filelock in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (4.0.5)
+Requirement already satisfied: numpy>=1.17 in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (2.3.5)
+Collecting pyarrow>=21.0.0 (from datasets==5.0.1)
+  Using cached pyarrow-26.0.0-cp312-cp312-manylinux_2_28_aarch64.whl.metadata (3.0 kB)
+Requirement already satisfied: dill<0.4.2,>=0.3.0 in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (0.4.1)
+Collecting pandas (from datasets==5.0.1)
+  Using cached pandas-3.1.0-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl.metadata (18 kB)
+Requirement already satisfied: requests>=2.32.2 in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (2.34.2)
+Requirement already satisfied: httpx<1.0.0 in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (0.28.1)
+Requirement already satisfied: tqdm>=4.66.3 in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (4.70.0)
+Collecting xxhash (from datasets==5.0.1)
+  Using cached xxhash-4.0.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (17 kB)
+Collecting multiprocess<0.70.20 (from datasets==5.0.1)
+  Using cached multiprocess-0.70.19-py312-none-any.whl.metadata (7.5 kB)
+Collecting fsspec<=2026.6.0,>=2023.1.0 (from fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1)
+  Using cached fsspec-2026.6.0-py3-none-any.whl.metadata (10 kB)
+Requirement already satisfied: huggingface-hub<2.0,>=0.25.0 in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (1.33.0)
+Requirement already satisfied: packaging in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (26.3)
+Requirement already satisfied: pyyaml>=5.1 in /opt/conda/lib/python3.12/site-packages (from datasets==5.0.1) (6.0.3)
+Requirement already satisfied: pydantic>=2.7.0 in /opt/conda/lib/python3.12/site-packages (from pydantic-settings==2.16.1) (2.13.5)
+Requirement already satisfied: python-dotenv>=1.2.2 in /opt/conda/lib/python3.12/site-packages (from pydantic-settings==2.16.1) (1.2.3)
+Requirement already satisfied: typing-extensions>=4.0.0 in /opt/conda/lib/python3.12/site-packages (from pydantic-settings==2.16.1) (4.16.0)
+Requirement already satisfied: typing-inspection>=0.4.0 in /opt/conda/lib/python3.12/site-packages (from pydantic-settings==2.16.1) (0.4.4)
+Requirement already satisfied: markdown-it-py>=2.2.0 in /opt/conda/lib/python3.12/site-packages (from rich==15.0.0) (4.2.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /opt/conda/lib/python3.12/site-packages (from rich==15.0.0) (2.21.0)
+Requirement already satisfied: shellingham>=1.3.0 in /opt/conda/lib/python3.12/site-packages (from typer==0.27.3) (1.5.4)
+Requirement already satisfied: annotated-doc>=0.0.2 in /opt/conda/lib/python3.12/site-packages (from typer==0.27.3) (0.0.5)
+Requirement already satisfied: aiohttp!=4.0.0a0,!=4.0.0a1 in /opt/conda/lib/python3.12/site-packages (from fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (3.14.3)
+Requirement already satisfied: anyio in /opt/conda/lib/python3.12/site-packages (from httpx<1.0.0->datasets==5.0.1) (4.15.1)
+Requirement already satisfied: certifi in /opt/conda/lib/python3.12/site-packages (from httpx<1.0.0->datasets==5.0.1) (2026.7.22)
+Requirement already satisfied: httpcore==1.* in /opt/conda/lib/python3.12/site-packages (from httpx<1.0.0->datasets==5.0.1) (1.0.9)
+Requirement already satisfied: idna in /opt/conda/lib/python3.12/site-packages (from httpx<1.0.0->datasets==5.0.1) (3.19)
+Requirement already satisfied: h11>=0.16 in /opt/conda/lib/python3.12/site-packages (from httpcore==1.*->httpx<1.0.0->datasets==5.0.1) (0.16.0)
+Requirement already satisfied: click<9.0.0,>=8.4.2 in /opt/conda/lib/python3.12/site-packages (from huggingface-hub<2.0,>=0.25.0->datasets==5.0.1) (8.5.0)
+Requirement already satisfied: hf-xet<2.0.0,>=1.6.0 in /opt/conda/lib/python3.12/site-packages (from huggingface-hub<2.0,>=0.25.0->datasets==5.0.1) (1.6.0)
+Requirement already satisfied: mdurl~=0.1 in /opt/conda/lib/python3.12/site-packages (from markdown-it-py>=2.2.0->rich==15.0.0) (0.1.2)
+Requirement already satisfied: annotated-types>=0.6.0 in /opt/conda/lib/python3.12/site-packages (from pydantic>=2.7.0->pydantic-settings==2.16.1) (0.8.0)
+Requirement already satisfied: pydantic-core==2.46.5 in /opt/conda/lib/python3.12/site-packages (from pydantic>=2.7.0->pydantic-settings==2.16.1) (2.46.5)
+Requirement already satisfied: charset_normalizer<4,>=2 in /opt/conda/lib/python3.12/site-packages (from requests>=2.32.2->datasets==5.0.1) (3.5.1)
+Requirement already satisfied: urllib3<3,>=1.26 in /opt/conda/lib/python3.12/site-packages (from requests>=2.32.2->datasets==5.0.1) (2.7.0)
+Collecting python-dateutil>=2.9.0 (from pandas->datasets==5.0.1)
+  Using cached python_dateutil-3.0.0-py2.py3-none-any.whl.metadata (8.2 kB)
+Requirement already satisfied: aiohappyeyeballs>=2.5.0 in /opt/conda/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (2.7.1)
+Requirement already satisfied: aiosignal>=1.4.0 in /opt/conda/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (1.4.0)
+Requirement already satisfied: attrs>=17.3.0 in /opt/conda/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (26.1.0)
+Requirement already satisfied: frozenlist>=1.1.1 in /opt/conda/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (1.8.0)
+Requirement already satisfied: multidict<7.0,>=4.5 in /opt/conda/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (6.9.1)
+Requirement already satisfied: propcache>=0.2.0 in /opt/conda/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (0.5.4)
+Requirement already satisfied: yarl<2.0,>=1.17.0 in /opt/conda/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets==5.0.1) (1.25.1)
+Requirement already satisfied: six>=1.6 in /opt/conda/lib/python3.12/site-packages (from python-dateutil>=2.9.0->pandas->datasets==5.0.1) (1.17.0)
+Collecting tzdata (from python-dateutil>=2.9.0->pandas->datasets==5.0.1)
+  Using cached tzdata-2026.6-py2.py3-none-any.whl.metadata (1.4 kB)
+Using cached datasets-5.0.1-py3-none-any.whl (559 kB)
+Using cached pydantic_settings-2.16.1-py3-none-any.whl (80 kB)
+Using cached typer-0.27.3-py3-none-any.whl (123 kB)
+Using cached fsspec-2026.6.0-py3-none-any.whl (203 kB)
+Using cached multiprocess-0.70.19-py312-none-any.whl (150 kB)
+Using cached pyarrow-26.0.0-cp312-cp312-manylinux_2_28_aarch64.whl (50.9 MB)
+Using cached pandas-3.1.0-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl (11.5 MB)
+Using cached xxhash-4.0.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (276 kB)
+Using cached python_dateutil-3.0.0-py2.py3-none-any.whl (94 kB)
+Using cached tzdata-2026.6-py2.py3-none-any.whl (348 kB)
+Installing collected packages: xxhash, tzdata, pyarrow, multiprocess, fsspec, python-dateutil, typer, pydantic-settings, pandas, datasets
+  Attempting uninstall: fsspec
+    Found existing installation: fsspec 2026.9.0
+    Not uninstalling fsspec at /opt/conda/lib/python3.12/site-packages, outside environment /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment
+    Can't uninstall 'fsspec'. No files were found to uninstall.
+  Attempting uninstall: typer
+    Found existing installation: typer 0.27.2
+    Not uninstalling typer at /opt/conda/lib/python3.12/site-packages, outside environment /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment
+    Can't uninstall 'typer'. No files were found to uninstall.
+  Attempting uninstall: pydantic-settings
+    Found existing installation: pydantic-settings 2.15.0
+    Not uninstalling pydantic-settings at /opt/conda/lib/python3.12/site-packages, outside environment /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment
+    Can't uninstall 'pydantic-settings'. No files were found to uninstall.
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+speculators 0.8.0.dev0 requires transformers<5.17.0,>=5.0.0, but you have transformers 5.17.0 which is incompatible.
+Successfully installed datasets-5.0.1 fsspec-2026.6.0 multiprocess-0.70.19 pandas-3.1.0 pyarrow-26.0.0 pydantic-settings-2.16.1 python-dateutil-3.0.0 typer-0.27.3 tzdata-2026.6 xxhash-4.0.2
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.2
+[notice] To update, run: python -m pip install --upgrade pip
+Processing /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/hs_connectors
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Processing /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: hs-connectors, speculators
+  Building wheel for hs-connectors (pyproject.toml): started
+  Building wheel for hs-connectors (pyproject.toml): finished with status 'done'
+  Created wheel for hs-connectors: filename=hs_connectors-0.7.1a0-py3-none-any.whl size=22364 sha256=621734fa4ae081e7c2d545090be8e72a241df54a3aff09ebc9cb59e2e6f1e7cb
+  Stored in directory: /tmp/pip-ephem-wheel-cache-imev2sbg/wheels/61/49/53/12c2e60ae79b4f6098b7a59a2dfc80ea98c554198651009435
+  Building wheel for speculators (pyproject.toml): started
+  Building wheel for speculators (pyproject.toml): finished with status 'done'
+  Created wheel for speculators: filename=speculators-0.8.0.dev0-py3-none-any.whl size=253075 sha256=a73f844f97173c72cf0ca7277290c5d31c9d1a1c61cad7ebc7cb820d2699c04c
+  Stored in directory: /users/faruk_zahiragic/.cache/pip/wheels/91/d1/ee/e5148470c9d09fce4da641ac5c8e3e0d5b50c58bc183abeb05
+Successfully built hs-connectors speculators
+Installing collected packages: speculators, hs-connectors
+  Attempting uninstall: speculators
+    Found existing installation: speculators 0.8.0.dev0
+    Not uninstalling speculators at /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/src, outside environment /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment
+    Can't uninstall 'speculators'. No files were found to uninstall.
+  Attempting uninstall: hs-connectors
+    Found existing installation: hs-connectors 0.7.1a0
+    Not uninstalling hs-connectors at /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/hs_connectors/src, outside environment /iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment
+    Can't uninstall 'hs-connectors'. No files were found to uninstall.
+Successfully installed hs-connectors-0.7.1a0 speculators-0.8.0.dev0
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.2
+[notice] To update, run: python -m pip install --upgrade pip

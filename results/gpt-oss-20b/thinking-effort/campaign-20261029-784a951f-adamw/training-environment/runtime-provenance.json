@@ -1,0 +1,32 @@
+{
+  "container_packages": {
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "vllm": "0.30.0"
+  },
+  "commands": [
+    [
+      "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment/bin/python",
+      "-m",
+      "pip",
+      "install",
+      "--constraint",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment/container-constraints.txt",
+      "datasets==5.0.1",
+      "loguru==0.7.3",
+      "pydantic-settings==2.16.1",
+      "rich==15.0.0",
+      "typer==0.27.3"
+    ],
+    [
+      "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment/bin/python",
+      "-m",
+      "pip",
+      "install",
+      "--no-deps",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb/hs_connectors",
+      "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb"
+    ]
+  ],
+  "python": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-cfa64e06/training-environment/bin/python"
+}

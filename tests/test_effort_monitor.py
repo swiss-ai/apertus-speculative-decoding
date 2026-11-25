@@ -1,5 +1,9 @@
 import importlib.util
+import json
+import subprocess
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -74,3 +78,66 @@ def test_idle_thread_starts_queued_repair():
         "thread/queue/start",
         {"threadId": "thread", "queuedSubmissionId": "queued"},
     )
+
+
+def monitor_args(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["monitor", "--state-dir", str(tmp_path), "--thread", "thread"],
+    )
+    monkeypatch.setattr(monitor, "notify", lambda *args: {"status": "test"})
+
+
+def test_unreadable_certificate_blocks_without_attempting_ssh(monkeypatch, tmp_path):
+    monitor_args(monkeypatch, tmp_path)
+    certificate = {"error": "PermissionError: public certificate is unreadable"}
+    monkeypatch.setattr(monitor, "certificate_status", lambda: certificate)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("SSH must not run with unreadable credentials")
+
+    monkeypatch.setattr(monitor.subprocess, "run", forbidden)
+    monitor.main()
+    state = json.loads((tmp_path / "monitor-state.json").read_text())
+    assert state["access_blocked"]
+    assert state["access_blocked_certificate"] == certificate
+    assert json.loads((tmp_path / "latest.json").read_text())["incident"]["kind"] == (
+        "authentication_required"
+    )
+    monitor.main()
+
+
+@pytest.mark.parametrize("changed", [False, True])
+def test_only_changed_readable_certificate_resumes_access(monkeypatch, tmp_path, changed):
+    monitor_args(monkeypatch, tmp_path)
+    path = tmp_path / "monitor-state.json"
+    path.write_text(
+        json.dumps({"access_blocked": True, "access_blocked_certificate": {"sha256": "old"}})
+    )
+    monkeypatch.setattr(
+        monitor, "certificate_status", lambda: {"sha256": "new" if changed else "old"}
+    )
+    calls = []
+
+    def run(*args, **kwargs):
+        calls.append(args)
+        return SimpleNamespace(stdout=json.dumps(snapshot()))
+
+    monkeypatch.setattr(monitor.subprocess, "run", run)
+    monitor.main()
+    assert len(calls) == int(changed)
+    assert json.loads(path.read_text())["access_blocked"] is not changed
+
+
+def test_connection_error_preserves_actual_stderr(monkeypatch, tmp_path):
+    monitor_args(monkeypatch, tmp_path)
+    monkeypatch.setattr(monitor, "certificate_status", lambda: {"sha256": "public"})
+
+    def fail(*args, **kwargs):
+        raise subprocess.CalledProcessError(255, ["ssh"], stderr="jump-host connection closed")
+
+    monkeypatch.setattr(monitor.subprocess, "run", fail)
+    monitor.main()
+    result = json.loads((tmp_path / "latest.json").read_text())
+    assert result["snapshot"]["connection_error"] == "jump-host connection closed"

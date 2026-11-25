@@ -1,0 +1,37 @@
+{
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--account=infra01",
+    "--partition=debug",
+    "--time=01:30:00",
+    "--nodes=1",
+    "--ntasks=1",
+    "--exclusive",
+    "--cpus-per-task=32",
+    "--job-name=effort-phase2-data",
+    "--output=/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw/submissions/data/job.out",
+    "--error=/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw/submissions/data/job.err",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw/submissions/data/job.sh"
+  ],
+  "container_argv": [
+    "python3",
+    "-m",
+    "apertus_bench.effort_training",
+    "data",
+    "--campaign",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw",
+    "--config",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw/phase2.yaml",
+    "--upstream",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/upstream/speculators-e3041ddb",
+    "--phase1-reference",
+    "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da",
+    "--data-reference",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50"
+  ],
+  "source": {
+    "revision": "784a951f3f04eba697b45a7d2977358e020d1e7f",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

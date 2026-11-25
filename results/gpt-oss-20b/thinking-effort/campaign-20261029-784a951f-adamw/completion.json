@@ -1,0 +1,100 @@
+{
+  "recorded_at": "2026-10-30T09:04:36.450023+00:00",
+  "status": "complete_verified",
+  "campaign": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261029-784a951f-adamw",
+  "execution_source": "784a951f3f04eba697b45a7d2977358e020d1e7f",
+  "final_report": "reports/phase2-20261030T021802940285Z/comparison.json",
+  "finished_at": "2026-10-30T02:18:10.143326+00:00",
+  "decision": "retain_shared",
+  "verification": {
+    "completed_heads": 4,
+    "completed_blocks": 3,
+    "valid_cells": 45,
+    "successful_requests": 2880,
+    "truncated_requests": 0,
+    "checkpoint_hashes_matched": true,
+    "feature_preflight_matches": true,
+    "training_budgets_exact": true,
+    "development_epochs_complete": true,
+    "explicit_adamw_optimizer_verified": true,
+    "collected_files_sha256_verified": 462,
+    "all_resolved_configs_and_commands_verified": true,
+    "development_checkpoint_selection_verified": true,
+    "all_cell_and_cross_block_identities_match": true,
+    "evaluation_prompt_order_and_corpus_match": true,
+    "report_json_matches_markdown": true,
+    "head_selection_rule_recomputed": true,
+    "training_development_evaluation_ids_disjoint": true
+  },
+  "specialist_vs_mixed": {
+    "low": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.10240850854816241,
+        -0.08175305136178967,
+        -0.0153950089823216
+      ],
+      "median_latency_reduction_vs_mixed": -0.0153950089823216,
+      "lower_decode_cost_by_block": [
+        false,
+        true,
+        false
+      ],
+      "meets_frozen_criterion": false
+    },
+    "medium": {
+      "latency_reduction_vs_mixed_by_block": [
+        -0.08296130912180577,
+        0.05352795334399807,
+        0.24178969545531648
+      ],
+      "median_latency_reduction_vs_mixed": 0.05352795334399807,
+      "lower_decode_cost_by_block": [
+        true,
+        false,
+        false
+      ],
+      "meets_frozen_criterion": false
+    },
+    "high": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.16758935376518613,
+        -0.07636410612026712,
+        -0.0010716478082666292
+      ],
+      "median_latency_reduction_vs_mixed": -0.0010716478082666292,
+      "lower_decode_cost_by_block": [
+        true,
+        true,
+        true
+      ],
+      "meets_frozen_criterion": false
+    }
+  },
+  "resource_costs": {
+    "bf16_draft_weight_bytes_by_head": {
+      "high": 1569534208,
+      "low": 1569534208,
+      "medium": 1569534208,
+      "mixed": 1569534208
+    },
+    "specialists_vs_mixed_training_tokens_ratio": 3.0,
+    "stored_checkpoint_bytes_by_head": {
+      "high": 1569566723,
+      "low": 1569566723,
+      "medium": 1569566723,
+      "mixed": 1569566723
+    },
+    "supervised_tokens_by_head": {
+      "high": 1572864,
+      "low": 1572864,
+      "medium": 1572864,
+      "mixed": 1572864
+    },
+    "weight_memory_basis": "serialized tensor payload at original dtype; projected weight-only residence, excludes KV cache, buffers, activations; deployments load one head at a time"
+  },
+  "raw_artifact_index": "collection-manifest.json",
+  "monitor_stopped": true,
+  "prior_muon_attempt": "Preserved separately as off-protocol; this report uses the corrected AdamW heads.",
+  "interpretation": "No effort-specific head met the predeclared 10% end-to-end latency reduction in all three blocks with lower decode cost. Retain the shared mixed-effort head for the tested model, corpus, budget and serving configuration.",
+  "scope_limit": "This experiment does not show that effort specialization can never help; no adapters, routing, offloading or larger training budgets were tested."
+}

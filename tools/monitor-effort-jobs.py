@@ -19,6 +19,7 @@ from pathlib import Path
 MARKER = "apertus-thinking-effort-monitor"
 PREFIX = "[Effort job monitor]"
 FAILURES = {"FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED"}
+CERTIFICATE = Path.home() / ".ssh/cscs-key-cert.pub"
 REMOTE_PROBE = r"""
 from pathlib import Path
 import json,os,subprocess
@@ -125,7 +126,8 @@ def notify(codex, thread, state_dir, finding):
                 return {"status": "already_queued", "id": item["id"]}
         prompt = (
             f"{PREFIX} Periodic check found {finding['kind']}. Read {state_dir / 'latest.json'} "
-            "and tools/monitor-effort-jobs.py. Continue the GPT-OSS DFlash Phase 2 experiment. "
+            f"and {Path(__file__).resolve()}. Continue the GPT-OSS DFlash Phase 2 experiment. "
+            f"Use the existing task checkout {Path(__file__).resolve().parents[1]}. "
             "The user authorized immediate diagnosis, fixes and reruns without confirmation. "
             "Inspect the latest campaign and logs; fix and restart failed jobs/controllers now. "
             "Keep the experiment/budgets, completed raw cells and failed-attempt provenance; "
@@ -164,6 +166,14 @@ def remove_schedule():
         subprocess.run(["crontab", "-"], input="\n".join(remaining) + "\n", text=True, check=True)
 
 
+def certificate_status():
+    """Check only local public-certificate access; never retry SSH to test credentials."""
+    try:
+        return {"sha256": hashlib.sha256(CERTIFICATE.read_bytes()).hexdigest()}
+    except OSError as error:
+        return {"error": f"{type(error).__name__}: {error}"}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--state-dir", type=Path, required=True)
@@ -180,10 +190,18 @@ def main():
             return
         state_path = args.state_dir / "monitor-state.json"
         state = json.loads(state_path.read_text()) if state_path.exists() else {}
-        if state.get("disabled") or state.get("access_blocked"):
+        if state.get("disabled"):
             return
+        certificate = certificate_status()
+        if state.get("access_blocked"):
+            if "error" in certificate or certificate == state.get("access_blocked_certificate"):
+                return
+            state["access_blocked"] = False
+            state["access_restored_at"] = datetime.now(UTC).isoformat()
         observed_at = datetime.now(UTC).isoformat()
         try:
+            if "error" in certificate:
+                raise PermissionError(certificate["error"])
             response = subprocess.run(
                 [args.clariden, "exec", "--", "python3 - <<'PY'\n" + REMOTE_PROBE + "\nPY"],
                 capture_output=True,
@@ -193,10 +211,14 @@ def main():
             )
             snapshot = json.loads(response.stdout)
             finding = incident(snapshot)
+        except PermissionError as error:
+            snapshot = {"connection_error": str(error), "certificate_path": str(CERTIFICATE)}
+            finding = {"kind": "authentication_required", "error": str(error)}
         except (subprocess.SubprocessError, ValueError) as error:
-            snapshot = {"connection_error": str(error)}
-            finding = {"kind": "monitor_connection_error", "error": str(error)}
             stderr = getattr(error, "stderr", "") or ""
+            detail = stderr[-1500:] or str(error)
+            snapshot = {"connection_error": detail}
+            finding = {"kind": "monitor_connection_error", "error": detail}
             if any(
                 message in stderr.lower()
                 for message in ("permission denied", "authentication failed", "certificate expired")
@@ -218,6 +240,7 @@ def main():
                 if finding["kind"] == "authentication_required":
                     # CSCS requires normal certificate renewal. Never retry failed auth in a loop.
                     state["access_blocked"] = True
+                    state["access_blocked_certificate"] = certificate
                 if finding["kind"] == "complete":
                     remove_schedule()
                     state["disabled"] = True

@@ -1,0 +1,19 @@
+{
+  "checkpoint_selection": "lowest_development_loss",
+  "draft_attention_implementation": "sdpa",
+  "epochs": 4,
+  "learning_rate": 1e-05,
+  "loss": {
+    "loss_fn": "ce",
+    "loss_implementation": "fused",
+    "max_anchors": 512,
+    "noise_std": 0.0,
+    "position_loss_gamma": 4.0,
+    "position_loss_weight": "fixed-exp-decay"
+  },
+  "optimizer": "AdamW",
+  "scheduler": "constant",
+  "seed": 0,
+  "token_basis": "assistant tokens presented across complete training epochs; excludes prompt and padding",
+  "weight_decay": 0.01
+}

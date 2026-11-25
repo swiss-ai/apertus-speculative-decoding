@@ -1,0 +1,68 @@
+{
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "1",
+    "HF_HUB_OFFLINE": "1",
+    "TIKTOKEN_RS_CACHE_DIR": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50/inputs/harmony-cache",
+    "VLLM_CACHE_ROOT": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50/data-deployments/responses/gpu-1/compile-cache"
+  },
+  "input_lock": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50/inputs/lock.json",
+  "launch_argv": [
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50/training-environment/bin/python",
+    "-m",
+    "apertus_bench.effort_server",
+    "--fixed-date",
+    "2026-10-27",
+    "--provenance-file",
+    "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50/data-deployments/responses/gpu-1/harmony-overlay.json",
+    "--",
+    "--model",
+    "/capstor/store/cscs/swissai/infra01/hf_models/models/openai/gpt-oss-20b",
+    "--served-model-name",
+    "gpt-oss-20b",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8181",
+    "--tensor-parallel-size",
+    "1",
+    "--max-model-len",
+    "65536",
+    "--max-num-seqs",
+    "4",
+    "--max-num-batched-tokens",
+    "32768",
+    "--gpu-memory-utilization",
+    "0.8",
+    "--no-enable-prefix-caching",
+    "--no-async-scheduling",
+    "--generation-config",
+    "vllm",
+    "--middleware",
+    "apertus_bench.effort_server.NativeRenderMiddleware"
+  ],
+  "runtime": {
+    "gpu_index": "0",
+    "gpus": "0, GPU-5af682e2-c873-be4f-61f3-ab8a3b99dd82, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n1, GPU-a867fb6f-e3bc-ec98-1ff2-2011ce47c250, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n2, GPU-dbfeccc5-b4ab-ed77-2aa7-6ee8d24df023, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n3, GPU-85356359-2ffe-d730-1fee-53421b9b93c3, NVIDIA GH200 120GB, 97871 MiB, 595.91.07\n",
+    "harness_git_revision": "4fcc4b507b4f5acd70d9849707ce0e264594c6c1",
+    "node": "nid007522",
+    "packages": {
+      "httpx": "0.28.1",
+      "huggingface-hub": "1.33.0",
+      "openai-harmony": "0.0.8",
+      "torch": "2.13.0+cu130",
+      "transformers": "5.17.0",
+      "vllm": "0.30.0"
+    },
+    "python": "3.12.14",
+    "slurm_job_id": "3785653",
+    "slurm_node_id": "nid007522"
+  },
+  "source": {
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "revision": "4fcc4b507b4f5acd70d9849707ce0e264594c6c1"
+  },
+  "upstream": {
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "revision": "e3041ddb4e58d8d0fad86f938f44423bdf424ae9"
+  }
+}

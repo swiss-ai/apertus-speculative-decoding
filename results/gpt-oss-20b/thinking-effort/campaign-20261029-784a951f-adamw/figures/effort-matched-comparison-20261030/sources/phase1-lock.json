@@ -1,0 +1,273 @@
+{
+  "channel_token_counts": "reencoded channel text; excludes Harmony boundary tokens",
+  "drafter": {
+    "files": {
+      "config.json": {
+        "bytes": 1380,
+        "sha256": "96bd5b47bba49a6ad00547585bf5c343c0a2b46e9685c93f8a995fa84cec8fa9"
+      },
+      "dflash.py": {
+        "bytes": 12340,
+        "sha256": "17ab761ba665a41965b27bdc3a1c6795d1b07b285ec1f0789ad146f2ee9c1cc5"
+      },
+      "model.safetensors": {
+        "bytes": 1569547192,
+        "sha256": "66ae3e6e93575ff93f1ba9af4a940cc7bd1f8dde3f288fc01b5d30374b02ceb5"
+      },
+      "utils.py": {
+        "bytes": 5843,
+        "sha256": "aed1b2e31d676452dea6a56e79afe050d73cd8e86e729ff626ad2ffb571b3f9a"
+      }
+    },
+    "path": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/models/gpt-oss-20b-DFlash-d53f655",
+    "revision": "d53f6551543204c859e8bbaaddbd15d11b447af9",
+    "sha256": "b04d92d5b1295231428128af83eb450a2594208334fe50520231e6ed3401073e"
+  },
+  "harmony_vocab": {
+    "cache_path": "/users/faruk_zahiragic/apertus-spec-decoding/results/gpt-oss-20b/thinking-effort/campaign-20261027-f409b9da/preflight/inputs/harmony-cache/fb374d419588a4632f3f557e76b4b70aebbca790",
+    "sha256": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d",
+    "source": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/models/o200k_base.tiktoken",
+    "url": "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken"
+  },
+  "image_sha256": "4d3ad14c5fc6dbbde3d0d1f1714b5ccceb62f60050e6359f452b84e7664e618a",
+  "rendering": {
+    "backend": "vllm-native-harmony",
+    "fixed_date": "2026-10-27",
+    "overlay_sha256": "5cd5dcfaf0e304b84983c45f4894b51acdfeceea5d616781133c3b4b4b524f56"
+  },
+  "schema_version": 1,
+  "source": {
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "revision": "f409b9dab1d776817dd283488db8c73e8927e690"
+  },
+  "spec": {
+    "acceptance_change_threshold": 0.1,
+    "drafter_model": "z-lab/gpt-oss-20b-DFlash",
+    "drafter_path": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/models/gpt-oss-20b-DFlash-d53f655",
+    "drafter_revision": "d53f6551543204c859e8bbaaddbd15d11b447af9",
+    "efforts": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "expected_prompts": 64,
+    "fixed_date": "2026-10-27",
+    "gpu_memory_utilization": 0.8,
+    "harmony_vocab_path": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/models/o200k_base.tiktoken",
+    "harmony_vocab_sha256": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d",
+    "harmony_vocab_url": "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken",
+    "image": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_0.30.0-arm64.sqsh",
+    "max_cap_fraction": 0.05,
+    "max_model_len": 65536,
+    "max_num_batched_tokens": 32768,
+    "max_num_seqs": 1,
+    "max_tokens": 32768,
+    "min_p": 0.0,
+    "name": "gpt-oss-20b-thinking-effort",
+    "num_speculative_tokens": 7,
+    "port": 8180,
+    "repeats": 3,
+    "request_timeout_seconds": 1800,
+    "schema_version": 1,
+    "source_sha256": "8a42d20bc7062ae82f1a8247c9f1425069b7573c2c138351023b04119a80b7dc",
+    "source_workload": "workloads/8b/probe-speculator-benchmarks.jsonl",
+    "specialist_latency_threshold": 0.1,
+    "startup_timeout_seconds": 1800,
+    "target_model": "openai/gpt-oss-20b",
+    "target_path": "/capstor/store/cscs/swissai/infra01/hf_models/models/openai/gpt-oss-20b",
+    "temperature": 1.0,
+    "top_k": -1,
+    "top_p": 1.0,
+    "warmup_requests": 2
+  },
+  "target": {
+    "files": {
+      "chat_template.jinja": {
+        "bytes": 16738,
+        "sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146"
+      },
+      "config.json": {
+        "bytes": 1806,
+        "sha256": "3a2a26ded679375b7928ddeca59764df7cea83220c1961035f6d6e232659e9ce"
+      },
+      "generation_config.json": {
+        "bytes": 177,
+        "sha256": "f9970ada892d2d1f72e3ed0a6535ccebadd11897318794ca671d8c7014c957da"
+      },
+      "model-00000-of-00002.safetensors": {
+        "bytes": 4792272488,
+        "sha256": "16d0f997dcfc4462089d536bffe51b4bcea2f872f5c430be09ef8ed392312427"
+      },
+      "model-00001-of-00002.safetensors": {
+        "bytes": 4798702184,
+        "sha256": "4fbe328ab445455d6f58dc73852b85873bd626986310abd91cd4d2ce3245eaea"
+      },
+      "model-00002-of-00002.safetensors": {
+        "bytes": 4170342232,
+        "sha256": "a18106b209e9ab35c3406db4f6f12a927364a058b21e9d1373d682e20674b303"
+      },
+      "model.safetensors.index.json": {
+        "bytes": 36355,
+        "sha256": "0e085b977c4c9942f85938828e8c989ed7d5cdabf852e4da6a67c116cd502cd1"
+      },
+      "special_tokens_map.json": {
+        "bytes": 98,
+        "sha256": "dd5e191d20c12d2fee1da5bae14ca1db0f5f4215300af691f23cdee97120a293"
+      },
+      "tokenizer.json": {
+        "bytes": 27868174,
+        "sha256": "0614fe83cadab421296e664e1f48f4261fa8fef6e03e63bb75c20f38e37d07d3"
+      },
+      "tokenizer_config.json": {
+        "bytes": 4200,
+        "sha256": "9279e942392b742d633c7adbb89ebe002c98399db8926a7af5125c726f404070"
+      }
+    },
+    "path": "/capstor/store/cscs/swissai/infra01/hf_models/models/openai/gpt-oss-20b",
+    "revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+    "sha256": "aa2967c3b5305107a6c95005a49eaa78914687f8023f5195ac535ead5fe83ba9"
+  },
+  "template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+  "workload": {
+    "prompt_ids": [
+      "probe-math-00",
+      "probe-math-01",
+      "probe-math-02",
+      "probe-math-03",
+      "probe-math-04",
+      "probe-math-05",
+      "probe-math-06",
+      "probe-math-07",
+      "probe-math-08",
+      "probe-math-09",
+      "probe-math-10",
+      "probe-math-11",
+      "probe-math-12",
+      "probe-math-13",
+      "probe-math-14",
+      "probe-math-15",
+      "probe-math-16",
+      "probe-math-17",
+      "probe-math-18",
+      "probe-math-19",
+      "probe-math-20",
+      "probe-math-21",
+      "probe-math-22",
+      "probe-math-23",
+      "probe-math-24",
+      "probe-math-25",
+      "probe-math-26",
+      "probe-math-27",
+      "probe-math-28",
+      "probe-math-29",
+      "probe-math-30",
+      "probe-math-31",
+      "probe-humaneval-00",
+      "probe-humaneval-01",
+      "probe-humaneval-02",
+      "probe-humaneval-03",
+      "probe-humaneval-04",
+      "probe-humaneval-05",
+      "probe-humaneval-06",
+      "probe-humaneval-07",
+      "probe-humaneval-08",
+      "probe-humaneval-09",
+      "probe-humaneval-10",
+      "probe-humaneval-11",
+      "probe-humaneval-12",
+      "probe-humaneval-13",
+      "probe-humaneval-14",
+      "probe-humaneval-15",
+      "probe-humaneval-16",
+      "probe-humaneval-17",
+      "probe-humaneval-18",
+      "probe-humaneval-19",
+      "probe-humaneval-20",
+      "probe-humaneval-21",
+      "probe-humaneval-22",
+      "probe-humaneval-23",
+      "probe-humaneval-24",
+      "probe-humaneval-25",
+      "probe-humaneval-26",
+      "probe-humaneval-27",
+      "probe-humaneval-28",
+      "probe-humaneval-29",
+      "probe-humaneval-30",
+      "probe-humaneval-31"
+    ],
+    "removed_framing": {
+      "probe-humaneval-00": [],
+      "probe-humaneval-01": [],
+      "probe-humaneval-02": [],
+      "probe-humaneval-03": [],
+      "probe-humaneval-04": [],
+      "probe-humaneval-05": [],
+      "probe-humaneval-06": [],
+      "probe-humaneval-07": [],
+      "probe-humaneval-08": [],
+      "probe-humaneval-09": [],
+      "probe-humaneval-10": [],
+      "probe-humaneval-11": [],
+      "probe-humaneval-12": [],
+      "probe-humaneval-13": [],
+      "probe-humaneval-14": [],
+      "probe-humaneval-15": [],
+      "probe-humaneval-16": [],
+      "probe-humaneval-17": [],
+      "probe-humaneval-18": [],
+      "probe-humaneval-19": [],
+      "probe-humaneval-20": [],
+      "probe-humaneval-21": [],
+      "probe-humaneval-22": [],
+      "probe-humaneval-23": [],
+      "probe-humaneval-24": [],
+      "probe-humaneval-25": [],
+      "probe-humaneval-26": [],
+      "probe-humaneval-27": [],
+      "probe-humaneval-28": [],
+      "probe-humaneval-29": [],
+      "probe-humaneval-30": [],
+      "probe-humaneval-31": [],
+      "probe-math-00": [],
+      "probe-math-01": [],
+      "probe-math-02": [],
+      "probe-math-03": [],
+      "probe-math-04": [],
+      "probe-math-05": [],
+      "probe-math-06": [],
+      "probe-math-07": [],
+      "probe-math-08": [],
+      "probe-math-09": [],
+      "probe-math-10": [],
+      "probe-math-11": [],
+      "probe-math-12": [],
+      "probe-math-13": [],
+      "probe-math-14": [],
+      "probe-math-15": [],
+      "probe-math-16": [],
+      "probe-math-17": [],
+      "probe-math-18": [],
+      "probe-math-19": [],
+      "probe-math-20": [],
+      "probe-math-21": [],
+      "probe-math-22": [],
+      "probe-math-23": [],
+      "probe-math-24": [],
+      "probe-math-25": [],
+      "probe-math-26": [],
+      "probe-math-27": [],
+      "probe-math-28": [],
+      "probe-math-29": [],
+      "probe-math-30": [],
+      "probe-math-31": []
+    },
+    "rows": 64,
+    "sha256": "2de28059c090564565802207d20f879a557113a7290a23155a607573df86800d",
+    "source": "/users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/probe-speculator-benchmarks.jsonl",
+    "source_sha256": "8a42d20bc7062ae82f1a8247c9f1425069b7573c2c138351023b04119a80b7dc",
+    "strata": {
+      "code": 32,
+      "math": 32
+    }
+  }
+}

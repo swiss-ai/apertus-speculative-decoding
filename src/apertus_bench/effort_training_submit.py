@@ -64,6 +64,8 @@ def stage_job(args, campaign: Path, name: str) -> dict:
     ]
     if name == "data":
         command += ["--phase1-reference", str(args.phase1_reference.resolve())]
+        if getattr(args, "data_reference", None):
+            command += ["--data-reference", str(args.data_reference.resolve())]
     pythonpath = ":".join(
         str(p)
         for p in (
@@ -266,6 +268,7 @@ def main() -> None:
     parser.add_argument("--upstream", type=Path, required=True)
     parser.add_argument("--qualification", type=Path, required=True)
     parser.add_argument("--qualification-job", required=True)
+    parser.add_argument("--data-reference", type=Path)
     parser.add_argument("--config", type=Path, default=TRAINING_CONFIG)
     parser.add_argument(
         "--environment", type=Path, default=REPO / "experiments/thinking-effort/env.toml"

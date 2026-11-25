@@ -1,0 +1,102 @@
+{
+  "recorded_at": "2026-10-29T09:21:00.187800+00:00",
+  "purpose": "Append-only completion audit and recovery of reproducibility files removed by upstream keep-best cleanup. Original training records and measurements are unchanged.",
+  "recovered_files": {
+    "low": {
+      "run_yaml": "completion-audits/20261029T092100Z/low/run.yaml",
+      "run_yaml_sha256": "7fef73ccc1d649de6c34600ef5b9066ae9005d4b270802aabffed4f953b0c856",
+      "source_patch": "completion-audits/20261029T092100Z/low/speculators.patch",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_roundtrip_verified": true,
+      "original_command_matches_saved_argv": true
+    },
+    "medium": {
+      "run_yaml": "completion-audits/20261029T092100Z/medium/run.yaml",
+      "run_yaml_sha256": "b6ca9d9b0bb9b69a43896aaa4ac049c89bedd2f6b3d224e69c3816bc70b6cda2",
+      "source_patch": "completion-audits/20261029T092100Z/medium/speculators.patch",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_roundtrip_verified": true,
+      "original_command_matches_saved_argv": true
+    },
+    "high": {
+      "run_yaml": "completion-audits/20261029T092100Z/high/run.yaml",
+      "run_yaml_sha256": "557de5696322d960b917ddaee5c07210ae361e53469fa98fe4838a48ebacef64",
+      "source_patch": "completion-audits/20261029T092100Z/high/speculators.patch",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_roundtrip_verified": true,
+      "original_command_matches_saved_argv": true
+    },
+    "mixed": {
+      "run_yaml": "completion-audits/20261029T092100Z/mixed/run.yaml",
+      "run_yaml_sha256": "cc257759aff383b2eb4b00ca57bfa9e35b45d00391d63a7e48228a2df8b467e0",
+      "source_patch": "completion-audits/20261029T092100Z/mixed/speculators.patch",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_roundtrip_verified": true,
+      "original_command_matches_saved_argv": true
+    }
+  },
+  "reconstruction_basis": "Saved per-role train-argv.json exactly matches original train_command.txt. Resolve and round-trip using unmodified pinned Speculators e3041ddb. The empty patch matches the contemporaneous upstream hash in all four training provenance records.",
+  "cleanup_cause": "speculators/train/checkpointer.py: Checkpointer.cleanup_keep_only_best retains train_command.txt but deletes run.yaml and speculators.patch; reconstructed files are labelled here rather than represented as contemporaneous artifacts.",
+  "execution_source": "4fcc4b507b4f5acd70d9849707ce0e264594c6c1",
+  "recovery_code_revision": "99622cae531d5c51178affcbe42272471f1c2f93",
+  "decision": "retain_shared",
+  "specialist_vs_mixed": {
+    "low": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.08374552562559046,
+        0.04521922981465065,
+        0.009803145683484726
+      ],
+      "median_latency_reduction_vs_mixed": 0.04521922981465065,
+      "decode_cost_lower_by_block": [
+        true,
+        true,
+        false
+      ],
+      "passes_frozen_threshold": false
+    },
+    "medium": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.01617362922935972,
+        0.09431775502802153,
+        0.016259840464047826
+      ],
+      "median_latency_reduction_vs_mixed": 0.016259840464047826,
+      "decode_cost_lower_by_block": [
+        false,
+        true,
+        false
+      ],
+      "passes_frozen_threshold": false
+    },
+    "high": {
+      "latency_reduction_vs_mixed_by_block": [
+        0.04476608678957972,
+        -0.01384023522225064,
+        -0.0485586204025672
+      ],
+      "median_latency_reduction_vs_mixed": -0.01384023522225064,
+      "decode_cost_lower_by_block": [
+        true,
+        false,
+        true
+      ],
+      "passes_frozen_threshold": false
+    }
+  },
+  "verification": {
+    "training_heads": 4,
+    "supervised_tokens_per_head": 1572864,
+    "epochs_per_head": 4,
+    "evaluation_blocks": 3,
+    "evaluation_cells": 45,
+    "successful_requests": 2880,
+    "truncated_requests": 0,
+    "all_cell_and_cross_block_identities_match": true,
+    "report_json_matches_rendered_markdown": true,
+    "checkpoint_hashes_match_evaluated_heads": true
+  },
+  "scoped_monitor_removed": true,
+  "raw_results_retained_at": "/iopsstor/scratch/cscs/faruk_zahiragic/thinking-effort/phase2/campaign-20261028-4fcc4b50",
+  "limitation": "Conclusion applies to this head, corpus, budget and serving setup; it does not establish that effort specialization can never help."
+}
