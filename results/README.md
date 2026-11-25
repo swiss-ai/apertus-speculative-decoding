@@ -25,6 +25,13 @@ and both control kinds are specified in `../docs/protocol.md`.
   Qwen3-235B-A22B-Instruct-2507-FP8 on one GH200 node at TP4 (jobs
   4004146 and 4004250-4004252). k3 clears the +10% rule at every C up to 128, and k5
   loses at C=128. See `qwen3-235b/README.md` and `../docs/qwen3-235b-specdec.md`.
+- `8b/workload-shape/full-20261122-4004306/`: per-token target entropy and
+  TV/KL/greedy match of DSpark e10 and EAGLE e10 on the 28-slice task-speed
+  suite (teacher-forced on the target's greedy trajectories, job 4004306), with
+  per-slice quantiles, a greedy-chain replay that reproduces the served k=3
+  counters, and the analysis of `../docs/workload-distribution-shape.md`. The
+  captures and per-token shards stay on Clariden; their hashes are in
+  `cluster-only-sha256.txt`.
 - `8b/drafter-kv/kv-sparsity-20261022-a/`: two independent DSpark thinking-off
   screening repeats with physical KV-page eviction. The 512-token importance
   policy reduced accounted drafter storage by 69%, but throughput and
