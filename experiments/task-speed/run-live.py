@@ -40,11 +40,20 @@ GATEWAY = "https://api.swissai.svc.cscs.ch"
 APP = "vllm-apertus-v1p5-8b-dspark-e10"
 
 
-def model_ids() -> dict[str, str]:
+def _prepare():
     spec = importlib.util.spec_from_file_location("prepare", ROOT / "serving/kubernetes/prepare.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.MODEL_IDS
+    return module
+
+
+def model_ids() -> dict[str, str]:
+    return _prepare().MODEL_IDS
+
+
+def draft_length(variant: str) -> int | None:
+    """k of a render variant: 3 for the deployed dspark, 5/7 for dspark-k5/k7, None plain."""
+    return _prepare().DRAFT_LENGTHS[variant]
 
 
 class Kube:
@@ -254,10 +263,11 @@ async def measure(args, suite, manifest, root, corpus, route, name, out, model, 
         "suite": suite["name"],
     }
     generation = GenerationSettings(**suite["generation"])
+    k = draft_length(args.variant)
     variant_record = Variant(
         name=args.variant,
-        method="dspark" if args.variant == "dspark" else "none",
-        num_speculative_tokens=3 if args.variant == "dspark" else None,
+        method="none" if k is None else "dspark",
+        num_speculative_tokens=k,
     )
     labels = args.slices or [entry["label"] for entry in suite["slices"]]
     concurrencies = args.concurrencies or suite["concurrencies"]
@@ -374,8 +384,8 @@ def main() -> None:
     parser.add_argument("--suite", type=Path, default=Path(__file__).with_name("suite.yaml"))
     parser.add_argument("--corpus", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--window", required=True, help="D1, P1, P2, D2, ...")
-    parser.add_argument("--variant", choices=("dspark", "plain"), required=True)
+    parser.add_argument("--window", required=True, help="D1, P1, P2, D2, K5, ...")
+    parser.add_argument("--variant", choices=sorted(model_ids()), required=True)
     parser.add_argument("--round", type=int, required=True)
     parser.add_argument("--direct", action="store_true", help="port-forward to the pod")
     parser.add_argument("--slices", nargs="*")

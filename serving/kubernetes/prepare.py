@@ -30,10 +30,16 @@ BOOTSTRAP = "/ip4/148.187.108.178/tcp/43905/p2p/QmbUKJkCfotDzbFE5uoTsXD4GRyPHjzZ
 NO_PROXY = "127.0.0.1,localhost,0.0.0.0,.svc,.cluster.local"
 # Plain mode serves the same target from the same Deployment, only without the
 # drafter, under its own ID so DSpark users never silently receive plain output.
+# The k=5/k=7 variants exist only for live speed windows: same Deployment, only
+# the draft length and the advertised ID change ("dspark" stays the deployed k=3).
 MODEL_IDS = {
     "dspark": "SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k3",
+    "dspark-k5": "SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k5",
+    "dspark-k7": "SwissAI-Research/swiss-ai/Apertus-v1.5-8B-dspark-e10-k7",
     "plain": "SwissAI-Research/swiss-ai/Apertus-v1.5-8B-plain-matched",
 }
+DRAFT_LENGTHS = {"dspark": 3, "dspark-k5": 5, "dspark-k7": 7, "plain": None}
+CLIENT = "task-speed-client"
 
 
 def sha(value):
@@ -46,6 +52,7 @@ def render(
     source_revision: str,
     variant: str = "dspark",
     pin_node: str | None = None,
+    avoid_nodes: tuple[str, ...] = (),
 ):
     if variant not in MODEL_IDS:
         raise ValueError(f"unknown variant {variant!r}")
@@ -212,6 +219,7 @@ def render(
                             "kubernetes.io/arch": "arm64",
                             **({"kubernetes.io/hostname": pin_node} if pin_node else {}),
                         },
+                        **node_affinity(avoid_nodes),
                         "imagePullSecrets": [{"name": "ghcr-pull-secret"}],
                         "enableServiceLinks": False,
                         "tolerations": [
@@ -314,10 +322,61 @@ def render(
 
 
 def speculative_argv(variant):
-    if variant == "plain":
+    k = DRAFT_LENGTHS[variant]
+    if k is None:
         return []
-    config = {"method": "dspark", "model": "/assets/drafter", "num_speculative_tokens": 3}
+    config = {"method": "dspark", "model": "/assets/drafter", "num_speculative_tokens": k}
     return ["--speculative-config", json.dumps(config, sort_keys=True)]
+
+
+def node_affinity(avoid_nodes) -> dict:
+    """Keep pods off other people's nodes (a NotIn hostname rule), if any are given."""
+    if not avoid_nodes:
+        return {}
+    match = {"key": "kubernetes.io/hostname", "operator": "NotIn", "values": list(avoid_nodes)}
+    terms = [{"matchExpressions": [match]}]
+    return {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {
+        "nodeSelectorTerms": terms}}}}  # fmt: skip
+
+
+def client_pod(pin_node: str | None = None, avoid_nodes: tuple[str, ...] = ()) -> dict:
+    """Temporary benchmark client for live speed windows: no GPU, no Kubernetes
+    credentials; it talks straight to the model's Service, never the gateway."""
+    no_proxy = [{"name": n, "value": NO_PROXY} for n in ("NO_PROXY", "no_proxy")]
+    return {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "metadata": {"name": CLIENT, "namespace": "rob-poc", "labels": {"app": CLIENT}},
+        "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": False,
+            "enableServiceLinks": False,
+            "nodeSelector": {
+                "kubernetes.io/arch": "arm64",
+                **({"kubernetes.io/hostname": pin_node} if pin_node else {}),
+            },
+            **node_affinity(avoid_nodes),
+            "tolerations": [
+                {"key": "hpc", "operator": "Equal", "value": "true", "effect": x}
+                for x in ("NoSchedule", "NoExecute")
+            ],
+            "imagePullSecrets": [{"name": "ghcr-pull-secret"}],
+            "containers": [
+                {
+                    "name": "client",
+                    "image": IMAGE,
+                    "command": ["sleep", "infinity"],
+                    "env": [{"name": "GODEBUG", "value": "multipathtcp=0"}, *no_proxy],
+                    "resources": {
+                        "requests": {"cpu": "8", "memory": "16Gi", "ephemeral-storage": "10Gi"},
+                        "limits": {"memory": "16Gi", "ephemeral-storage": "20Gi"},
+                    },
+                    "volumeMounts": [{"name": "work", "mountPath": "/work"}],
+                }
+            ],
+            "volumes": [{"name": "work", "emptyDir": {"sizeLimit": "10Gi"}}],
+        },
+    }
 
 
 if __name__ == "__main__":
@@ -328,11 +387,27 @@ if __name__ == "__main__":
         "--variant",
         choices=sorted(MODEL_IDS),
         default="dspark",
-        help="plain drops the drafter and advertises its own model ID (speed baseline)",
+        help="plain drops the drafter, dspark-k5/k7 change the draft length; each advertises "
+        "its own model ID (live speed windows only)",
     )
     parser.add_argument(
         "--pin-node",
         help="add a kubernetes.io/hostname node selector so every toggle runs on one node",
+    )
+    parser.add_argument(
+        "--avoid-node",
+        action="append",
+        default=[],
+        help="keep the pod off this node (NotIn node affinity); repeatable",
+    )
+    parser.add_argument(
+        "--source-revision",
+        help="annotate this revision instead of HEAD (re-render a deployed manifest exactly)",
+    )
+    parser.add_argument(
+        "--client-pod",
+        action="store_true",
+        help="also write task-speed-client.yaml (same pin and avoided nodes)",
     )
     args = parser.parse_args()
     if (
@@ -340,5 +415,13 @@ if __name__ == "__main__":
         == "main"
     ):
         raise SystemExit("use a task branch")
-    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    render(args.output, args.replicas, revision, args.variant, args.pin_node)
+    revision = (
+        args.source_revision
+        or subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    )
+    avoid = tuple(args.avoid_node)
+    render(args.output, args.replicas, revision, args.variant, args.pin_node, avoid)
+    if args.client_pod:
+        (args.output / f"{CLIENT}.yaml").write_text(
+            yaml.safe_dump(client_pod(args.pin_node, avoid), sort_keys=False, width=110)
+        )
