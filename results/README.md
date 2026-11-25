@@ -21,6 +21,18 @@ and both control kinds are specified in `../docs/protocol.md`.
 
 ## Recorded runs
 
+- **8B deployment and usage.** [Controlled and live k=3/5/7](../docs/dspark-e10-k-headline.md),
+  [per-task speed](../docs/dspark-e10-task-speed.md), and the run records under
+  [speed/](8b/speed/), [usage-demo/](8b/usage-demo/), and [kubernetes/](8b/kubernetes/).
+- **Domain drafters.** [DSpark](../docs/domain-drafters-dspark.md) and
+  [EAGLE](../docs/domain-drafters-eagle.md) launch records, with the
+  [shared corpus manifest and submissions](8b/domain-drafters/).
+- **70B DSpark training on Beverin.** [Feasibility and runtime comparisons](../docs/beverin-feasibility.md)
+  and [checkpoint and evaluation provenance](70b/dspark/).
+- **GPT-OSS-20B.** [Thinking-effort protocol](../docs/thinking-effort-execution-plan.md)
+  and [fine-tune, serving and scratch smoke records](gpt-oss-20b/thinking-effort/).
+- **GLM-5.3-Flash.** [Run accounting and the location of the Clariden artifacts](../docs/glm53-flash-specdec.md#run-record).
+
 - `qwen3-235b/`: plain versus EAGLE3 (RedHat speculator, k3 and k5) for
   Qwen3-235B-A22B-Instruct-2507-FP8 on one GH200 node at TP4 (jobs
   4004146 and 4004250-4004252). k3 clears the +10% rule at every C up to 128, and k5

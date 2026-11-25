@@ -3,19 +3,24 @@
 The stdlib helpers also run in the batch shell's Python 3.6. Training hooks
 are installed only by the Beverin prelude when BEVERIN_SINGLE_EPOCH=1.
 """
+
 import argparse
 import hashlib
 import json
 import math
 import os
-from pathlib import Path
 import time
-
+from pathlib import Path
 
 MARKER = "single-epoch-complete.json"
-ARTIFACTS = ("model.safetensors", "optimizer_state_dict.pt",
-             "scheduler_state_dict.pt", "config.json", "training_state.json",
-             "val_metrics.json")
+ARTIFACTS = (
+    "model.safetensors",
+    "optimizer_state_dict.pt",
+    "scheduler_state_dict.pt",
+    "config.json",
+    "training_state.json",
+    "val_metrics.json",
+)
 
 
 def atomic_json(path, value):
@@ -25,15 +30,20 @@ def atomic_json(path, value):
 
 
 def valid_metrics(metrics):
-    return (isinstance(metrics, dict) and "loss_epoch" in metrics
-            and all(isinstance(value, (int, float)) and math.isfinite(value)
-                    for value in metrics.values()))
+    return (
+        isinstance(metrics, dict)
+        and "loss_epoch" in metrics
+        and all(
+            isinstance(value, (int, float)) and math.isfinite(value) for value in metrics.values()
+        )
+    )
 
 
 def validated_artifacts(checkpoints, expected_steps):
     checkpoint = checkpoints / "0"
-    if not all((checkpoint / name).is_file() and (checkpoint / name).stat().st_size
-               for name in ARTIFACTS):
+    if not all(
+        (checkpoint / name).is_file() and (checkpoint / name).stat().st_size for name in ARTIFACTS
+    ):
         return None
     state = json.loads((checkpoint / "training_state.json").read_text())
     if state != {"epoch": 0, "local_step": 0, "global_step": expected_steps}:
@@ -43,7 +53,9 @@ def validated_artifacts(checkpoints, expected_steps):
         marker = json.loads(marker_path.read_text())
     except (OSError, ValueError):
         return None
-    if marker.get("finite") is not True or int(marker.get("global_step", -1)) != int(expected_steps):
+    if marker.get("finite") is not True or int(marker.get("global_step", -1)) != int(
+        expected_steps
+    ):
         return None
     try:
         metrics = json.loads((checkpoint / "val_metrics.json").read_text())
@@ -54,13 +66,19 @@ def validated_artifacts(checkpoints, expected_steps):
     if not valid_metrics(metrics):
         return None
     return {
-        "num_epochs": 1, "global_step": expected_steps, "checkpoint": "0",
+        "num_epochs": 1,
+        "global_step": expected_steps,
+        "checkpoint": "0",
         "validation": metrics,
-        "files": {name: {
-            "size": (checkpoint / name).stat().st_size,
-            "sha256": hashlib.sha256((checkpoint / name).read_bytes()).hexdigest()
-            if name not in ("model.safetensors", "optimizer_state_dict.pt") else None,
-        } for name in ARTIFACTS},
+        "files": {
+            name: {
+                "size": (checkpoint / name).stat().st_size,
+                "sha256": hashlib.sha256((checkpoint / name).read_bytes()).hexdigest()
+                if name not in ("model.safetensors", "optimizer_state_dict.pt")
+                else None,
+            }
+            for name in ARTIFACTS
+        },
     }
 
 
@@ -70,9 +88,10 @@ def read_completion(checkpoints, expected_steps):
         return None
     recorded = json.loads(marker.read_text())
     current = validated_artifacts(checkpoints, expected_steps)
-    if current is None or any(recorded.get(key) != current[key]
-                              for key in ("num_epochs", "global_step", "checkpoint",
-                                          "validation", "files")):
+    if current is None or any(
+        recorded.get(key) != current[key]
+        for key in ("num_epochs", "global_step", "checkpoint", "validation", "files")
+    ):
         raise ValueError("Completion marker does not match final validated artifacts")
     return recorded
 
@@ -89,9 +108,13 @@ def write_completion(checkpoints, expected_steps):
         best.symlink_to("0", target_is_directory=True)
     if not best.is_symlink() or best.resolve() != (checkpoints / "0").resolve():
         raise ValueError("Final checkpoint_best does not point to epoch 0")
-    record.update({"completed_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                   "job_id": os.environ.get("SLURM_JOB_ID"),
-                   "trainer_attempt": os.environ.get("TORCHELASTIC_RUN_ID")})
+    record.update(
+        {
+            "completed_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "job_id": os.environ.get("SLURM_JOB_ID"),
+            "trainer_attempt": os.environ.get("TORCHELASTIC_RUN_ID"),
+        }
+    )
     atomic_json(checkpoints / MARKER, record)
     return record
 
@@ -105,8 +128,10 @@ def install(Trainer, barrier, log):
 
     def train(self, epoch):
         if getattr(self, "_beverin_validation_only", False):
-            log.info("BEVERIN_VALIDATION_ONLY: preserving completed training at step %s",
-                     self.global_step)
+            log.info(
+                "BEVERIN_VALIDATION_ONLY: preserving completed training at step %s",
+                self.global_step,
+            )
             return
         return original_train(self, epoch)
 
@@ -123,12 +148,18 @@ def install(Trainer, barrier, log):
         return result
 
     def run(self):
-        if (self.config.num_epochs != 1 or self.config.max_steps is not None
-                or self.val_loader is None or len(self.train_loader) != expected
-                or int(os.environ.get("BEVERIN_SEGMENT_STEPS", "0"))
-                or os.environ.get("BEVERIN_PILOT_RESUME", "0") == "1"
-                or int(os.environ.get("BEVERIN_PROFILE_STEPS", "0"))):
-            raise ValueError("One-epoch guard requires EPOCHS=1, full loader, validation and no MAX_STEPS")
+        if (
+            self.config.num_epochs != 1
+            or self.config.max_steps is not None
+            or self.val_loader is None
+            or len(self.train_loader) != expected
+            or int(os.environ.get("BEVERIN_SEGMENT_STEPS", "0"))
+            or os.environ.get("BEVERIN_PILOT_RESUME", "0") == "1"
+            or int(os.environ.get("BEVERIN_PROFILE_STEPS", "0"))
+        ):
+            raise ValueError(
+                "One-epoch guard requires EPOCHS=1, full loader, validation and no MAX_STEPS"
+            )
         checkpoints = self.checkpointer.path
         self._beverin_validation_completed = False
         if validated_artifacts(checkpoints, expected) is not None:
@@ -178,4 +209,4 @@ if __name__ == "__main__":
         raise SystemExit(0 if completed else 1)
     except (ValueError, OSError) as exc:
         print("BEVERIN_COMPLETION_ERROR " + str(exc))
-        raise SystemExit(2)
+        raise SystemExit(2) from None

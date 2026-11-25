@@ -5,6 +5,7 @@ across ranks, and are promoted by rename only after ``verified-finite.json``
 is written. A SIGTERM "interrupted" save uses this same path. Set
 ``BEVERIN_DISABLE_INTERRUPT_SAVE=1`` to skip that save instead.
 """
+
 import io
 import json
 import os
@@ -36,7 +37,11 @@ def _rank_world(trainer, torch):
 
 
 def _barrier(trainer, torch):
-    if getattr(trainer, "is_distributed", False) and torch.distributed.is_available() and torch.distributed.is_initialized():
+    if (
+        getattr(trainer, "is_distributed", False)
+        and torch.distributed.is_available()
+        and torch.distributed.is_initialized()
+    ):
         torch.distributed.barrier()
 
 
@@ -79,7 +84,7 @@ def safetensor_records(path):
     with open(path, "rb") as handle:
         raw_len = handle.read(8)
         if len(raw_len) != 8:
-            raise RuntimeError("truncated safetensors header: %s" % path)
+            raise RuntimeError(f"truncated safetensors header: {path}")
         header_len = struct.unpack("<Q", raw_len)[0]
         header = json.loads(handle.read(header_len).decode("utf-8"))
     data_start = 8 + header_len
@@ -89,7 +94,9 @@ def safetensor_records(path):
             continue
         dtype = info.get("dtype")
         start, end = info.get("data_offsets", [0, 0])
-        records.append((key, dtype, data_start + int(start), int(end) - int(start), info.get("shape")))
+        records.append(
+            (key, dtype, data_start + int(start), int(end) - int(start), info.get("shape"))
+        )
     return records
 
 
@@ -156,6 +163,7 @@ def collect_zip_storages(torch, blob):
 
     torch._utils._rebuild_tensor_v2 = empty_rebuild
     try:
+
         class Recorder(pickle.Unpickler):
             def persistent_load(self, pid):
                 if not isinstance(pid, tuple) or not pid or pid[0] != "storage":
@@ -195,7 +203,9 @@ def verify_optimizer_file(path, torch, rank, world):
             width = _storage_width(storage_type)
             if numel and len(blob) < numel * width:
                 return False
-            tensor = torch.frombuffer(bytearray(blob[: numel * width]), dtype=_dtype_for_storage(torch, storage_type))
+            tensor = torch.frombuffer(
+                bytearray(blob[: numel * width]), dtype=_dtype_for_storage(torch, storage_type)
+            )
             if not bool(torch.isfinite(tensor).all().item()):
                 return False
     return True
@@ -206,14 +216,12 @@ def _zip_entry(archive, key):
     for name in archive.namelist():
         if name.endswith(suffix):
             return name
-    raise RuntimeError("optimizer storage %s is missing" % key)
+    raise RuntimeError(f"optimizer storage {key} is missing")
 
 
 def _tree_finite(torch, value):
     if torch.is_tensor(value):
-        if value.is_floating_point() and not bool(torch.isfinite(value).all().item()):
-            return False
-        return True
+        return not (value.is_floating_point() and not bool(torch.isfinite(value).all().item()))
     if isinstance(value, dict):
         return all(_tree_finite(torch, item) for item in value.values())
     if isinstance(value, (list, tuple)):
@@ -229,9 +237,7 @@ def verify_directory(directory, torch, rank, world):
         return False
     if not verify_safetensors(str(model), torch, rank, world):
         return False
-    if not verify_optimizer_file(str(optimizer), torch, rank, world):
-        return False
-    return True
+    return verify_optimizer_file(str(optimizer), torch, rank, world)
 
 
 def _learning_rates(trainer):
@@ -245,8 +251,13 @@ def _learning_rates(trainer):
 
 def _marker(trainer, epoch, local_step, directory):
     files = {}
-    for name in ("model.safetensors", "optimizer_state_dict.pt", "scheduler_state_dict.pt",
-                 "config.json", "training_state.json"):
+    for name in (
+        "model.safetensors",
+        "optimizer_state_dict.pt",
+        "scheduler_state_dict.pt",
+        "config.json",
+        "training_state.json",
+    ):
         path = Path(directory) / name
         if path.is_file():
             files[name] = path.stat().st_size
@@ -276,11 +287,11 @@ def _relink(root, epoch, local_step):
     if not isinstance(epoch, int):
         return
     root = Path(root)
-    for old in root.glob("epoch%d_*" % epoch):
+    for old in root.glob(f"epoch{epoch:d}_*"):
         if old.is_symlink():
             old.unlink()
-    suffix = "step%d" % int(local_step) if int(local_step) else "end"
-    link = root / ("epoch%d_%s" % (epoch, suffix))
+    suffix = f"step{int(local_step):d}" if int(local_step) else "end"
+    link = root / (f"epoch{epoch:d}_{suffix!s}")
     if link.is_symlink() or link.exists():
         link.unlink()
     link.symlink_to(Path("0"))
@@ -306,17 +317,27 @@ def install(Trainer, torch):
                 epoch = 0
             # Step within the epoch (multi_epoch.py records where it began).
             local_step = int(getattr(self, "global_step", 0)) - int(
-                getattr(self, "_beverin_epoch_start_global", 0))
+                getattr(self, "_beverin_epoch_start_global", 0)
+            )
             if rank == 0:
-                print("BEVERIN_INTERRUPT_SAVE_VERIFIED " + json.dumps({
-                    "epoch": epoch, "local_step": local_step, "global_step": self.global_step,
-                }), flush=True)
+                print(
+                    "BEVERIN_INTERRUPT_SAVE_VERIFIED "
+                    + json.dumps(
+                        {
+                            "epoch": epoch,
+                            "local_step": local_step,
+                            "global_step": self.global_step,
+                        }
+                    ),
+                    flush=True,
+                )
         _pre_save(self, torch)
         root = Path(self.checkpointer.path)
         step = int(self.global_step)
-        staging_parent = root / (".staging-step-%d" % step)
+        staging_parent = root / (f".staging-step-{step:d}")
         if rank == 0 and staging_parent.exists():
             import shutil
+
             shutil.rmtree(str(staging_parent))
         _barrier(self, torch)
         staging_parent.mkdir(parents=True, exist_ok=True)
@@ -327,6 +348,7 @@ def install(Trainer, torch):
             written = staging_parent / str(epoch)
             if os.environ.get("BEVERIN_FAULT_CORRUPT_WRITE", "0") == "1":
                 from fault_inject import corrupt_checkpoint, injection_allowed
+
                 if injection_allowed() and rank == 0:
                     corrupt_checkpoint(written)
             _barrier(self, torch)
@@ -341,32 +363,47 @@ def install(Trainer, torch):
                     _relink(root, epoch, local_step)
                     if staging_parent.exists():
                         import shutil
+
                         shutil.rmtree(str(staging_parent), ignore_errors=True)
                     verified = read_marker(str(root / "0"))
-                    print("BEVERIN_SAVE_VERIFIED " + json.dumps({
-                        "global_step": None if verified is None else verified["global_step"],
-                        "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                    }), flush=True)
+                    print(
+                        "BEVERIN_SAVE_VERIFIED "
+                        + json.dumps(
+                            {
+                                "global_step": None
+                                if verified is None
+                                else verified["global_step"],
+                                "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                            }
+                        ),
+                        flush=True,
+                    )
                 else:
                     import shutil
+
                     rejected = root / "evidence"
                     rejected.mkdir(parents=True, exist_ok=True)
-                    dest = rejected / ("rejected-save-step-%d" % step)
+                    dest = rejected / (f"rejected-save-step-{step:d}")
                     if written.exists():
                         if dest.exists():
                             shutil.rmtree(str(dest))
                         os.rename(str(written), str(dest))
-                    atomic_json(str(root / "save-rejected.json"), {
-                        "global_step": step, "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                        "reason": "read-back was not finite",
-                    })
+                    atomic_json(
+                        str(root / "save-rejected.json"),
+                        {
+                            "global_step": step,
+                            "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                            "reason": "read-back was not finite",
+                        },
+                    )
                     print("BEVERIN_SAVE_REJECTED " + json.dumps({"global_step": step}), flush=True)
                     if staging_parent.exists():
                         shutil.rmtree(str(staging_parent), ignore_errors=True)
             _barrier(self, torch)
             if not ok:
                 raise CheckpointRejected(
-                    "checkpoint read-back failed at step %s; checkpoints/0 was not replaced" % step)
+                    f"checkpoint read-back failed at step {step}; checkpoints/0 was not replaced"
+                )
         finally:
             self.checkpointer.path = real_path
         return None

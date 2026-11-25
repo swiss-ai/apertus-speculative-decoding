@@ -62,3 +62,18 @@ config/index digests and shard sizes, drafter digests, runtime versions and
 `pip freeze`, the Slurm job and node, the server and bench logs, GPU memory samples
 and the bench client's cells (`metadata.json`, `requests.jsonl`, `summary.json`,
 metric snapshots).
+
+## Run record
+
+The November 20 Clariden campaign completed the plain smoke (3988405) and the
+full MTP k1 and k3 sweeps (3988226 and 3988227). The full plain sweep stopped
+after seven partial cells. The vLLM DFlash attempts (3987975 and 3988221) and
+the SGLang DFlash smoke (3988417) failed. The missing full plain comparison
+leaves the 10% decision rule unresolved.
+
+Clariden retains the raw cells and deployment provenance in
+`/iopsstor/scratch/cscs/faruk_zahiragic/glm53-specdec/repo/results/glm53-flash/`.
+The two full MTP sweeps are `sweep-20261120T124839Z-mtp-k1` and
+`sweep-20261120T124840Z-mtp-k3`. The plain records are
+`smoke-20261120T131320Z-plain` and `sweep-20261120T124838Z-plain`. The failed
+SGLang launch record is `smoke-20261120T131453Z-sgl-dflash`.

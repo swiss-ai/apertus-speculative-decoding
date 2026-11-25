@@ -3,6 +3,7 @@
 Run under torchrun (one process per GPU). Prints the bus bandwidth per size
 from rank 0; NCCL_DEBUG=INFO in the log shows which network plugin RCCL used.
 """
+
 import os
 import time
 
@@ -27,8 +28,11 @@ def bench(name, fn, nbytes, factor, iters=20):
     torch.cuda.synchronize()
     dt = (time.time() - t) / iters
     if rank == 0:
-        print(f"{name:10s} {nbytes / 2**20:8.0f} MiB  {dt * 1e3:8.2f} ms  busbw {nbytes * factor / dt / 1e9:7.1f} GB/s",
-              flush=True)
+        print(
+            f"{name:10s} {nbytes / 2**20:8.0f} MiB  {dt * 1e3:8.2f} ms  "
+            f"busbw {nbytes * factor / dt / 1e9:7.1f} GB/s",
+            flush=True,
+        )
 
 
 DTYPES = {"bf16": torch.bfloat16, "fp32": torch.float32}
@@ -43,10 +47,25 @@ for dname in os.environ.get("BENCH_DTYPES", "bf16").split(","):
         r = torch.empty(n // world, dtype=dt, device=dev)
         if rank == 0:
             print(f"-- {dname}", flush=True)
-        bench("all_reduce", lambda: dist.all_reduce(x), x.nbytes, 2 * (world - 1) / world)
-        bench("all_to_all", lambda: dist.all_to_all_single(y, x), x.nbytes, (world - 1) / world)
-        bench("all_gather", lambda: dist.all_gather_into_tensor(g, x), g.nbytes, (world - 1) / world)
-        bench("red_scat", lambda: dist.reduce_scatter_tensor(r, x), x.nbytes, (world - 1) / world)
+        bench("all_reduce", lambda x=x: dist.all_reduce(x), x.nbytes, 2 * (world - 1) / world)
+        bench(
+            "all_to_all",
+            lambda y=y, x=x: dist.all_to_all_single(y, x),
+            x.nbytes,
+            (world - 1) / world,
+        )
+        bench(
+            "all_gather",
+            lambda g=g, x=x: dist.all_gather_into_tensor(g, x),
+            g.nbytes,
+            (world - 1) / world,
+        )
+        bench(
+            "red_scat",
+            lambda r=r, x=x: dist.reduce_scatter_tensor(r, x),
+            x.nbytes,
+            (world - 1) / world,
+        )
 # Training-like buffers: a fresh allocation for every call (new addresses, so
 # the network plugin's registration cache misses), as FSDP and Muon produce.
 if os.environ.get("BENCH_FRESH", "0") == "1":
@@ -54,13 +73,13 @@ if os.environ.get("BENCH_FRESH", "0") == "1":
         n = mib * 2**20 // 4
         n -= n % world
 
-        def fresh_rs():
+        def fresh_rs(n=n):
             torch.cuda.empty_cache()
             x = torch.ones(n, dtype=torch.float32, device=dev)
             r = torch.empty(n // world, dtype=torch.float32, device=dev)
             dist.reduce_scatter_tensor(r, x)
 
-        def fresh_ag():
+        def fresh_ag(n=n):
             torch.cuda.empty_cache()
             x = torch.ones(n // world, dtype=torch.float32, device=dev)
             g = torch.empty(n, dtype=torch.float32, device=dev)

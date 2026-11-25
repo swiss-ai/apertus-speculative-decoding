@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Pre-registered epoch-1 decision. This never launches another epoch."""
+
 import argparse
 import json
 import re
@@ -10,8 +11,8 @@ from pathlib import Path
 def parse_curve(text):
     rows = []
     for match in re.finditer(
-            r"train/loss=([^\s,]+).*?train/eal=([^\s,]+).*?global_step=(\d+)",
-            text or "", re.S):
+        r"train/loss=([^\s,]+).*?train/eal=([^\s,]+).*?global_step=(\d+)", text or "", re.S
+    ):
         try:
             loss, eal, step = float(match.group(1)), float(match.group(2)), int(match.group(3))
         except ValueError:
@@ -58,12 +59,17 @@ def decide(gain, domains, opb_acceptance):
         reason = "The epoch curve and coverage probes are not both available."
     elif flat_curve and domains is not None and not gaps:
         action = "stop"
-        reason = "In-distribution accepted length is flat and no domain is below 75% of open-perfectblend."
+        reason = (
+            "In-distribution accepted length is flat and no domain is below "
+            "75% of open-perfectblend."
+        )
     elif gaps or token_limited:
         action = "review-more-data"
         reason = (
-            "A coverage gap or a last-doubling gain of at least 3% would justify more unique tokens. "
-            "Epoch 2 on open-perfectblend plus the expansion, with a short learning-rate re-warmup, "
+            "A coverage gap or a last-doubling gain of at least 3% "
+            "would justify more unique tokens. "
+            "Epoch 2 on open-perfectblend plus the expansion, with a short learning-rate "
+            "re-warmup, "
             "would be a separate reviewed campaign."
         )
     else:
@@ -87,9 +93,9 @@ def write_report(path, payload):
         "",
         payload["reason"],
         "",
-        "- Action: `%s`" % payload["action"],
+        "- Action: `{}`".format(payload["action"]),
         "- Launch epoch 2 automatically: no",
-        "- Last-doubling accepted-length gain: %s" % payload["doubling_gain"],
+        "- Last-doubling accepted-length gain: {}".format(payload["doubling_gain"]),
         "- Coverage gaps: %s" % (", ".join(payload["coverage_gaps"]) or "none recorded"),
         "",
         "Rules were fixed before the measurements: a domain below 75% of the open-perfectblend",
@@ -118,7 +124,10 @@ def main():
     report = decide(doubling_gain(rows), domains, opb)
     report["curve_rows"] = len(rows)
     write_report(args.output, report)
-    print("EPOCH_DECISION " + json.dumps({k: report[k] for k in ("action", "launch_epoch_2", "doubling_gain")}))
+    print(
+        "EPOCH_DECISION "
+        + json.dumps({k: report[k] for k in ("action", "launch_epoch_2", "doubling_gain")})
+    )
 
 
 if __name__ == "__main__":

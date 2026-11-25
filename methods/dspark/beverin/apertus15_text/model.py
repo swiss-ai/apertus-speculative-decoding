@@ -2,7 +2,6 @@ from collections.abc import Iterable
 
 import torch
 import torch.nn.functional as F
-
 from vllm.config import VllmConfig
 from vllm.distributed import get_pp_group
 from vllm.model_executor.layers.logits_processor import LogitsProcessor

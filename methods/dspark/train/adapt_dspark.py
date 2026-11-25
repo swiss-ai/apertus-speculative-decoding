@@ -131,9 +131,7 @@ def cmd_rebind(args: argparse.Namespace) -> None:
             "rebound_verifier": rebound["speculators_config"]["verifier"],
             "target_contract_sha256": sha256(args.contract),
             "target_files_verified": checks,
-            "source_files": {
-                p.name: sha256(p) for p in sorted(source.iterdir()) if p.is_file()
-            },
+            "source_files": {p.name: sha256(p) for p in sorted(source.iterdir()) if p.is_file()},
         },
     )
 
@@ -151,7 +149,11 @@ def trace_row(row: dict) -> dict:
     ids = prompt + generated
     if len(ids) > MAX_LEN:
         raise ValueError(f"{row['id']}: {len(ids)} tokens exceed {MAX_LEN}")
-    return {"id": row["id"], "input_ids": ids, "loss_mask": [0] * len(prompt) + [1] * len(generated)}
+    return {
+        "id": row["id"],
+        "input_ids": ids,
+        "loss_mask": [0] * len(prompt) + [1] * len(generated),
+    }
 
 
 def corpus_row(row: dict) -> dict:
@@ -196,7 +198,11 @@ def cmd_convert(args: argparse.Namespace) -> None:
     dev = [trace_row(r) for r in raw_dev]
     del raw_train, raw_dev
     opb = [corpus_row(r) for r in jsonl(Path(plan["opb"]), plan["opb_limit"])]
-    if (len(train), len(dev), len(opb)) != (plan["train_rows"], plan["dev_rows"], plan["opb_limit"]):
+    if (len(train), len(dev), len(opb)) != (
+        plan["train_rows"],
+        plan["dev_rows"],
+        plan["opb_limit"],
+    ):
         raise ValueError("unexpected row counts")
     ids = [r["id"] for r in train + dev]
     if len(set(ids)) != len(ids):
@@ -204,10 +210,15 @@ def cmd_convert(args: argparse.Namespace) -> None:
     args.output.mkdir(parents=True, exist_ok=False)
     report = {
         "created_at": now(),
-        "inputs": {k: {"path": plan[k], "sha256": plan[k + "_sha256"]} for k in ("train", "dev", "opb")},
+        "inputs": {
+            k: {"path": plan[k], "sha256": plan[k + "_sha256"]} for k in ("train", "dev", "opb")
+        },
         "train_file": write_rows(args.output / "train-dev.jsonl", train + dev),
         "opb_file": write_rows(args.output / "opb-eval.jsonl", dev + opb),
-        "train_part": {"rows": len(train), "mean_tokens": sum(len(r["input_ids"]) for r in train) / len(train)},
+        "train_part": {
+            "rows": len(train),
+            "mean_tokens": sum(len(r["input_ids"]) for r in train) / len(train),
+        },
         "split": plan["split"],
         "finish_reasons": finish,
         "opb_rows_over_max_len": sum(len(r["input_ids"]) > MAX_LEN for r in opb),
@@ -246,7 +257,7 @@ def cmd_check_prepared(args: argparse.Namespace) -> None:
     if len(data) != len(expected):
         problems.append(f"rows {len(data)} != {len(expected)}")
     truncated = 0
-    for i, (row, want) in enumerate(zip(data, expected)):
+    for i, (row, want) in enumerate(zip(data, expected, strict=False)):
         ids, mask = row["input_ids"].tolist(), row["loss_mask"].tolist()
         n = min(len(want["input_ids"]), MAX_LEN)
         if len(want["input_ids"]) > MAX_LEN:
@@ -342,8 +353,13 @@ def cmd_export(args: argparse.Namespace) -> None:
         b, c = base["speculators_config"], config["speculators_config"]
         nested = {k: [b.get(k), c.get(k)] for k in set(b) | set(c) if b.get(k) != c.get(k)}
     allowed = {"speculators_config"}
-    config_ok = set(differing) <= allowed and set(nested) <= {"verifier"} and (
-        not nested or nested["verifier"][0]["architectures"] == nested["verifier"][1]["architectures"]
+    config_ok = (
+        set(differing) <= allowed
+        and set(nested) <= {"verifier"}
+        and (
+            not nested
+            or nested["verifier"][0]["architectures"] == nested["verifier"][1]["architectures"]
+        )
     )
     reload = compare(checkpoint, out)
     versus_e10 = compare(args.initializer, out)
@@ -351,14 +367,19 @@ def cmd_export(args: argparse.Namespace) -> None:
         "created_at": now(),
         "checkpoint": str(checkpoint),
         "initializer": str(args.initializer),
-        "files": {p.name: {"sha256": sha256(p), "bytes": p.stat().st_size}
-                  for p in sorted(out.iterdir()) if p.is_file()},  # fmt: skip
+        "files": {
+            p.name: {"sha256": sha256(p), "bytes": p.stat().st_size}
+            for p in sorted(out.iterdir())
+            if p.is_file()
+        },  # fmt: skip
         "config_keys_differing_from_e10": differing,
         "speculators_config_differences": nested,
         "config_matches_e10_apart_from_verifier_path": config_ok,
-        "reload": {"pass": reload.get("bitwise_equal") is True,
-                   "exported_tensors_bitwise_equal": reload.get("bitwise_equal") is True,
-                   "tensors": reload.get("tensors")},  # fmt: skip
+        "reload": {
+            "pass": reload.get("bitwise_equal") is True,
+            "exported_tensors_bitwise_equal": reload.get("bitwise_equal") is True,
+            "tensors": reload.get("tensors"),
+        },  # fmt: skip
         "versus_e10": {k: v for k, v in versus_e10.items() if k != "changed"},
         "training_state": read(out / "training_state.json"),
         "host": socket.gethostname(),
@@ -402,8 +423,10 @@ def cmd_report(args: argparse.Namespace) -> None:
         for name in ("eval-e10-dev", "eval-e10-opb", "eval-final-dev", "eval-final-opb")
     }
     metric = "eal_epoch"
-    finite = bool(losses) and all(math.isfinite(v) for v in losses) and all(
-        math.isfinite(m["loss_epoch"]) for m in (final_dev, final_opb)
+    finite = (
+        bool(losses)
+        and all(math.isfinite(v) for v in losses)
+        and all(math.isfinite(m["loss_epoch"]) for m in (final_dev, final_opb))
     )
     gates = {
         "finite_losses": finite,
@@ -411,7 +434,8 @@ def cmd_report(args: argparse.Namespace) -> None:
         "loss_decreased": final_dev["loss_epoch"] < initial_dev["loss_epoch"],
         "heldout_acceptance_improved": final_dev[metric] > initial_dev[metric],
         "steps": state["global_step"] == plan["training"]["max_steps"],
-        "export": export["reload"]["pass"] and export["config_matches_e10_apart_from_verifier_path"],
+        "export": export["reload"]["pass"]
+        and export["config_matches_e10_apart_from_verifier_path"],
         "evaluation_unchanged": all(evals_unchanged.values()),
     }
     gain = final_dev[metric] - initial_dev[metric]
@@ -435,9 +459,13 @@ def cmd_report(args: argparse.Namespace) -> None:
             "dev": [initial_dev["accept_len_epoch"], final_dev["accept_len_epoch"]],
             "opb": [initial_opb["accept_len_epoch"], final_opb["accept_len_epoch"]],
         },
-        "validation": {"initial_dev": initial_dev, "final_dev": final_dev,
-                       "initial_opb": initial_opb, "final_opb": final_opb,
-                       "training_epoch_end": trained_val},  # fmt: skip
+        "validation": {
+            "initial_dev": initial_dev,
+            "final_dev": final_dev,
+            "initial_opb": initial_opb,
+            "final_opb": final_opb,
+            "training_epoch_end": trained_val,
+        },  # fmt: skip
         "steps": state["global_step"],
         "logged_train_losses": len(losses),
         "train_loss_first_last": [losses[0], losses[-1]] if losses else None,
@@ -450,12 +478,21 @@ def cmd_report(args: argparse.Namespace) -> None:
         "selection_rule": plan["selection"],
     }
     write_new(args.output, summary)
-    print(json.dumps({k: summary[k] for k in ("domain_acceptance_initial", "domain_acceptance_final",
-          "opb_acceptance_initial", "opb_acceptance_final", "scientific_gates", "selected")}, indent=1))  # fmt: skip
+    reported = (
+        "domain_acceptance_initial",
+        "domain_acceptance_final",
+        "opb_acceptance_initial",
+        "opb_acceptance_final",
+        "scientific_gates",
+        "selected",
+    )
+    print(json.dumps({key: summary[key] for key in reported}, indent=1))
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = parser.add_subparsers(dest="action", required=True)
     p = sub.add_parser("rebind")
     p.add_argument("--plan", type=Path, required=True)
@@ -487,9 +524,16 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--root", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
-    {"rebind": cmd_rebind, "convert": cmd_convert, "check-prepared": cmd_check_prepared,
-     "build-dataset": cmd_build_dataset,
-     "compare": cmd_compare, "export": cmd_export, "report": cmd_report}[args.action](args)  # fmt: skip
+    handlers = {
+        "rebind": cmd_rebind,
+        "convert": cmd_convert,
+        "check-prepared": cmd_check_prepared,
+        "build-dataset": cmd_build_dataset,
+        "compare": cmd_compare,
+        "export": cmd_export,
+        "report": cmd_report,
+    }
+    handlers[args.action](args)
 
 
 if __name__ == "__main__":

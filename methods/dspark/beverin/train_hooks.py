@@ -3,6 +3,7 @@
 Loaded only by the Beverin prelude for speculators.train. The step limit
 uses the existing deadline save path, keeping the ten-epoch LR schedule.
 """
+
 import gc
 import json
 import os
@@ -11,8 +12,8 @@ from pathlib import Path
 
 
 def install():
-    import torch
     import speculators.train.distributed as distributed
+    import torch
     from speculators.train.trainer import Trainer
 
     blas_backend = os.environ.get("BEVERIN_BLAS_BACKEND")
@@ -50,16 +51,30 @@ def install():
         original_save = Trainer.maybe_save_checkpoint
 
         def save(self, *args, **kwargs):
-            print("BEVERIN_SAVE_START " + json.dumps({
-                "unix_s": time.time(), "global_step": self.global_step,
-            }), flush=True)
+            print(
+                "BEVERIN_SAVE_START "
+                + json.dumps(
+                    {
+                        "unix_s": time.time(),
+                        "global_step": self.global_step,
+                    }
+                ),
+                flush=True,
+            )
             gc.collect()
             torch.cuda.synchronize()
             torch.cuda.empty_cache()
             result = original_save(self, *args, **kwargs)
-            print("BEVERIN_SAVE_END " + json.dumps({
-                "unix_s": time.time(), "global_step": self.global_step,
-            }), flush=True)
+            print(
+                "BEVERIN_SAVE_END "
+                + json.dumps(
+                    {
+                        "unix_s": time.time(),
+                        "global_step": self.global_step,
+                    }
+                ),
+                flush=True,
+            )
             return result
 
         Trainer.maybe_save_checkpoint = save
@@ -68,8 +83,8 @@ def install():
         from checkpoint_ring import install as install_checkpoint_ring
 
         install_checkpoint_ring(Trainer, torch)
-        from speculators.train.checkpointer import BaseCheckpointer
         from multi_epoch import install as install_multi_epoch
+        from speculators.train.checkpointer import BaseCheckpointer
 
         install_multi_epoch(Trainer, BaseCheckpointer)
 
@@ -88,9 +103,7 @@ def install():
             if completed == 0:
                 # Skip the first step's compilation. CPU traces capture c10d
                 # launches and waits without retaining GPU tensors or stacks.
-                profiler = torch.profiler.profile(
-                    activities=[torch.profiler.ProfilerActivity.CPU]
-                )
+                profiler = torch.profiler.profile(activities=[torch.profiler.ProfilerActivity.CPU])
                 profiler.start()
             elif completed <= profile_steps:
                 profiler.step()
@@ -98,9 +111,7 @@ def install():
                     profiler.stop()
                     profiler.export_chrome_trace(str(profile_dir / f"rank{rank}.json"))
                     (profile_dir / f"rank{rank}.txt").write_text(
-                        profiler.key_averages().table(
-                            sort_by="self_cpu_time_total", row_limit=80
-                        )
+                        profiler.key_averages().table(sort_by="self_cpu_time_total", row_limit=80)
                     )
                     profiler = None
             completed += 1
@@ -115,8 +126,8 @@ def install():
 
     if os.environ.get("BEVERIN_SINGLE_EPOCH", "0") == "1":
         import torch.distributed as dist
-        from speculators.train.trainer import root_logger
         from single_epoch import install as install_single_epoch
+        from speculators.train.trainer import root_logger
 
         def barrier(trainer):
             if trainer.is_distributed:
@@ -129,16 +140,22 @@ def install():
 
         install_numerical_guard(Trainer, torch)
 
-    print("BEVERIN_HOOKS " + json.dumps({
-        "reduce_dtype": reduce_dtype,
-        "segment_steps": segment_steps,
-        "empty_cache_on_save": os.environ.get("BEVERIN_EMPTY_CACHE_ON_SAVE", "0"),
-        "profile_steps": profile_steps,
-        "blas_backend": str(torch.backends.cuda.preferred_blas_library()),
-        "single_epoch": os.environ.get("BEVERIN_SINGLE_EPOCH", "0"),
-        "numerical_guard": os.environ.get("BEVERIN_NUMERICAL_GUARD", "0"),
-        "checkpoint_ring": os.environ.get("BEVERIN_CHECKPOINT_RING", "0"),
-        "rollback": os.environ.get("BEVERIN_ROLLBACK", "0"),
-        "fault_inject": os.environ.get("BEVERIN_FAULT_INJECT", "0"),
-        "alps": os.environ.get("BEVERIN_ALPS", "0"),
-    }), flush=True)
+    print(
+        "BEVERIN_HOOKS "
+        + json.dumps(
+            {
+                "reduce_dtype": reduce_dtype,
+                "segment_steps": segment_steps,
+                "empty_cache_on_save": os.environ.get("BEVERIN_EMPTY_CACHE_ON_SAVE", "0"),
+                "profile_steps": profile_steps,
+                "blas_backend": str(torch.backends.cuda.preferred_blas_library()),
+                "single_epoch": os.environ.get("BEVERIN_SINGLE_EPOCH", "0"),
+                "numerical_guard": os.environ.get("BEVERIN_NUMERICAL_GUARD", "0"),
+                "checkpoint_ring": os.environ.get("BEVERIN_CHECKPOINT_RING", "0"),
+                "rollback": os.environ.get("BEVERIN_ROLLBACK", "0"),
+                "fault_inject": os.environ.get("BEVERIN_FAULT_INJECT", "0"),
+                "alps": os.environ.get("BEVERIN_ALPS", "0"),
+            }
+        ),
+        flush=True,
+    )

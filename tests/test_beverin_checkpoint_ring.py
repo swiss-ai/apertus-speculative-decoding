@@ -1,17 +1,24 @@
 """CPU checks for verified checkpoint rotation and read-back."""
+
 import json
-import os
-from pathlib import Path
 import struct
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
-import torch
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "methods/dspark/beverin"))
 from checkpoint_layout import list_verified, promote, read_marker
-from checkpoint_ring import assign_by_size, verify_directory, verify_optimizer_file, verify_safetensors
+from checkpoint_ring import (
+    assign_by_size,
+    verify_directory,
+    verify_optimizer_file,
+    verify_safetensors,
+)
+
+torch = pytest.importorskip("torch")
 
 
 def write_safetensors(path, tensors):
@@ -20,7 +27,11 @@ def write_safetensors(path, tensors):
     offset = 0
     for name, tensor in tensors.items():
         blob = bytes(tensor.contiguous().view(torch.uint8).numpy())
-        header[name] = {"dtype": "F32", "shape": list(tensor.shape), "data_offsets": [offset, offset + len(blob)]}
+        header[name] = {
+            "dtype": "F32",
+            "shape": list(tensor.shape),
+            "data_offsets": [offset, offset + len(blob)],
+        }
         blobs.append(blob)
         offset += len(blob)
     payload = json.dumps(header).encode()
@@ -32,11 +43,17 @@ def write_safetensors(path, tensors):
 
 
 def marker(step):
-    return {"finite": True, "global_step": step, "epoch": 0, "local_step": step, "learning_rates": [0.001]}
+    return {
+        "finite": True,
+        "global_step": step,
+        "epoch": 0,
+        "local_step": step,
+        "learning_rates": [0.001],
+    }
 
 
 def staging(root, step, weights=b"ok"):
-    folder = root / ("staging-%d" % step)
+    folder = root / (f"staging-{step:d}")
     folder.mkdir()
     (folder / "model.safetensors").write_bytes(weights)
     (folder / "optimizer_state_dict.pt").write_bytes(b"opt")

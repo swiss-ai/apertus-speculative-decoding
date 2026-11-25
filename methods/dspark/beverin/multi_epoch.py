@@ -15,19 +15,24 @@ directory name, is wrong from the second epoch on:
   ``checkpoints/epochs/epoch-<N>/``, with that epoch's validation metrics
   written there every epoch, not only when the loss improves.
 """
+
 import json
 import os
 from pathlib import Path
 
 ARCHIVE_FILES = (
-    "model.safetensors", "config.json", "training_state.json",
-    "verified-finite.json", "train_command.txt",
+    "model.safetensors",
+    "config.json",
+    "training_state.json",
+    "verified-finite.json",
+    "train_command.txt",
 )
 
 
 def _rank0(trainer):
     try:
         import torch.distributed as dist
+
         if getattr(trainer, "is_distributed", False) and dist.is_initialized():
             return dist.get_rank() == 0
     except ImportError:
@@ -51,8 +56,8 @@ def archive_epoch(root, epoch):
     zero = root / "0"
     state = json.loads((zero / "training_state.json").read_text())
     if int(state["epoch"]) != epoch or int(state.get("local_step", 0)) != 0:
-        raise RuntimeError("checkpoints/0 is not the end of epoch %d: %s" % (epoch, state))
-    dest = root / "epochs" / ("epoch-%d" % epoch)
+        raise RuntimeError(f"checkpoints/0 is not the end of epoch {epoch:d}: {state!s}")
+    dest = root / "epochs" / (f"epoch-{epoch:d}")
     dest.mkdir(parents=True, exist_ok=True)
     for name in ARCHIVE_FILES:
         source = zero / name
@@ -81,10 +86,17 @@ def install(Trainer, Checkpointer, log=print):
         self._resume_global_step = global_step
         self.global_step = global_step
         if _rank0(self):
-            log("BEVERIN_MULTI_EPOCH_RESUME " + json.dumps({
-                "saved": state, "epoch": epoch, "skip_local_steps": skip,
-                "global_step": global_step,
-            }))
+            log(
+                "BEVERIN_MULTI_EPOCH_RESUME "
+                + json.dumps(
+                    {
+                        "saved": state,
+                        "epoch": epoch,
+                        "skip_local_steps": skip,
+                        "global_step": global_step,
+                    }
+                )
+            )
 
     Trainer.setup_trainer = setup_trainer
 
@@ -118,7 +130,7 @@ def install(Trainer, Checkpointer, log=print):
     def val_epoch(self, epoch):
         metrics = original_val(self, epoch)
         if metrics is not None and _rank0(self):
-            dest = Path(self.checkpointer.path) / "epochs" / ("epoch-%d" % epoch)
+            dest = Path(self.checkpointer.path) / "epochs" / (f"epoch-{epoch:d}")
             dest.mkdir(parents=True, exist_ok=True)
             (dest / "val_metrics.json").write_text(json.dumps(metrics))
             log("BEVERIN_EPOCH_VALIDATION " + json.dumps({"epoch": epoch, "metrics": metrics}))

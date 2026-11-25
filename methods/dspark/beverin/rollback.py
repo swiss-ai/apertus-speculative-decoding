@@ -11,6 +11,7 @@ Rules for one campaign:
 - after 2 numerical rollbacks an alert is recorded and nothing automatic is
   changed in the learning rate, batch, data, or optimizer.
 """
+
 import argparse
 import json
 import os
@@ -128,7 +129,9 @@ def _archive_failure(root, step):
     os.makedirs(base, exist_ok=True)
     folder = None
     for nonce in range(1000):
-        candidate = os.path.join(base, "failure-step-%s-%d-%d" % (step, int(time.time() * 1000), nonce))
+        candidate = os.path.join(
+            base, f"failure-step-{step!s}-{int(time.time() * 1000):d}-{nonce:d}"
+        )
         try:
             os.makedirs(candidate)
         except OSError:
@@ -213,29 +216,49 @@ def _numerical(root, ledger, token, text, job_id, left):
     occurrence = ledger["step_failures"][key]
     if occurrence >= 3:
         _archive_failure(root, step)
-        return _terminal(root, ledger, token, "third occurrence at step %s" % step,
-                         step=step, job_id=job_id)
+        return _terminal(
+            root, ledger, token, f"third occurrence at step {step}", step=step, job_id=job_id
+        )
     if int(ledger["numerical_rollbacks"]) >= NUMERICAL_LIMIT:
         _archive_failure(root, step)
-        return _terminal(root, ledger, token, "numerical rollback budget exhausted",
-                         step=step, job_id=job_id)
+        return _terminal(
+            root, ledger, token, "numerical rollback budget exhausted", step=step, job_id=job_id
+        )
     if _deadline(left):
         _archive_failure(root, step)
-        return _terminal(root, ledger, token, "no rollback within 30 minutes of the deadline",
-                         step=step, job_id=job_id)
+        return _terminal(
+            root,
+            ledger,
+            token,
+            "no rollback within 30 minutes of the deadline",
+            step=step,
+            job_id=job_id,
+        )
     verified = list_verified(root)
     candidates = [item for item in verified if item[0] < step]
     if not candidates:
         _archive_failure(root, step)
-        return _terminal(root, ledger, token, "no verified checkpoint before the failure",
-                         step=step, job_id=job_id)
+        return _terminal(
+            root,
+            ledger,
+            token,
+            "no verified checkpoint before the failure",
+            step=step,
+            job_id=job_id,
+        )
     if occurrence == 1:
         target = candidates[-1]
     else:
         if len(candidates) < 2:
             _archive_failure(root, step)
-            return _terminal(root, ledger, token, "no older verified copy for a repeated step",
-                             step=step, job_id=job_id)
+            return _terminal(
+                root,
+                ledger,
+                token,
+                "no older verified copy for a repeated step",
+                step=step,
+                job_id=job_id,
+            )
         target = candidates[-2]
     target_step = target[0]
     archived = _archive_failure(root, step)
@@ -256,8 +279,15 @@ def _numerical(root, ledger, token, text, job_id, left):
         "loss_ratio": LOSS_RATIO,
         "failure_step": step,
     }
-    event = _event("numerical-rollback", step=step, resume_step=target_step, occurrence=occurrence,
-                   job_id=job_id, evidence=archived, count=ledger["numerical_rollbacks"])
+    event = _event(
+        "numerical-rollback",
+        step=step,
+        resume_step=target_step,
+        occurrence=occurrence,
+        job_id=job_id,
+        evidence=archived,
+        count=ledger["numerical_rollbacks"],
+    )
     ledger["events"].append(event)
     if ledger["numerical_rollbacks"] == 2:
         alert = {
@@ -270,10 +300,18 @@ def _numerical(root, ledger, token, text, job_id, left):
         }
         ledger["alerts"].append(alert)
         print("BEVERIN_ROLLBACK_ALERT " + json.dumps(alert), flush=True)
-    return _finish(root, ledger, {
-        "action": "rollback", "reason": "numerical", "resume_step": target_step,
-        "failure_step": step, "clear_hidden_state_cache": True,
-    }, token)
+    return _finish(
+        root,
+        ledger,
+        {
+            "action": "rollback",
+            "reason": "numerical",
+            "resume_step": target_step,
+            "failure_step": step,
+            "clear_hidden_state_cache": True,
+        },
+        token,
+    )
 
 
 def _crash(root, ledger, token, job_id, left, return_code):
@@ -281,18 +319,42 @@ def _crash(root, ledger, token, job_id, left, return_code):
     used_job = int(ledger["crash_by_job"].get(job_key, 0))
     used = int(ledger["crash_rollbacks"])
     if used_job >= CRASH_PER_JOB:
-        return _terminal(root, ledger, token, "crash resume already used in this allocation",
-                         job_id=job_key, return_code=return_code)
+        return _terminal(
+            root,
+            ledger,
+            token,
+            "crash resume already used in this allocation",
+            job_id=job_key,
+            return_code=return_code,
+        )
     if used >= CRASH_PER_CAMPAIGN:
-        return _terminal(root, ledger, token, "crash resume budget exhausted",
-                         job_id=job_key, return_code=return_code)
+        return _terminal(
+            root,
+            ledger,
+            token,
+            "crash resume budget exhausted",
+            job_id=job_key,
+            return_code=return_code,
+        )
     if _deadline(left):
-        return _terminal(root, ledger, token, "no rollback within 30 minutes of the deadline",
-                         job_id=job_key, return_code=return_code)
+        return _terminal(
+            root,
+            ledger,
+            token,
+            "no rollback within 30 minutes of the deadline",
+            job_id=job_key,
+            return_code=return_code,
+        )
     verified = list_verified(root)
     if not verified:
-        return _terminal(root, ledger, token, "crash with no verified checkpoint",
-                         job_id=job_key, return_code=return_code)
+        return _terminal(
+            root,
+            ledger,
+            token,
+            "crash with no verified checkpoint",
+            job_id=job_key,
+            return_code=return_code,
+        )
     target_step = verified[-1][0]
     restore_step(root, target_step)
     marker = read_marker(os.path.join(root, "0"))
@@ -308,17 +370,30 @@ def _crash(root, ledger, token, job_id, left, return_code):
         "loss_ratio": LOSS_RATIO,
         "failure_step": None,
     }
-    ledger["events"].append(_event(
-        "crash-rollback", resume_step=target_step, job_id=job_key, return_code=return_code,
-        count=ledger["crash_rollbacks"]))
+    ledger["events"].append(
+        _event(
+            "crash-rollback",
+            resume_step=target_step,
+            job_id=job_key,
+            return_code=return_code,
+            count=ledger["crash_rollbacks"],
+        )
+    )
     rejected = os.path.join(root, "save-rejected.json")
     if os.path.exists(rejected):
         os.makedirs(os.path.join(root, "evidence"), exist_ok=True)
-        os.rename(rejected, os.path.join(root, "evidence", "save-rejected-%s.json" % job_key))
-    return _finish(root, ledger, {
-        "action": "rollback", "reason": "crash", "resume_step": target_step,
-        "clear_hidden_state_cache": True,
-    }, token)
+        os.rename(rejected, os.path.join(root, "evidence", f"save-rejected-{job_key}.json"))
+    return _finish(
+        root,
+        ledger,
+        {
+            "action": "rollback",
+            "reason": "crash",
+            "resume_step": target_step,
+            "clear_hidden_state_cache": True,
+        },
+        token,
+    )
 
 
 def prepare(root, node_rank, token, log_path="", job_id="local", stop_at=0):
@@ -378,11 +453,15 @@ def _cli():
     wait_parser.add_argument("--timeout", type=float, default=600)
     args = parser.parse_args()
     if args.command == "prepare":
-        result = prepare(args.checkpoints, args.node_rank, args.token, args.log, args.job_id, args.stop_at)
+        result = prepare(
+            args.checkpoints, args.node_rank, args.token, args.log, args.job_id, args.stop_at
+        )
         print(("PREPARE_OK " if result.get("ok") else "PREPARE_REFUSED ") + json.dumps(result))
         raise SystemExit(0 if result.get("ok") else 66)
     if args.command == "decide":
-        result = decide(args.checkpoints, args.return_code, args.log, args.job_id, args.stop_at, args.token)
+        result = decide(
+            args.checkpoints, args.return_code, args.log, args.job_id, args.stop_at, args.token
+        )
         raise SystemExit(0 if result.get("action") != "terminal" else 65)
     if args.command == "wait-action":
         result = wait_action(args.checkpoints, args.token, args.timeout)

@@ -1,25 +1,30 @@
 """CPU checks for rollback decisions, continuity and the fault-injection gate."""
+
 import json
 import os
-from pathlib import Path
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-import torch
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "methods/dspark/beverin"))
 from fault_campaign import demonstrate
 from fault_inject import injection_allowed, install
 from numerical_guard import Guard
-from rollback import decide, load_ledger
+from rollback import decide
+
+torch = pytest.importorskip("torch")
 
 
 class RollbackTests(unittest.TestCase):
     def test_fault_campaign_rolls_back_then_stops_and_keeps_zero(self):
-        with tempfile.TemporaryDirectory() as temp, patch.dict(os.environ, {
-                "RUN_ID": "faultinject-unit", "NODES": "1"}):
+        with (
+            tempfile.TemporaryDirectory() as temp,
+            patch.dict(os.environ, {"RUN_ID": "faultinject-unit", "NODES": "1"}),
+        ):
             os.environ.pop("SLURM_JOB_NUM_NODES", None)
             os.environ.pop("SLURM_NNODES", None)
             report = demonstrate(temp, str(Path(temp) / "train.log"))
@@ -34,11 +39,24 @@ class RollbackTests(unittest.TestCase):
             def _optimizers_step(self):
                 return None
 
-        with patch.dict(os.environ, {"BEVERIN_FAULT_INJECT": "1", "RUN_ID": "faultinject-x",
-                                      "SLURM_JOB_NUM_NODES": "32", "NODES": "1"}):
-            with self.assertRaises(RuntimeError):
-                install(Trainer, torch)
-        with patch.dict(os.environ, {"BEVERIN_FAULT_INJECT": "1", "RUN_ID": "opb-real", "NODES": "1"}, clear=False):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "BEVERIN_FAULT_INJECT": "1",
+                    "RUN_ID": "faultinject-x",
+                    "SLURM_JOB_NUM_NODES": "32",
+                    "NODES": "1",
+                },
+            ),
+            self.assertRaises(RuntimeError),
+        ):
+            install(Trainer, torch)
+        with patch.dict(
+            os.environ,
+            {"BEVERIN_FAULT_INJECT": "1", "RUN_ID": "opb-real", "NODES": "1"},
+            clear=False,
+        ):
             os.environ.pop("SLURM_JOB_NUM_NODES", None)
             with self.assertRaises(RuntimeError):
                 install(Trainer, torch)
@@ -49,8 +67,8 @@ class RollbackTests(unittest.TestCase):
     def test_deadline_and_crash_budgets(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            from checkpoint_layout import promote
             from fault_campaign import _write_verified
+
             _write_verified(str(root), 10)
             log = root / "train.log"
             log.write_text("train/loss=0.4\n")
@@ -62,7 +80,6 @@ class RollbackTests(unittest.TestCase):
             second = decide(str(root), 1, str(log), "job", 0, "crash-2")
             self.assertEqual(second["action"], "terminal")
             self.assertIn("allocation", second["reason"])
-            promote  # imported so a missing helper fails this test loudly
 
     def test_optimizer_cpu_step_and_continuity_loss(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -83,18 +100,23 @@ class RollbackTests(unittest.TestCase):
             names = [name for name, _value in guard.optimizer_state()]
             self.assertTrue(any(name.endswith("/step") for name in names))
             self.assertTrue(any("exp_avg" in name for name in names))
-            (root / "rollback-ledger.json").write_text(json.dumps({
-                "pending_continuity": {
-                    "expected_global_step": 10,
-                    "learning_rates": [1e-3],
-                    "pre_median_loss": 0.2,
-                    "window": 2,
-                    "loss_ratio": 1.3,
-                }
-            }))
+            (root / "rollback-ledger.json").write_text(
+                json.dumps(
+                    {
+                        "pending_continuity": {
+                            "expected_global_step": 10,
+                            "learning_rates": [1e-3],
+                            "pre_median_loss": 0.2,
+                            "window": 2,
+                            "loss_ratio": 1.3,
+                        }
+                    }
+                )
+            )
             guard.load_continuity()
             guard.observe_continuity((None, torch.tensor(0.5), {}))
             from numerical_guard import NumericalFailure
+
             with self.assertRaises(NumericalFailure):
                 guard.observe_continuity((None, torch.tensor(0.5), {}))
             self.assertTrue((root / "numerical-failure.json").is_file())

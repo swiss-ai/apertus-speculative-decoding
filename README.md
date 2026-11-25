@@ -130,6 +130,7 @@ serving/             plain-target launcher, environment resolution, vLLM overlay
 └── draft_kv/        opt-in DSpark sparse-cache runtime, installer and GPU checks
 methods/
 ├── draft_model/     8B draft, 70B target
+├── dspark/          DSpark training, scheduling and Beverin launchers
 ├── ngram/           prompt lookup
 ├── tree/            offline tree / multi-drafter candidate builders (analysis only)
 └── eagle/           EAGLE 3.1 / EAGLE-3: trainer package, configs/<stage>/, launchers, TorchSpec patches
@@ -139,6 +140,8 @@ experiments/         one-off campaigns: smoke-70b, round-cost-70b, system-8b, dr
 workloads/           corpora; workloads/<stage>/ holds manifests (restricted text stays on the cluster)
 results/<stage>/     raw cells and reports, by target (8b, 70b) and then method
 ```
+
+The [results index](results/README.md) lists run records and links to the experiment write-ups.
 
 ## Setup
 

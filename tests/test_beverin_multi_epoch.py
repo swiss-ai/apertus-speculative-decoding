@@ -1,10 +1,10 @@
 """CPU checks for multi-epoch resume and per-epoch archives on the checkpoint ring."""
+
 import json
-from pathlib import Path
 import sys
 import tempfile
-from types import SimpleNamespace
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "methods/dspark/beverin"))
 from multi_epoch import archive_epoch, install, resume_point
@@ -16,13 +16,16 @@ def ring_save(root, epoch, local_step, global_step, weights):
     """What the ring leaves behind: the newest save in root/0, the old one renamed away."""
     zero = root / "0"
     if zero.exists():
-        zero.rename(root / ("old-%d" % global_step))
+        zero.rename(root / (f"old-{global_step:d}"))
     zero.mkdir(parents=True)
     (zero / "model.safetensors").write_text(weights)
     (zero / "config.json").write_text("{}")
-    (zero / "training_state.json").write_text(json.dumps(
-        {"epoch": epoch, "local_step": local_step, "global_step": global_step}))
-    (zero / "verified-finite.json").write_text(json.dumps({"finite": True, "global_step": global_step}))
+    (zero / "training_state.json").write_text(
+        json.dumps({"epoch": epoch, "local_step": local_step, "global_step": global_step})
+    )
+    (zero / "verified-finite.json").write_text(
+        json.dumps({"finite": True, "global_step": global_step})
+    )
 
 
 class Checkpointer:
@@ -72,8 +75,13 @@ class Trainer:
                 raise SystemExit(0)
 
     def maybe_save_checkpoint(self, epoch, local_step=0):
-        ring_save(self.checkpointer.path, epoch, local_step, self.global_step,
-                  "weights-at-%d" % self.global_step)
+        ring_save(
+            self.checkpointer.path,
+            epoch,
+            local_step,
+            self.global_step,
+            f"weights-at-{self.global_step:d}",
+        )
 
     def val_epoch(self, epoch):
         return {"loss_epoch": 1.0 / (epoch + 1), "eal_epoch": 4.0 + epoch}
@@ -130,11 +138,13 @@ class MultiEpochTest(unittest.TestCase):
     def test_epoch_archives_and_no_stray_epoch_directories(self):
         self.trainer(num_epochs=3).run()
         for epoch in range(3):
-            folder = self.root / "epochs" / ("epoch-%d" % epoch)
-            self.assertEqual((folder / "model.safetensors").read_text(),
-                             "weights-at-%d" % ((epoch + 1) * STEPS))
-            self.assertEqual(json.loads((folder / "val_metrics.json").read_text())["eal_epoch"],
-                             4.0 + epoch)
+            folder = self.root / "epochs" / (f"epoch-{epoch:d}")
+            self.assertEqual(
+                (folder / "model.safetensors").read_text(), f"weights-at-{(epoch + 1) * STEPS:d}"
+            )
+            self.assertEqual(
+                json.loads((folder / "val_metrics.json").read_text())["eal_epoch"], 4.0 + epoch
+            )
         integer_dirs = sorted(p.name for p in self.root.iterdir() if p.name.isdigit())
         self.assertEqual(integer_dirs, ["0"])
         self.assertEqual(Path(str((self.root / "checkpoint_best").readlink())), Path("0"))

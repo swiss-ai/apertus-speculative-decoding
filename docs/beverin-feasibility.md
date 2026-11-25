@@ -708,6 +708,13 @@ the full state dict on rank 0.
 
 ## Files
 
+The [Beverin submitter](../methods/dspark/beverin/submit-train.sh) starts the
+[container wrapper](../methods/dspark/beverin/train-node.sh), which calls the
+[Beverin training driver](../methods/dspark/beverin/train-ranks.sh). The
+[shared Clariden driver](../methods/dspark/train/train-node.sh) supports the
+per-rank extraction layout used by the 8B recipes. Each run record gives the
+original commit and launcher for reproducing that deployment.
+
 - `methods/dspark/beverin/`: `apertus15_text/` (plugin) + dist-info,
   `apertus15_run.py`, `env-vllm023.toml`, `env-vllm031.toml`, `env.sh`,
   `import-image.sbatch`, `smoke.sbatch` (+ `serve-smoke.sh`,

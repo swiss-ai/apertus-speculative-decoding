@@ -31,8 +31,16 @@ QUOTAS = {
     "summarization": 30000,
 }
 PRIORITY = (
-    "tool", "multilingual", "instruction", "chat", "summarization",
-    "medical", "science", "safety", "math", "code",
+    "tool",
+    "multilingual",
+    "instruction",
+    "chat",
+    "summarization",
+    "medical",
+    "science",
+    "safety",
+    "math",
+    "code",
 )
 PROBE_PER_DOMAIN = 1000
 PROMPT_TOKEN_LIMIT = 4096
@@ -42,14 +50,26 @@ SUMMARY_TOKEN_LIMIT = 3500
 def classify(source):
     name = source or ""
     lower = name.lower()
-    if (name in TOOL or "toucan" in lower or "glaive" in lower or "envscaler" in lower
-            or "openseeker" in lower or "jupyter-agent" in lower):
+    if (
+        name in TOOL
+        or "toucan" in lower
+        or "glaive" in lower
+        or "envscaler" in lower
+        or "openseeker" in lower
+        or "jupyter-agent" in lower
+    ):
         return "tool"
-    if (name in MULTILINGUAL_ALL or name in MULTILINGUAL_FILL or "romansh" in lower
-            or "swiss-german" in lower or name == "africa-sft" or "euroblock" in lower
-            or name == "wikipedia"):
+    if (
+        name in MULTILINGUAL_ALL
+        or name in MULTILINGUAL_FILL
+        or "romansh" in lower
+        or "swiss-german" in lower
+        or name == "africa-sft"
+        or "euroblock" in lower
+        or name == "wikipedia"
+    ):
         return "multilingual"
-    if (name.startswith("dolci-if") or name.startswith("if-") or "multiturnif" in lower):
+    if name.startswith("dolci-if") or name.startswith("if-") or "multiturnif" in lower:
         return "instruction"
     if "smoltalk" in lower:
         return "chat"
@@ -84,7 +104,12 @@ def _fill(sources, quota):
 def _fill_multilingual(sources, quota):
     chosen = {}
     for name, count in sources.items():
-        if name in MULTILINGUAL_ALL or "romansh" in name.lower() or "swiss-german" in name.lower() or name == "africa-sft":
+        if (
+            name in MULTILINGUAL_ALL
+            or "romansh" in name.lower()
+            or "swiss-german" in name.lower()
+            or name == "africa-sft"
+        ):
             chosen[name] = int(count)
     remain = max(0, quota - sum(chosen.values()))
     for name in MULTILINGUAL_FILL:

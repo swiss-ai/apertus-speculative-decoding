@@ -1,4 +1,5 @@
 """Tiny two-rank ROCm/FSDP preflight; launch with torchrun, no target model."""
+
 import json
 import os
 from pathlib import Path
@@ -6,9 +7,8 @@ from types import SimpleNamespace
 
 import torch
 import torch.distributed as dist
-from torch.distributed.fsdp import fully_shard, MixedPrecisionPolicy
-
-from numerical_guard import install, NumericalFailure
+from numerical_guard import NumericalFailure, install
+from torch.distributed.fsdp import MixedPrecisionPolicy, fully_shard
 
 
 class BadBackward(torch.autograd.Function):
@@ -44,7 +44,7 @@ class Trainer:
         self.setup_optimizer()
 
     def setup_optimizer(self):
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=.01)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01)
         self.optimizers = [self.optimizer]
 
     def setup_model(self):
@@ -61,7 +61,7 @@ class Trainer:
     def train_epoch(self, x):
         _, loss, _ = self.model(x=x)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.)
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
         self._optimizers_step()
 
 
@@ -87,8 +87,11 @@ def main():
         assert trainer.steps == (1 if mode == "finite" else 0)
         dist.barrier()
         if trainer.rank == 0:
-            print("BEVERIN_GUARD_PROBE_PASS " + json.dumps(
-                {"mode": mode, "torch": torch.__version__, "hip": torch.version.hip}), flush=True)
+            print(
+                "BEVERIN_GUARD_PROBE_PASS "
+                + json.dumps({"mode": mode, "torch": torch.__version__, "hip": torch.version.hip}),
+                flush=True,
+            )
         del trainer
         torch.cuda.empty_cache()
     dist.destroy_process_group()

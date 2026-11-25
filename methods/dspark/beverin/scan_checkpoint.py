@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Full finiteness scan of one saved checkpoint. Run inside the compute container."""
+
 import argparse
 import hashlib
 import json
@@ -38,7 +39,12 @@ def main():
     if args.hash:
         report["sha256"] = {
             name: sha256(args.checkpoint / name)
-            for name in ("model.safetensors", "optimizer_state_dict.pt", "config.json", "training_state.json")
+            for name in (
+                "model.safetensors",
+                "optimizer_state_dict.pt",
+                "config.json",
+                "training_state.json",
+            )
             if (args.checkpoint / name).is_file()
         }
     marker = args.checkpoint / "verified-finite.json"

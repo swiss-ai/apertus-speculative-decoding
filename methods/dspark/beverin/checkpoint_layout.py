@@ -5,6 +5,7 @@ Only ``checkpoints/0`` is an integer name. Older verified copies live in
 ``verified/step-<N>`` and model-only milestones in ``milestones/step-<N>``.
 Nothing in the steady-state rotation is copied.
 """
+
 import json
 import os
 import shutil
@@ -74,7 +75,7 @@ def list_verified(root):
 def _reject_name(root):
     folder = os.path.join(root, "rejected")
     os.makedirs(folder, exist_ok=True)
-    return os.path.join(folder, "unverified-%d-%d" % (int(time.time()), os.getpid()))
+    return os.path.join(folder, f"unverified-{int(time.time()):d}-{os.getpid():d}")
 
 
 def promote(root, staging, keep=2, milestone=512):
@@ -96,9 +97,9 @@ def promote(root, staging, keep=2, milestone=512):
     if os.path.lexists(zero):
         old = read_marker(zero) if os.path.isdir(zero) and not os.path.islink(zero) else None
         if old is not None:
-            dest = os.path.join(verified, "step-%d" % old["global_step"])
+            dest = os.path.join(verified, f"step-{old['global_step']:d}")
             if os.path.lexists(dest):
-                raise RuntimeError("verified destination already exists: %s" % dest)
+                raise RuntimeError(f"verified destination already exists: {dest}")
             os.rename(zero, dest)
         else:
             os.rename(zero, _reject_name(root))
@@ -125,7 +126,7 @@ def prune(root, keep=2, milestone=512):
 
 
 def _to_milestone(root, path, step):
-    dest = os.path.join(root, "milestones", "step-%d" % step)
+    dest = os.path.join(root, "milestones", f"step-{step:d}")
     if os.path.lexists(dest):
         shutil.rmtree(path)
         return
@@ -148,9 +149,9 @@ def retire(root, path):
         raise RuntimeError("cannot retire an unverified directory")
     dest_dir = os.path.join(root, "retired")
     os.makedirs(dest_dir, exist_ok=True)
-    dest = os.path.join(dest_dir, "step-%d" % marker["global_step"])
+    dest = os.path.join(dest_dir, f"step-{marker['global_step']:d}")
     if os.path.lexists(dest):
-        dest = os.path.join(dest_dir, "step-%d-%d" % (marker["global_step"], os.getpid()))
+        dest = os.path.join(dest_dir, f"step-{marker['global_step']:d}-{os.getpid():d}")
     os.rename(path, dest)
     return dest
 
@@ -160,7 +161,7 @@ def restore_step(root, step):
     found = list_verified(root)
     match = [item for item in found if item[0] == step]
     if not match:
-        raise RuntimeError("no verified checkpoint at step %s" % step)
+        raise RuntimeError(f"no verified checkpoint at step {step}")
     _step, path, _marker = match[-1]
     zero = os.path.join(root, "0")
     if os.path.abspath(path) == os.path.abspath(zero):
@@ -191,7 +192,10 @@ def prepare_for_start(root):
         if zero_exists and _has_weight(zero) and zero_marker is None:
             return {"ok": False, "reason": "unverified checkpoint and no verified copy"}
         if os.path.islink(zero):
-            return {"ok": False, "reason": "checkpoint 0 is a symlink and would be ignored on resume"}
+            return {
+                "ok": False,
+                "reason": "checkpoint 0 is a symlink and would be ignored on resume",
+            }
         return {"ok": True, "reason": "fresh", "step": None}
     newest_step, newest_path, _marker = verified[-1]
     if zero_marker is not None and zero_marker["global_step"] == newest_step:
@@ -199,14 +203,18 @@ def prepare_for_start(root):
     try:
         restore_step(root, newest_step)
     except OSError as exc:
-        return {"ok": False, "reason": "restore failed: %s" % exc, "step": newest_step}
+        return {"ok": False, "reason": f"restore failed: {exc}", "step": newest_step}
     restored = read_marker(os.path.join(root, "0"))
     if restored is None or restored["global_step"] != newest_step:
-        return {"ok": False, "reason": "restore did not produce the newest verified checkpoint",
-                "step": newest_step}
+        return {
+            "ok": False,
+            "reason": "restore did not produce the newest verified checkpoint",
+            "step": newest_step,
+        }
     return {"ok": True, "reason": "restored", "step": newest_step, "from": newest_path}
 
 
 def _has_weight(directory):
     return os.path.isfile(os.path.join(directory, "model.safetensors")) or os.path.isfile(
-        os.path.join(directory, "optimizer_state_dict.pt"))
+        os.path.join(directory, "optimizer_state_dict.pt")
+    )

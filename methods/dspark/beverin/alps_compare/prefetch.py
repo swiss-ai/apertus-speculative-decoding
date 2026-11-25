@@ -3,25 +3,29 @@
 The compressed OCI checksum is verified before reproducing Enroot's gzip to
 zstd cache conversion. Existing cache entries are never replaced.
 """
-from concurrent.futures import ThreadPoolExecutor
+
+import contextlib
 import hashlib
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 
 def prefetch(manifest_path, parts_root, cache):
     repository = "eth-cscs/alps-extended-images/vllm-rocm"
-    with urllib.request.urlopen("https://ghcr.io/token?scope=repository:" + repository + ":pull&service=ghcr.io", timeout=60) as response:
+    with urllib.request.urlopen(
+        "https://ghcr.io/token?scope=repository:" + repository + ":pull&service=ghcr.io", timeout=60
+    ) as response:
         token = json.load(response)["token"]
     manifest = json.loads(manifest_path.read_text())
     cache.mkdir(parents=True, exist_ok=True)
     for layer in manifest["layers"]:
-        if layer["size"] < 1024 ** 3:
+        if layer["size"] < 1024**3:
             continue
         digest = layer["digest"].split(":", 1)[1]
         destination = cache / digest
@@ -32,38 +36,45 @@ def prefetch(manifest_path, parts_root, cache):
         parts = parts_root / digest
         parts.mkdir(parents=True, exist_ok=True)
         url = "https://ghcr.io/v2/" + repository + "/blobs/sha256:" + digest
-        chunk_size = 256 * 1024 ** 2
-        ranges = [(i, start, min(start + chunk_size, layer["size"]) - 1)
-                  for i, start in enumerate(range(0, layer["size"], chunk_size))]
+        chunk_size = 256 * 1024**2
+        ranges = [
+            (i, start, min(start + chunk_size, layer["size"]) - 1)
+            for i, start in enumerate(range(0, layer["size"], chunk_size))
+        ]
 
-        def download(item):
+        count = len(ranges)
+
+        def download(item, *, parts=parts, url=url, size=layer["size"], count=count):
             index, start, end = item
-            path = parts / ("{:04d}.gz-part".format(index))
+            path = parts / (f"{index:04d}.gz-part")
             expected = end - start + 1
             if path.exists() and path.stat().st_size == expected:
                 return path
             for attempt in range(4):
                 temporary = path.with_suffix(".partial")
                 try:
-                    request = urllib.request.Request(url, headers={
-                        "Authorization": "Bearer " + token,
-                        "Range": "bytes={}-{}".format(start, end),
-                    })
+                    request = urllib.request.Request(
+                        url,
+                        headers={
+                            "Authorization": "Bearer " + token,
+                            "Range": f"bytes={start}-{end}",
+                        },
+                    )
                     with urllib.request.urlopen(request, timeout=60) as response:
                         assert response.status == 206, response.status
-                        assert response.headers["Content-Range"] == "bytes {}-{}/{}".format(start, end, layer["size"])
+                        assert response.headers["Content-Range"] == f"bytes {start}-{end}/{size}"
                         with temporary.open("wb") as output:
                             while True:
-                                block = response.read(1024 ** 2)
+                                block = response.read(1024**2)
                                 if not block:
                                     break
                                 output.write(block)
                     assert temporary.stat().st_size == expected
                     temporary.rename(path)
-                    print("Downloaded piece {}/{}".format(index + 1, len(ranges)), flush=True)
+                    print(f"Downloaded piece {index + 1}/{count}", flush=True)
                     return path
                 except Exception as error:
-                    print("Retry piece {}: {}".format(index + 1, type(error).__name__), flush=True)
+                    print(f"Retry piece {index + 1}: {type(error).__name__}", flush=True)
                     if attempt == 3:
                         raise
                     time.sleep(attempt + 1)
@@ -73,18 +84,20 @@ def prefetch(manifest_path, parts_root, cache):
         checksum = hashlib.sha256()
         for path in downloaded:
             with path.open("rb") as source:
-                for block in iter(lambda: source.read(4 * 1024 ** 2), b""):
+                for block in iter(lambda: source.read(4 * 1024**2), b""):
                     checksum.update(block)
         assert checksum.hexdigest() == digest, "OCI layer checksum mismatch"
         print("Verified compressed layer SHA-256: " + digest, flush=True)
         temporary = cache / (digest + ".prefetch-" + str(os.getpid()))
         unzip = subprocess.Popen(["pigz", "-dc"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        compress = subprocess.Popen(["zstd", "-T8", "-q", "-1", "-o", str(temporary)], stdin=unzip.stdout)
+        compress = subprocess.Popen(
+            ["zstd", "-T8", "-q", "-1", "-o", str(temporary)], stdin=unzip.stdout
+        )
         unzip.stdout.close()
         try:
             for path in downloaded:
                 with path.open("rb") as source:
-                    for block in iter(lambda: source.read(4 * 1024 ** 2), b""):
+                    for block in iter(lambda: source.read(4 * 1024**2), b""):
                         unzip.stdin.write(block)
         finally:
             unzip.stdin.close()
@@ -92,10 +105,8 @@ def prefetch(manifest_path, parts_root, cache):
         compress_rc = compress.wait()
         assert unzip_rc == 0 and compress_rc == 0, (unzip_rc, compress_rc)
         os.chmod(str(temporary), 0o640)
-        try:
+        with contextlib.suppress(FileExistsError):
             os.link(str(temporary), str(destination))
-        except FileExistsError:
-            pass
         temporary.unlink()
         print("Cached verified layer: " + digest, flush=True)
 

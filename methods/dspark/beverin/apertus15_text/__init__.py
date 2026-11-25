@@ -20,16 +20,17 @@ Loaded via the vllm.general_plugins entry point in the dist-info next to this
 package (vLLM loads general plugins in every engine and worker process).
 """
 
+from contextlib import suppress
+
 
 def register_config() -> None:
     from transformers import AutoConfig
 
     from .config import Apertus1p5Config
 
-    try:
+    # A transformers build that knows Apertus 1.5 may have registered it already.
+    with suppress(ValueError):
         AutoConfig.register("apertus1p5", Apertus1p5Config)
-    except ValueError:
-        pass  # already registered (e.g. a transformers that knows Apertus 1.5)
 
 
 def register() -> None:

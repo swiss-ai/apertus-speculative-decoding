@@ -1,35 +1,44 @@
 """CPU checks for one-epoch completion, validation recovery and continuation audits."""
+
 import json
 import logging
 import os
-from pathlib import Path
 import sys
 import tempfile
-from types import SimpleNamespace
 import unittest
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "methods/dspark/beverin"))
 from audit_train import audit
-from single_epoch import install, read_completion, validated_artifacts, write_completion
+from single_epoch import install, read_completion, validated_artifacts
 
 
 def checkpoint(root, step=4, local=0):
     folder = root / "0"
     folder.mkdir(parents=True, exist_ok=True)
-    for name in ("model.safetensors", "optimizer_state_dict.pt", "scheduler_state_dict.pt", "config.json"):
+    for name in (
+        "model.safetensors",
+        "optimizer_state_dict.pt",
+        "scheduler_state_dict.pt",
+        "config.json",
+    ):
         (folder / name).write_text("preserved-" + name)
-    (folder / "training_state.json").write_text(json.dumps(
-        {"epoch": 0, "local_step": local, "global_step": step}))
-    (folder / "verified-finite.json").write_text(json.dumps(
-        {"finite": True, "global_step": step, "epoch": 0, "local_step": local}))
+    (folder / "training_state.json").write_text(
+        json.dumps({"epoch": 0, "local_step": local, "global_step": step})
+    )
+    (folder / "verified-finite.json").write_text(
+        json.dumps({"finite": True, "global_step": step, "epoch": 0, "local_step": local})
+    )
 
 
 def trainer_type():
     class StubTrainer:
         def __init__(self, root, fail_val=False, interrupted=False):
-            self.checkpointer = SimpleNamespace(path=root,
-                previous_epoch=0 if (root / "0/training_state.json").exists() else -1)
+            self.checkpointer = SimpleNamespace(
+                path=root, previous_epoch=0 if (root / "0/training_state.json").exists() else -1
+            )
             self.config = SimpleNamespace(num_epochs=1, max_steps=None)
             self.train_loader, self.val_loader = list(range(4)), [1, 2]
             self.rank, self.is_distributed = 0, False
@@ -56,7 +65,7 @@ def trainer_type():
             self.calls.append("val")
             if self.fail_val:
                 raise RuntimeError("validation failed")
-            return {"loss_epoch": .5, "eal_epoch": 2.5}
+            return {"loss_epoch": 0.5, "eal_epoch": 2.5}
 
         def run_training(self):
             if self.interrupted:
@@ -76,11 +85,16 @@ class SingleEpochTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name) / "checkpoints"
         self.root.mkdir()
-        self.environment = patch.dict(os.environ, {
-            "BEVERIN_SINGLE_EPOCH": "1", "BEVERIN_EXPECTED_EPOCH_STEPS": "4",
-            "BEVERIN_SEGMENT_STEPS": "0", "BEVERIN_PILOT_RESUME": "0",
-            "BEVERIN_PROFILE_STEPS": "0",
-        })
+        self.environment = patch.dict(
+            os.environ,
+            {
+                "BEVERIN_SINGLE_EPOCH": "1",
+                "BEVERIN_EXPECTED_EPOCH_STEPS": "4",
+                "BEVERIN_SEGMENT_STEPS": "0",
+                "BEVERIN_PILOT_RESUME": "0",
+                "BEVERIN_PROFILE_STEPS": "0",
+            },
+        )
         self.environment.start()
 
     def tearDown(self):
@@ -150,9 +164,11 @@ class SingleEpochTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             trainer.run_training()
         trainer.config.num_epochs = 1
-        with patch.dict(os.environ, {"BEVERIN_SEGMENT_STEPS": "100"}):
-            with self.assertRaises(ValueError):
-                trainer.run_training()
+        with (
+            patch.dict(os.environ, {"BEVERIN_SEGMENT_STEPS": "100"}),
+            self.assertRaises(ValueError),
+        ):
+            trainer.run_training()
         self.assertEqual(trainer.calls, [])
 
     def test_audit_allows_only_authenticated_no_progress_paths(self):
@@ -168,7 +184,8 @@ class SingleEpochTests(unittest.TestCase):
         self.assertEqual(audit(work, "run", "1", "finish", completion_skip=True), 0)
         self.assertEqual(audit(work, "run", "1", "finish"), 1)
         (run / "logs/train-1-node0.log").write_text(
-            "Resuming training on epoch 1.\nBEVERIN_VALIDATION_ONLY: resumed validation\n")
+            "Resuming training on epoch 1.\nBEVERIN_VALIDATION_ONLY: resumed validation\n"
+        )
         self.assertEqual(audit(work, "run", "1", "finish"), 0)
 
 

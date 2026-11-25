@@ -5,10 +5,10 @@ Epoch-1 training data is not read for rewriting and is not reshuffled. This
 script only reads the open-perfectblend prompts to drop duplicates, and writes
 a new directory.
 """
+
 import argparse
 import hashlib
 import json
-import os
 import random
 import re
 import sys
@@ -17,7 +17,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from dedupe import BoundedIndex
-from quotas import PRIORITY, PROBE_PER_DOMAIN, PROMPT_TOKEN_LIMIT, SUMMARY_TOKEN_LIMIT, allocate, classify
+from quotas import (
+    PRIORITY,
+    PROBE_PER_DOMAIN,
+    PROMPT_TOKEN_LIMIT,
+    SUMMARY_TOKEN_LIMIT,
+    allocate,
+    classify,
+)
 
 
 def user_text(value):
@@ -68,7 +75,7 @@ def heartbeat(output, message):
 
 def load_opb(path, index, limit=None, output=None):
     added = 0
-    with open(path, "r", encoding="utf-8", errors="replace") as handle:
+    with open(path, encoding="utf-8", errors="replace") as handle:
         for line in handle:
             if limit is not None and added >= limit:
                 break
@@ -82,8 +89,8 @@ def load_opb(path, index, limit=None, output=None):
             index.add(text, row.get("primary_id") or row.get("id") or added)
             added += 1
             if added % 100000 == 0:
-                heartbeat(output, "opb indexed %d" % added)
-    heartbeat(output, "opb indexed %d done" % added)
+                heartbeat(output, f"opb indexed {added:d}")
+    heartbeat(output, f"opb indexed {added:d} done")
     return added
 
 
@@ -95,12 +102,12 @@ def token_count(tokenizer, text):
 
 def iter_parquet(directory):
     import pyarrow.parquet as pq
+
     for path in sorted(Path(directory).rglob("*.parquet")):
-        print("parquet %s" % path, flush=True)
+        print(f"parquet {path}", flush=True)
         table = pq.ParquetFile(path)
         for batch in table.iter_batches(batch_size=1024):
-            for row in batch.to_pylist():
-                yield row
+            yield from batch.to_pylist()
 
 
 def reservoir(path, plan, seed, output=None):
@@ -112,7 +119,7 @@ def reservoir(path, plan, seed, output=None):
     for row in iter_parquet(path):
         scanned += 1
         if scanned % 200000 == 0:
-            heartbeat(output, "reservoir scanned %d" % scanned)
+            heartbeat(output, f"reservoir scanned {scanned:d}")
         source = row_source(row)
         domain = classify(source)
         quota = targets.get(domain, {}).get(source)
@@ -123,22 +130,26 @@ def reservoir(path, plan, seed, output=None):
             continue
         bucket = kept[domain][source]
         seen[domain][source] += 1
-        item = {"source": source, "domain": domain, "prompt": text,
-                "id": str(row.get("id") or row.get("conversation_id") or seen[domain][source])}
+        item = {
+            "source": source,
+            "domain": domain,
+            "prompt": text,
+            "id": str(row.get("id") or row.get("conversation_id") or seen[domain][source]),
+        }
         if len(bucket) < quota:
             bucket.append(item)
         else:
             slot = rng.randrange(seen[domain][source])
             if slot < quota:
                 bucket[slot] = item
-    heartbeat(output, "reservoir done scanned %d" % scanned)
+    heartbeat(output, f"reservoir done scanned {scanned:d}")
     return kept
 
 
 def _load_jsonl_prompts(paths, index, prefix):
     added = 0
     for path in paths:
-        with open(str(path), "r", encoding="utf-8", errors="replace") as handle:
+        with open(str(path), encoding="utf-8", errors="replace") as handle:
             for line in handle:
                 try:
                     row = json.loads(line)
@@ -146,7 +157,7 @@ def _load_jsonl_prompts(paths, index, prefix):
                     continue
                 text = row_prompt(row) or user_text(row.get("question") or row.get("prompt") or "")
                 if text.strip():
-                    index.add(text, "%s-%d" % (prefix, added))
+                    index.add(text, f"{prefix!s}-{added:d}")
                     added += 1
     return added
 
@@ -157,14 +168,18 @@ def _finepdf_dirs(root):
         return [root]
     if not root.is_dir():
         return []
-    return [child for child in sorted(root.iterdir()) if child.is_dir() and "finepdf" in child.name.lower()]
+    return [
+        child
+        for child in sorted(root.iterdir())
+        if child.is_dir() and "finepdf" in child.name.lower()
+    ]
 
 
 def load_finepdfs(root, limit_rows):
     rows = []
     languages = ("eng_Latn", "deu_Latn", "fra_Latn", "ita_Latn")
     for base in _finepdf_dirs(root):
-        print("finepdf %s" % base, flush=True)
+        print(f"finepdf {base}", flush=True)
         for path in base.rglob("*"):
             if len(rows) >= limit_rows:
                 return {"finepdfs-edu": rows}
@@ -181,21 +196,27 @@ def load_finepdfs(root, limit_rows):
                     return {"finepdfs-edu": rows}
                 text = row_prompt(row)
                 if text.strip():
-                    rows.append({"source": "finepdfs-edu", "domain": "summarization", "prompt": text,
-                                 "id": "pdf-%d" % len(rows)})
+                    rows.append(
+                        {
+                            "source": "finepdfs-edu",
+                            "domain": "summarization",
+                            "prompt": text,
+                            "id": f"pdf-{len(rows):d}",
+                        }
+                    )
     return {"finepdfs-edu": rows}
 
 
 def _parquet_file(path):
     import pyarrow.parquet as pq
+
     table = pq.ParquetFile(path)
     for batch in table.iter_batches(batch_size=256):
-        for row in batch.to_pylist():
-            yield row
+        yield from batch.to_pylist()
 
 
 def _jsonl_rows(path):
-    with open(str(path), "r", encoding="utf-8", errors="replace") as handle:
+    with open(str(path), encoding="utf-8", errors="replace") as handle:
         for line in handle:
             try:
                 yield json.loads(line)
@@ -217,8 +238,8 @@ def write_outputs(kept, output, probes_per_domain):
         rows.sort(key=lambda row: hashlib.sha256(row["id"].encode()).hexdigest())
         probe_n = min(probes_per_domain, max(0, len(rows) // 10))
         probes, train = rows[:probe_n], rows[probe_n:]
-        train_path = prompt_dir / ("%02d-%s.jsonl" % (index, domain))
-        probe_path = probe_dir / ("%s.jsonl" % domain)
+        train_path = prompt_dir / (f"{index:02d}-{domain!s}.jsonl")
+        probe_path = probe_dir / (f"{domain}.jsonl")
         _write_jsonl(train_path, train)
         _write_jsonl(probe_path, probes)
         counts[domain] = {"train": len(train), "probe": len(probes)}
@@ -228,12 +249,18 @@ def write_outputs(kept, output, probes_per_domain):
 def _write_jsonl(path, rows):
     with path.open("w", encoding="utf-8") as handle:
         for row in rows:
-            handle.write(json.dumps({
-                "id": "%s-%s" % (row["domain"], row["id"]),
-                "domain": row["domain"],
-                "source": row["source"],
-                "messages": [{"role": "user", "content": row["prompt"]}],
-            }, ensure_ascii=False) + "\n")
+            handle.write(
+                json.dumps(
+                    {
+                        "id": "{}-{}".format(row["domain"], row["id"]),
+                        "domain": row["domain"],
+                        "source": row["source"],
+                        "messages": [{"role": "user", "content": row["prompt"]}],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
 
 
 def filter_rows(kept, index, tokenizer, token_limit, output=None):
@@ -248,7 +275,7 @@ def filter_rows(kept, index, tokenizer, token_limit, output=None):
             for row in rows:
                 seen += 1
                 if seen % 50000 == 0:
-                    heartbeat(output, "filtered %d dropped %s" % (seen, dropped))
+                    heartbeat(output, f"filtered {seen:d} dropped {dropped!s}")
                 kind = index.duplicate(row["prompt"])
                 if kind:
                     dropped[kind[0]] += 1
@@ -259,7 +286,7 @@ def filter_rows(kept, index, tokenizer, token_limit, output=None):
                 index.add(row["prompt"], row["id"])
                 chosen.append(row)
             accepted[domain][source] = chosen
-    heartbeat(output, "filtered %d done dropped %s" % (seen, dropped))
+    heartbeat(output, f"filtered {seen:d} done dropped {dropped!s}")
     return accepted, dropped
 
 
@@ -282,7 +309,7 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     if args.plan_json:
         plan = json.loads(args.plan_json.read_text())
-        heartbeat(args.output, "using existing sample plan %s" % args.plan_json)
+        heartbeat(args.output, f"using existing sample plan {args.plan_json}")
     else:
         counts = {}
         scanned = 0
@@ -290,10 +317,12 @@ def main():
             counts[row_source(row)] = counts.get(row_source(row), 0) + 1
             scanned += 1
             if scanned % 200000 == 0:
-                heartbeat(args.output, "counted %d" % scanned)
+                heartbeat(args.output, f"counted {scanned:d}")
         plan = allocate(counts)
-        (args.output / "source-counts.json").write_text(json.dumps(counts, indent=2, sort_keys=True))
-        heartbeat(args.output, "counted %d done" % scanned)
+        (args.output / "source-counts.json").write_text(
+            json.dumps(counts, indent=2, sort_keys=True)
+        )
+        heartbeat(args.output, f"counted {scanned:d} done")
     (args.output / "sample-plan.json").write_text(json.dumps(plan, indent=2, sort_keys=True))
     sampled = reservoir(args.sft_dir, plan, args.seed, args.output)
     index = BoundedIndex()
@@ -304,6 +333,7 @@ def main():
     tokenizer = None
     if args.tokenizer:
         from transformers import AutoTokenizer
+
         tokenizer = AutoTokenizer.from_pretrained(str(args.tokenizer), trust_remote_code=True)
     filtered, dropped = filter_rows(sampled, index, tokenizer, PROMPT_TOKEN_LIMIT, args.output)
     written = write_outputs(filtered, args.output, PROBE_PER_DOMAIN)
@@ -319,7 +349,9 @@ def main():
         "written": written,
         "epoch1_training_data": "unchanged",
         "seed": args.seed,
-        "near_dup_method": "minhash-8 of 13-gram crc32, Jaccard estimate >= 0.5; exact sha256 unchanged",
+        "near_dup_method": (
+            "minhash-8 of 13-gram crc32, Jaccard estimate >= 0.5; exact sha256 unchanged"
+        ),
         "plan_json": str(args.plan_json) if args.plan_json else "counted",
     }
     (args.output / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")

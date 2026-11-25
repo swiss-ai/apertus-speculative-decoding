@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Choose the ALPS math library from the Stage A muon timings."""
+
 import argparse
 import json
 from pathlib import Path
@@ -21,7 +22,10 @@ def choose(default_dir, cublas_dir):
     if default_ok and cublas_ok and default_s <= 1.05 * cublas_s:
         backend, reason = "default", "default math library is finite and within 5% of rocBLAS"
     elif cublas_ok:
-        backend, reason = "cublas", "keeping rocBLAS; the default library was not both finite and within 5%"
+        backend, reason = (
+            "cublas",
+            "keeping rocBLAS; the default library was not both finite and within 5%",
+        )
     else:
         backend, reason = None, "neither math library passed the tall Muon check"
     return {

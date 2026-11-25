@@ -4,11 +4,11 @@ Installed only by the Beverin prelude. Full activation checks are optional;
 inputs, loss, gradients, update results and loaded parameters are always checked.
 No invalid batch is skipped and no NaN is replaced with an arbitrary value.
 """
+
 import json
 import os
-from pathlib import Path
 import time
-
+from pathlib import Path
 
 MARKER = "numerical-failure.json"
 
@@ -45,7 +45,7 @@ class Guard:
         """
         named = []
         for index, optimizer in enumerate(getattr(self.trainer, "optimizers", None) or []):
-            label = "%s%d" % (type(optimizer).__name__, index)
+            label = f"{type(optimizer).__name__!s}{index:d}"
             state = getattr(optimizer, "state", {}) or {}
             for param_index, slot in enumerate(state.values()):
                 if not isinstance(slot, dict):
@@ -53,11 +53,12 @@ class Guard:
                 for key, value in slot.items():
                     if not self.torch.is_tensor(value) or not value.is_floating_point():
                         continue
-                    named.append(("%s/%d/%s" % (label, param_index, key), value))
+                    named.append((f"{label!s}/{param_index:d}/{key!s}", value))
         return named
 
     def load_continuity(self):
         from rollback import load_ledger
+
         pending = load_ledger(str(self.root)).get("pending_continuity")
         self._pending = pending if isinstance(pending, dict) else None
         self._losses = []
@@ -91,8 +92,9 @@ class Guard:
                 if "lr" in group:
                     actual.append(float(group["lr"]))
         if len(actual) != len(expected_rates) or any(
-                abs(got - want) > 1e-5 + 1e-4 * abs(want)
-                for got, want in zip(actual, expected_rates)):
+            abs(got - want) > 1e-5 + 1e-4 * abs(want)
+            for got, want in zip(actual, expected_rates, strict=True)
+        ):
             self._fail_continuity("continuity-lr")
 
     def _check_loss_window(self, pending):
@@ -111,6 +113,7 @@ class Guard:
 
     def _clear_continuity(self):
         from rollback import load_ledger, save_ledger
+
         if self.trainer.rank == 0:
             ledger = load_ledger(str(self.root))
             ledger["pending_continuity"] = None
@@ -119,11 +122,17 @@ class Guard:
 
     def _loss_scalar(self, output):
         torch = self.torch
-        if not (isinstance(output, (tuple, list)) and len(output) >= 2 and torch.is_tensor(output[1])):
+        if not (
+            isinstance(output, (tuple, list)) and len(output) >= 2 and torch.is_tensor(output[1])
+        ):
             return None
         local = float(output[1].detach().float().item())
         value = torch.tensor([local], dtype=torch.float32, device=self.device)
-        if self.trainer.is_distributed and torch.distributed.is_available() and torch.distributed.is_initialized():
+        if (
+            self.trainer.is_distributed
+            and torch.distributed.is_available()
+            and torch.distributed.is_initialized()
+        ):
             torch.distributed.all_reduce(value, op=torch.distributed.ReduceOp.SUM)
             value = value / torch.distributed.get_world_size()
         return float(value.item())
@@ -141,27 +150,40 @@ class Guard:
             local_values.append((name, local))
             flags.append(torch.isfinite(local).all().to(device=self.device))
         values = local_values
-        ok = torch.stack(flags).all() if flags else torch.ones(
-            (), dtype=torch.bool, device=self.device)
+        ok = (
+            torch.stack(flags).all()
+            if flags
+            else torch.ones((), dtype=torch.bool, device=self.device)
+        )
         rank = trainer.rank
-        first_bad = torch.where(ok, torch.tensor(2**30, device=self.device),
-                                torch.tensor(rank, device=self.device))
+        first_bad = torch.where(
+            ok, torch.tensor(2**30, device=self.device), torch.tensor(rank, device=self.device)
+        )
         if trainer.is_distributed:
             torch.distributed.all_reduce(first_bad, op=torch.distributed.ReduceOp.MIN)
         failing_rank = int(first_bad.item())
         if failing_rank == 2**30:
             return
-        record = {"utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                  "global_step": trainer.global_step, "phase": phase,
-                  "rank": failing_rank, "job_id": os.environ.get("SLURM_JOB_ID"),
-                  "attempt": os.environ.get("TORCHELASTIC_RUN_ID")}
+        record = {
+            "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "global_step": trainer.global_step,
+            "phase": phase,
+            "rank": failing_rank,
+            "job_id": os.environ.get("SLURM_JOB_ID"),
+            "attempt": os.environ.get("TORCHELASTIC_RUN_ID"),
+        }
         if rank == failing_rank:
             bad = []
             for name, value in values:
                 if not torch.isfinite(value).all().item():
-                    bad.append({"name": name, "shape": list(value.shape),
-                                "dtype": str(value.dtype),
-                                "nonfinite": int((~torch.isfinite(value)).sum().item())})
+                    bad.append(
+                        {
+                            "name": name,
+                            "shape": list(value.shape),
+                            "dtype": str(value.dtype),
+                            "nonfinite": int((~torch.isfinite(value)).sum().item()),
+                        }
+                    )
             record["bad_tensors"] = bad
             self.root.mkdir(parents=True, exist_ok=True)
             # Publish the terminal marker before any potentially large batch dump.
@@ -176,21 +198,34 @@ class Guard:
             try:
                 folder = self.root / "numerical-failure-batches"
                 folder.mkdir(parents=True, exist_ok=True)
-                torch.save({"batch": {k: v.detach().cpu() if isinstance(v, torch.Tensor)
-                                       else v for k, v in self.batch.items()},
-                            "rng_before_forward": self.rng, "capture_rank": rank,
-                            "failure": record}, folder / ("rank%s.pt" % rank))
+                torch.save(
+                    {
+                        "batch": {
+                            k: v.detach().cpu() if isinstance(v, torch.Tensor) else v
+                            for k, v in self.batch.items()
+                        },
+                        "rng_before_forward": self.rng,
+                        "capture_rank": rank,
+                        "failure": record,
+                    },
+                    folder / (f"rank{rank}.pt"),
+                )
             except Exception as exc:
                 print("BEVERIN_NUMERICAL_FAILURE batch capture failed: " + str(exc), flush=True)
         if trainer.is_distributed:
             torch.distributed.barrier()
-        raise NumericalFailure("BEVERIN_NUMERICAL_FAILURE phase=%s rank=%s step=%s; "
-                               "automatic retry prohibited" %
-                               (phase, failing_rank, trainer.global_step))
+        raise NumericalFailure(
+            f"BEVERIN_NUMERICAL_FAILURE phase={phase} rank={failing_rank} "
+            f"step={trainer.global_step}; "
+            "automatic retry prohibited"
+        )
 
     def parameters(self):
-        return [(name, param) for name, param in self.trainer.model.named_parameters()
-                if param.requires_grad]
+        return [
+            (name, param)
+            for name, param in self.trainer.model.named_parameters()
+            if param.requires_grad
+        ]
 
 
 def install(Trainer, torch):
@@ -200,8 +235,10 @@ def install(Trainer, torch):
 
     def setup(self):
         if (Path(self.checkpointer.path) / MARKER).exists():
-            raise NumericalFailure("BEVERIN_NUMERICAL_FAILURE existing terminal marker; "
-                                   "use a new run after diagnosing the failure")
+            raise NumericalFailure(
+                "BEVERIN_NUMERICAL_FAILURE existing terminal marker; "
+                "use a new run after diagnosing the failure"
+            )
         result = original_setup(self)
         guard = self._beverin_numerical_guard = Guard(self, torch)
         guard.check(guard.parameters(), "loaded-parameters")
@@ -210,9 +247,10 @@ def install(Trainer, torch):
         @torch.compiler.disable
         def before(_module, _args, kwargs):
             guard.batch = kwargs
-            guard.rng = {"cpu": torch.get_rng_state(),
-                         "accelerator": torch.cuda.get_rng_state()
-                         if torch.cuda.is_available() else None}
+            guard.rng = {
+                "cpu": torch.get_rng_state(),
+                "accelerator": torch.cuda.get_rng_state() if torch.cuda.is_available() else None,
+            }
             guard.check(list(tensors(kwargs)), "inputs")
 
         @torch.compiler.disable
@@ -223,13 +261,23 @@ def install(Trainer, torch):
         self.model.register_forward_pre_hook(before, with_kwargs=True)
         self.model.register_forward_hook(after)
         if os.environ.get("BEVERIN_CHECK_ACTIVATIONS", "0") == "1":
-            stages = {"fc", "hidden_norm", "norm", "lm_head", "verifier_norm",
-                      "verifier_lm_head", "markov_head.markov_w1",
-                      "markov_head.markov_w2", "confidence_head"}
+            stages = {
+                "fc",
+                "hidden_norm",
+                "norm",
+                "lm_head",
+                "verifier_norm",
+                "verifier_lm_head",
+                "markov_head.markov_w1",
+                "markov_head.markov_w2",
+                "confidence_head",
+            }
             for name, module in self.model.named_modules():
                 if name in stages or (name.startswith("layers.") and name.count(".") == 1):
+
                     def stage_hook(_module, _args, output, name=name):
                         guard.check(list(tensors(output)), "activation:" + name)
+
                     module.register_forward_hook(torch.compiler.disable(stage_hook))
         return result
 
@@ -242,22 +290,35 @@ def install(Trainer, torch):
 
         def clip(parameters, *clip_args, **clip_kwargs):
             parameters = list(parameters)
-            guard.check([(name, param.grad) for name, param in self.model.named_parameters()
-                         if param.grad is not None], "backward-gradients")
+            guard.check(
+                [
+                    (name, param.grad)
+                    for name, param in self.model.named_parameters()
+                    if param.grad is not None
+                ],
+                "backward-gradients",
+            )
             result = original_clip(parameters, *clip_args, **clip_kwargs)
             norm = result.detach() if torch.is_tensor(result) else torch.tensor(float(result))
             try:
                 shown = float(norm.detach().float().cpu()) if torch.is_tensor(norm) else float(norm)
             except (TypeError, ValueError):
                 shown = float("nan")
-            if not (shown == shown) or shown in (float("inf"), float("-inf")):
+            if shown != shown or shown in (float("inf"), float("-inf")):
                 shown_json = "nan" if shown != shown else ("-inf" if shown < 0 else "inf")
             else:
                 shown_json = shown
             if self.rank == 0:
-                print("BEVERIN_GRAD_NORM " + json.dumps({
-                    "global_step": int(self.global_step), "grad_norm": shown_json,
-                }), flush=True)
+                print(
+                    "BEVERIN_GRAD_NORM "
+                    + json.dumps(
+                        {
+                            "global_step": int(self.global_step),
+                            "grad_norm": shown_json,
+                        }
+                    ),
+                    flush=True,
+                )
             guard.check([("total_grad_norm", norm)], "gradient-norm")
             return result
 
@@ -271,7 +332,8 @@ def install(Trainer, torch):
     def step(self):
         result = original_step(self)
         self._beverin_numerical_guard.check(
-            self._beverin_numerical_guard.parameters(), "updated-parameters")
+            self._beverin_numerical_guard.parameters(), "updated-parameters"
+        )
         return result
 
     Trainer.setup_model = setup
@@ -290,10 +352,13 @@ def install(Trainer, torch):
                     guard.check(state, "loaded-optimizer")
             if os.environ.get("BEVERIN_CHECK_ACTIVATIONS", "0") == "1":
                 for optimizer in self.optimizers:
+
                     def optimizer_hook(opt, _args, _kwargs):
                         self._beverin_numerical_guard.check(
                             self._beverin_numerical_guard.parameters(),
-                            "optimizer:" + type(opt).__name__)
+                            "optimizer:" + type(opt).__name__,
+                        )
+
                     optimizer.register_step_post_hook(optimizer_hook)
             return result
 

@@ -5,14 +5,15 @@ Prints alerts and writes them next to the monitor state. It does not send
 Slack or email, and it does not cancel or resubmit jobs. A non-finite loss is
 matched explicitly; a checkpoint counter alone is not treated as health.
 """
+
 import argparse
 import json
 import os
-from pathlib import Path
 import re
 import statistics
 import subprocess
 import time
+from pathlib import Path
 
 EXPECTED_STEPS = 4077
 SAVE_EVERY = 64
@@ -22,9 +23,22 @@ STALL_S = 15 * 60
 HEARTBEAT_S = 3 * 3600
 LOW_MEM_GIB = 32
 SSH = [
-    "/usr/bin/ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=20",
-    "-o", "ConnectionAttempts=1", "-i", os.path.expanduser("~/.ssh/cscs-key"),
-    "-l", "faruk_zahiragic", "-J", "ela", "beverin.cscs.ch", "python3", "-",
+    "/usr/bin/ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=20",
+    "-o",
+    "ConnectionAttempts=1",
+    "-i",
+    os.path.expanduser("~/.ssh/cscs-key"),
+    "-l",
+    "faruk_zahiragic",
+    "-J",
+    "ela",
+    "beverin.cscs.ch",
+    "python3",
+    "-",
 ]
 
 
@@ -64,17 +78,23 @@ def parse_log(text):
     for match in re.finditer(r"global_step=(\d+)", text or ""):
         steps.append(int(match.group(1)))
     if re.search(r"\b(?:nan|inf|-inf)\b", (text or "").lower()) and re.search(
-            r"train/loss=(?:nan|inf|-inf)|BEVERIN_GRAD_NORM", text or "", re.I):
+        r"train/loss=(?:nan|inf|-inf)|BEVERIN_GRAD_NORM", text or "", re.I
+    ):
         nonfinite = True
-    return {"losses": losses, "grad_norms": grads, "steps": steps, "nonfinite": nonfinite,
-            "failure": "BEVERIN_NUMERICAL_FAILURE" in (text or ""),
-            "saving": "Saving checkpoint" in (text or "") or "BEVERIN_SAVE_START" in (text or "")}
+    return {
+        "losses": losses,
+        "grad_norms": grads,
+        "steps": steps,
+        "nonfinite": nonfinite,
+        "failure": "BEVERIN_NUMERICAL_FAILURE" in (text or ""),
+        "saving": "Saving checkpoint" in (text or "") or "BEVERIN_SAVE_START" in (text or ""),
+    }
 
 
 def _spike(values, ratio, minimum=20):
     if len(values) <= minimum:
         return False
-    baseline = values[-(minimum + 1):-1]
+    baseline = values[-(minimum + 1) : -1]
     if not baseline or not _finite(values[-1]):
         return False
     return values[-1] > ratio * statistics.median(baseline)
@@ -96,11 +116,21 @@ def assess(snapshot):
     verified_age = snapshot.get("verified_age_s")
     step_s = snapshot.get("step_seconds") or 20
     saving = snapshot.get("saving")
-    if (snapshot.get("phase") == "training" and not saving and verified_age is not None
-            and verified_age > 2 * SAVE_EVERY * float(step_s) and int(snapshot.get("global_step") or 0) >= SAVE_EVERY):
+    if (
+        snapshot.get("phase") == "training"
+        and not saving
+        and verified_age is not None
+        and verified_age > 2 * SAVE_EVERY * float(step_s)
+        and int(snapshot.get("global_step") or 0) >= SAVE_EVERY
+    ):
         alerts.append("no newly verified checkpoint for more than two save intervals")
     step_age = snapshot.get("step_age_s")
-    if snapshot.get("phase") == "training" and not saving and step_age is not None and step_age > STALL_S:
+    if (
+        snapshot.get("phase") == "training"
+        and not saving
+        and step_age is not None
+        and step_age > STALL_S
+    ):
         alerts.append("no training step for 15 minutes")
     avail = snapshot.get("min_avail_gib")
     if avail is not None and avail < LOW_MEM_GIB:
@@ -121,7 +151,7 @@ def format_heartbeat(snapshot):
         "kind": "three-hour heartbeat",
         "utc": snapshot.get("utc"),
         "phase": snapshot.get("phase"),
-        "progress": "%s/%s" % (step, EXPECTED_STEPS),
+        "progress": f"{step}/{EXPECTED_STEPS}",
         "last_verified_step": snapshot.get("verified_step"),
         "step_seconds": rate,
         "training_eta_hours": eta,
@@ -138,11 +168,11 @@ def safe_token(value):
 def remote_script(run_id, jobs):
     run_id = safe_token(run_id)
     jobs = [safe_token(job) for job in jobs]
-    return r'''
+    return rf'''
 import json, os, re, time
 from pathlib import Path
-run = Path("/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs") / "%s"
-jobs = %s
+run = Path("/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/runs") / "{run_id}"
+jobs = {json.dumps(jobs)}
 def tail(path, limit=400000):
     if not path.is_file():
         return ""
@@ -153,13 +183,13 @@ logs = list((run / "logs").glob("train-*-node0.log")) if (run / "logs").is_dir()
 log = max(logs, key=lambda p: p.stat().st_mtime) if logs else None
 if log:
     text = tail(log)
-state = {}
+state = {{}}
 state_path = run / "checkpoints" / "0" / "training_state.json"
 if state_path.is_file():
     try:
         state = json.loads(state_path.read_text())
     except ValueError:
-        state = {}
+        state = {{}}
 marker = (run / "checkpoints" / "0" / "verified-finite.json").is_file()
 verified_step = None
 verified_age = None
@@ -167,21 +197,23 @@ if marker:
     try:
         payload = json.loads((run / "checkpoints" / "0" / "verified-finite.json").read_text())
         verified_step = payload.get("global_step")
-        verified_age = time.time() - (run / "checkpoints" / "0" / "verified-finite.json").stat().st_mtime
+        verified = run / "checkpoints" / "0" / "verified-finite.json"
+        verified_age = time.time() - verified.stat().st_mtime
     except (ValueError, OSError):
         pass
-ledger = {}
+ledger = {{}}
 ledger_path = run / "checkpoints" / "rollback-ledger.json"
 if ledger_path.is_file():
     try:
         ledger = json.loads(ledger_path.read_text())
     except ValueError:
-        ledger = {}
-failure = (run / "checkpoints" / "numerical-failure.json").is_file() or ("BEVERIN_NUMERICAL_FAILURE" in text)
+        ledger = {{}}
+failure_marker = run / "checkpoints" / "numerical-failure.json"
+failure = failure_marker.is_file() or "BEVERIN_NUMERICAL_FAILURE" in text
 nonfinite = bool(re.search(r"train/loss=(?:nan|inf|-inf)", text, re.I))
 losses = [float(v) for v in re.findall(r"train/loss=([0-9.eE+-]+)", text)[-60:]]
 grads = []
-for blob in re.findall(r"BEVERIN_GRAD_NORM (\{.*\})", text)[-60:]:
+for blob in re.findall(r"BEVERIN_GRAD_NORM (\{{.*\}})", text)[-60:]:
     try:
         raw = json.loads(blob).get("grad_norm")
         grads.append(float(raw))
@@ -190,23 +222,28 @@ for blob in re.findall(r"BEVERIN_GRAD_NORM (\{.*\})", text)[-60:]:
 steps = [int(v) for v in re.findall(r"global_step=(\d+)", text)]
 step = state.get("global_step") or (steps[-1] if steps else 0)
 mem = None
-for path in Path("/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs").glob("mem-*-node*.log"):
+log_root = Path("/iopsstor/scratch/cscs/faruk_zahiragic/beverin-feasibility/logs")
+for path in log_root.glob("mem-*-node*.log"):
     samples = re.findall(r"avail_gb=(\d+)", tail(path, 20000))
     if samples:
-        mem = min([mem] + [int(s) for s in samples]) if mem is not None else min(int(s) for s in samples)
-print(json.dumps({
-    "utc": time.strftime("%%Y-%%m-%%dT%%H:%%M:%%SZ", time.gmtime()),
+        sample_min = min(int(s) for s in samples)
+        mem = sample_min if mem is None else min(mem, sample_min)
+print(json.dumps({{
+    "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     "run": run.name, "global_step": step, "verified_step": verified_step,
     "verified_age_s": verified_age, "losses": losses, "grad_norms": grads,
     "nonfinite": nonfinite, "failure_marker": failure,
-    "ledger_terminal": any(e.get("kind") == "terminal" for e in ledger.get("events") or [] if isinstance(e, dict)),
+    "ledger_terminal": any(
+        e.get("kind") == "terminal" for e in ledger.get("events") or [] if isinstance(e, dict)
+    ),
     "ledger_events": len(ledger.get("events") or []),
     "saving": "BEVERIN_SAVE_START" in text and "BEVERIN_SAVE_END" not in text[-2000:],
-    "phase": "complete" if (run / "checkpoints" / "single-epoch-complete.json").is_file() else "training",
+    "phase": ("complete" if (run / "checkpoints" / "single-epoch-complete.json").is_file()
+              else "training"),
     "min_avail_gib": mem, "attempt": log.name if log else None,
     "jobs": jobs,
-}))
-''' % (run_id, json.dumps(jobs))
+}}))
+'''
 
 
 def poll(directory, run_id, jobs):
@@ -215,10 +252,15 @@ def poll(directory, run_id, jobs):
     state_path = directory / "state.json"
     state = json.loads(state_path.read_text()) if state_path.exists() else {}
     now = time.time()
-    result = subprocess.run(SSH, input=remote_script(run_id, jobs), capture_output=True, text=True, timeout=90)
+    result = subprocess.run(
+        SSH, input=remote_script(run_id, jobs), capture_output=True, text=True, timeout=90
+    )
     if result.returncode:
-        message = {"utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                   "error": (result.stderr or "")[-500:], "training_state": "unknown"}
+        message = {
+            "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "error": (result.stderr or "")[-500:],
+            "training_state": "unknown",
+        }
         print("MONITOR_SSH " + json.dumps(message), flush=True)
         state["last_error"] = message
         state_path.write_text(json.dumps(state, indent=2))
@@ -249,7 +291,11 @@ def main():
     if args.check_log:
         parsed = parse_log(Path(args.check_log).read_text(errors="replace"))
         parsed["phase"] = "training"
-        print(json.dumps({"alerts": assess(parsed), "parsed_nonfinite": parsed["nonfinite"]}, indent=2))
+        print(
+            json.dumps(
+                {"alerts": assess(parsed), "parsed_nonfinite": parsed["nonfinite"]}, indent=2
+            )
+        )
         return
     poll(args.state_dir, args.run_id, args.jobs)
 

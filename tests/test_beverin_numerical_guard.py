@@ -1,19 +1,22 @@
 """Numerical failures must stop every rank and preserve the previous save."""
+
 import json
 import os
-from pathlib import Path
 import sys
 import tempfile
-from types import SimpleNamespace
 import unittest
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
-import torch
-import torch.distributed as dist
-import torch.multiprocessing as mp
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "methods/dspark/beverin"))
-from numerical_guard import install, NumericalFailure
+from numerical_guard import NumericalFailure, install
+
+torch = pytest.importorskip("torch")
+dist = pytest.importorskip("torch.distributed")
+mp = pytest.importorskip("torch.multiprocessing")
 
 
 class BadBackward(torch.autograd.Function):
@@ -58,14 +61,14 @@ def trainer_type():
         def _optimizers_step(self):
             self.steps += 1
             with torch.no_grad():
-                self.model.weight.sub_(.01 * self.model.weight.grad)
+                self.model.weight.sub_(0.01 * self.model.weight.grad)
                 if self.mode == "update":
                     self.model.weight.fill_(float("nan"))
 
         def train_epoch(self, x):
             _, loss, _ = self.model(x=x)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
             self._optimizers_step()
             self.global_step += 1
             (self.checkpointer.path / "last-save").write_text("updated")
@@ -75,8 +78,7 @@ def trainer_type():
 
 
 def distributed_failure(rank, root, store):
-    dist.init_process_group("gloo", init_method="file://" + store,
-                            rank=rank, world_size=2)
+    dist.init_process_group("gloo", init_method="file://" + store, rank=rank, world_size=2)
     try:
         trainer = trainer_type()(Path(root), rank=rank, distributed=True)
         x = torch.ones(2)
@@ -108,7 +110,7 @@ class NumericalGuardTests(unittest.TestCase):
     def failure(self, mode, expected, bad_input=False):
         trainer = trainer_type()(self.root, mode)
         clip_before = torch.nn.utils.clip_grad_norm_
-        x = torch.tensor([float("nan"), 1.]) if bad_input else torch.ones(2)
+        x = torch.tensor([float("nan"), 1.0]) if bad_input else torch.ones(2)
         with self.assertRaises(NumericalFailure):
             trainer.train_epoch(x)
         self.assertIs(torch.nn.utils.clip_grad_norm_, clip_before)
@@ -161,13 +163,18 @@ class NumericalGuardTests(unittest.TestCase):
             trainer_type()(self.root)
 
     def test_one_bad_rank_stops_both_before_updates(self):
-        mp.spawn(distributed_failure, args=(str(self.root), str(self.root / "store")),
-                 nprocs=2, join=True)
+        mp.spawn(
+            distributed_failure,
+            args=(str(self.root), str(self.root / "store")),
+            nprocs=2,
+            join=True,
+        )
         report = json.loads((self.root / "numerical-failure.json").read_text())
         self.assertEqual(report["rank"], 1)
         for rank in (0, 1):
-            self.assertTrue((self.root / "numerical-failure-batches" /
-                             ("rank%s.pt" % rank)).is_file())
+            self.assertTrue(
+                (self.root / "numerical-failure-batches" / (f"rank{rank}.pt")).is_file()
+            )
         self.assertEqual((self.root / "last-save").read_text(), "preserved")
 
 
