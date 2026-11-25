@@ -1,0 +1,29 @@
+# Smoke for sweep.yaml (debug partition, ~30 min): one P/D DSpark arm and its
+# colocated twin plus colocated plain, two levels; checks NIXL P/D with
+# --enable-mfu-metrics, the keep-alive setting and the node-wide GPU-metrics sampler.
+# EAGLE e10 is left out: its head on scratch was purged (empty directory).
+# NIXL 1.5.0 (nixl, nixl-cu13 aarch64 cp312 wheels) reinstalled under
+# pd-decode-compute-bound/pydeps: the shared pydeps copy was purged too.
+# Export NSYS (nsys 2025.6.3 re-extracted there) when the shared copy is gone.
+# Submit: SWEEP_GPU_METRICS=1 SWEEP_ACCOUNT=d_research_serving SWEEP_TIME=00:45:00
+name: pd-compute-smoke
+stage: 8b
+engine: {max_num_batched_tokens: 16384, max_num_seqs: 512}
+probe: false
+loadtests:
+  - workload: opb
+    workloads_file: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    concurrencies: [8, 256]
+x-common:
+  dspark: &dspark /capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final
+  mfu: &mfu [--enable-mfu-metrics]
+  # HOME is over quota: usage stats and JIT/compile caches go to node-local /tmp.
+  env: &env {VLLM_HTTP_TIMEOUT_KEEP_ALIVE: "300", VLLM_NO_USAGE_STATS: "1", DO_NOT_TRACK: "1",
+             VLLM_CONFIG_ROOT: /tmp/pdc-cache/vllm-config, XDG_CACHE_HOME: /tmp/pdc-cache/xdg-cache,
+             XDG_CONFIG_HOME: /tmp/pdc-cache/xdg-config, TRITON_CACHE_DIR: /tmp/pdc-cache/triton,
+             TORCHINDUCTOR_CACHE_DIR: /tmp/pdc-cache/inductor, CUDA_CACHE_PATH: /tmp/pdc-cache/cuda,
+             FLASHINFER_WORKSPACE_BASE: /tmp/pdc-cache/flashinfer-base, TORCH_HOME: /tmp/pdc-cache/torch}
+arms:
+  - {name: pd-dspark-k3, method: pd, serve_method: dspark, drafter: *dspark, k: 3, prefill: {vllm_args: *mfu}, decode: {vllm_args: *mfu}, env: *env, pythonpath: [/iopsstor/scratch/cscs/faruk_zahiragic/pd-decode-compute-bound/pydeps/nixl-1.5.0]}
+  - {name: colo-dspark-k3, method: dspark, drafter: *dspark, k: 3, vllm_args: *mfu, env: *env}
+  - {name: colo-plain, method: baseline, vllm_args: *mfu, env: *env}
