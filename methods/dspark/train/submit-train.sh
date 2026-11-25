@@ -3,6 +3,7 @@
 #   MODE=prepare IN=... OUT=... ./methods/dspark/train/submit-train.sh   # or FULL=1
 #   MODE=train RUN_ID=opb-thinkoff DATA=... [NODES=2] [CHAIN=12] ./methods/dspark/train/submit-train.sh
 #   STAGE=8b MODE=adapt ADAPT_ROOT=... ./methods/dspark/train/submit-train.sh   # adapt-job.sh
+#   STAGE=8b MODE=domain DOMAIN_ROOT=... DOMAIN_PLAN=... HEADS="baseline" ./methods/dspark/train/submit-train.sh
 # STAGE=70b (default) is the 70B drafter. STAGE=8b is Yu's 8B setup (target
 # layers 1/8/15/22/29, one 1-GPU extraction server per trainer rank, no FSDP,
 # his dataloader depth and checkpoint interval); MODE=prepare there builds the
@@ -60,7 +61,8 @@ pass_env() {
   for v in DSPARK_DIR RUN_ID DATA EPOCHS MAX_STEPS CHECK_ROWS GRAD_CKPT WORKERS PREFETCH SEQ ANCHORS LR CKPT_FREQ \
            EXTRACT_MEM EXTRACT_EAGER DSPARK_DTENSOR_ALLGATHER IN OUT FULL ALLOW_MISSING TARGET_MODEL LAYERS SPECULATORS NUM_LAYERS FSDP \
            FROM_PRETRAINED EXTRACT_PER_RANK EXTRACT_GPUS TRAIN_GPUS CHECK_SPLIT SIDE_DEPS \
-           DSPARK_VALIDATE_WARM_START ADAPT_ROOT ADAPT_PLAN ADAPT_DEADLINE; do
+           DSPARK_VALIDATE_WARM_START ADAPT_ROOT ADAPT_PLAN ADAPT_DEADLINE \
+           DOMAIN_ROOT DOMAIN_PLAN HEADS DOMAIN_BACKUP DOMAIN_SIDE_DEPS INSTALL_SIDE_DEPS TRAIN_MINUTES; do
     if [ -n "${!v:-}" ]; then printf 'export %s=%q\n' "${v}" "${!v}"; fi
   done
 }
@@ -100,6 +102,19 @@ srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/tr
 srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/adapt-job.sh"
     CHAIN=1
     ;;
+  domain)
+    # Per-domain drafters (domain-job.sh, canvas A3): one node, HEADS in order,
+    # resumable by step markers.
+    : "${DOMAIN_ROOT:?set DOMAIN_ROOT}" "${DOMAIN_PLAN:?set DOMAIN_PLAN}" "${HEADS:?set HEADS}"
+    NODES=1
+    NAME="${DOMAIN_JOB_NAME:-dspark-${STAGE}-domain-${HEADS// /-}}"
+    TIME="${TIME:-04:00:00}"
+    IFS=: read -r th tm ts <<< "${TIME}"
+    LIMIT_S=$(( 10#${th} * 3600 + 10#${tm} * 60 + 10#${ts} ))
+    CMD="export DOMAIN_DEADLINE=\$(( \$(date +%s) + ${LIMIT_S} - ${DOMAIN_MARGIN:-300} ))
+srun --ntasks-per-node=1 --environment=${SML_ENVIRONMENT} bash methods/dspark/train/domain-job.sh"
+    CHAIN=1
+    ;;
   *) echo "unknown MODE ${MODE}" >&2; exit 2 ;;
 esac
 
@@ -113,7 +128,7 @@ if [ "${DSPARK_VALIDATE_WARM_START:-0}" = 1 ]; then
   CMD="srun --nodes=1 --ntasks=1 --environment=${SML_ENVIRONMENT} python3 \
 ${REPO_ROOT}/methods/dspark/train/rebind_verifier.py verify \
 --initializer ${FROM_PRETRAINED} --contract ${REPO_ROOT}/targets/${STAGE}/contract.json \
---image ${IMAGE} --source-revision $(git rev-parse HEAD) \
+--image ${IMAGE} --source-revision $(cat .source-revision 2> /dev/null || git rev-parse HEAD) \
 --output ${DSPARK_DIR}/runs/${RUN_ID}/provenance/warm-start-\${SLURM_JOB_ID}.json
 ${CMD}"
 fi
@@ -136,7 +151,7 @@ cat > "${SCRIPT}" <<SBATCH
 set -euo pipefail
 export REPO_ROOT=${REPO_ROOT}
 $(pass_env)
-echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} git=$(git rev-parse --short HEAD)"
+echo "START \$(date -u -Iseconds) job=\${SLURM_JOB_ID} nodes=\${SLURM_JOB_NODELIST} git=$(cat .source-revision 2> /dev/null || git rev-parse --short HEAD)"
 ${CMD}
 SBATCH
 
