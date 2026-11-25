@@ -81,3 +81,19 @@ def test_chat_template_kwargs_are_loaded_and_derived(tmp_path: Path) -> None:
     derived.write_text(derived.read_text().replace('{"enable_thinking": true}', '"yes"'))
     with pytest.raises(ValueError, match="chat_template_kwargs must be an object"):
         load_prompts(derived)
+
+
+def test_vllm_xargs_are_loaded(tmp_path: Path) -> None:
+    record = {
+        "id": "m0",
+        "workload": "mixed",
+        "messages": [{"role": "user", "content": "hi"}],
+        "max_tokens": 8,
+        "vllm_xargs": {"task": "chat"},
+    }
+    path = tmp_path / "mixed.jsonl"
+    write_jsonl(path, [record])
+    assert load_prompts(path)[0].vllm_xargs == {"task": "chat"}
+    write_jsonl(path, [{**record, "vllm_xargs": "chat"}])
+    with pytest.raises(ValueError, match="vllm_xargs must be an object"):
+        load_prompts(path)

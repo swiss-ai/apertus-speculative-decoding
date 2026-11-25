@@ -15,6 +15,9 @@ class Prompt:
     max_tokens: int
     # Sent as the request's chat_template_kwargs, e.g. {"enable_thinking": True}.
     chat_template_kwargs: dict[str, Any] | None = None
+    # Sent as the request's vllm_xargs (SamplingParams.extra_args), e.g.
+    # {"task": "chat"}: what a serving gateway knows about the request.
+    vllm_xargs: dict[str, Any] | None = None
 
 
 def file_sha256(path: Path) -> str:
@@ -42,12 +45,16 @@ def _parse_prompt(record: dict[str, Any], line_number: int) -> Prompt:
     kwargs = record.get("chat_template_kwargs")
     if kwargs is not None and not isinstance(kwargs, dict):
         raise ValueError(f"line {line_number}: chat_template_kwargs must be an object")
+    xargs = record.get("vllm_xargs")
+    if xargs is not None and not isinstance(xargs, dict):
+        raise ValueError(f"line {line_number}: vllm_xargs must be an object")
     return Prompt(
         id=str(record["id"]),
         workload=str(record["workload"]),
         messages=messages,
         max_tokens=max_tokens,
         chat_template_kwargs=kwargs,
+        vllm_xargs=xargs,
     )
 
 
