@@ -1,0 +1,35 @@
+{
+  "blas_request": "cublas (rocBLAS on ROCm)",
+  "cell": "alps-rocblas",
+  "cleared_visibility_variables": [
+    "ROCR_VISIBLE_DEVICES",
+    "GPU_DEVICE_ORDINAL",
+    "HIP_VISIBLE_DEVICES"
+  ],
+  "deployment_id": "710006/alps-rocblas",
+  "dtype": "bfloat16",
+  "environment_sha256": "ee547811e08e13378284001ad2d4ce8f7e55ed81bc1d09f95f37be39ce161ef1",
+  "git_branch": "experiment/beverin-alps-vllm-dtensor-20261031",
+  "git_revision": "b66244a5c9ac797afee93eaa60d2981e9964d5ff",
+  "image_path": "/capstor/scratch/cscs/faruk_zahiragic/container-images/alps-vllm-rocm-7d95232cbc75.sqsh",
+  "image_sha256": "416216c9de21d110fbb7cb12cef90923af51e04c955d7d7dffa9786f125a4928",
+  "image_source_revision": "bf992658020317ca9c4564aa6593ddad7dc42240",
+  "inputs": "Unseeded random tensors as in original probe; no corpus or model weights",
+  "local_shape": [
+    1024,
+    1024
+  ],
+  "network": "image-bundled stack; external injection disabled",
+  "nodes": "nid002346",
+  "oci_reference": "ghcr.io/eth-cscs/alps-extended-images/vllm-rocm@sha256:7d95232cbc7511be5672d272f7a567ea52a3c5fbd5310ce0903956f0f37b5cc7",
+  "probe_sha256": "c10d676371ba9c401d81d048f407b3437d009a509d1d8540a5fdea7ffda50c82",
+  "ranks": 2,
+  "samples_per_placement_per_rank": 5,
+  "slurm_job_id": "710006",
+  "slurm_network": "disable_rdzv_get",
+  "source_overlays": [],
+  "summary_excludes_iterations": [
+    0
+  ],
+  "visible_gpus": "2,3"
+}
