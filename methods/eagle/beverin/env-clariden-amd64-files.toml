@@ -1,0 +1,10 @@
+# File-access only: the Clariden training image's x86_64 build, started on a
+# Beverin CPU context to copy its pure-Python Swiss AI transformers fork and to
+# list package versions (build-pydeps.sbatch). No GPU use; no hooks.
+image = "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_apertus_1.5_release-amd64.sqsh"
+mounts = ["/capstor", "/iopsstor", "/users"]
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/beverin-eagle"
+entrypoint = false
+
+[env]
+PYTHONNOUSERSITE = "1"

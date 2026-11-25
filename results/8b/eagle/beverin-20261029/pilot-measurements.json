@@ -1,0 +1,38 @@
+{
+  "measured_at": "2026-10-30T01:10+01:00",
+  "source_step": 166654,
+  "p0_705340": {
+    "node": "nid002412", "elapsed": "00:14:40", "rc": 0,
+    "probe": "FAILED: ContractError, relative contract path resolved against the EDF workdir (bug in p0.sbatch); no teacher-feature BLAS agreement numbers",
+    "pilot_copies_sha256_match_production": true,
+    "replay_1node_rocblas": {"steps": "166655-166694 (40), saved resume", "s_per_step": 9.40, "tokens_per_s": 7027.4, "peak_gpu_gb": 82.07},
+    "memory_gib": {"min_available": 83, "max_used": 403}
+  },
+  "p1a_705341_hipblaslt": {
+    "nodes": "nid[002516,002518]", "elapsed": "01:16:44", "rc": 0,
+    "steps": "166655-166672 (18), deadline save at 166672",
+    "s_per_step": 229.5, "tokens_per_s": 337.6, "peak_gpu_gb": 76.96,
+    "memory_gib": {"node0_min_available": 85, "node1_min_available": 103, "max_used": 400}
+  },
+  "backend_agreement_same_steps_166655_166672": {
+    "train_avg_loss_max_abs_diff": 0.0021, "mean_abs_diff": 0.0006, "max_rel_diff": 0.0022, "grad_norm_max_rel_diff": 0.0048
+  },
+  "p1b_link1_705342_rocblas": {
+    "nodes": "nid[002412,002522]", "elapsed": "02:16:02", "rc": 0,
+    "steps": "166655-167800 (1146), stopped by EAGLE_STOP_AFTER_STEPS, saved",
+    "s_per_step_incl_eval": 6.77, "tokens_per_s_at_18:47": 10992.2, "peak_gpu_gb": 87.76,
+    "eval_167756": {"simulated_acc_len": 4.132593285792794, "avg_loss": 0.7180960199726362, "avg_acc": 0.8600385090060011},
+    "previous_clariden_eval_162822": {"simulated_acc_len": 4.127301152642313, "avg_loss": 0.7201138722726117},
+    "memory_gib": {"node0_min_available": 66, "node1_min_available": 70, "max_used": 420}
+  },
+  "p1b_link2_705343_rocblas": {
+    "nodes": "nid[002412,002516]", "elapsed": "00:45:34", "rc": 0,
+    "resumed_step": 167800, "steps": "167801-168141 (341), deadline save at 168141",
+    "s_per_step": 6.76, "first_step_after_start_s": 76.8,
+    "history": "166655-168141 contiguous, no duplicates; state.json jobs end 3745986, 705342, 705343",
+    "memory_gib": {"node0_min_available": 85, "node1_min_available": 88, "max_used": 401}
+  },
+  "warnings": "one torchrun rendezvous keep-alive warning at teardown per 2-node job; rocm-smi libdrm get_name messages",
+  "clariden_reference": "~6.1 s/step (12,309 tok/s) on 2 GH200 nodes; parity link 3745987 not yet run",
+  "open": ["per-step loss parity vs Clariden 3745987", "eval parity at 167756 vs Clariden (+-0.03)"]
+}
