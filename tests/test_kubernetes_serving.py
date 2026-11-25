@@ -161,3 +161,56 @@ def test_default_dspark_render_is_unchanged_without_pin(tmp_path):
     template = deployment["spec"]["template"]
     assert template["spec"]["nodeSelector"] == {"kubernetes.io/arch": "arm64"}
     assert "apertus.swissai/variant" not in template["metadata"]["annotations"]
+
+
+def test_k_variant_renders_change_only_the_draft_length_and_identity(tmp_path):
+    import json
+
+    prepare = module("prepare")
+    prepare.render(tmp_path / "dspark", 1, "rev", "dspark", "n1")
+    for variant, k in (("dspark-k5", 5), ("dspark-k7", 7)):
+        prepare.render(tmp_path / variant, 1, "rev", variant, "n1")
+        base = json.loads((tmp_path / "dspark/deployment-provenance.json").read_text())
+        spec = json.loads((tmp_path / variant / "deployment-provenance.json").read_text())
+        expected = list(base["engine_argv"])
+        names = expected.index("--served-model-name") + 1
+        model_id = prepare.MODEL_IDS[variant]
+        assert model_id.endswith(f"-dspark-e10-k{k}")
+        expected[names : names + 2] = [model_id, model_id.removeprefix("SwissAI-Research/")]
+        config = expected.index("--speculative-config") + 1
+        expected[config] = expected[config].replace(
+            '"num_speculative_tokens": 3', f'"num_speculative_tokens": {k}'
+        )
+        assert spec["engine_argv"] == expected and spec["variant"] == variant
+        assert spec["asset_hashes"] == base["asset_hashes"]
+        dspark = yaml.safe_load((tmp_path / "dspark/deployment.yaml").read_text())
+        other = yaml.safe_load((tmp_path / variant / "deployment.yaml").read_text())
+        differing = {
+            key
+            for key, value in dict(_flatten(dspark)).items()
+            if dict(_flatten(other)).get(key) != value
+        } | (set(dict(_flatten(other))) - set(dict(_flatten(dspark))))
+        assert differing == {
+            "/spec/template/metadata/annotations/apertus.swissai/variant",
+            "/spec/template/spec/volumes[1]/configMap/name",
+        }
+
+
+def test_avoided_nodes_and_client_pod(tmp_path):
+    prepare = module("prepare")
+    prepare.render(tmp_path / "m", 1, "rev", "plain", "n3", ("n1", "n2"))
+    deployment = yaml.safe_load((tmp_path / "m" / "deployment.yaml").read_text())
+    rule = {"key": "kubernetes.io/hostname", "operator": "NotIn", "values": ["n1", "n2"]}
+    affinity = {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {
+        "nodeSelectorTerms": [{"matchExpressions": [rule]}]}}}  # fmt: skip
+    assert deployment["spec"]["template"]["spec"]["affinity"] == affinity
+    pod = prepare.client_pod("n3", ("n1", "n2"))
+    assert pod["spec"]["affinity"] == affinity
+    assert pod["spec"]["nodeSelector"]["kubernetes.io/hostname"] == "n3"
+    assert pod["spec"]["automountServiceAccountToken"] is False
+    (container,) = pod["spec"]["containers"]
+    assert "nvidia.com/gpu" not in container["resources"]["requests"]
+    prepare.render(tmp_path / "plain", 1, "rev")
+    default = yaml.safe_load((tmp_path / "plain" / "deployment.yaml").read_text())
+    assert "affinity" not in default["spec"]["template"]["spec"]
+    assert "affinity" not in prepare.client_pod()["spec"]
