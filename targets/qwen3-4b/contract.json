@@ -1,0 +1,140 @@
+{
+  "schema_version": 2,
+  "stage": "qwen3-4b",
+  "recorded_at": "2026-11-27T09:30:00+00:00",
+  "status": "contract_recorded",
+  "purpose": "Workload distribution-shape repeat on a second target (docs/workload-distribution-shape-qwen3-4b.md). Inference only; no EAGLE head is trained for this target.",
+  "source": {
+    "authorized_checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-4b/models/Qwen--Qwen3-4B",
+    "hf_id": "Qwen/Qwen3-4B",
+    "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+    "license": "apache-2.0",
+    "download": "Clariden job 4051559 (huggingface_hub snapshot_download at the pinned revision); full-file SHA256SUMS next to the weights",
+    "config_sha256": "8ba006f74fecfaaeb392872a60f4a480e7ec9860153d2e1b769ec81f9a147f8a",
+    "tokenizer_json_sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+    "tokenizer_json_bytes": 11422654,
+    "tokenizer_config_sha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+    "chat_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+    "chat_template_source": "tokenizer_config.json chat_template (4168 chars)",
+    "generation_config_sha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2",
+    "weight_index_sha256": "6dc0981b8829fead746441f68f38f24c5ca4a3a66351f652c26c6df0efc43ab2",
+    "weight_total_size_bytes": 8044936192,
+    "weight_tensor_count": 398,
+    "weight_manifest": {
+      "files": [
+        {
+          "name": "model-00001-of-00003.safetensors",
+          "bytes": 3957900840,
+          "sha256": "328a91d3122359d5547f9d79521205bc0a46e1f79a792dfe650e99fc2d651223"
+        },
+        {
+          "name": "model-00002-of-00003.safetensors",
+          "bytes": 3987450520,
+          "sha256": "6cd087b316306a68c562436b5492edbcf6e16c6dba3a1308279caa5a58e21ca5"
+        },
+        {
+          "name": "model-00003-of-00003.safetensors",
+          "bytes": 99630640,
+          "sha256": "e4bf436957184f4eeb86a80e9db394503f1f56446b2e6b7edeac5b81470f4ca1"
+        }
+      ],
+      "hashed": true,
+      "manifest_sha256": "9642fe5d5dfbe3ff04dc76189a6e300019ea4f8c9422d1d863b8f4311cd8a19e",
+      "manifest_rule": "sha256(json.dumps({config_sha256, files[name,bytes,sha256]}, sort_keys=True))"
+    },
+    "weight_manifest_sha256": "9642fe5d5dfbe3ff04dc76189a6e300019ea4f8c9422d1d863b8f4311cd8a19e"
+  },
+  "target": {
+    "identity": {
+      "model_id": "Qwen/Qwen3-4B",
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-4b/models/Qwen--Qwen3-4B",
+      "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+      "config_sha256": "8ba006f74fecfaaeb392872a60f4a480e7ec9860153d2e1b769ec81f9a147f8a",
+      "tokenizer_sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+      "chat_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "weight_manifest_sha256": "9642fe5d5dfbe3ff04dc76189a6e300019ea4f8c9422d1d863b8f4311cd8a19e"
+    },
+    "architecture": "Qwen3ForCausalLM",
+    "model_type": "qwen3",
+    "precision": "bfloat16",
+    "quantization": null,
+    "text": {
+      "model_type": "qwen3",
+      "hidden_size": 2560,
+      "intermediate_size": 9728,
+      "num_hidden_layers": 36,
+      "num_attention_heads": 32,
+      "num_key_value_heads": 8,
+      "head_dim": 128,
+      "vocab_size": 151936,
+      "rms_norm_eps": 1e-06,
+      "hidden_act": "silu",
+      "qk_norm": true,
+      "attention_bias": false,
+      "tie_word_embeddings": true,
+      "max_position_embeddings": 40960,
+      "rope_parameters": {
+        "rope_type": "default",
+        "rope_theta": 1000000
+      }
+    },
+    "tensors": {
+      "embed_tokens": {
+        "key": "model.embed_tokens.weight",
+        "shape": [
+          151936,
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "final_norm": {
+        "key": "model.norm.weight",
+        "shape": [
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "lm_head": {
+        "key": "model.embed_tokens.weight",
+        "note": "tied (tie_word_embeddings)"
+      }
+    },
+    "tokens": {
+      "bos_token_id": null,
+      "eos_token_id": 151645,
+      "generation_eos_token_id": [
+        151645,
+        151643
+      ],
+      "pad_token_id": 151643,
+      "eos_token": "<|im_end|>",
+      "prompt_format": "qwen3",
+      "prompt_format_note": "Qwen3 chat template, enable_thinking=False: the generation prompt ends with '<|im_start|>assistant\\n<think>\\n\\n</think>\\n\\n' (apertus_eagle.generate_targets.render_prompt). No BOS.",
+      "serving_add_special_tokens": false
+    },
+    "dspark": {
+      "drafter": "RedHatAI/Qwen3-4B-speculator.dspark@bdffaa5f011da5a1a58ad841a1f6ced3e87f2f23",
+      "aux_hidden_state_layer_ids": [
+        1,
+        9,
+        17,
+        25,
+        33
+      ],
+      "hf_decoder_layer_aux_ids": [
+        0,
+        8,
+        16,
+        24,
+        32
+      ],
+      "indexing_convention": "speculators/vLLM aux id k is the residual stream after decoder layer k-1 (HF output_hidden_states[k]); the shape run hooks HF decoder layer k-1."
+    }
+  },
+  "serving": {
+    "target_tensor_parallel_size": 1,
+    "draft_tensor_parallel_size": 1,
+    "max_model_len": 40960,
+    "prefix_caching": false
+  }
+}

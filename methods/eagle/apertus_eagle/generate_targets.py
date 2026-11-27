@@ -88,10 +88,28 @@ def prompt_messages(row: dict[str, Any]) -> list[dict[str, Any]]:
     return filtered
 
 
-def render_prompt(tokenizer: Any, messages: list[dict[str, Any]]) -> list[int]:
+# Qwen3's template ends a thinking-off generation prompt with an empty think block.
+QWEN3_GENERATION_SUFFIX = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+
+
+def render_prompt(
+    tokenizer: Any, messages: list[dict[str, Any]], prompt_format: str = "apertus"
+) -> list[int]:
+    """Thinking-off generation prompt in the target's own chat template.
+
+    ``prompt_format`` comes from the contract (``target.tokens.prompt_format``):
+    ``apertus`` (default) or ``qwen3``.
+    """
     ids = chat_template_token_ids(
         tokenizer, messages, add_generation_prompt=True, enable_thinking=False
     )
+    if prompt_format == "qwen3":
+        suffix = tokenizer.encode(QWEN3_GENERATION_SUFFIX, add_special_tokens=False)
+        if len(ids) <= len(suffix) or list(ids[-len(suffix) :]) != list(suffix):
+            raise ValueError("Qwen3 prompt does not end with a thinking-off assistant header")
+        return ids
+    if prompt_format != "apertus":
+        raise ValueError(f"unknown prompt_format {prompt_format!r}")
     if not ids or ids[0] != BOS_ID or (len(ids) > 1 and ids[1] == BOS_ID):
         raise ValueError("rendered prompt must start with exactly one BOS")
     if ids[-1] != ASSISTANT_START_ID:
