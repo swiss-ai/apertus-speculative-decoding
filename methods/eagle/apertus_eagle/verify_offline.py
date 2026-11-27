@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from apertus_eagle.contract import load_contract, target_identity
-from apertus_eagle.generate_targets import prompt_messages, render_prompt
+from apertus_eagle.generate_targets import prompt_messages, render_prompt, render_row
 
 
 def load_prompts(path: Path, limit: int | None) -> list[dict[str, Any]]:
@@ -114,7 +114,7 @@ def capture(args: argparse.Namespace) -> None:
     rows = load_prompts(args.prompts, args.limit)
     requests: list[tuple[str, list[int], int]] = []
     for row in rows:
-        ids = row.get("prompt_ids") or render_prompt(tokenizer, prompt_messages(row))
+        ids = row.get("prompt_ids") or render_row(contract, tokenizer, row)
         requests.append((str(row["id"]), list(ids), args.max_tokens))
     sweep_caps = list(range(1, args.num_speculative_tokens + 3)) + [
         2 * args.num_speculative_tokens + 3,

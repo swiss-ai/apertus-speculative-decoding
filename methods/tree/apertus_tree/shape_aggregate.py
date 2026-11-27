@@ -17,6 +17,15 @@ Everything is reported per workload slice, as quantiles, never as a bare mean:
 - the depth-1 match rate and TV by target-entropy bin, per workload, and the
   step acceptance length by the entropy of the step's first drafted position, which
   separate the distribution-shape effect from the workload effect.
+
+Shards of other drafters (``apertus_tree.shape --names``) and deeper replays
+(``--depth`` 15 for DFlash) are detected from the arrays: the drafter keys come
+from the ``*_match`` fields and k = 15 is added when the depth allows it.
+``--sampled`` adds the sampled (T=1) acceptance replay: under rejection sampling
+the drafted token at depth d is accepted with probability 1 - TV(p_d, q_d), so the
+expected acceptance length of a step starting at anchor a is
+1 + sum_{j<=k} prod_{d<=j} (1 - TV_d), evaluated along the greedy trajectory at
+every anchor. Without these the output is the Apertus run's, byte for byte.
 """
 
 from __future__ import annotations
@@ -66,7 +75,21 @@ def walk(match: np.ndarray, k: int) -> list[tuple[int, int]]:
     return steps
 
 
-def load(paths: list[Path]):
+def drafter_names(path: Path) -> tuple[str, ...]:
+    with np.load(path) as z:
+        names = {k[: -len("_match")] for k in z.files if k.endswith("_match")}
+    return DRAFTERS if names == set(DRAFTERS) else tuple(sorted(names))
+
+
+def sampled_lengths(tv: np.ndarray, k: int) -> np.ndarray:
+    """Expected acceptance length per anchor (incl. the bonus token) under T=1
+    rejection sampling: 1 + sum_{j<=k} prod_{d<=j} (1 - TV_d); depths past the
+    sequence end (nan) end the chain."""
+    acc = np.nan_to_num(1.0 - tv[:, :k].astype(np.float64), nan=0.0)
+    return 1.0 + np.cumprod(acc, axis=1).sum(axis=1)
+
+
+def load(paths: list[Path], drafters: tuple[str, ...] = DRAFTERS):
     seqs = []
     for path in paths:
         z = np.load(path)
@@ -86,7 +109,7 @@ def load(paths: list[Path]):
                     },
                     **{
                         d: {f: z[f"{d}_{f}"][a_off[j] : a_off[j + 1]] for f in FIELDS}
-                        for d in DRAFTERS
+                        for d in drafters
                     },
                 }
             )
@@ -99,10 +122,15 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--suite", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--sequences", type=Path, required=True)
+    parser.add_argument("--sampled", action="store_true", help="add the T=1 acceptance replay")
     args = parser.parse_args(argv)
     suite = yaml.safe_load(args.suite.read_text())
     classes = {s["label"]: s["class"] for s in suite["slices"]}
-    seqs = load(args.shards)
+    drafters = drafter_names(args.shards[0])
+    seqs = load(args.shards, drafters)
+    depth = seqs[0][drafters[0]]["match"].shape[1]
+    ks = KS + tuple(k for k in (15,) if k <= depth and k not in KS)
+    extended = args.sampled or drafters != DRAFTERS or ks != KS
     labels = [s["label"] for s in suite["slices"] if any(q["workload"] == s["label"] for q in seqs)]
 
     out = {
@@ -111,6 +139,8 @@ def main(argv: list[str] | None = None) -> None:
         "quantiles": list(QS),
         "workloads": {},
     }
+    if extended:
+        out = {"drafters": list(drafters), "depth": int(depth), "ks": list(ks), **out}
     seq_rows = []
     for label in labels:
         ws = [s for s in seqs if s["workload"] == label]
@@ -127,14 +157,14 @@ def main(argv: list[str] | None = None) -> None:
             "target": {"ent": quant(t_ent), "top1p": quant(t_top)},
             "target_entropy_hist": np.histogram(t_ent, ENT_EDGES)[0].tolist(),
         }
-        for d in DRAFTERS:
+        for d in drafters:
             res = {"depth1": {}, "depth1to3": {}, "per_depth": {}, "chain": {}, "bins": {}}
             for f in FIELDS:
                 res["depth1"][f] = quant(np.concatenate([s[d][f][:, 0] for s in ws]))
                 res["depth1to3"][f] = quant(np.concatenate([s[d][f][:, :3].ravel() for s in ws]))
             for f in ("match", "tv", "agree"):
                 stack = np.concatenate([s[d][f] for s in ws])
-                res["per_depth"][f] = [float(np.nanmean(stack[:, j])) for j in range(7)]
+                res["per_depth"][f] = [float(np.nanmean(stack[:, j])) for j in range(depth)]
             # Depth-1 metrics by the target's entropy at the same position (anchor i
             # predicts generated position i + 1).
             ent1 = np.concatenate([s["target"]["ent"][1:] for s in ws])
@@ -150,7 +180,7 @@ def main(argv: list[str] | None = None) -> None:
                 for j in range(len(ENT_LABELS))
             ]
             per_seq = {}
-            for k in KS:
+            for k in ks:
                 lengths, firsts, seq_means = [], [], []
                 for s in ws:
                     steps = walk(s[d]["match"], k)
@@ -179,6 +209,17 @@ def main(argv: list[str] | None = None) -> None:
                         for j in range(len(ENT_LABELS))
                     ],
                 }
+            if args.sampled:
+                res["sampled"] = {}
+                for k in ks:
+                    per = [sampled_lengths(s[d]["tv"], k) for s in ws]
+                    res["sampled"][f"k{k}"] = {
+                        "anchors": int(sum(len(x) for x in per)),
+                        "acceptance_length": float(np.concatenate(per).mean()),
+                        "per_sequence": quant(np.array([x.mean() for x in per])),
+                    }
+                    for s, x in zip(ws, per, strict=True):
+                        per_seq.setdefault(id(s), {})[f"s{k}"] = float(x.mean())
             entry[d] = res
             for s in ws:
                 s.setdefault("_chain", {})[d] = per_seq[id(s)]
@@ -194,13 +235,16 @@ def main(argv: list[str] | None = None) -> None:
                 "target_ent_median": float(np.median(s["target"]["ent"])),
                 "target_top1p_mean": float(s["target"]["top1p"].mean()),
             }
-            for d in DRAFTERS:
+            for d in drafters:
                 row[f"{d}_ent1_mean"] = float(np.nanmean(s[d]["ent"][:, 0]))
                 row[f"{d}_tv1_mean"] = float(np.nanmean(s[d]["tv"][:, 0]))
                 row[f"{d}_kl1_mean"] = float(np.nanmean(s[d]["kl"][:, 0]))
                 row[f"{d}_match1_mean"] = float(np.nanmean(s[d]["match"][:, 0]))
-                for k in KS:
+                for k in ks:
                     row[f"{d}_acc_k{k}"] = s["_chain"][d][k]
+                if args.sampled:
+                    for k in ks:
+                        row[f"{d}_sacc_k{k}"] = s["_chain"][d][f"s{k}"]
             seq_rows.append(row)
     args.output.write_text(json.dumps(out, indent=1) + "\n")
     with args.sequences.open("w", newline="") as handle:
@@ -211,7 +255,7 @@ def main(argv: list[str] | None = None) -> None:
     print(
         json.dumps(
             {
-                w: {d: e[d]["chain"]["k3"]["acceptance_length"] for d in DRAFTERS}
+                w: {d: e[d]["chain"]["k3"]["acceptance_length"] for d in drafters}
                 for w, e in out["workloads"].items()
             },
             indent=1,

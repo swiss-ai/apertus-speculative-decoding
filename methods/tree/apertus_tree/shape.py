@@ -24,6 +24,11 @@ target emitted last; the target has hidden states for positions < a; depth
     and token a; depth d > 1 feeds ids[a+d-1] and its own previous hidden state,
     attending to the context and to its ancestors (TTT layout).
 
+The same replay runs the Red Hat speculators heads (``apertus_tree.qwen_heads``):
+``--eagle-format speculators`` (EAGLE-3 with a reduced draft vocabulary) and
+``--block-format dflash`` (DFlash: depth d reads slot d, no Markov head), with
+``--depth`` up to the block's draft length and ``--names`` for the drafter keys.
+
 Per (a, d) the shard stores, for both drafters: drafter entropy, top-1 prob,
 TV(p, q), KL(p || q), whether the drafter's top-1 equals the trajectory token
 (the greedy acceptance test) and the target's top-1, and q(trajectory token).
@@ -78,6 +83,16 @@ class Collector:
         self.args, self.eagle, self.dspark, self.lm_head, self.device = (
             args, eagle, dspark, lm_head, device,
         )  # fmt: skip
+        # Drafter keys (block drafter first) and depth; defaults are the Apertus run's.
+        self.block_name, self.eagle_name = getattr(args, "names", "dspark,eagle").split(",")
+        self.depth = int(getattr(args, "depth", DEPTH))
+        self.slot = int(getattr(dspark, "slot_offset", 0))
+
+    def carry(self, h: torch.Tensor) -> torch.Tensor:
+        """EAGLE hidden state for the next step (Apertus heads: normed; speculators: raw)."""
+        if hasattr(self.eagle, "carry"):
+            return self.eagle.carry(h)
+        return rms(h, self.eagle.norm, self.eagle.eps)
 
     def sequence(self, ids: list[int], p: int, last: torch.Tensor, aux_e, aux_d):
         dev = self.device
@@ -98,15 +113,18 @@ class Collector:
         ectx = self.eagle.context(full, aux_e)
         dctx = self.dspark.context(aux_d)
         anchors = list(range(p, n - 1))
+        depth_max = self.depth
         out = {
-            name: {f: np.full((len(anchors), DEPTH), np.nan, np.float32) for f in DRAFTER_FIELDS}
-            for name in ("dspark", "eagle")
+            name: {
+                f: np.full((len(anchors), depth_max), np.nan, np.float32) for f in DRAFTER_FIELDS
+            }
+            for name in (self.block_name, self.eagle_name)
         }
         for start in range(0, len(anchors), self.args.anchor_chunk):
             chunk = anchors[start : start + self.args.anchor_chunk]
             a_t = torch.tensor(chunk, device=dev)
-            depth = min(DEPTH, n - 1 - chunk[0])
-            base = self.dspark.block_logits(dctx, full, a_t)[:, :DEPTH]
+            depth = min(depth_max, n - 1 - chunk[0])
+            base = self.dspark.block_logits(dctx, full, a_t)[:, self.slot : self.slot + depth_max]
             # EAGLE teacher-forced chain state
             e_hidden = ectx["next"][a_t - 1]
             anc_k = ectx["k"].new_zeros((len(chunk), 0, *ectx["k"].shape[1:]))
@@ -121,7 +139,7 @@ class Collector:
                 lp_t = t_lp[posv - p]
                 top_t = t_top[posv - p]
                 d_lp = self.dspark.logprobs(base[rows, d - 1], full[posv - 1])
-                for name, lp_q in (("dspark", d_lp), ("eagle", e_lp[rows])):
+                for name, lp_q in ((self.block_name, d_lp), (self.eagle_name, e_lp[rows])):
                     m = dist_metrics(lp_t, lp_q, truth, top_t)
                     idx = (start + rows).cpu().numpy()
                     for f in DRAFTER_FIELDS:
@@ -134,7 +152,7 @@ class Collector:
                 tok = full[pos.clamp(max=n - 1)]
                 k, v, h = self.eagle.nodes(ectx, a_t, d, tok, e_hidden, anc_k, anc_v)
                 e_lp = self.eagle.logprobs(h)
-                e_hidden = rms(h, self.eagle.norm, self.eagle.eps)
+                e_hidden = self.carry(h)
                 anc_k = torch.cat([anc_k, k[:, None]], 1)
                 anc_v = torch.cat([anc_v, v[:, None]], 1)
         target = {k: v.float().cpu().numpy().astype(np.float32) for k, v in target.items()}
@@ -154,6 +172,10 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--anchor-chunk", type=int, default=64)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--eagle-format", choices=("apertus", "speculators"), default="apertus")
+    parser.add_argument("--block-format", choices=("dspark", "dflash"), default="dspark")
+    parser.add_argument("--names", default="dspark,eagle", help="block drafter key, EAGLE key")
+    parser.add_argument("--depth", type=int, default=DEPTH, help="drafted depths per anchor")
     args = parser.parse_args(argv)
 
     from apertus_eagle.contract import (
@@ -163,7 +185,7 @@ def main(argv: list[str] | None = None) -> None:
         target_identity,
     )
     from apertus_eagle.features import FeatureCapture, load_teacher
-    from apertus_eagle.generate_targets import prompt_messages, render_prompt
+    from apertus_eagle.generate_targets import render_row
     from transformers import AutoTokenizer
 
     torch.backends.cuda.enable_cudnn_sdp(False)
@@ -181,10 +203,24 @@ def main(argv: list[str] | None = None) -> None:
     embed = model.get_input_embeddings().weight
     head = model.get_output_embeddings()
     lm_head = (head if head is not None else model.lm_head).weight
-    eagle = Eagle(args.eagle_head, embed, device)
-    if eagle.lm_head.shape[0] != lm_head.shape[0]:
-        raise SystemExit("EAGLE draft vocabulary differs from the target's")
-    dspark = DSpark(args.dspark, embed, lm_head, device)
+    if args.eagle_format == "speculators":
+        from apertus_tree.qwen_heads import Eagle3Speculators
+
+        eagle = Eagle3Speculators(args.eagle_head, embed, device, target_vocab=lm_head.shape[0])
+    else:
+        eagle = Eagle(args.eagle_head, embed, device)
+        if eagle.lm_head.shape[0] != lm_head.shape[0]:
+            raise SystemExit("EAGLE draft vocabulary differs from the target's")
+    if args.block_format == "dflash":
+        from apertus_tree.qwen_heads import DFlash
+
+        dspark = DFlash(args.dspark, embed, lm_head, device)
+        if args.depth > dspark.max_depth:
+            raise SystemExit(f"DFlash drafts at most {dspark.max_depth} tokens")
+    else:
+        dspark = DSpark(args.dspark, embed, lm_head, device)
+        if args.depth > dspark.block:
+            raise SystemExit(f"DSpark drafts at most {dspark.block} tokens")
     tokenizer = AutoTokenizer.from_pretrained(target_path)
     collector = Collector(args, eagle, dspark, lm_head, device)
 
@@ -209,7 +245,7 @@ def main(argv: list[str] | None = None) -> None:
         for row in rows:
             t0 = time.time()
             case = cases[str(row["id"])]
-            prompt = list(row.get("prompt_ids") or render_prompt(tokenizer, prompt_messages(row)))
+            prompt = list(row.get("prompt_ids") or render_row(contract, tokenizer, row))
             if sha256_ids(prompt) != case["prompt_ids_sha256"]:
                 raise SystemExit(f"prompt ids differ from the capture for {row['id']}")
             ids = prompt + list(case["token_ids"])
@@ -255,6 +291,10 @@ def main(argv: list[str] | None = None) -> None:
         "eagle_head_sha256": file_sha256(args.eagle_head / "model.safetensors"),
         "dspark": str(args.dspark),
         "dspark_sha256": file_sha256(args.dspark / "model.safetensors"),
+        "drafter_names": [collector.block_name, collector.eagle_name],
+        "eagle_format": args.eagle_format,
+        "block_format": args.block_format,
+        "depth": collector.depth,
         "eagle_hf_layers": eagle_layers,
         "dspark_hf_layers": dspark_layers,
         "captures": {str(p): file_sha256(p) for p in args.capture},
