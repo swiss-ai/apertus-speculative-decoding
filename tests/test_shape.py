@@ -27,7 +27,7 @@ def test_walk_counts_leading_matches_and_jumps():
     assert agg.walk(match, 1) == [(0, 1), (2, 0), (3, 1), (5, 0), (6, 1)]
 
 
-def test_sampled_acceptance_chains_one_minus_tv():
+def test_sampled_lengths_chain_one_minus_tv():
     nan = np.nan
     tv = np.array(
         [
@@ -35,19 +35,16 @@ def test_sampled_acceptance_chains_one_minus_tv():
             [1.0] * 7,  # disjoint: nothing accepted
             [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
             [0.0, 0.0, nan, nan, nan, nan, nan],  # sequence ends after depth 2
+            [0.0, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0],  # a rejection ends the chain
+            [0.2, 0.2, nan, nan, nan, nan, nan],
         ]
     )
-    assert agg.sampled_lengths(tv, 3).tolist() == [4.0, 1.0, 1.875, 3.0]
+    assert agg.sampled_lengths(tv, 3).tolist() == pytest.approx([4.0, 1.0, 1.875, 3.0, 2.5, 2.44])
     assert agg.sampled_lengths(tv, 7)[0] == 8.0
-    assert agg.sampled_lengths(tv, 1).tolist() == [2.0, 1.0, 1.5, 2.0]
-
-
-def test_sampled_lengths_chain_one_minus_tv():
-    nan = np.nan
-    tv = np.array([[0.0, 0.5, 1.0, 0.0], [0.2, 0.2, nan, nan]])
-    # anchor 0: 1 + 1 + 0.5 + 0 (+0) ; anchor 1: 1 + 0.8 + 0.64, the chain ends at nan
-    assert np.allclose(agg.sampled_lengths(tv, 3), [2.5, 2.44])
-    assert np.allclose(agg.sampled_lengths(tv, 1), [2.0, 1.8])
+    assert agg.sampled_lengths(tv, 1).tolist() == pytest.approx([2.0, 1.0, 1.5, 2.0, 2.0, 1.8])
+    # --sampled-dtype float32 (the Qwen3-4B run) chains in float32.
+    assert agg.sampled_lengths(tv.astype(np.float32), 3, "float32").dtype == np.float32
+    assert agg.sampled_lengths(tv.astype(np.float32), 3).dtype == np.float64
 
 
 def test_dist_metrics_identities():
@@ -139,11 +136,10 @@ def _ours_logprobs(dspark, aux, ids, anchors):
 def test_dspark_matches_speculators_reference_tiny(tmp_path, monkeypatch):
     """Random tiny Qwen3-style DSpark with a sliding and a full layer, window crossed."""
     _import_speculators()
+    from apertus_tree.candidates import DSpark
     from safetensors.torch import save_file
     from speculators import SpeculatorModelConfig
     from speculators.models.dspark import DSparkDraftModel
-
-    from apertus_tree.candidates import DSpark
 
     torch.manual_seed(0)
     vocab, hid, block = 97, 64, 4
@@ -221,12 +217,11 @@ def test_dspark_checkpoint_matches_speculators_reference(monkeypatch):
     if not path or not target or not torch.cuda.is_available():
         pytest.skip("needs SHAPE_REF_DSPARK, SHAPE_REF_TARGET and a GPU")
     _import_speculators()
+    from apertus_tree.candidates import DSpark
     from safetensors.torch import load_file
     from speculators import SpeculatorModelConfig
     from speculators.models.dspark import DSparkDraftModel
     from transformers import AutoModelForCausalLM
-
-    from apertus_tree.candidates import DSpark
 
     dev = torch.device("cuda")
     path = Path(path)
@@ -283,9 +278,8 @@ def _tiny(tmp_path, name, config, tensors):
 def test_eagle3_speculators_matches_reference(tmp_path):
     transformers = pytest.importorskip("transformers")
     ref = pytest.importorskip("reference_speculators")
-    from transformers.models.llama.modeling_llama import LlamaRMSNorm, LlamaRotaryEmbedding
-
     from apertus_tree.speculators_heads import Eagle3Speculators
+    from transformers.models.llama.modeling_llama import LlamaRMSNorm, LlamaRotaryEmbedding
 
     torch.manual_seed(0)
     hidden, heads, kv, hd, vocab, draft, length = 64, 4, 2, 16, 300, 120, 24
@@ -308,8 +302,8 @@ def test_eagle3_speculators_matches_reference(tmp_path):
     d2t = target_ids - torch.arange(draft)
     tensors = {f"layers.0.{k}": v.detach() for k, v in layer.state_dict().items()}
     tensors |= {"embed_tokens.weight": embed, "fc.weight": fc, "norm.weight": norm.weight.detach(),
-                "lm_head.weight": lm_head, "d2t": d2t,
-                "t2d": torch.zeros(vocab, dtype=torch.bool).index_fill(0, target_ids, True)}  # fmt: skip
+                "lm_head.weight": lm_head, "d2t": d2t}  # fmt: skip
+    tensors["t2d"] = torch.zeros(vocab, dtype=torch.bool).index_fill(0, target_ids, True)
     cfg = {"speculators_model_type": "eagle3", "draft_vocab_size": draft,
            "norm_before_residual": True, "transformer_layer_config": tl}  # fmt: skip
     head = _tiny(tmp_path, "eagle3", cfg, tensors)
@@ -359,9 +353,8 @@ def test_eagle3_speculators_matches_reference(tmp_path):
 def test_dflash_matches_reference(tmp_path):
     transformers = pytest.importorskip("transformers")
     ref = pytest.importorskip("reference_speculators")
-    from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm, Qwen3RotaryEmbedding
-
     from apertus_tree.speculators_heads import DFlash
+    from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm, Qwen3RotaryEmbedding
 
     torch.manual_seed(1)
     hidden, heads, kv, hd, vocab, layers, block, window = 64, 4, 2, 16, 200, 2, 6, 5

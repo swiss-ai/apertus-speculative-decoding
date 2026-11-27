@@ -330,7 +330,9 @@ def main() -> None:
                 r2[f"{d}_sampled_k{k}"] = {
                     "target entropy (mean)": ols(col("ent_mean"), ys),
                     "TV d1 (mean)": ols(col(f"{d}_tv_mean"), ys),
-                    "entropy + TV": ols(np.column_stack([col("ent_mean"), col(f"{d}_tv_mean")]), ys),
+                    "entropy + TV": ols(
+                        np.column_stack([col("ent_mean"), col(f"{d}_tv_mean")]), ys
+                    ),
                 }
     if not extended:
         y = np.array([feat[w]["served_k3"] for w in order], float)
@@ -574,7 +576,9 @@ def main() -> None:
             fit = r2[f"{d}_k3"][key]
             xs = np.linspace(x.min(), x.max(), 10)
             ax.plot(xs, fit["coef"][0] + fit["coef"][1] * xs, color=INK2, lw=1, ls="--")
-            ax.set_title(f"R² = {fit['r2']:.2f} (LOO {fit['loo_r2']:.2f})", fontsize=8.5, loc="left")
+            ax.set_title(
+                f"R² = {fit['r2']:.2f} (LOO {fit['loo_r2']:.2f})", fontsize=8.5, loc="left"
+            )
             ax.set_xlabel(xlabel)
         axes[0].set_ylabel(f"replayed acceptance length, {SHORT[d]} k=3")
         axes[0].legend(fontsize=7, frameon=False)
@@ -685,8 +689,9 @@ def main() -> None:
                     key = f"served_{d}_{c['sampling']}_k3"
                     y = np.array([np.nan if feat[w].get(key) is None else feat[w][key]
                                   for w in order], float)  # fmt: skip
-                    ax.scatter(x, y, s=16, marker="x", color=INK2 if c["sampling"] == "greedy"
-                               else SERIES[2], label=f"served {c['sampling']}", zorder=4)  # fmt: skip
+                    color = INK2 if c["sampling"] == "greedy" else SERIES[2]
+                    ax.scatter(x, y, s=16, marker="x", color=color,
+                               label=f"served {c['sampling']}", zorder=4)  # fmt: skip
             ax.set_title(f"{NAMES[d]}, k=3", fontsize=8.5, loc="left")
             ax.set_xlabel("target entropy, mean (nats)")
             ax.legend(fontsize=6.5, frameon=False)
@@ -739,8 +744,13 @@ def main() -> None:
         lines.append(row)
     if extended:
         ks_all = [k for k in agg.get("ks", (1, 3, 5, 7))]
-        lines += ["", "## Acceptance length per k (greedy replay; sampled T=1 replay in brackets)", ""]
-        head = "| slice | " + " | ".join(f"{SHORT[d]} k{k}" for d in drafters for k in ks_all) + " |"
+        lines += [
+            "",
+            "## Acceptance length per k (greedy replay; sampled T=1 replay in brackets)",
+            "",
+        ]
+        head = "| slice | " + " | ".join(f"{SHORT[d]} k{k}" for d in drafters for k in ks_all)
+        head += " |"
         lines += [head, "|---" * (1 + len(drafters) * len(ks_all)) + "|"]
         for w in order:
             cells_txt = []
