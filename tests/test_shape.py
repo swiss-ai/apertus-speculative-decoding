@@ -70,6 +70,28 @@ def test_dist_metrics_identities():
 # base logits + the vanilla Markov bias of the teacher-forced previous token.
 
 
+def _import_speculators():
+    """speculators' package import pulls in ``datasets`` (training data loaders) even
+    though the model code never uses it; the serving image lacks it, so a stub that
+    refuses every call stands in for it there."""
+    import sys
+    import types
+
+    try:
+        import datasets  # noqa: F401
+    except ImportError:
+        stub = types.ModuleType("datasets")
+
+        def _unavailable(*_a, **_k):
+            raise RuntimeError("datasets stub: not used by the DSpark model code")
+
+        for name in ("load_from_disk", "load_dataset", "concatenate_datasets"):
+            setattr(stub, name, _unavailable)
+        stub.Dataset = type("Dataset", (), {})
+        sys.modules["datasets"] = stub
+    return pytest.importorskip("speculators.models.dspark")
+
+
 def _reference_logprobs(model, aux, ids, anchors, monkeypatch):
     import speculators.models.dflash.core as dcore
 
@@ -108,7 +130,7 @@ def _ours_logprobs(dspark, aux, ids, anchors):
 
 def test_dspark_matches_speculators_reference_tiny(tmp_path, monkeypatch):
     """Random tiny Qwen3-style DSpark with a sliding and a full layer, window crossed."""
-    pytest.importorskip("speculators.models.dspark")
+    _import_speculators()
     from safetensors.torch import save_file
     from speculators import SpeculatorModelConfig
     from speculators.models.dspark import DSparkDraftModel
@@ -190,7 +212,7 @@ def test_dspark_checkpoint_matches_speculators_reference(monkeypatch):
     path, target = os.environ.get("SHAPE_REF_DSPARK"), os.environ.get("SHAPE_REF_TARGET")
     if not path or not target or not torch.cuda.is_available():
         pytest.skip("needs SHAPE_REF_DSPARK, SHAPE_REF_TARGET and a GPU")
-    pytest.importorskip("speculators.models.dspark")
+    _import_speculators()
     from safetensors.torch import load_file
     from speculators import SpeculatorModelConfig
     from speculators.models.dspark import DSparkDraftModel
