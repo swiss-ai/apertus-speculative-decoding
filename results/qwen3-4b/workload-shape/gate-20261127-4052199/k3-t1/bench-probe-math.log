@@ -1,0 +1,28 @@
+loadtest probe-math concurrency=1 requests=32
+{
+  "workload": "probe-math",
+  "variant": "k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 653.565554148885,
+      "ttft_p50_ms": 29.68111049995059,
+      "ttft_p95_ms": 38.36042555012682,
+      "tpot_p50_ms": 1.4087900234640323,
+      "tpot_p95_ms": 1.555064950575078,
+      "e2e_p95_ms": 660.0353580004593,
+      "kv_cache_usage_mean": 0.0001443127651200582,
+      "kv_cache_usage_max": 0.0004329382953601746,
+      "kv_cache_tokens_peak": 187,
+      "kv_cache_size_tokens": 432966,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.405750798722045,
+      "acceptance_rate": 0.8019169329073482
+    }
+  ]
+}

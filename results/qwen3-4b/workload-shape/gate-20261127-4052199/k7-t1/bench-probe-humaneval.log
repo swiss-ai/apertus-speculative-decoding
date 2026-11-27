@@ -1,0 +1,28 @@
+loadtest probe-humaneval concurrency=1 requests=32
+{
+  "workload": "probe-humaneval",
+  "variant": "k7-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 856.7221934252876,
+      "ttft_p50_ms": 22.835297999336035,
+      "ttft_p95_ms": 42.22008559881942,
+      "tpot_p50_ms": 1.0857512303765025,
+      "tpot_p95_ms": 1.3466500626772535,
+      "e2e_p95_ms": 563.2132517010177,
+      "kv_cache_usage_mean": 0.0006305694830643915,
+      "kv_cache_usage_max": 0.0011823177807457341,
+      "kv_cache_tokens_peak": 511,
+      "kv_cache_size_tokens": 432389,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 4.598034836980795,
+      "acceptance_rate": 0.5140049767115421
+    }
+  ]
+}

@@ -1,0 +1,683 @@
+{
+ "source": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-4b/gate/full-20261127/k3-greedy (submit-gate-qwen3.sh), C=1, 512-token cap, vLLM spec-decode counter deltas per slice",
+ "arm": "k3-greedy",
+ "metadata": {
+  "schema_version": 1,
+  "harness_version": "0.1.0",
+  "harness_git_revision": null,
+  "python": "3.12.3",
+  "started_at": "2026-11-27T09:59:13.896237+00:00",
+  "ended_at": "2026-11-27T09:59:42.300964+00:00",
+  "base_url": "http://127.0.0.1:8100",
+  "metrics_url": "http://127.0.0.1:8100/metrics",
+  "model": "qwen3-4b-dspark-k3-greedy",
+  "variant": {
+   "name": "k3-greedy",
+   "method": "dspark",
+   "num_speculative_tokens": 3,
+   "draft_tensor_parallel_size": null,
+   "prompt_lookup_max": null,
+   "algorithm": null,
+   "parallel_drafting": false
+  },
+  "cell": {
+   "workload": "arena-hard-clean",
+   "concurrency": 1,
+   "requests": 32,
+   "warmup_requests": 1,
+   "repeat": 1,
+   "generation": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": null,
+    "seed": 1,
+    "max_tokens": 512,
+    "ignore_eos": false,
+    "reasoning_effort": null,
+    "min_p": null
+   }
+  },
+  "workload_file": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-4b/runs/full-20261127/inputs/corpus-measured.jsonl",
+  "workload_file_sha256": "fdba706ebe9e31ea6f8512c31bc9d93f09065589d8731f41da5b2867c8fdc177",
+  "prompt_ids": [
+   "arena-hard-00263",
+   "arena-hard-00489",
+   "arena-hard-00319",
+   "arena-hard-00453",
+   "arena-hard-00055",
+   "arena-hard-00455",
+   "arena-hard-00043",
+   "arena-hard-00492",
+   "arena-hard-00196",
+   "arena-hard-00438",
+   "arena-hard-00064",
+   "arena-hard-00351",
+   "arena-hard-00081",
+   "arena-hard-00330",
+   "arena-hard-00409",
+   "arena-hard-00005",
+   "arena-hard-00132",
+   "arena-hard-00397",
+   "arena-hard-00153",
+   "arena-hard-00197",
+   "arena-hard-00107",
+   "arena-hard-00496",
+   "arena-hard-00398",
+   "arena-hard-00355",
+   "arena-hard-00251",
+   "arena-hard-00158",
+   "arena-hard-00422",
+   "arena-hard-00210",
+   "arena-hard-00205",
+   "arena-hard-00413",
+   "arena-hard-00061",
+   "arena-hard-00372"
+  ],
+  "extra": {
+   "deployment_id": "qwen3-4b-dspark-k3-greedy-4052199",
+   "checkpoint_sha256": "7f13b62c900e88c7a8027055ae9882dcffaf23af66fbd494f792174be5c1245a",
+   "target_model": "Qwen/Qwen3-4B",
+   "target_revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+   "target_tensor_parallel_size": "1",
+   "drafter_model": "RedHatAI/Qwen3-4B-speculator.dspark",
+   "drafter_revision": "bdffaa5f011da5a1a58ad841a1f6ced3e87f2f23",
+   "image": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_nvidia_alps-arm64.sqsh",
+   "corpus_sha256": "fdba706ebe9e31ea6f8512c31bc9d93f09065589d8731f41da5b2867c8fdc177",
+   "source_revision": "75e9f01d7df03acf360c461c2c7ea1cdaeb4751d",
+   "slurm_job": "4052199",
+   "slurm_nodes": "nid006141",
+   "gpu": "0",
+   "temperature": "0"
+  }
+ },
+ "slices": {
+  "arena-hard-clean": {
+   "acceptance_length": 2.750919600630583,
+   "acceptance_rate": 0.5836398668768611,
+   "drafts": 5709.0,
+   "draft_tokens": 17127.0,
+   "accepted_tokens": 9996.0,
+   "acceptance_rate_per_position": {
+    "0": 0.765633210719916,
+    "1": 0.5687510947626555,
+    "2": 0.4165352951480119
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.1265734475039197
+   },
+   "completion_tokens": 15712,
+   "output_tokens_per_second": 553.1475627244246
+  },
+  "arena-hard-contaminated": {
+   "acceptance_length": 2.7813600148230497,
+   "acceptance_rate": 0.5937866716076833,
+   "drafts": 5397.0,
+   "draft_tokens": 16191.0,
+   "accepted_tokens": 9614.0,
+   "acceptance_rate_per_position": {
+    "0": 0.7682045580878266,
+    "1": 0.579395960718918,
+    "2": 0.43375949601630537
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.1878827101073155
+   },
+   "completion_tokens": 14998,
+   "output_tokens_per_second": 556.7457776934225
+  },
+  "chat": {
+   "acceptance_length": 2.4793548387096775,
+   "acceptance_rate": 0.49311827956989246,
+   "drafts": 4650.0,
+   "draft_tokens": 13950.0,
+   "accepted_tokens": 6879.0,
+   "acceptance_rate_per_position": {
+    "0": 0.673763440860215,
+    "1": 0.4681720430107527,
+    "2": 0.33741935483870966
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.3443670051075258
+   },
+   "completion_tokens": 11525,
+   "output_tokens_per_second": 484.1821791832573
+  },
+  "code-multi": {
+   "acceptance_length": 3.233569508917664,
+   "acceptance_rate": 0.7445231696392214,
+   "drafts": 4093.0,
+   "draft_tokens": 12279.0,
+   "accepted_tokens": 9142.0,
+   "acceptance_rate_per_position": {
+    "0": 0.8695333496213047,
+    "1": 0.7371121426826289,
+    "2": 0.6269240166137308
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.536403693093996
+   },
+   "completion_tokens": 13241,
+   "output_tokens_per_second": 635.73504063305
+  },
+  "json-schema": {
+   "acceptance_length": 3.888888888888889,
+   "acceptance_rate": 0.9629629629629629,
+   "drafts": 657.0,
+   "draft_tokens": 1971.0,
+   "accepted_tokens": 1898.0,
+   "acceptance_rate_per_position": {
+    "0": 0.9923896499238964,
+    "1": 0.9634703196347032,
+    "2": 0.9330289193302892
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 7.432786401933336
+   },
+   "completion_tokens": 2561,
+   "output_tokens_per_second": 594.8551867297273
+  },
+  "lang-amh": {
+   "acceptance_length": 3.597309417040359,
+   "acceptance_rate": 0.8657698056801196,
+   "drafts": 4460.0,
+   "draft_tokens": 13380.0,
+   "accepted_tokens": 11584.0,
+   "acceptance_rate_per_position": {
+    "0": 0.9085201793721973,
+    "1": 0.8634529147982063,
+    "2": 0.8253363228699552
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.4349245788603582
+   },
+   "completion_tokens": 16031,
+   "output_tokens_per_second": 718.8523726159501
+  },
+  "lang-ara": {
+   "acceptance_length": 2.2344557556773688,
+   "acceptance_rate": 0.41148525189245627,
+   "drafts": 6385.0,
+   "draft_tokens": 19155.0,
+   "accepted_tokens": 7882.0,
+   "acceptance_rate_per_position": {
+    "0": 0.5873140172278778,
+    "1": 0.3874706342991386,
+    "2": 0.2596711041503524
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.0210874101791592
+   },
+   "completion_tokens": 14266,
+   "output_tokens_per_second": 455.21353105049633
+  },
+  "lang-deu": {
+   "acceptance_length": 2.0737874810004144,
+   "acceptance_rate": 0.3579291603334715,
+   "drafts": 7237.0,
+   "draft_tokens": 21711.0,
+   "accepted_tokens": 7771.0,
+   "acceptance_rate_per_position": {
+    "0": 0.5575514716042559,
+    "1": 0.322371148265856,
+    "2": 0.1938648611303026
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 0.9052342455365622
+   },
+   "completion_tokens": 15017,
+   "output_tokens_per_second": 424.80945828820484
+  },
+  "lang-eng": {
+   "acceptance_length": 2.5077151886967837,
+   "acceptance_rate": 0.5025717295655946,
+   "drafts": 5379.0,
+   "draft_tokens": 16137.0,
+   "accepted_tokens": 8110.0,
+   "acceptance_rate_per_position": {
+    "0": 0.7027328499721138,
+    "1": 0.48280349507343373,
+    "2": 0.3221788436512363
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.2053991207402477
+   },
+   "completion_tokens": 13487,
+   "output_tokens_per_second": 508.03806066949124
+  },
+  "lang-fra": {
+   "acceptance_length": 2.29599761051374,
+   "acceptance_rate": 0.4319992035045799,
+   "drafts": 6696.0,
+   "draft_tokens": 20088.0,
+   "accepted_tokens": 8678.0,
+   "acceptance_rate_per_position": {
+    "0": 0.639336917562724,
+    "1": 0.4062126642771804,
+    "2": 0.25044802867383514
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 0.9767824369574538
+   },
+   "completion_tokens": 15372,
+   "output_tokens_per_second": 469.2218631534369
+  },
+  "lang-hin": {
+   "acceptance_length": 2.819823072756815,
+   "acceptance_rate": 0.6066076909189384,
+   "drafts": 5539.0,
+   "draft_tokens": 16617.0,
+   "accepted_tokens": 10080.0,
+   "acceptance_rate_per_position": {
+    "0": 0.7575374616356743,
+    "1": 0.598844556779202,
+    "2": 0.463441054341939
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.1647621887568873
+   },
+   "completion_tokens": 15609,
+   "output_tokens_per_second": 568.1491563845705
+  },
+  "lang-ita": {
+   "acceptance_length": 2.248823440109306,
+   "acceptance_rate": 0.4162744800364354,
+   "drafts": 6587.0,
+   "draft_tokens": 19761.0,
+   "accepted_tokens": 8226.0,
+   "acceptance_rate_per_position": {
+    "0": 0.6221345073629877,
+    "1": 0.3869743434036739,
+    "2": 0.2397145893426446
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 0.9917243008614838
+   },
+   "completion_tokens": 14825,
+   "output_tokens_per_second": 459.4472737584843
+  },
+  "lang-jpn": {
+   "acceptance_length": 2.167185175165697,
+   "acceptance_rate": 0.38906172505523245,
+   "drafts": 7393.0,
+   "draft_tokens": 22179.0,
+   "accepted_tokens": 8629.0,
+   "acceptance_rate_per_position": {
+    "0": 0.5896117949411606,
+    "1": 0.3552008656837549,
+    "2": 0.22237251454078183
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 0.8841652889562048
+   },
+   "completion_tokens": 16021,
+   "output_tokens_per_second": 442.6628779489799
+  },
+  "lang-roh": {
+   "acceptance_length": 2.2029226785053644,
+   "acceptance_rate": 0.4009742261684548,
+   "drafts": 5406.0,
+   "draft_tokens": 16218.0,
+   "accepted_tokens": 6503.0,
+   "acceptance_rate_per_position": {
+    "0": 0.6009988901220865,
+    "1": 0.36847946725860153,
+    "2": 0.23344432112467628
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.2032735880098524
+   },
+   "completion_tokens": 11915,
+   "output_tokens_per_second": 448.0314000355435
+  },
+  "lang-spa": {
+   "acceptance_length": 2.279812054439404,
+   "acceptance_rate": 0.4266040181464679,
+   "drafts": 6172.0,
+   "draft_tokens": 18516.0,
+   "accepted_tokens": 7899.0,
+   "acceptance_rate_per_position": {
+    "0": 0.640149060272197,
+    "1": 0.3990602721970188,
+    "2": 0.24060272197018795
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.0558347278682718
+   },
+   "completion_tokens": 14082,
+   "output_tokens_per_second": 464.6332699325314
+  },
+  "lang-swa": {
+   "acceptance_length": 3.4708180147058822,
+   "acceptance_rate": 0.8236060049019608,
+   "drafts": 4352.0,
+   "draft_tokens": 13056.0,
+   "accepted_tokens": 10753.0,
+   "acceptance_rate_per_position": {
+    "0": 0.8839613970588235,
+    "1": 0.8122702205882353,
+    "2": 0.7745863970588235
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.4865438559993909
+   },
+   "completion_tokens": 15083,
+   "output_tokens_per_second": 700.6731556262129
+  },
+  "lang-yor": {
+   "acceptance_length": 3.4457894736842105,
+   "acceptance_rate": 0.8152631578947368,
+   "drafts": 1900.0,
+   "draft_tokens": 5700.0,
+   "accepted_tokens": 4647.0,
+   "acceptance_rate_per_position": {
+    "0": 0.89,
+    "1": 0.8068421052631579,
+    "2": 0.7489473684210526
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 3.16356399587342
+   },
+   "completion_tokens": 6548,
+   "output_tokens_per_second": 647.3442826555986
+  },
+  "lang-zho": {
+   "acceptance_length": 2.02409976180468,
+   "acceptance_rate": 0.3413665872682266,
+   "drafts": 7137.0,
+   "draft_tokens": 21411.0,
+   "accepted_tokens": 7309.0,
+   "acceptance_rate_per_position": {
+    "0": 0.5380411937788987,
+    "1": 0.30531035449068233,
+    "2": 0.1807482135350988
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 0.9163743830625427
+   },
+   "completion_tokens": 14447,
+   "output_tokens_per_second": 413.71439725326735
+  },
+  "long-context": {
+   "acceptance_length": 2.3250627265124058,
+   "acceptance_rate": 0.4416875755041353,
+   "drafts": 3587.0,
+   "draft_tokens": 10761.0,
+   "accepted_tokens": 4753.0,
+   "acceptance_rate_per_position": {
+    "0": 0.6774463339838305,
+    "1": 0.4064678003902983,
+    "2": 0.2411485921382771
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.0291713303051533
+   },
+   "completion_tokens": 8343,
+   "output_tokens_per_second": 268.3242627729967
+  },
+  "math-gsm8k": {
+   "acceptance_length": 3.5124490719782706,
+   "acceptance_rate": 0.8374830239927569,
+   "drafts": 2209.0,
+   "draft_tokens": 6627.0,
+   "accepted_tokens": 5550.0,
+   "acceptance_rate_per_position": {
+    "0": 0.9230421004979629,
+    "1": 0.8347668628338615,
+    "2": 0.7546401086464464
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 2.6622038991298784
+   },
+   "completion_tokens": 7766,
+   "output_tokens_per_second": 646.0836087700824
+  },
+  "multi-turn": {
+   "acceptance_length": 2.803755868544601,
+   "acceptance_rate": 0.6012519561815336,
+   "drafts": 4260.0,
+   "draft_tokens": 12780.0,
+   "accepted_tokens": 7684.0,
+   "acceptance_rate_per_position": {
+    "0": 0.7788732394366197,
+    "1": 0.5835680751173709,
+    "2": 0.4413145539906103
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.4674153038079143
+   },
+   "completion_tokens": 11940,
+   "output_tokens_per_second": 547.529335233328
+  },
+  "opb": {
+   "acceptance_length": 2.977127776555971,
+   "acceptance_rate": 0.6590425921853237,
+   "drafts": 4547.0,
+   "draft_tokens": 13641.0,
+   "accepted_tokens": 8990.0,
+   "acceptance_rate_per_position": {
+    "0": 0.8102045304596437,
+    "1": 0.64548053661755,
+    "2": 0.5214427094787772
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.3636996580899927
+   },
+   "completion_tokens": 13535,
+   "output_tokens_per_second": 576.8023397577516
+  },
+  "probe-humaneval": {
+   "acceptance_length": 3.2993239090350337,
+   "acceptance_rate": 0.7664413030116779,
+   "drafts": 3254.0,
+   "draft_tokens": 9762.0,
+   "accepted_tokens": 7482.0,
+   "acceptance_rate_per_position": {
+    "0": 0.8795328826060234,
+    "1": 0.7630608481868469,
+    "2": 0.6567301782421635
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.9142117900036792
+   },
+   "completion_tokens": 10744,
+   "output_tokens_per_second": 642.6966084937353
+  },
+  "probe-math": {
+   "acceptance_length": 3.551579925650558,
+   "acceptance_rate": 0.8505266418835192,
+   "drafts": 2152.0,
+   "draft_tokens": 6456.0,
+   "accepted_tokens": 5491.0,
+   "acceptance_rate_per_position": {
+    "0": 0.9275092936802974,
+    "1": 0.8559479553903345,
+    "2": 0.7681226765799256
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 2.8116321630168857
+   },
+   "completion_tokens": 7647,
+   "output_tokens_per_second": 671.8922234559413
+  },
+  "summarization": {
+   "acceptance_length": 2.261314833168153,
+   "acceptance_rate": 0.42043827772271775,
+   "drafts": 3027.0,
+   "draft_tokens": 9081.0,
+   "accepted_tokens": 3818.0,
+   "acceptance_rate_per_position": {
+    "0": 0.6342913776015857,
+    "1": 0.3990749917409977,
+    "2": 0.22794846382556988
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 1.9036946357582711
+   },
+   "completion_tokens": 6853,
+   "output_tokens_per_second": 407.68810433910727
+  },
+  "tool-call": {
+   "acceptance_length": 2.9947950553025375,
+   "acceptance_rate": 0.6649316851008458,
+   "drafts": 1537.0,
+   "draft_tokens": 4611.0,
+   "accepted_tokens": 3066.0,
+   "acceptance_rate_per_position": {
+    "0": 0.8223812621990891,
+    "1": 0.6356538711776187,
+    "2": 0.5367599219258296
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 3.493895606172236
+   },
+   "completion_tokens": 4603,
+   "output_tokens_per_second": 502.5750461003376
+  },
+  "translate-from-en": {
+   "acceptance_length": 1.9533213644524237,
+   "acceptance_rate": 0.3177737881508079,
+   "drafts": 2228.0,
+   "draft_tokens": 6684.0,
+   "accepted_tokens": 2124.0,
+   "acceptance_rate_per_position": {
+    "0": 0.5385996409335727,
+    "1": 0.2742369838420108,
+    "2": 0.14048473967684022
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 2.716923718222727
+   },
+   "completion_tokens": 4347,
+   "output_tokens_per_second": 369.0771063473186
+  },
+  "translate-to-en": {
+   "acceptance_length": 2.908854166666667,
+   "acceptance_rate": 0.6362847222222222,
+   "drafts": 1152.0,
+   "draft_tokens": 3456.0,
+   "accepted_tokens": 2199.0,
+   "acceptance_rate_per_position": {
+    "0": 0.8116319444444444,
+    "1": 0.6284722222222222,
+    "2": 0.46875
+   },
+   "requests": {
+    "attempted": 32,
+    "successful": 32,
+    "failed": 0,
+    "success_rate": 1.0,
+    "requests_per_second": 4.778950934267245
+   },
+   "completion_tokens": 3354,
+   "output_tokens_per_second": 500.8937947978857
+  }
+ }
+}

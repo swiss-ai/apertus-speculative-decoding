@@ -1,0 +1,28 @@
+loadtest opb concurrency=1 requests=32
+{
+  "workload": "opb",
+  "variant": "k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 547.0333610110504,
+      "ttft_p50_ms": 42.34276250099356,
+      "ttft_p95_ms": 49.12061805080157,
+      "tpot_p50_ms": 1.580562656583142,
+      "tpot_p95_ms": 2.212174615362738,
+      "e2e_p95_ms": 1175.1127817005909,
+      "kv_cache_usage_mean": 0.0017842305505750462,
+      "kv_cache_usage_max": 0.004093234792495681,
+      "kv_cache_tokens_peak": 1772,
+      "kv_cache_size_tokens": 432966,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.7980125735145,
+      "acceptance_rate": 0.5993375245048334
+    }
+  ]
+}
