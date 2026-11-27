@@ -134,6 +134,13 @@ def silhouette(x: np.ndarray, lab: np.ndarray) -> float:
     return float(np.mean(s))
 
 
+def drafters_of(agg: dict) -> tuple[str, ...]:
+    """Drafter keys of an aggregate, block drafter first: its ``drafters`` header, or
+    those of DSpark / EAGLE present (the Apertus layout, also the DSpark-only one)."""
+    first = next(iter(agg["workloads"].values()))
+    return tuple(agg.get("drafters") or (d for d in DRAFTERS if d in first))
+
+
 def served_cells(path: Path, primary: str) -> list[dict]:
     """Served acceptance cells; the Apertus file is DSpark k=3 greedy only."""
     data = json.loads(path.read_text())
@@ -205,8 +212,7 @@ def main() -> None:
     labels = dict(item.split("=", 1) for item in args.name)
     NAMES.update(labels)
     agg = json.loads((root / "aggregate.json").read_text())
-    first = next(iter(agg["workloads"].values()))
-    drafters = tuple(agg.get("drafters") or (d for d in DRAFTERS if d in first))
+    drafters = drafters_of(agg)
     primary, secondary = (drafters + (None,))[:2]
     extended = args.extended
     cells = served_cells(args.served or inputs / "served-acceptance-task-speed.json", primary)
