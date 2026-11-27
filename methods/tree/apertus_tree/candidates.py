@@ -284,15 +284,13 @@ class DSpark:
         self.causal = [s and not non_causal for s in sliding]
         self.own_vocab = {}
         if own_vocab:
-            for name, key in (("embed", "embed_tokens.weight"), ("lm_head", "lm_head.weight")):
+            for name, key, ref in (
+                ("embed", "embed_tokens.weight", embed),
+                ("lm_head", "lm_head.weight", lm_head),
+            ):
                 if key in w:
-                    self.own_vocab[name] = {
-                        "max_abs_diff_vs_target": float(
-                            (w[key].float() - (embed if name == "embed" else lm_head).float())
-                            .abs()
-                            .max()
-                        )
-                    }
+                    diff = (w[key].float() - ref.detach().float()).abs().max()
+                    self.own_vocab[name] = {"max_abs_diff_vs_target": float(diff)}
             embed = w.get("embed_tokens.weight", embed)
             lm_head = w.get("lm_head.weight", lm_head)
         self.embed, self.lm_head = embed, lm_head

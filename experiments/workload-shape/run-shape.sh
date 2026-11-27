@@ -88,7 +88,7 @@ if [ -n "${SHAPE_IMAGE:-}" ] && [ ! -s "${RUN_DIR}/logs/image.sha256" ]; then
 fi
 export DSPARK TARGET
 PYTHONPATH="${PYTHONPATH}${SPECULATORS_SRC:+:${SPECULATORS_SRC}}" \
-python3 -m pytest -q -rs tests/test_shape.py > "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt" 2>&1 \
+python3 -m pytest -q -rsP tests/test_shape.py > "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt" 2>&1 \
   || { cat "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt"; exit 1; }
 
 if [[ " ${STAGES} " == *" inputs "* ]] && [ ! -s "${RUN_DIR}/inputs/corpus-measured.jsonl" ]; then
