@@ -1,0 +1,20 @@
+.....                                                                    [100%]
+=============================== warnings summary ===============================
+../../../workload-shape-qwen3-4b/pydeps/_pytest/config/__init__.py:1474
+  /iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-4b/pydeps/_pytest/config/__init__.py:1474: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+==================================== PASSES ====================================
+________________ test_dspark_matches_speculators_reference_tiny ________________
+------------------------------ Captured log call -------------------------------
+WARNING  speculators.models.utils:utils.py:39 Could not resolve a config for verifier tiny; assuming the plain final-norm convention (x * w).
+_____________ test_dspark_checkpoint_matches_speculators_reference _____________
+----------------------------- Captured stdout call -----------------------------
+{"max_abs_logprob_diff": 3.62396240234375e-05, "argmax_agreement": 1.0, "own_vocab": {"embed": {"max_abs_diff_vs_target": 0.0}, "lm_head": {"max_abs_diff_vs_target": 0.0}}, "windows": [2048, 2048, 2048, 2048, 2048]}
+----------------------------- Captured stderr call -----------------------------
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  36%|███▌      | 143/398 [00:00<00:00, 1402.60it/s]Loading weights:  71%|███████▏  | 284/398 [00:00<00:00, 1176.85it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 1367.58it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+------------------------------ Captured log call -------------------------------
+WARNING  huggingface_hub.utils._http:_http.py:993 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.

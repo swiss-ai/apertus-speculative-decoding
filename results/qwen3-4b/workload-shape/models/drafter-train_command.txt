@@ -1,0 +1,9 @@
+# Timestamp: 2026-08-10T16:36:29.193432+00:00
+# Git SHA: 450a3f9faf7548360154e92f6bf352cfd12e5f89
+# World size: 7
+# speculators: 0.7.0.dev136
+# vllm: 0.25.1
+# transformers: 5.14.1
+# torch: 2.11.0
+# compressed-tensors: 0.17.0
+/home/shanjiaz/speculators/scripts/train.py --verifier-name-or-path Qwen/Qwen3-4B --speculator-type dspark --block-size 7 --num-layers 5 --target-layer-ids 1 9 17 25 33 --mask-token-id 151669 --max-anchors 512 --markov-rank 256 --markov-head-type vanilla --enable-confidence-head --confidence-head-with-markov --confidence-head-alpha 1.0 --loss-fn '{"ce": 0.1, "tv": 0.9}' --dflash-decay-gamma 4.0 --optimizer adamw --lr 6e-4 --weight-decay 0.0 --scheduler-type cosine --scheduler-warmup-ratio 0.04 --epochs 10 --total-seq-len 4096 --seed 42 --fsdp-shard --data-path /home/shanjiaz/output/dspark_qwen3_8b/prepared --vllm-endpoint http://127.0.0.1:8000/v1 --on-missing generate --on-generate delete --save-path /home/shanjiaz/output/dspark_qwen3_8b/checkpoints --logger tensorboard --log-dir /home/shanjiaz/output/dspark_qwen3_8b/logs --checkpoint-freq 0.1

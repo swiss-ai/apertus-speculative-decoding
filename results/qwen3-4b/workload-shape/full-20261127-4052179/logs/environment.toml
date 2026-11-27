@@ -1,0 +1,22 @@
+# Qwen3-4B workload-shape environment (one GH200 node, TP=1 per GPU).
+# CI image with vLLM 0.30.0 (as experiments/qwen3-235b/env.toml): it ships
+# qwen3_dspark.py, which serves speculators-format DSpark heads for Qwen3 targets.
+# The capture, the HF teacher-forced shape stage and the served gate all use it.
+image = "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_nvidia_alps-arm64.sqsh"
+
+mounts = [
+  "/capstor",
+  "/iopsstor",
+  "/users",
+  "/usr/lib64/libhwloc.so.15:/usr/lib/libhwloc.so.15",
+  "/usr/lib64/libpciaccess.so.0:/usr/lib/libpciaccess.so.0",
+  "/usr/lib64/libxml2.so.2:/usr/lib/libxml2.so.2",
+  "/usr/lib64/libnuma.so.1:/usr/lib/libnuma.so.1",
+]
+
+workdir = "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-shape-qwen3-4b/code-75e9f01d7df0"
+
+# Single GPU per process: no libfabric/CXI hooks.
+[env]
+PYTHONNOUSERSITE = "1"
+VLLM_ALLREDUCE_USE_SYMM_MEM = "0"
