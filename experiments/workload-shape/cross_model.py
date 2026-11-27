@@ -173,9 +173,9 @@ def main() -> None:
     ax.axhline(0.8, color=INK2, lw=0.8, ls=":")
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=7)
-    ax.set_ylim(0, 1.08)
+    ax.set_ylim(0, 1.22)
     ax.set_ylabel("R² of k=3 acceptance across 28 slices")
-    ax.legend(fontsize=7, frameon=False, loc="lower right")
+    ax.legend(fontsize=7, frameon=False, loc="upper left", ncol=2)
     ax.set_title("dotted: pre-registered entropy threshold 0.8", fontsize=8.5, loc="left")
     for a in axes:
         for side in ("top", "right"):
