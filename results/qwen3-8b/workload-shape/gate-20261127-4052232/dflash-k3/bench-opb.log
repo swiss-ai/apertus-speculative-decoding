@@ -1,0 +1,28 @@
+loadtest opb concurrency=1 requests=32
+{
+  "workload": "opb",
+  "variant": "dflash-k3",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 387.15481557671956,
+      "ttft_p50_ms": 42.680251484853216,
+      "ttft_p95_ms": 151.4138939397526,
+      "tpot_p50_ms": 2.2169695690662516,
+      "tpot_p95_ms": 3.2592705531069877,
+      "e2e_p95_ms": 1684.8050572458305,
+      "kv_cache_usage_mean": 0.0024564444917552545,
+      "kv_cache_usage_max": 0.009458781307501662,
+      "kv_cache_tokens_peak": 3487,
+      "kv_cache_size_tokens": 368615,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.8696969696969696,
+      "acceptance_rate": 0.6232323232323232
+    }
+  ]
+}

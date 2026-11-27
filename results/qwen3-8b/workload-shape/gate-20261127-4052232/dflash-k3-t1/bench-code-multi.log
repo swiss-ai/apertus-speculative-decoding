@@ -1,0 +1,28 @@
+loadtest code-multi concurrency=1 requests=32
+{
+  "workload": "code-multi",
+  "variant": "dflash-k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 432.57223815349215,
+      "ttft_p50_ms": 36.82874501100741,
+      "ttft_p95_ms": 41.42241594090592,
+      "tpot_p50_ms": 2.207998396425147,
+      "tpot_p95_ms": 2.4777857693097856,
+      "e2e_p95_ms": 1284.523437191092,
+      "kv_cache_usage_mean": 0.0011626476292909795,
+      "kv_cache_usage_max": 0.002326677717118586,
+      "kv_cache_tokens_peak": 858,
+      "kv_cache_size_tokens": 368615,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.1355704697986577,
+      "acceptance_rate": 0.7118568232662192
+    }
+  ]
+}

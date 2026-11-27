@@ -1,0 +1,28 @@
+loadtest multi-turn concurrency=1 requests=32
+{
+  "workload": "multi-turn",
+  "variant": "dflash-k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 342.77100679666233,
+      "ttft_p50_ms": 37.40097500849515,
+      "ttft_p95_ms": 42.86287916474976,
+      "tpot_p50_ms": 2.702851993915334,
+      "tpot_p95_ms": 3.605813791902784,
+      "e2e_p95_ms": 1813.2528459100286,
+      "kv_cache_usage_mean": 0.001673222095298077,
+      "kv_cache_usage_max": 0.0035128271415320045,
+      "kv_cache_tokens_peak": 1295,
+      "kv_cache_size_tokens": 368615,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.4933507739263137,
+      "acceptance_rate": 0.49778359130877115
+    }
+  ]
+}

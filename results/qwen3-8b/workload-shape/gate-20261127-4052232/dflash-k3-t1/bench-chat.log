@@ -1,0 +1,28 @@
+loadtest chat concurrency=1 requests=32
+{
+  "workload": "chat",
+  "variant": "dflash-k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 275.75202110766577,
+      "ttft_p50_ms": 39.478188002249226,
+      "ttft_p95_ms": 42.49186666565947,
+      "tpot_p50_ms": 3.336372103722294,
+      "tpot_p95_ms": 5.499681378537602,
+      "e2e_p95_ms": 2175.8684494547197,
+      "kv_cache_usage_mean": 0.002264552816833744,
+      "kv_cache_usage_max": 0.006498476761102379,
+      "kv_cache_tokens_peak": 2395,
+      "kv_cache_size_tokens": 368615,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.9974137931034481,
+      "acceptance_rate": 0.3324712643678161
+    }
+  ]
+}

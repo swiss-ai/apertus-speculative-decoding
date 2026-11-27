@@ -1,0 +1,28 @@
+loadtest long-context concurrency=1 requests=32
+{
+  "workload": "long-context",
+  "variant": "eagle3-k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 169.84622081829096,
+      "ttft_p50_ms": 505.1874894852517,
+      "ttft_p95_ms": 761.9692871972802,
+      "tpot_p50_ms": 3.991981431935694,
+      "tpot_p95_ms": 4.986229111337618,
+      "e2e_p95_ms": 2895.316372043453,
+      "kv_cache_usage_mean": 0.0286869700426118,
+      "kv_cache_usage_max": 0.05457216028924372,
+      "kv_cache_tokens_peak": 23185,
+      "kv_cache_size_tokens": 424848,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 1.781391830559758,
+      "acceptance_rate": 0.2604639435199193
+    }
+  ]
+}

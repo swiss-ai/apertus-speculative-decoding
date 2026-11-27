@@ -1,0 +1,76 @@
+# Per-task speed of the deployed DSpark e10 k=3 head (plan: docs/dspark-e10-task-speed.md).
+# Frozen before any measurement. Classes follow the drafter's training corpus
+# (results/8b/coverage/corpus-share.json): ID = the corpus's own task types,
+# near-ID = formats it contains at a low share, OOD = task types or languages it
+# lacks. Prompts are chosen by hash order, never by observed acceptance or speed.
+name: dspark-e10-task-speed
+seed: task-speed-20261104
+prompts_per_slice: 32
+concurrencies: [1, 8, 32, 128]
+# Whole passes over each slice's prompts: C=1 and 8 see 32 requests, C=32 64, C=128 256.
+min_requests: 32
+requests_per_slot: 2
+generation: {temperature: 0, top_p: 1, seed: 1}
+chat_template_kwargs: {enable_thinking: false}
+
+# Copied to the run's input directory on scratch (the serving container does not
+# mount /users). The build refuses a source whose hash differs.
+sources:
+  opb-heldout:
+    file: opb-heldout.jsonl
+    origin: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/opb-heldout.jsonl
+    sha256: 186d38cdcb6f40c26cdfad227ef4c41366d89c1b332441c7a370f0bdc272ad3b
+  eagle-8b-test:
+    file: eagle-8b-test.jsonl
+    origin: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/eagle-8b-test.jsonl
+    # The tracked workloads/8b/manifest.json lists 0530478...; every load test since
+    # 2026-09-29 used this file, so this hash is the one that matches earlier results.
+    sha256: 70812a8c52f7f619ecc9e6afc9d7e31938b88a97caf324d4be7987c4459f830f
+  probe:
+    file: probe-speculator-benchmarks.jsonl
+    origin: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/probe-speculator-benchmarks.jsonl
+    sha256: 8a42d20bc7062ae82f1a8247c9f1425069b7573c2c138351023b04119a80b7dc
+  arena-hard:
+    file: arena-hard.jsonl
+    origin: /users/faruk_zahiragic/apertus-spec-decoding/workloads/8b/arena-hard.jsonl
+    sha256: 2c9e8ac253ccee20fef2258e9d4724dc1aabce75d8abd8a9b8c63398c334d6c0
+  coverage:
+    file: coverage.jsonl
+    origin: /iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-coverage/workloads/coverage/coverage.jsonl
+    sha256: ddb921feb7481dbbeedb6996666ef366ce2f20241d3e0101f96efae90a997804
+
+# Output caps are each source's own (opb: the reference answer's length, at most 1024).
+slices:
+  # In distribution: the corpus's own prompts and its dominant task types
+  # (math 43.8%, multi-turn 25.0%, Python code within 13.3% code).
+  - {label: opb, class: id, source: opb-heldout, workload: opb}
+  - {label: math-gsm8k, class: id, source: coverage, workload: math-gsm8k}
+  - {label: probe-math, class: id, source: probe, workload: probe, id_prefix: probe-math-}
+  - {label: probe-humaneval, class: id, source: probe, workload: probe, id_prefix: probe-humaneval-}
+  - {label: multi-turn, class: id, source: coverage, workload: multi-turn}
+  # Near ID: formats present at a low share, or benchmark chat overlapping the corpus.
+  - {label: code-multi, class: near-id, source: coverage, workload: code-multi}
+  - {label: json-schema, class: near-id, source: coverage, workload: json-schema}
+  - {label: tool-call, class: near-id, source: coverage, workload: tool-call}
+  - {label: lang-eng, class: near-id, source: coverage, workload: lang-eng}
+  - {label: arena-hard-clean, class: near-id, source: arena-hard, workload: arena-hard-clean}
+  - {label: arena-hard-contaminated, class: near-id, source: arena-hard, workload: arena-hard-contaminated}
+  # OOD task types: SFT-mix chat, long-document summarization, 8k-24k contexts, translation.
+  - {label: chat, class: ood-task, source: eagle-8b-test, workload: chat}
+  - {label: summarization, class: ood-task, source: eagle-8b-test, workload: summarization}
+  - {label: long-context, class: ood-task, source: coverage, workload: long-context}
+  - {label: translate-to-en, class: ood-task, source: coverage, workload: translate-to-en}
+  - {label: translate-from-en, class: ood-task, source: coverage, workload: translate-from-en}
+  # OOD languages: 0-0.054% of corpus rows each (English is 99.55%).
+  - {label: lang-deu, class: ood-language, source: coverage, workload: lang-deu}
+  - {label: lang-fra, class: ood-language, source: coverage, workload: lang-fra}
+  - {label: lang-ita, class: ood-language, source: coverage, workload: lang-ita}
+  - {label: lang-spa, class: ood-language, source: coverage, workload: lang-spa}
+  - {label: lang-roh, class: ood-language, source: coverage, workload: lang-roh}
+  - {label: lang-zho, class: ood-language, source: coverage, workload: lang-zho}
+  - {label: lang-jpn, class: ood-language, source: coverage, workload: lang-jpn}
+  - {label: lang-hin, class: ood-language, source: coverage, workload: lang-hin}
+  - {label: lang-ara, class: ood-language, source: coverage, workload: lang-ara}
+  - {label: lang-swa, class: ood-language, source: coverage, workload: lang-swa}
+  - {label: lang-yor, class: ood-language, source: coverage, workload: lang-yor}
+  - {label: lang-amh, class: ood-language, source: coverage, workload: lang-amh}
