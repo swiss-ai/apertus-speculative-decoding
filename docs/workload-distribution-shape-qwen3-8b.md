@@ -406,6 +406,10 @@ entropy does not gain it. Sequence level (896 points, k=3): entropy 0.43 / 0.36,
   with `SOURCE_REVISION`; tarball sha256 `5166fd19ec6592a4...`). The home checkout is
   over quota, so the checkout lives under the scratch `spec-exp/` tree. Pytest: 5
   passed in the image (`logs/pytest-4052231.txt`).
+  `gate_summary.py` and `output_language_check.py` ran on the login node from commit
+  `fd27e747` (copied to `spec-exp/workload-shape-qwen3-8b/tools-fd27e747`);
+  `analyze.py` and `cross_model.py` ran locally at `fd27e747` (`analyze.py` is unchanged
+  since `85950b39`).
 - Image: `vllm_nvidia_alps-arm64.sqsh` (vLLM 0.30.0), sha256
   `d259b3fb40615d406febc094ae8509bc1aa588f97c4d738677d988ac997d7a90`, the image of the
   Qwen3-235B run.
