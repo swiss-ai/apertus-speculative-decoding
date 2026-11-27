@@ -24,7 +24,7 @@ target emitted last; the target has hidden states for positions < a; depth
     and token a; depth d > 1 feeds ids[a+d-1] and its own previous hidden state,
     attending to the context and to its ancestors (TTT layout).
 
-The same replay runs the Red Hat speculators heads (``apertus_tree.qwen_heads``):
+The same replay runs the Red Hat speculators heads (``apertus_tree.speculators_heads``):
 ``--eagle-format speculators`` (EAGLE-3 with a reduced draft vocabulary) and
 ``--block-format dflash`` (DFlash: depth d reads slot d, no Markov head), with
 ``--depth`` up to the block's draft length and ``--names`` for the drafter keys.
@@ -227,7 +227,7 @@ def main(argv: list[str] | None = None) -> None:
     if not args.eagle_head:
         eagle = None
     elif args.eagle_format == "speculators":
-        from apertus_tree.qwen_heads import Eagle3Speculators
+        from apertus_tree.speculators_heads import Eagle3Speculators
 
         eagle = Eagle3Speculators(args.eagle_head, embed, device, target_vocab=lm_head.shape[0])
     else:
@@ -235,9 +235,9 @@ def main(argv: list[str] | None = None) -> None:
         if eagle.lm_head.shape[0] != lm_head.shape[0]:
             raise SystemExit("EAGLE draft vocabulary differs from the target's")
     if args.block_format == "dflash":
-        from apertus_tree.qwen_heads import DFlash
+        from apertus_tree.speculators_heads import DFlash
 
-        dspark = DFlash(args.dspark, embed, lm_head, device)
+        dspark = DFlash(args.dspark, embed, lm_head, device, own_vocab=args.dspark_own_vocab)
         if args.depth > dspark.max_depth:
             raise SystemExit(f"DFlash drafts at most {dspark.max_depth} tokens")
     else:
@@ -320,7 +320,7 @@ def main(argv: list[str] | None = None) -> None:
         ),
         "dspark": str(args.dspark),
         "dspark_sha256": file_sha256(args.dspark / "model.safetensors"),
-        "dspark_own_vocab": getattr(dspark, "own_vocab", None),
+        "dspark_own_vocab": dspark.own_vocab,
         "dspark_attention": {"windows": dspark.windows, "causal": dspark.causal},
         "drafter_names": list(collector.drafters),
         "eagle_format": args.eagle_format,

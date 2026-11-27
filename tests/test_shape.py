@@ -285,7 +285,7 @@ def test_eagle3_speculators_matches_reference(tmp_path):
     ref = pytest.importorskip("reference_speculators")
     from transformers.models.llama.modeling_llama import LlamaRMSNorm, LlamaRotaryEmbedding
 
-    from apertus_tree.qwen_heads import Eagle3Speculators
+    from apertus_tree.speculators_heads import Eagle3Speculators
 
     torch.manual_seed(0)
     hidden, heads, kv, hd, vocab, draft, length = 64, 4, 2, 16, 300, 120, 24
@@ -361,7 +361,7 @@ def test_dflash_matches_reference(tmp_path):
     ref = pytest.importorskip("reference_speculators")
     from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm, Qwen3RotaryEmbedding
 
-    from apertus_tree.qwen_heads import DFlash
+    from apertus_tree.speculators_heads import DFlash
 
     torch.manual_seed(1)
     hidden, heads, kv, hd, vocab, layers, block, window = 64, 4, 2, 16, 200, 2, 6, 5

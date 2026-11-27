@@ -2,7 +2,10 @@
 
 Both classes expose the interface of ``apertus_tree.candidates.Eagle`` /
 ``DSpark`` that ``apertus_tree.shape.Collector`` uses, so the Apertus heads and
-these heads run through the same teacher-forced replay.
+these heads run through the same teacher-forced replay. ``DFlash`` is DSpark's
+backbone (``candidates.DSpark``, which also loads the speculators DSpark heads)
+without the Markov head; both heads use ``candidates.Rope`` (inverse frequencies
+in float32, as transformers and vLLM compute them).
 
 Spec (what each class reproduces):
 
@@ -37,37 +40,9 @@ import torch
 import torch.nn.functional as F
 from safetensors.torch import load_file
 
-from apertus_tree.candidates import DSpark, attend, mlp, rms
+from apertus_tree.candidates import DSpark, Rope, attend, mlp, rms, rope_parameters
 
 NEG = float("-inf")
-
-
-def default_inv_freq(dim: int, theta: float) -> torch.Tensor:
-    return 1.0 / (theta ** (torch.arange(0, dim, 2, dtype=torch.float64) / dim))
-
-
-class DefaultRope:
-    """Unscaled (``rope_type: default``) rotary embedding, neox layout."""
-
-    def __init__(self, dim: int, theta: float, device):
-        self.inv = default_inv_freq(dim, theta).float().to(device)
-
-    def __call__(self, x: torch.Tensor, pos: torch.Tensor) -> torch.Tensor:
-        freqs = pos.float()[..., None] * self.inv
-        emb = torch.cat([freqs, freqs], -1)
-        cos, sin = emb.cos()[..., None, :], emb.sin()[..., None, :]
-        x1, x2 = x[..., : x.shape[-1] // 2], x[..., x.shape[-1] // 2 :]
-        rot = torch.cat([-x2, x1], -1)
-        return (x.float() * cos + rot.float() * sin).to(x.dtype)
-
-
-def _rope_theta(tl: dict[str, Any]) -> float:
-    rope = tl.get("rope_parameters") or {}
-    scaling = tl.get("rope_scaling") or {}
-    kind = rope.get("rope_type") or scaling.get("rope_type") or "default"
-    if kind != "default":
-        raise SystemExit(f"expected default RoPE, got {kind!r}")
-    return float(rope.get("rope_theta") or tl.get("rope_theta"))
 
 
 class Eagle3Speculators:
@@ -106,7 +81,7 @@ class Eagle3Speculators:
             self.draft_to_target = torch.arange(draft, device=device)
         if int(self.draft_to_target.max()) >= self.vocab:
             raise SystemExit("d2t maps outside the target vocabulary")
-        self.rope = DefaultRope(self.dim, _rope_theta(tl), device)
+        self.rope = Rope(self.dim, rope_parameters(tl), device)
         self.scale = self.dim**-0.5
 
     def project(self, aux: torch.Tensor) -> torch.Tensor:
@@ -173,65 +148,18 @@ class Eagle3Speculators:
 
 
 class DFlash(DSpark):
-    """Speculators DFlash block drafter (full vocabulary, no Markov head)."""
-
-    def __init__(self, path: Path, embed: torch.Tensor, lm_head: torch.Tensor, device):
-        cfg = json.loads((path / "config.json").read_text())
-        if cfg.get("speculators_model_type") != "dflash":
-            raise SystemExit(f"{path}: not a speculators dflash drafter")
-        if cfg.get("sample_from_anchor"):
-            raise SystemExit("this replay implements sample_from_anchor false")
-        if cfg.get("sliding_window_non_causal"):
-            raise SystemExit("expected a causal in-block mask (sliding_window_non_causal false)")
-        tl = cfg["transformer_layer_config"]
-        types = set(tl.get("layer_types") or [])
-        if types - {"sliding_attention"} or not tl.get("use_sliding_window"):
-            raise SystemExit("this replay implements all-sliding-window DFlash layers")
-        w = load_file(str(path / "model.safetensors"), device=str(device))
-        self.cfg = cfg
-        self.block = cfg["block_size"]
-        self.mask_id = cfg["mask_token_id"]
-        self.aux_layer_ids = list(cfg["aux_hidden_state_layer_ids"])
-        self.heads, self.groups = tl["num_attention_heads"], tl["num_key_value_heads"]
-        self.dim = tl.get("head_dim") or tl["hidden_size"] // self.heads
-        self.eps = tl["rms_norm_eps"]
-        self.window = tl["sliding_window"]
-        # Per-layer attention as DSpark.block_logits reads it: all sliding, causal block.
-        self.windows = [self.window] * tl["num_hidden_layers"]
-        self.causal = [True] * tl["num_hidden_layers"]
-        self.embed = w.get("embed_tokens.weight", embed)
-        self.lm_head = w.get("lm_head.weight", lm_head)
-        self.fc, self.hidden_norm, self.norm = (
-            w["fc.weight"],
-            w["hidden_norm.weight"],
-            w["norm.weight"],
-        )
-        self.layers = []
-        for i in range(tl["num_hidden_layers"]):
-            p = f"layers.{i}."
-            self.layers.append(
-                {
-                    n: w[p + key]
-                    for n, key in {
-                        "q": "self_attn.q_proj.weight",
-                        "k": "self_attn.k_proj.weight",
-                        "v": "self_attn.v_proj.weight",
-                        "o": "self_attn.o_proj.weight",
-                        "qn": "self_attn.q_norm.weight",
-                        "kn": "self_attn.k_norm.weight",
-                        "in": "input_layernorm.weight",
-                        "post": "post_attention_layernorm.weight",
-                        "gate": "mlp.gate_proj.weight",
-                        "up": "mlp.up_proj.weight",
-                        "down": "mlp.down_proj.weight",
-                    }.items()
-                }
-            )
-        self.rope = DefaultRope(self.dim, _rope_theta(tl), device)
-        self.scale = self.dim**-0.5
+    """Speculators DFlash block drafter: DSpark's backbone (full vocabulary, per-layer
+    sliding/full attention, RoPE from the config) without a Markov head."""
 
     # Depth d (the d-th drafted token, position a + d) reads slot d.
     slot_offset = 1
+    markov_head = False
+
+    def check_config(self, cfg: dict[str, Any], lm_head: torch.Tensor) -> None:
+        if cfg.get("speculators_model_type") != "dflash":
+            raise SystemExit("not a speculators dflash drafter")
+        if cfg.get("sample_from_anchor"):
+            raise SystemExit("this replay implements sample_from_anchor false")
 
     @property
     def max_depth(self) -> int:
@@ -240,9 +168,3 @@ class DFlash(DSpark):
     def logprobs(self, base: torch.Tensor, prev: torch.Tensor | None = None) -> torch.Tensor:
         """log-softmax of a slot's logits; DFlash has no Markov bias (``prev`` unused)."""
         return torch.log_softmax(base.float(), -1)
-
-
-def hf_layers(vllm_aux_ids: list[int]) -> list[int]:
-    """vLLM aux id k is the residual stream entering decoder layer k, i.e. the output
-    of HF decoder layer k - 1 (``Qwen2Model.forward`` records idx + 1 after layer idx)."""
-    return [int(i) - 1 for i in vllm_aux_ids]

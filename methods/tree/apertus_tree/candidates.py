@@ -240,7 +240,20 @@ class DSpark:
     ``own_vocab``: use the checkpoint's own ``embed_tokens``/``lm_head`` when it
     stores them (vLLM's loader keeps them, speculators reloads the verifier's);
     otherwise the target's ``embed``/``lm_head`` are used.
+
+    Depth d (the d-th drafted token) reads slot ``d - 1 + slot_offset``; the
+    speculators DFlash drafter (``apertus_tree.speculators_heads.DFlash``) shares
+    this backbone with ``slot_offset = 1`` and no Markov head.
     """
+
+    slot_offset = 0
+    markov_head = True
+
+    def check_config(self, cfg: dict[str, Any], lm_head: torch.Tensor) -> None:
+        if cfg.get("markov_head_type") != "vanilla" or not cfg.get("sample_from_anchor", True):
+            raise SystemExit(
+                "this simulator implements the vanilla Markov head, sample_from_anchor"
+            )
 
     def __init__(
         self,
@@ -257,19 +270,16 @@ class DSpark:
         if dtype is not None:  # tests compare against the reference in float32
             w = {k: v.to(dtype) for k, v in w.items()}
             embed, lm_head = embed.to(dtype), lm_head.to(dtype)
-        if cfg.get("markov_head_type") != "vanilla" or not cfg.get("sample_from_anchor", True):
-            raise SystemExit(
-                "this simulator implements the vanilla Markov head, sample_from_anchor"
-            )
+        self.check_config(cfg, lm_head)
         if cfg.get("draft_vocab_size", lm_head.shape[0]) != lm_head.shape[0]:
-            raise SystemExit("reduced-vocabulary DSpark drafters (d2t) are not supported")
+            raise SystemExit("reduced-vocabulary block drafters (d2t) are not supported")
         self.cfg = cfg
         self.block = cfg["block_size"]
         self.mask_id = cfg["mask_token_id"]
         self.heads, self.groups, self.dim = (
             tl["num_attention_heads"],
             tl["num_key_value_heads"],
-            tl["head_dim"],
+            tl.get("head_dim") or tl["hidden_size"] // tl["num_attention_heads"],
         )
         self.eps = tl["rms_norm_eps"]
         n_layers = tl["num_hidden_layers"]
@@ -299,8 +309,9 @@ class DSpark:
             w["hidden_norm.weight"],
             w["norm.weight"],
         )
-        self.w1 = w["markov_head.markov_w1.weight"]
-        self.w2 = w["markov_head.markov_w2.weight"]
+        if self.markov_head:
+            self.w1 = w["markov_head.markov_w1.weight"]
+            self.w2 = w["markov_head.markov_w2.weight"]
         self.layers = []
         for i in range(n_layers):
             p = f"layers.{i}."
