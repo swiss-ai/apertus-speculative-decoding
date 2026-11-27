@@ -1,0 +1,28 @@
+loadtest translate-to-en concurrency=1 requests=32
+{
+  "workload": "translate-to-en",
+  "variant": "k7-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 590.8178648242755,
+      "ttft_p50_ms": 38.41937300057907,
+      "ttft_p95_ms": 39.83665560153895,
+      "tpot_p50_ms": 1.3256613726127915,
+      "tpot_p95_ms": 1.6968133297224648,
+      "e2e_p95_ms": 287.6727358519929,
+      "kv_cache_usage_mean": 0.00019705296345762235,
+      "kv_cache_usage_max": 0.0003941059269152447,
+      "kv_cache_tokens_peak": 170,
+      "kv_cache_size_tokens": 432389,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.609492988133765,
+      "acceptance_rate": 0.37278471259053786
+    }
+  ]
+}

@@ -9,6 +9,19 @@
 #   aggregate per-workload quantiles, entropy bins, greedy-chain replay at k=1/3/5/7.
 # Env: RAW (coverage raw sources), EAGLE_HEAD, DSPARK, LIMIT (rows per capture shard, 0 = all),
 #      STAGES (default "inputs capture shape aggregate").
+# Other targets (defaults reproduce the Apertus 1.5 8B run, job 4004306):
+#   APERTUS_EAGLE_CONTRACT  target contract (targets/<stage>/contract.json): checkpoint,
+#                           EOS ids, prompt_format (apertus | qwen3), depth;
+#   TARGET                  target checkpoint (must equal the contract's);
+#   CORPUS_TOKENIZER        tokenizer of the coverage rebuild (stays Apertus: the frozen
+#                           corpus 7d8e60ef... was selected with it);
+#   EAGLE_HEAD=""           DSpark-only study (no EAGLE head for this target);
+#   DSPARK_HF_LAYERS        HF decoder layers of the DSpark aux states (config ids - 1);
+#   DSPARK_OWN_VOCAB=1      use the checkpoint's own embed_tokens/lm_head (as vLLM does);
+#   SHAPE_SAMPLED=1         add the T=1 sampled-drafting replay (1 - TV) to the aggregate;
+#   MAX_MODEL_LEN           capture engine context (default 32768);
+#   SHAPE_REF_DSPARK, SHAPE_REF_TARGET, SPECULATORS_SRC
+#                           real-checkpoint logit test against the speculators reference.
 set -euo pipefail
 RUN_DIR="$1"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -25,11 +38,23 @@ export FLASHINFER_WORKSPACE_BASE=/tmp/shape-cache/flashinfer VLLM_CONFIG_ROOT=/t
 export VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
 W=/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape
 RAW="${RAW:-${W}/raw}"
-EAGLE_HEAD="${EAGLE_HEAD:-${W}/heads/eagle-e10}"
+EAGLE_HEAD="${EAGLE_HEAD-${W}/heads/eagle-e10}"
 DSPARK="${DSPARK:-/capstor/store/cscs/swissai/infra01/speculative-decoding/DSpark_Apertus_1.5_8B/dspark_apertus15-8b_open-perfectblend_thinking-off_2026-10-04_epoch10_final}"
 WORKLOADS="${WORKLOADS:-/users/faruk_zahiragic/apertus-spec-decoding/workloads/8b}"
-TARGET=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+APERTUS_TARGET=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
+TARGET="${TARGET:-${APERTUS_TARGET}}"
+CORPUS_TOKENIZER="${CORPUS_TOKENIZER:-${APERTUS_TARGET}}"
+DSPARK_HF_LAYERS="${DSPARK_HF_LAYERS:-0,7,14,21,28}"
+MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"
+OWN_VOCAB_FLAG=""; [ "${DSPARK_OWN_VOCAB:-0}" = 1 ] && OWN_VOCAB_FLAG=--dspark-own-vocab
+SAMPLED_FLAG=""; [ "${SHAPE_SAMPLED:-0}" = 1 ] && SAMPLED_FLAG=--sampled
 INPUTS="${REPO_ROOT}/results/8b/workload-shape/inputs"
+python3 - "${APERTUS_EAGLE_CONTRACT}" "${TARGET}" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1]))["source"]["authorized_checkpoint"]
+if c.rstrip("/") != sys.argv[2].rstrip("/"):
+    sys.exit(f"TARGET {sys.argv[2]} differs from the contract's checkpoint {c}")
+PY
 LIMIT="${LIMIT:-0}"
 STAGES="${STAGES:-inputs capture shape aggregate}"
 NG=4
@@ -49,7 +74,9 @@ json.dump({
     "git_branch": git("rev-parse", "--abbrev-ref", "HEAD"),
     "git_dirty": git("status", "--porcelain", "--untracked-files=no"),
     "env": {k: os.environ.get(k) for k in ("SLURM_JOB_ID", "SLURM_JOB_NODELIST", "SLURM_JOB_PARTITION",
-            "SLURM_JOB_ACCOUNT", "EAGLE_HEAD", "DSPARK", "RAW", "LIMIT", "STAGES", "SHAPE_IMAGE")},
+            "SLURM_JOB_ACCOUNT", "EAGLE_HEAD", "DSPARK", "RAW", "LIMIT", "STAGES", "SHAPE_IMAGE",
+            "APERTUS_EAGLE_CONTRACT", "TARGET", "CORPUS_TOKENIZER", "DSPARK_HF_LAYERS",
+            "DSPARK_OWN_VOCAB", "SHAPE_SAMPLED", "MAX_MODEL_LEN", "SPECULATORS_SRC")},
 }, open(os.path.join(run, f"provenance-{job}.json"), "w"), indent=1)
 PY
 if git rev-parse --git-dir > /dev/null 2>&1; then
@@ -59,12 +86,14 @@ if [ -n "${SHAPE_IMAGE:-}" ] && [ ! -s "${RUN_DIR}/logs/image.sha256" ]; then
   (sha256sum "${SHAPE_IMAGE}" > "${RUN_DIR}/logs/image.sha256.tmp" \
     && mv "${RUN_DIR}/logs/image.sha256.tmp" "${RUN_DIR}/logs/image.sha256") &
 fi
-python3 -m pytest -q tests/test_shape.py > "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt" 2>&1 \
+export DSPARK TARGET
+PYTHONPATH="${PYTHONPATH}${SPECULATORS_SRC:+:${SPECULATORS_SRC}}" \
+python3 -m pytest -q -rsP tests/test_shape.py > "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt" 2>&1 \
   || { cat "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt"; exit 1; }
 
 if [[ " ${STAGES} " == *" inputs "* ]] && [ ! -s "${RUN_DIR}/inputs/corpus-measured.jsonl" ]; then
   stamp "stage inputs"
-  python3 -m apertus_bench.coverage_workloads --raw "${RAW}" --tokenizer "${TARGET}" \
+  python3 -m apertus_bench.coverage_workloads --raw "${RAW}" --tokenizer "${CORPUS_TOKENIZER}" \
     --out "${RUN_DIR}/inputs/coverage.jsonl" --manifest "${RUN_DIR}/inputs/coverage-manifest.json" \
     > "${RUN_DIR}/logs/coverage-build.log" 2>&1
   for f in opb-heldout.jsonl eagle-8b-test.jsonl probe-speculator-benchmarks.jsonl arena-hard.jsonl; do
@@ -90,7 +119,7 @@ if [[ " ${STAGES} " == *" capture "* ]]; then
     [ -s "${out}" ] && { echo "exists: ${out}"; continue; }
     CUDA_VISIBLE_DEVICES=${i} python3 -m apertus_eagle.verify_offline capture --mode plain \
       --prompts "${RUN_DIR}/inputs/corpus-shard-${i}.jsonl" --limit "${LIMIT}" --max-tokens 512 \
-      --cap-sweep 0 --max-model-len 32768 --gpu-memory-utilization 0.85 \
+      --cap-sweep 0 --max-model-len "${MAX_MODEL_LEN}" --gpu-memory-utilization 0.85 \
       --output "${out}" > "${RUN_DIR}/logs/capture-${i}.log" 2>&1 &
   done
   wait
@@ -107,7 +136,8 @@ if [[ " ${STAGES} " == *" shape "* ]]; then
     [ -s "${RUN_DIR}/shape/shard-${i}.summary.json" ] && continue
     CUDA_VISIBLE_DEVICES=${i} python3 -m apertus_tree.shape \
       --capture "${RUN_DIR}"/captures/shard-*.json --prompts "${RUN_DIR}/inputs/corpus-measured.jsonl" \
-      --eagle-head "${EAGLE_HEAD}" --dspark "${DSPARK}" --shard "${i}" --num-shards "${NG}" \
+      ${EAGLE_HEAD:+--eagle-head "${EAGLE_HEAD}"} --dspark "${DSPARK}" --shard "${i}" --num-shards "${NG}" \
+      --dspark-hf-layers "${DSPARK_HF_LAYERS}" ${OWN_VOCAB_FLAG} \
       --output "${out}" > "${RUN_DIR}/logs/shape-${i}.log" 2>&1 &
     pids+=($!)
   done
@@ -119,7 +149,8 @@ fi
 if [[ " ${STAGES} " == *" aggregate "* ]]; then
   stamp "stage aggregate"
   python3 -m apertus_tree.shape_aggregate "${RUN_DIR}"/shape/shard-*.npz --suite "${INPUTS}/suite.yaml" \
-    --output "${RUN_DIR}/aggregate.json" --sequences "${RUN_DIR}/sequences.csv"
+    --output "${RUN_DIR}/aggregate.json" --sequences "${RUN_DIR}/sequences.csv" \
+    ${SAMPLED_FLAG}
 fi
 wait
 stamp "done"

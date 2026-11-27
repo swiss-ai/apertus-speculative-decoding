@@ -44,6 +44,13 @@ and both control kinds are specified in `../docs/protocol.md`.
   counters, and the analysis of `../docs/workload-distribution-shape.md`. The
   captures and per-token shards stay on Clariden; their hashes are in
   `cluster-only-sha256.txt`.
+- `qwen3-4b/workload-shape/`: the workload-shape study repeated on Qwen3-4B with
+  Red Hat's DSpark speculator (`../docs/workload-distribution-shape-qwen3-4b.md`).
+  `full-20261127-4052179/` holds the replay (job 4052179) with its analyses,
+  `gate-20261127-4052199/` the served vLLM cells of the replay-vs-served gate
+  (k=3/k=7, greedy and T=1; job 4052199), and `models/` the pinned download
+  hashes, configs and the drafter's `train_command.txt`. Captures, npz shards and
+  the corpus stay on Clariden (`cluster-only-sha256.txt`).
 - `8b/drafter-kv/kv-sparsity-20261022-a/`: two independent DSpark thinking-off
   screening repeats with physical KV-page eviction. The 512-token importance
   policy reduced accounted drafter storage by 69%, but throughput and

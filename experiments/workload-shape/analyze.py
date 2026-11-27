@@ -7,6 +7,12 @@ RESULTS_DIR holds ``aggregate.json`` and ``sequences.csv`` (from
 ``apertus_tree.shape_aggregate``); ``inputs/`` next to it the served acceptance and
 the suite. Writes ``analysis.json``, ``tables.md`` and ``figures/*.png`` there.
 
+    analyze.py RESULTS_DIR [INPUTS_DIR] [--served FILE] [--name dspark=LABEL]
+
+The drafters are those in ``aggregate.json`` (DSpark, and EAGLE when present).
+``--served`` (default ``INPUTS_DIR/served-acceptance-task-speed.json``) holds the
+served DSpark k=3 acceptance per slice; ``--name`` relabels a drafter in figures.
+
 Questions (Yu, 2026-11-20 sync):
 1. How well do target entropy (shape) and TV(target, drafter) (alignment), alone
    and together, explain acceptance length across the 28 workload slices (R^2)?
@@ -20,9 +26,9 @@ Questions (Yu, 2026-11-20 sync):
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
-import sys
 from pathlib import Path
 
 import matplotlib
@@ -109,13 +115,23 @@ def silhouette(x: np.ndarray, lab: np.ndarray) -> float:
 
 
 def main() -> None:
-    root = Path(sys.argv[1])
-    inputs = Path(sys.argv[2]) if len(sys.argv) > 2 else root.parent / "inputs"
+    global DRAFTERS
+    parser = argparse.ArgumentParser()
+    parser.add_argument("root", type=Path)
+    parser.add_argument("inputs", type=Path, nargs="?")
+    parser.add_argument("--served", type=Path)
+    parser.add_argument("--name", action="append", default=[], metavar="DRAFTER=LABEL")
+    cli = parser.parse_args()
+    root = cli.root
+    inputs = cli.inputs or root.parent / "inputs"
+    NAMES.update(dict(item.split("=", 1) for item in cli.name))
     agg = json.loads((root / "aggregate.json").read_text())
-    served = json.loads((inputs / "served-acceptance-task-speed.json").read_text())["slices"]
+    served_path = cli.served or inputs / "served-acceptance-task-speed.json"
+    served = json.loads(served_path.read_text())["slices"]
     suite = yaml.safe_load((inputs / "suite.yaml").read_text())
     order = [s["label"] for s in suite["slices"] if s["label"] in agg["workloads"]]
     wl = agg["workloads"]
+    DRAFTERS = tuple(d for d in DRAFTERS if d in wl[order[0]])
     bins = agg["entropy_bins"]
     figs = root / "figures"
     figs.mkdir(exist_ok=True)
@@ -404,12 +420,17 @@ def main() -> None:
 
     # 3. per-slice distributions (q10..q90 whiskers, IQR box, median) sorted by acceptance
     srt = sorted(order, key=lambda w: feat[w]["dspark_acc_k3"])
-    fig, axes = plt.subplots(1, 3, figsize=(10.5, 7.2), sharey=True)
-    panels = (
-        ("target entropy (nats)", lambda w: wl[w]["target"]["ent"]),
-        ("TV(target, DSpark) depth 1", lambda w: wl[w]["dspark"]["depth1"]["tv"]),
-        ("TV(target, EAGLE) depth 1", lambda w: wl[w]["eagle"]["depth1"]["tv"]),
+    panels = (("target entropy (nats)", lambda w: wl[w]["target"]["ent"]),) + tuple(
+        (
+            f"TV(target, {NAMES[d].split(' e10')[0]}) depth 1",
+            lambda w, d=d: wl[w][d]["depth1"]["tv"],
+        )
+        for d in DRAFTERS
     )
+    fig, axes = plt.subplots(
+        1, len(panels), figsize=(3.5 * len(panels), 7.2), sharey=True, squeeze=False
+    )
+    axes = axes[0]
     for ax, (title, get) in zip(axes, panels, strict=True):
         style(ax)
         for i, w in enumerate(srt):
@@ -434,7 +455,10 @@ def main() -> None:
     plt.close(fig)
 
     # 4. depth-1 match rate by target-entropy bin, per class, both drafters
-    fig, axes = plt.subplots(1, 2, figsize=(9, 3.8), sharey=True)
+    fig, axes = plt.subplots(
+        1, len(DRAFTERS), figsize=(4.5 * len(DRAFTERS), 3.8), sharey=True, squeeze=False
+    )
+    axes = axes[0]
     for ax, d in zip(axes, DRAFTERS, strict=True):
         style(ax)
         for j, c in enumerate(CLASSES):
@@ -468,7 +492,7 @@ def main() -> None:
     ax.set_yticklabels(srt2, fontsize=7)
     ax.set_xlabel("contribution to the gap in k=3 acceptance length vs. the ID reference")
     ax.set_title(
-        "DSpark e10: acceptance gap to the ID slices = shape term + alignment term",
+        f"{NAMES['dspark']}: acceptance gap to the ID slices = shape term + alignment term",
         fontsize=8.5, loc="left",
     )  # fmt: skip
     ax.legend(fontsize=7, frameon=False, loc="upper left")
@@ -478,29 +502,37 @@ def main() -> None:
 
     # ------------------------------------------------------------------ tables
     lines = ["## Per-slice statistics", ""]
+    eagle = "eagle" in DRAFTERS
     lines.append(
         "| slice | class | target H median [IQR] | target top-1 median | DSpark TV d1 median [IQR] "
-        "| DSpark match d1 | DSpark acc k3 replay / served | EAGLE TV d1 median [IQR] "
-        "| EAGLE match d1 | EAGLE acc k3 |"
+        "| DSpark match d1 | DSpark acc k3 replay / served"
+        + (" | EAGLE TV d1 median [IQR] | EAGLE match d1 | EAGLE acc k3 |" if eagle else " |")
     )
-    lines.append("|---" * 10 + "|")
+    lines.append("|---" * (10 if eagle else 7) + "|")
     for w in order:
         e = wl[w]
         t = e["target"]["ent"]
-        ds, ea = e["dspark"]["depth1"], e["eagle"]["depth1"]
+        ds = e["dspark"]["depth1"]
         served_k3 = feat[w]["served_k3"]
-        lines.append(
+        row = (
             f"| {w} | {e['class']} | {t['q50']:.3f} [{t['q25']:.3f}, {t['q75']:.3f}] "
             f"| {e['target']['top1p']['q50']:.3f} "
             f"| {ds['tv']['q50']:.3f} [{ds['tv']['q25']:.3f}, {ds['tv']['q75']:.3f}] "
             f"| {ds['match']['mean']:.3f} | {feat[w]['dspark_acc_k3']:.2f} / "
             f"{served_k3:.2f} "
-            f"| {ea['tv']['q50']:.3f} [{ea['tv']['q25']:.3f}, {ea['tv']['q75']:.3f}] "
-            f"| {ea['match']['mean']:.3f} | {feat[w]['eagle_acc_k3']:.2f} |"
         )
+        if eagle:
+            ea = e["eagle"]["depth1"]
+            row += (
+                f"| {ea['tv']['q50']:.3f} [{ea['tv']['q25']:.3f}, {ea['tv']['q75']:.3f}] "
+                f"| {ea['match']['mean']:.3f} | {feat[w]['eagle_acc_k3']:.2f} |"
+            )
+        else:
+            row += "|"
+        lines.append(row)
     (root / "tables.md").write_text("\n".join(lines) + "\n")
     print(json.dumps({k: out[k] for k in ("replay_vs_served_dspark_k3",)}, indent=1))
-    for key in ("dspark_k3", "eagle_k3", "served_dspark_k3"):
+    for key in [f"{d}_k3" for d in DRAFTERS] + ["served_dspark_k3"]:
         print(key, {m: round(v.get("r2", v.get("r", 0)), 3) for m, v in r2[key].items()})
     for d in DRAFTERS:
         print(d, "seq", {m: (round(v["r2"], 3) if isinstance(v, dict) else round(v, 3))

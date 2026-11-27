@@ -111,10 +111,13 @@ def capture(args: argparse.Namespace) -> None:
     llm = build_engine(contract, args)
     load_seconds = time.time() - started
     tokenizer = llm.get_tokenizer()
+    prompt_format = contract["target"]["tokens"].get("prompt_format", "apertus")
     rows = load_prompts(args.prompts, args.limit)
     requests: list[tuple[str, list[int], int]] = []
     for row in rows:
-        ids = row.get("prompt_ids") or render_prompt(tokenizer, prompt_messages(row))
+        ids = row.get("prompt_ids") or render_prompt(
+            tokenizer, prompt_messages(row), prompt_format
+        )
         requests.append((str(row["id"]), list(ids), args.max_tokens))
     sweep_caps = list(range(1, args.num_speculative_tokens + 3)) + [
         2 * args.num_speculative_tokens + 3,

@@ -1,0 +1,28 @@
+loadtest tool-call concurrency=1 requests=32
+{
+  "workload": "tool-call",
+  "variant": "k7-greedy",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 613.8953494017611,
+      "ttft_p50_ms": 40.4501805005566,
+      "ttft_p95_ms": 65.12404189907102,
+      "tpot_p50_ms": 0.9995642759347924,
+      "tpot_p95_ms": 2.2192726647529453,
+      "e2e_p95_ms": 476.84393465042376,
+      "kv_cache_usage_mean": 0.0014384803342003538,
+      "kv_cache_usage_max": 0.0028769606684007076,
+      "kv_cache_tokens_peak": 1244,
+      "kv_cache_size_tokens": 432390,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.992194275802255,
+      "acceptance_rate": 0.42745632511460785
+    }
+  ]
+}

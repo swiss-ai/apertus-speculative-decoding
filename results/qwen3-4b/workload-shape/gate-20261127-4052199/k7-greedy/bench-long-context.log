@@ -1,0 +1,28 @@
+loadtest long-context concurrency=1 requests=32
+{
+  "workload": "long-context",
+  "variant": "k7-greedy",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 278.6078491597645,
+      "ttft_p50_ms": 343.6643209988688,
+      "ttft_p95_ms": 530.7515822498317,
+      "tpot_p50_ms": 2.259554893115882,
+      "tpot_p95_ms": 2.6477226913871705,
+      "e2e_p95_ms": 1546.6292701999919,
+      "kv_cache_usage_mean": 0.018465345729474367,
+      "kv_cache_usage_max": 0.04176628745084643,
+      "kv_cache_tokens_peak": 18059,
+      "kv_cache_size_tokens": 432390,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.5525030525030523,
+      "acceptance_rate": 0.22178615035757893
+    }
+  ]
+}

@@ -74,10 +74,11 @@ def dist_metrics(lp_t: torch.Tensor, lp_q: torch.Tensor, truth: torch.Tensor, t_
 
 
 class Collector:
-    def __init__(self, args, eagle: Eagle, dspark: DSpark, lm_head: torch.Tensor, device):
+    def __init__(self, args, eagle: Eagle | None, dspark: DSpark, lm_head: torch.Tensor, device):
         self.args, self.eagle, self.dspark, self.lm_head, self.device = (
             args, eagle, dspark, lm_head, device,
         )  # fmt: skip
+        self.drafters = ("dspark", "eagle") if eagle is not None else ("dspark",)
 
     def sequence(self, ids: list[int], p: int, last: torch.Tensor, aux_e, aux_d):
         dev = self.device
@@ -95,12 +96,13 @@ class Collector:
         target["hf_agree"] = (t_top == full[p:]).float()
         del t_prob
 
-        ectx = self.eagle.context(full, aux_e)
+        eagle = self.eagle
+        ectx = eagle.context(full, aux_e) if eagle is not None else None
         dctx = self.dspark.context(aux_d)
         anchors = list(range(p, n - 1))
         out = {
             name: {f: np.full((len(anchors), DEPTH), np.nan, np.float32) for f in DRAFTER_FIELDS}
-            for name in ("dspark", "eagle")
+            for name in self.drafters
         }
         for start in range(0, len(anchors), self.args.anchor_chunk):
             chunk = anchors[start : start + self.args.anchor_chunk]
@@ -108,10 +110,11 @@ class Collector:
             depth = min(DEPTH, n - 1 - chunk[0])
             base = self.dspark.block_logits(dctx, full, a_t)[:, :DEPTH]
             # EAGLE teacher-forced chain state
-            e_hidden = ectx["next"][a_t - 1]
-            anc_k = ectx["k"].new_zeros((len(chunk), 0, *ectx["k"].shape[1:]))
-            anc_v = ectx["v"].new_zeros((len(chunk), 0, *ectx["v"].shape[1:]))
-            e_lp = self.eagle.logprobs(ectx["h"][a_t - 1])
+            if eagle is not None:
+                e_hidden = ectx["next"][a_t - 1]
+                anc_k = ectx["k"].new_zeros((len(chunk), 0, *ectx["k"].shape[1:]))
+                anc_v = ectx["v"].new_zeros((len(chunk), 0, *ectx["v"].shape[1:]))
+                e_lp = eagle.logprobs(ectx["h"][a_t - 1])
             for d in range(1, depth + 1):
                 pos = a_t + d  # predicted position
                 valid = pos <= n - 1
@@ -121,7 +124,8 @@ class Collector:
                 lp_t = t_lp[posv - p]
                 top_t = t_top[posv - p]
                 d_lp = self.dspark.logprobs(base[rows, d - 1], full[posv - 1])
-                for name, lp_q in (("dspark", d_lp), ("eagle", e_lp[rows])):
+                pairs = [("dspark", d_lp)] + ([("eagle", e_lp[rows])] if eagle is not None else [])
+                for name, lp_q in pairs:
                     m = dist_metrics(lp_t, lp_q, truth, top_t)
                     idx = (start + rows).cpu().numpy()
                     for f in DRAFTER_FIELDS:
@@ -129,12 +133,14 @@ class Collector:
                 del d_lp
                 if d == depth:
                     break
+                if eagle is None:
+                    continue
                 # EAGLE step d: feed ids[a+d] (all anchors; positions past the end are
                 # clamped and their results never read).
                 tok = full[pos.clamp(max=n - 1)]
-                k, v, h = self.eagle.nodes(ectx, a_t, d, tok, e_hidden, anc_k, anc_v)
-                e_lp = self.eagle.logprobs(h)
-                e_hidden = rms(h, self.eagle.norm, self.eagle.eps)
+                k, v, h = eagle.nodes(ectx, a_t, d, tok, e_hidden, anc_k, anc_v)
+                e_lp = eagle.logprobs(h)
+                e_hidden = rms(h, eagle.norm, eagle.eps)
                 anc_k = torch.cat([anc_k, k[:, None]], 1)
                 anc_v = torch.cat([anc_v, v[:, None]], 1)
         target = {k: v.float().cpu().numpy().astype(np.float32) for k, v in target.items()}
@@ -145,9 +151,14 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="apertus-tree-shape")
     parser.add_argument("--capture", type=Path, nargs="+", required=True)
     parser.add_argument("--prompts", type=Path, required=True)
-    parser.add_argument("--eagle-head", type=Path, required=True)
+    parser.add_argument("--eagle-head", type=Path, help="omit for a DSpark-only study")
     parser.add_argument("--dspark", type=Path, required=True)
     parser.add_argument("--dspark-hf-layers", default="0,7,14,21,28")
+    parser.add_argument(
+        "--dspark-own-vocab",
+        action="store_true",
+        help="use the checkpoint's own embed_tokens/lm_head when present (vLLM's loader)",
+    )
     parser.add_argument("--contract", type=Path)
     parser.add_argument("--shard", type=int, default=0)
     parser.add_argument("--num-shards", type=int, default=1)
@@ -173,18 +184,25 @@ def main(argv: list[str] | None = None) -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model, _loader = load_teacher(target_path)
     model.eval().requires_grad_(False)
-    eagle_layers = aux_layer_ids(contract, "hf")
+    eagle_layers = aux_layer_ids(contract, "hf") if args.eagle_head else []
     dspark_layers = [int(x) for x in args.dspark_hf_layers.split(",")]
+    # Speculators/vLLM aux id k is the residual stream after HF decoder layer k-1.
+    recorded = json.loads((args.dspark / "config.json").read_text()).get(
+        "aux_hidden_state_layer_ids"
+    )
+    if recorded and [k - 1 for k in recorded] != dspark_layers:
+        raise SystemExit(f"--dspark-hf-layers {dspark_layers} != config aux ids {recorded} - 1")
     capture = FeatureCapture(
         model, sorted(set(eagle_layers) | set(dspark_layers)), num_decoder_layers(contract)
     )
     embed = model.get_input_embeddings().weight
     head = model.get_output_embeddings()
     lm_head = (head if head is not None else model.lm_head).weight
-    eagle = Eagle(args.eagle_head, embed, device)
-    if eagle.lm_head.shape[0] != lm_head.shape[0]:
+    eagle = Eagle(args.eagle_head, embed, device) if args.eagle_head else None
+    if eagle is not None and eagle.lm_head.shape[0] != lm_head.shape[0]:
         raise SystemExit("EAGLE draft vocabulary differs from the target's")
-    dspark = DSpark(args.dspark, embed, lm_head, device)
+    dspark = DSpark(args.dspark, embed, lm_head, device, own_vocab=args.dspark_own_vocab)
+    prompt_format = contract["target"]["tokens"].get("prompt_format", "apertus")
     tokenizer = AutoTokenizer.from_pretrained(target_path)
     collector = Collector(args, eagle, dspark, lm_head, device)
 
@@ -209,7 +227,10 @@ def main(argv: list[str] | None = None) -> None:
         for row in rows:
             t0 = time.time()
             case = cases[str(row["id"])]
-            prompt = list(row.get("prompt_ids") or render_prompt(tokenizer, prompt_messages(row)))
+            prompt = list(
+                row.get("prompt_ids")
+                or render_prompt(tokenizer, prompt_messages(row), prompt_format)
+            )
             if sha256_ids(prompt) != case["prompt_ids_sha256"]:
                 raise SystemExit(f"prompt ids differ from the capture for {row['id']}")
             ids = prompt + list(case["token_ids"])
@@ -217,7 +238,11 @@ def main(argv: list[str] | None = None) -> None:
                 continue
             _hidden, last, _ = capture.run(torch.tensor([ids], device=device))
             del _hidden
-            aux_e = torch.cat([capture.captured[i][0] for i in eagle_layers], -1)
+            aux_e = (
+                torch.cat([capture.captured[i][0] for i in eagle_layers], -1)
+                if eagle is not None
+                else None
+            )
             aux_d = torch.cat([capture.captured[i][0] for i in dspark_layers], -1)
             target, drafted = collector.sequence(ids, len(prompt), last, aux_e, aux_d)
             for f, v in target.items():
@@ -251,10 +276,14 @@ def main(argv: list[str] | None = None) -> None:
         "num_shards": args.num_shards,
         "args": {k: str(v) for k, v in vars(args).items()},
         "target": target_identity(contract),
-        "eagle_head": str(args.eagle_head),
-        "eagle_head_sha256": file_sha256(args.eagle_head / "model.safetensors"),
+        "eagle_head": str(args.eagle_head) if eagle is not None else None,
+        "eagle_head_sha256": (
+            file_sha256(args.eagle_head / "model.safetensors") if eagle is not None else None
+        ),
         "dspark": str(args.dspark),
         "dspark_sha256": file_sha256(args.dspark / "model.safetensors"),
+        "dspark_own_vocab": dspark.own_vocab,
+        "dspark_attention": {"windows": dspark.windows, "causal": dspark.causal},
         "eagle_hf_layers": eagle_layers,
         "dspark_hf_layers": dspark_layers,
         "captures": {str(p): file_sha256(p) for p in args.capture},

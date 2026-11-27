@@ -1,0 +1,28 @@
+loadtest lang-roh concurrency=1 requests=32
+{
+  "workload": "lang-roh",
+  "variant": "k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 409.15189235457973,
+      "ttft_p50_ms": 22.353267999278614,
+      "ttft_p95_ms": 23.975504399641068,
+      "tpot_p50_ms": 2.4191349226773187,
+      "tpot_p95_ms": 2.678089080016001,
+      "e2e_p95_ms": 1372.3074554005507,
+      "kv_cache_usage_mean": 0.00041325928193465994,
+      "kv_cache_usage_max": 0.0012988148860804127,
+      "kv_cache_tokens_peak": 562,
+      "kv_cache_size_tokens": 432966,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.017267142619957,
+      "acceptance_rate": 0.3390890475399856
+    }
+  ]
+}

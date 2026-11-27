@@ -1,0 +1,28 @@
+loadtest arena-hard-clean concurrency=1 requests=32
+{
+  "workload": "arena-hard-clean",
+  "variant": "k3-greedy",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 553.1475627244246,
+      "ttft_p50_ms": 22.15931799946702,
+      "ttft_p95_ms": 38.631979600359045,
+      "tpot_p50_ms": 1.768189625243843,
+      "tpot_p95_ms": 2.0426380371813093,
+      "e2e_p95_ms": 1072.7824058491024,
+      "kv_cache_usage_mean": 0.001010184938186313,
+      "kv_cache_usage_max": 0.0019285348819920722,
+      "kv_cache_tokens_peak": 835,
+      "kv_cache_size_tokens": 432968,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.750919600630583,
+      "acceptance_rate": 0.5836398668768611
+    }
+  ]
+}

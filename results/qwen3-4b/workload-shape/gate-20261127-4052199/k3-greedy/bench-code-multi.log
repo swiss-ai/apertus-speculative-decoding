@@ -1,0 +1,28 @@
+loadtest code-multi concurrency=1 requests=32
+{
+  "workload": "code-multi",
+  "variant": "k3-greedy",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 635.73504063305,
+      "ttft_p50_ms": 34.04549700098869,
+      "ttft_p95_ms": 35.88388350108289,
+      "tpot_p50_ms": 1.4940671075015812,
+      "tpot_p95_ms": 1.609251535149708,
+      "e2e_p95_ms": 830.4156585989404,
+      "kv_cache_usage_mean": 0.0008265149494251611,
+      "kv_cache_usage_max": 0.001692387753584823,
+      "kv_cache_tokens_peak": 733,
+      "kv_cache_size_tokens": 432968,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.233569508917664,
+      "acceptance_rate": 0.7445231696392214
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+loadtest json-schema concurrency=1 requests=32
+{
+  "workload": "json-schema",
+  "variant": "k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 591.0274760032293,
+      "ttft_p50_ms": 38.16769050172297,
+      "ttft_p95_ms": 41.07521234855085,
+      "tpot_p50_ms": 1.2214507614880934,
+      "tpot_p95_ms": 1.30354790730637,
+      "e2e_p95_ms": 232.16157795086474,
+      "kv_cache_usage_mean": 0.0,
+      "kv_cache_usage_max": 0.0,
+      "kv_cache_tokens_peak": 0,
+      "kv_cache_size_tokens": 432966,
+      "running_max": 0.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.888888888888889,
+      "acceptance_rate": 0.9629629629629629
+    }
+  ]
+}

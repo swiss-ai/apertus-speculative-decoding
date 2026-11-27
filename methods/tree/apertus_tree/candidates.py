@@ -73,9 +73,31 @@ def llama3_inv_freq(dim: int, rope: dict[str, Any]) -> torch.Tensor:
     return torch.where(medium, smoothed, out).float()
 
 
+def default_inv_freq(dim: int, rope: dict[str, Any]) -> torch.Tensor:
+    """Unscaled RoPE (Qwen3), computed as transformers' default rope init does."""
+    theta = float(rope["rope_theta"])
+    return 1.0 / (theta ** (torch.arange(0, dim, 2, dtype=torch.int64).float() / dim))
+
+
+def rope_parameters(layer_config: dict[str, Any]) -> dict[str, Any]:
+    """``rope_parameters`` of a transformers-5 config, or the legacy flat fields."""
+    rope = layer_config.get("rope_parameters")
+    if rope:
+        return dict(rope)
+    scaling = dict(layer_config.get("rope_scaling") or {})
+    scaling.setdefault("rope_type", scaling.pop("type", "default"))
+    return {"rope_theta": layer_config.get("rope_theta", 10000.0), **scaling}
+
+
 class Rope:
     def __init__(self, dim: int, rope: dict[str, Any], device):
-        self.inv = llama3_inv_freq(dim, rope).to(device)
+        kind = rope.get("rope_type", "llama3" if "low_freq_factor" in rope else "default")
+        if kind == "llama3":
+            self.inv = llama3_inv_freq(dim, rope).to(device)
+        elif kind == "default":
+            self.inv = default_inv_freq(dim, rope).to(device)
+        else:
+            raise SystemExit(f"unsupported rope_type {kind!r}")
 
     def __call__(self, x: torch.Tensor, pos: torch.Tensor) -> torch.Tensor:
         """x [..., heads, dim], pos broadcastable to x.shape[:-2]."""
@@ -205,16 +227,42 @@ class Eagle:
 
 
 class DSpark:
-    def __init__(self, path: Path, embed: torch.Tensor, lm_head: torch.Tensor, device):
+    """Speculators DSpark drafter (DFlash backbone + vanilla Markov head).
+
+    Attention follows speculators (``dflash/attention.py``) and vLLM
+    (``qwen3_dflash._resolve_layer_attention``): a layer is sliding when
+    ``layer_types`` says so (all layers when ``layer_types`` is absent and
+    ``use_sliding_window`` is set); a sliding layer sees the context positions
+    ``[anchor - window, anchor)`` and is causal inside the block unless
+    ``sliding_window_non_causal``; a full layer sees the whole context and the
+    whole block.
+
+    ``own_vocab``: use the checkpoint's own ``embed_tokens``/``lm_head`` when it
+    stores them (vLLM's loader keeps them, speculators reloads the verifier's);
+    otherwise the target's ``embed``/``lm_head`` are used.
+    """
+
+    def __init__(
+        self,
+        path: Path,
+        embed: torch.Tensor,
+        lm_head: torch.Tensor,
+        device,
+        own_vocab: bool = False,
+        dtype: torch.dtype | None = None,
+    ):
         cfg = json.loads((path / "config.json").read_text())
         tl = cfg["transformer_layer_config"]
         w = load_file(str(path / "model.safetensors"), device=str(device))
+        if dtype is not None:  # tests compare against the reference in float32
+            w = {k: v.to(dtype) for k, v in w.items()}
+            embed, lm_head = embed.to(dtype), lm_head.to(dtype)
         if cfg.get("markov_head_type") != "vanilla" or not cfg.get("sample_from_anchor", True):
             raise SystemExit(
                 "this simulator implements the vanilla Markov head, sample_from_anchor"
             )
-        if cfg.get("sliding_window_non_causal"):
-            raise SystemExit("expected a causal in-block mask (sliding_window_non_causal false)")
+        if cfg.get("draft_vocab_size", lm_head.shape[0]) != lm_head.shape[0]:
+            raise SystemExit("reduced-vocabulary DSpark drafters (d2t) are not supported")
         self.cfg = cfg
         self.block = cfg["block_size"]
         self.mask_id = cfg["mask_token_id"]
@@ -224,7 +272,27 @@ class DSpark:
             tl["head_dim"],
         )
         self.eps = tl["rms_norm_eps"]
-        self.window = tl["sliding_window"] if tl.get("use_sliding_window") else None
+        n_layers = tl["num_hidden_layers"]
+        types = tl.get("layer_types")
+        sliding = (
+            [t == "sliding_attention" for t in types]
+            if types
+            else [bool(tl.get("use_sliding_window"))] * n_layers
+        )
+        non_causal = bool(cfg.get("sliding_window_non_causal"))
+        self.windows = [tl["sliding_window"] if s else None for s in sliding]
+        self.causal = [s and not non_causal for s in sliding]
+        self.own_vocab = {}
+        if own_vocab:
+            for name, key, ref in (
+                ("embed", "embed_tokens.weight", embed),
+                ("lm_head", "lm_head.weight", lm_head),
+            ):
+                if key in w:
+                    diff = (w[key].float() - ref.detach().float()).abs().max()
+                    self.own_vocab[name] = {"max_abs_diff_vs_target": float(diff)}
+            embed = w.get("embed_tokens.weight", embed)
+            lm_head = w.get("lm_head.weight", lm_head)
         self.embed, self.lm_head = embed, lm_head
         self.fc, self.hidden_norm, self.norm = (
             w["fc.weight"],
@@ -234,7 +302,7 @@ class DSpark:
         self.w1 = w["markov_head.markov_w1.weight"]
         self.w2 = w["markov_head.markov_w2.weight"]
         self.layers = []
-        for i in range(tl["num_hidden_layers"]):
+        for i in range(n_layers):
             p = f"layers.{i}."
             self.layers.append(
                 {
@@ -254,7 +322,7 @@ class DSpark:
                     }.items()
                 }
             )
-        self.rope = Rope(self.dim, tl["rope_parameters"], device)
+        self.rope = Rope(self.dim, rope_parameters(tl), device)
         self.scale = self.dim**-0.5
 
     def context(self, aux: torch.Tensor):
@@ -278,13 +346,23 @@ class DSpark:
         pos = anchors[:, None] + torch.arange(b, device=ids.device)[None]
         t = ctx[0][0].shape[0]
         j = torch.arange(t, device=ids.device)[None]
-        valid = j < anchors[:, None]
-        if self.window is not None:
-            valid &= j >= anchors[:, None] - self.window
-        ctx_valid = valid[:, None, :].expand(a_n, b, t).reshape(a_n * b, t)
+        masks = {}
+
+        def ctx_mask(window):
+            if window not in masks:
+                valid = j < anchors[:, None]
+                if window is not None:
+                    valid &= j >= anchors[:, None] - window
+                masks[window] = valid[:, None, :].expand(a_n, b, t).reshape(a_n * b, t)
+            return masks[window]
+
         causal = torch.tril(torch.ones(b, b, dtype=torch.bool, device=ids.device))
-        own_valid = causal[None].expand(a_n, b, b).reshape(a_n * b, b)
-        for layer, (ck, cv) in zip(self.layers, ctx, strict=True):
+        own = {
+            True: causal[None].expand(a_n, b, b).reshape(a_n * b, b),
+            False: torch.ones(a_n * b, b, dtype=torch.bool, device=ids.device),
+        }
+        for li, (layer, (ck, cv)) in enumerate(zip(self.layers, ctx, strict=True)):
+            ctx_valid, own_valid = ctx_mask(self.windows[li]), own[self.causal[li]]
             x = rms(h, layer["in"], self.eps)
             q = F.linear(x, layer["q"]).view(a_n, b, self.heads, self.dim)
             q = self.rope(rms(q, layer["qn"], self.eps), pos)

@@ -1,0 +1,28 @@
+loadtest chat concurrency=1 requests=32
+{
+  "workload": "chat",
+  "variant": "k7-greedy",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 547.726042824308,
+      "ttft_p50_ms": 37.15072849990975,
+      "ttft_p95_ms": 40.39980004854442,
+      "tpot_p50_ms": 1.768520723778635,
+      "tpot_p95_ms": 3.270380250317856,
+      "e2e_p95_ms": 1201.4863092497762,
+      "kv_cache_usage_mean": 0.0017577047371324817,
+      "kv_cache_usage_max": 0.0034287065500118175,
+      "kv_cache_tokens_peak": 1483,
+      "kv_cache_size_tokens": 432390,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.9275582573454915,
+      "acceptance_rate": 0.2753654653350702
+    }
+  ]
+}
