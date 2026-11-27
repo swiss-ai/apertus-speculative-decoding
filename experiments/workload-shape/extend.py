@@ -98,11 +98,19 @@ def decompose(wl: dict, group, d: str = "dspark") -> dict:
     }
 
 
-def decision(analysis: dict, wl: dict) -> dict:
-    r2 = analysis["r2_slices"]["dspark_k3"]
+def decision(analysis: dict, wl: dict, exclude: tuple[str, ...] = ()) -> dict:
+    """The pre-registered rule on the replayed DSpark k=3 acceptance; ``exclude``
+    drops slices (post-hoc sensitivity only)."""
+    names = [w for w in analysis["workloads"] if w not in exclude]
+    feat = analysis["features"]
+    y = np.array([feat[w]["dspark_acc_k3"] for w in names])
+    r2 = {
+        "target entropy (mean)": an.ols(np.array([feat[w]["ent_mean"] for w in names]), y),
+        "TV d1 (mean)": an.ols(np.array([feat[w]["dspark_tv_mean"] for w in names]), y),
+    }
     ent, tv = r2["target entropy (mean)"]["r2"], r2["TV d1 (mean)"]["r2"]
     chat = decompose(wl, ["chat"])
-    langs = decompose(wl, [w for w in LANGS_NON_ENGLISH if w in wl])
+    langs = decompose(wl, [w for w in LANGS_NON_ENGLISH if w in wl and w not in exclude])
     per_lang = {w: decompose(wl, [w]) for w in LANGS_NON_ENGLISH if w in wl}
     entropy_holds = (
         ent >= 0.8 and (chat["shape_share"] or 0) >= 0.5 and (langs["shape_share"] or 0) >= 0.5
@@ -115,6 +123,8 @@ def decision(analysis: dict, wl: dict) -> dict:
         else "mixed"
     )  # fmt: skip
     return {
+        "slices": len(names),
+        "excluded": list(exclude),
         "entropy_r2": ent,
         "entropy_loo_r2": r2["target entropy (mean)"]["loo_r2"],
         "tv_r2": tv,
@@ -156,6 +166,12 @@ def main() -> None:
     p.add_argument("--served-dir", type=Path, required=True)
     p.add_argument("--apertus", type=Path, required=True)
     p.add_argument("--name", default="Red Hat DSpark")
+    p.add_argument(
+        "--output-check",
+        type=Path,
+        help="output_check.py result: adds a post-hoc sensitivity without looping slices",
+    )
+    p.add_argument("--loop-threshold", type=float, default=0.25)
     args = p.parse_args()
     root = args.root
     analysis = json.loads((root / "analysis.json").read_text())
@@ -229,6 +245,47 @@ def main() -> None:
 
     # 3. decision rule, both targets
     out["decision"] = decision(analysis, wl)
+    if args.output_check:
+        check = json.loads(args.output_check.read_text())
+        loops = tuple(
+            w for w in order
+            if check["slices"][w]["sequences_repeat4_over_0.5"] / check["slices"][w]["sequences"]
+            > args.loop_threshold
+        )  # fmt: skip
+        sens = {
+            "note": "post hoc, not pre-registered: slices where more than "
+            f"{args.loop_threshold:.0%} of continuations loop (4-gram repeat share > 0.5) "
+            "are dropped; sequence-level fits drop looping sequences",
+            "looping_slices": list(loops),
+            "decision": decision(analysis, wl, loops),
+        }
+        keep = [w for w in order if w not in loops]
+        k_ent = np.array([feat[w]["ent_mean"] for w in keep])
+        k_tv = np.array([feat[w]["dspark_tv_mean"] for w in keep])
+        sens["r2_slices"] = {}
+        for kind, ys in (
+            ("greedy_k3", [feat[w]["dspark_acc_k3"] for w in keep]),
+            ("sampled_k3", [sampled[3][w] for w in keep]),
+            ("greedy_k7", [feat[w]["dspark_acc_k7"] for w in keep]),
+            ("sampled_k7", [sampled[7][w] for w in keep]),
+        ):
+            yv = np.array(ys)
+            sens["r2_slices"][kind] = {
+                "target entropy (mean)": an.ols(k_ent, yv),
+                "TV d1 (mean)": an.ols(k_tv, yv),
+                "entropy + TV": an.ols(np.column_stack([k_ent, k_tv]), yv),
+            }
+        ok = np.array([check["sequences"][s["seq"]]["rep4"] <= 0.5 for s in seqs])
+        sens["sequences_kept"] = int(ok.sum())
+        sens["r2_sequences"] = {}
+        for kind, key in (("greedy_k3", "acc_k3"), ("sampled_k3", "sacc_k3")):
+            yv = np.array([float(s[f"dspark_{key}"]) for s in seqs])[ok]
+            sens["r2_sequences"][kind] = {
+                "target entropy": an.ols(s_ent[ok], yv),
+                "TV d1": an.ols(s_tv[ok], yv),
+                "entropy + TV": an.ols(np.column_stack([s_ent[ok], s_tv[ok]]), yv),
+            }
+        out["sensitivity_without_loops"] = sens
     ap_analysis = json.loads((args.apertus / "analysis.json").read_text())
     ap_agg = json.loads((args.apertus / "aggregate.json").read_text())["workloads"]
     out["decision_apertus_8b_same_rule"] = decision(ap_analysis, ap_agg)
@@ -393,6 +450,11 @@ def main() -> None:
                      if k not in ("non_english_per_language_shape_share",)},  # fmt: skip
         "apertus_same_rule": out["decision_apertus_8b_same_rule"]["verdict"],
     }
+    if "sensitivity_without_loops" in out:
+        sd = out["sensitivity_without_loops"]["decision"]
+        summary["sensitivity_without_loops"] = {
+            k: sd[k] for k in ("slices", "excluded", "entropy_r2", "tv_r2", "verdict")
+        } | {"non_english_shape_share": sd["non_english_pooled"]["shape_share"]}
     print(json.dumps(summary, indent=1, default=str))
 
 
