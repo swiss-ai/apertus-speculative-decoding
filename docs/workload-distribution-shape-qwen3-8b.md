@@ -142,7 +142,8 @@ Differences:
 - Prompts are rendered with Qwen3's own chat template and tokenizer
   (`target.prompt_render: chat_template` in the contract), so caps and positions are
   Qwen tokens.
-- Drafter model code: `apertus_tree.qwen_heads` (`Eagle3Speculators`, `DFlash`),
+- Drafter model code: `apertus_tree.qwen_heads` (`Eagle3Speculators`, `DFlash`; since the
+  merge into main `apertus_tree.speculators_heads`),
   written from the speculators source and from vLLM 0.30's serving code. Unit tests in
   [`tests/test_shape.py`](../tests/test_shape.py) compare each head's logits with the
   vendored reference layers ([`tests/reference_speculators.py`](../tests/reference_speculators.py))
@@ -155,7 +156,8 @@ Differences:
   trajectory at every anchor (`shape_aggregate --sampled`).
 - Validation gate: Qwen3-8B served in vLLM 0.30 (`vllm_nvidia_alps-arm64.sqsh`) with
   each drafter, TP1, C=1, on the same 896 prompts and caps, through `apertus_bench`
-  ([`submit-gate-qwen3.sh`](../experiments/workload-shape/submit-gate-qwen3.sh)):
+  (`submit-gate-qwen3.sh` at the pinned revision; since the merge
+  [`submit-gate.sh`](../experiments/workload-shape/submit-gate.sh) with `qwen3-8b.env`):
   EAGLE3 k=3, DFlash k=3 and k=15 greedy, and EAGLE3 / DFlash k=3 at T=1.
   **Gate:** replay vs served acceptance per slice, Pearson r ≥ 0.98 and mean absolute
   difference ≤ 0.1 tokens per step, per drafter. No conclusion is drawn from a drafter
@@ -318,7 +320,7 @@ entropy does not gain it. Sequence level (896 points, k=3): entropy 0.43 / 0.36,
 ![Cross-model](../results/qwen3-8b/workload-shape/cross-model/figures/cross-model.png)
 
 [`cross-model.json`](../results/qwen3-8b/workload-shape/cross-model/cross-model.json)
-(`experiments/workload-shape/cross_model.py`):
+(`experiments/workload-shape/cross_model.py`; since the merge `cross_model.py compare`):
 
 | | Apertus 8B | Qwen3-8B |
 |---|---|---|
@@ -430,15 +432,22 @@ entropy does not gain it. Sequence level (896 points, k=3): entropy 0.43 / 0.36,
   (restricted prompts; scratch is purgeable). The gate directory holds, per arm, the
   launch command, `arm.env`, status, server and bench logs and every cell's
   `metadata.json`, `requests.jsonl`, `summary.json` and metric snapshots.
-- Re-run (on the cluster, from the code copy):
-  `source inputs/qwen-env.sh` (target, heads, `SHAPE_ARGS`, `AGG_ARGS`, pydeps), then
-  `APERTUS_EAGLE_CONTRACT=targets/qwen3-8b/contract.json
-  SHAPE_ENV_SOURCE=experiments/workload-shape/qwen3-env.toml
-  experiments/workload-shape/submit-shape.sh RUN_DIR`;
-  `GATE_CORPUS=RUN_DIR/inputs/corpus-measured.jsonl experiments/workload-shape/submit-gate-qwen3.sh GATE_DIR`;
-  `gate_summary.py GATE_DIR served-acceptance.json RUN_DIR/captures/shard-*.json`;
-  locally `analyze.py RUN_DIR results/qwen3-8b/workload-shape/inputs --served
-  served-acceptance.json --extended` and `cross_model.py`.
+- The runs used the pinned revisions above (`fabc7d1a`, `fd27e747`; the write-up is at
+  `d3aea979`), which remain in main's history (merged, not rebased). Main has since
+  merged the Qwen3-4B repeat's and this pipeline into one target-agnostic set of
+  scripts (`cleanup/workload-shape-qwen3`), configured per target by
+  [`qwen3-8b.env`](../experiments/workload-shape/qwen3-8b.env); the commands below
+  are the current ones.
+- Re-run (on the cluster, from a `git archive` copy):
+  `set -a; . experiments/workload-shape/qwen3-8b.env; set +a`, then
+  `experiments/workload-shape/submit-shape.sh RUN_DIR`;
+  `experiments/workload-shape/submit-gate.sh GATE_DIR RUN_DIR/inputs/corpus-measured.jsonl`;
+  `collect_gate.py GATE_DIR GATE_DIR --arms eagle3-k3 dflash-k3 dflash-k15 eagle3-k3-t1
+  dflash-k3-t1 --captures RUN_DIR/captures/shard-*.json`; locally `analyze.py RUN_DIR
+  results/qwen3-8b/workload-shape/inputs --served GATE_DIR/served-acceptance.json
+  --extended` and `cross_model.py compare results/8b/workload-shape/full-20261122-4004306
+  RUN_DIR OUT_DIR`. The output check is `output_check.py RUN_DIR TARGET_DIR OUT.json
+  --draft-vocab EAGLE3_HEAD` (it replaces `output_language_check.py`).
 - The Apertus pipeline is unchanged by these edits: on the archived Apertus shards,
   `shape_aggregate` rewrites `aggregate.json` and `sequences.csv` byte for byte, and
   `analyze.py` rewrites `analysis.json` and `tables.md` byte for byte.

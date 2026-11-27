@@ -303,13 +303,20 @@ targets, loop sensitivity, cross-model spreads), [`aggregate.json`](../results/q
   status, and every cell's `metadata.json`, `summary.json`, `requests.jsonl` (no
   text) and Prometheus snapshots, plus `collected/served-acceptance-*.json`, the
   job script, provenance, pip freeze, image hash and both models' SHA256SUMS.
+- The runs used the pinned revisions above (`75e9f01d`; the write-up is at `0d39b81d`),
+  which remain in main's history (merged, not rebased). Main has since merged this
+  pipeline and the Qwen3-8B repeat's into one target-agnostic set of scripts
+  (`cleanup/workload-shape-qwen3`), configured per target by
+  [`qwen3-4b.env`](../experiments/workload-shape/qwen3-4b.env); the commands below are
+  the current ones.
 - Re-run on the cluster from a `git archive` checkout:
   `set -a; . experiments/workload-shape/qwen3-4b.env; set +a;
   SML_ENV_DIR=<scratch> experiments/workload-shape/submit-shape.sh RUN_DIR`, then
-  `experiments/workload-shape/submit-gate-qwen3.sh GATE_DIR RUN_DIR/inputs/corpus-measured.jsonl`,
-  `collect_gate.py GATE_DIR GATE_DIR/collected`, and locally
+  `experiments/workload-shape/submit-gate.sh GATE_DIR RUN_DIR/inputs/corpus-measured.jsonl`,
+  `collect_gate.py GATE_DIR GATE_DIR/collected --arms k3-greedy k7-greedy k3-t1 k7-t1`, and locally
   `analyze.py RUN results/8b/workload-shape/inputs --served GATE/collected/served-acceptance-k3-greedy.json --name dspark="Red Hat DSpark"`
-  and `extend.py RUN --served-dir GATE/collected --apertus results/8b/workload-shape/full-20261122-4004306 --output-check RUN/output-check.json`.
+  and `cross_model.py report RUN --served-dir GATE/collected --apertus results/8b/workload-shape/full-20261122-4004306 --output-check RUN/output-check.json`
+  (`extend.py` at the pinned revision).
 
 ## Method
 
@@ -319,7 +326,8 @@ changes for the second target:
 - **Prompts and trajectories.** Same corpus and frozen ids. The prompts are
   rendered with Qwen3's own chat template (`enable_thinking=False`, which ends the
   generation prompt with an empty `<think></think>` block), checked by
-  `render_prompt(..., "qwen3")`. Plain vLLM greedy continuations, C=1, 512-token
+  `render_prompt(..., "qwen3")` (since the merge: `render_row`, which reads the
+  contract's `prompt_format: qwen3` as the chat-template rendering). Plain vLLM greedy continuations, C=1, 512-token
   cap, `max_model_len` 40,960, EOS `<|im_end|>` and `<|endoftext|>`.
 - **Head.** `apertus_tree.candidates.DSpark` reads the speculators config: default
   RoPE with theta 1e6, `layer_types` (all five layers are sliding, window 2,048, causal
@@ -334,7 +342,8 @@ changes for the second target:
   per step at T=1 = 1 + Σ_j Π_{d<=j} (1 - TV_d) over the teacher-forced
   distributions, averaged over all anchors (not only the greedy chain's step
   starts).
-- **Gate.** `submit-gate-qwen3.sh`: four vLLM deployments on one node (k=3 and k=7,
+- **Gate.** `submit-gate-qwen3.sh` (since the merge `submit-gate.sh` with
+  `qwen3-4b.env`): four vLLM deployments on one node (k=3 and k=7,
   greedy and T=1), TP=1, prefix caching off, `--generation-config vllm` so the
   model's sampling defaults (T=0.6, top-k 20) do not apply. Each slice is one
   `apertus_bench loadtest` cell at C=1 with 32 measured requests and 512-token cap.
@@ -342,7 +351,7 @@ changes for the second target:
 - **Pooled decomposition.** The decision rule's non-English gap pools the step
   counts of the 12 `lang-*` slices (all except lang-eng) per first-position entropy
   bin before applying the same shape/alignment split as for single slices
-  (`extend.py`).
+  (`extend.py`; since the merge `cross_model.py report`).
 - **Output check.** `output_check.py` runs on the cluster and exports aggregates
   only: the share of ASCII letters in each continuation and the share of its
   4-grams (token ids) already seen earlier in the same continuation.
