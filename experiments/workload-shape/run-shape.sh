@@ -9,25 +9,23 @@
 #   aggregate per-workload quantiles, entropy bins, greedy-chain replay at k=1/3/5/7.
 # Env: RAW (coverage raw sources), EAGLE_HEAD, DSPARK, LIMIT (rows per capture shard, 0 = all),
 #      STAGES (default "inputs capture shape aggregate").
-# Other targets (defaults reproduce the Apertus 1.5 8B run, job 4004306):
+# Other targets: source a per-target settings file first (defaults reproduce the Apertus
+# 1.5 8B run, job 4004306), e.g. `set -a; . experiments/workload-shape/qwen3-8b.env; set +a`:
 #   APERTUS_EAGLE_CONTRACT  target contract (targets/<stage>/contract.json): checkpoint,
-#                           EOS ids, prompt_format (apertus | qwen3), depth;
+#                           EOS ids, prompt rendering, depth;
 #   TARGET                  target checkpoint (must equal the contract's);
 #   CORPUS_TOKENIZER        tokenizer of the coverage rebuild (stays Apertus: the frozen
 #                           corpus 7d8e60ef... was selected with it);
-#   EAGLE_HEAD=""           DSpark-only study (no EAGLE head for this target);
-#   DSPARK_HF_LAYERS        HF decoder layers of the DSpark aux states (config ids - 1);
-#   DSPARK_OWN_VOCAB=1      use the checkpoint's own embed_tokens/lm_head (as vLLM does);
-#   SHAPE_SAMPLED=1         add the T=1 sampled-drafting replay (1 - TV) to the aggregate;
-#   MAX_MODEL_LEN           capture engine context (default 32768);
-#   SHAPE_REF_DSPARK, SHAPE_REF_TARGET, SPECULATORS_SRC
-#                           real-checkpoint logit test against the speculators reference;
 #   CORPUS_FROM             directory with an already built corpus.jsonl / corpus-measured.jsonl;
 #                           copied and checked against the frozen corpus digest instead of
 #                           rebuilding it;
-#   SHAPE_ARGS              extra apertus_tree.shape args (e.g. --eagle-format speculators
-#                           --block-format dflash --names dflash,eagle3 --depth 15 ...);
-#   AGG_ARGS                extra shape_aggregate args.
+#   EAGLE_HEAD=""           no EAGLE head (block drafter only);
+#   SHAPE_ARGS              extra apertus_tree.shape args (head formats, drafter names, depth,
+#                           --dspark-hf-layers, --dspark-own-vocab);
+#   AGG_ARGS                extra shape_aggregate args (--sampled, --sampled-dtype);
+#   MAX_MODEL_LEN           capture engine context (default 32768);
+#   SHAPE_REF_DSPARK, SHAPE_REF_TARGET, SPECULATORS_SRC
+#                           real-checkpoint logit test against the speculators reference.
 set -euo pipefail
 RUN_DIR="$1"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -50,10 +48,7 @@ WORKLOADS="${WORKLOADS:-/users/faruk_zahiragic/apertus-spec-decoding/workloads/8
 APERTUS_TARGET=/capstor/store/cscs/swissai/infra01/hf_models/models/swiss-ai/Apertus-v1.5-8B
 TARGET="${TARGET:-${APERTUS_TARGET}}"
 CORPUS_TOKENIZER="${CORPUS_TOKENIZER:-${APERTUS_TARGET}}"
-DSPARK_HF_LAYERS="${DSPARK_HF_LAYERS:-0,7,14,21,28}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"
-OWN_VOCAB_FLAG=""; [ "${DSPARK_OWN_VOCAB:-0}" = 1 ] && OWN_VOCAB_FLAG=--dspark-own-vocab
-SAMPLED_FLAG=""; [ "${SHAPE_SAMPLED:-0}" = 1 ] && SAMPLED_FLAG="--sampled --sampled-dtype float32"
 CORPUS_FROM="${CORPUS_FROM:-}"
 SHAPE_ARGS="${SHAPE_ARGS:-}"
 AGG_ARGS="${AGG_ARGS:-}"
@@ -84,11 +79,8 @@ json.dump({
     "git_dirty": git("status", "--porcelain", "--untracked-files=no"),
     "env": {k: os.environ.get(k) for k in ("SLURM_JOB_ID", "SLURM_JOB_NODELIST", "SLURM_JOB_PARTITION",
             "SLURM_JOB_ACCOUNT", "EAGLE_HEAD", "DSPARK", "RAW", "LIMIT", "STAGES", "SHAPE_IMAGE",
-            "APERTUS_EAGLE_CONTRACT", "TARGET", "CORPUS_TOKENIZER", "DSPARK_HF_LAYERS",
-            "DSPARK_OWN_VOCAB", "SHAPE_SAMPLED", "MAX_MODEL_LEN", "SPECULATORS_SRC")},
-    **({"target_env": {k: os.environ.get(k) for k in ("TARGET", "APERTUS_EAGLE_CONTRACT",
-        "CORPUS_FROM", "SHAPE_ARGS", "AGG_ARGS", "MAX_MODEL_LEN")}}
-       if os.environ.get("CORPUS_FROM") or os.environ.get("SHAPE_ARGS") else {}),
+            "APERTUS_EAGLE_CONTRACT", "TARGET", "CORPUS_TOKENIZER", "CORPUS_FROM", "SHAPE_ARGS",
+            "AGG_ARGS", "MAX_MODEL_LEN", "SPECULATORS_SRC")},
 }, open(os.path.join(run, f"provenance-{job}.json"), "w"), indent=1)
 PY
 if git rev-parse --git-dir > /dev/null 2>&1; then
@@ -172,7 +164,7 @@ if [[ " ${STAGES} " == *" shape "* ]]; then
     CUDA_VISIBLE_DEVICES=${i} python3 -m apertus_tree.shape \
       --capture "${RUN_DIR}"/captures/shard-*.json --prompts "${RUN_DIR}/inputs/corpus-measured.jsonl" \
       ${EAGLE_HEAD:+--eagle-head "${EAGLE_HEAD}"} --dspark "${DSPARK}" --shard "${i}" --num-shards "${NG}" \
-      --dspark-hf-layers "${DSPARK_HF_LAYERS}" ${OWN_VOCAB_FLAG} ${SHAPE_ARGS} \
+      ${SHAPE_ARGS} \
       --output "${out}" > "${RUN_DIR}/logs/shape-${i}.log" 2>&1 &
     pids+=($!)
   done
@@ -185,7 +177,7 @@ if [[ " ${STAGES} " == *" aggregate "* ]]; then
   stamp "stage aggregate"
   python3 -m apertus_tree.shape_aggregate "${RUN_DIR}"/shape/shard-*.npz --suite "${INPUTS}/suite.yaml" \
     --output "${RUN_DIR}/aggregate.json" --sequences "${RUN_DIR}/sequences.csv" \
-    ${SAMPLED_FLAG} ${AGG_ARGS}
+    ${AGG_ARGS}
 fi
 wait
 stamp "done"
