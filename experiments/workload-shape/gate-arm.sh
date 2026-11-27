@@ -1,5 +1,5 @@
 #!/bin/bash
-# One deployment of the Qwen3-8B shape gate (written by submit-gate-qwen3.sh):
+# One deployment of the workload-shape gate (written by submit-gate.sh):
 #   gate-arm.sh ARM_DIR
 # ARM_DIR/arm.env defines GPU, PORT, SERVED, SERVE (array), BENCH (array), CORPUS, SLICES,
 # REQUESTS, REPO_ROOT. Serves, waits for a chat completion, runs every slice at C=1, stops.
