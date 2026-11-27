@@ -1,0 +1,28 @@
+loadtest json-schema concurrency=1 requests=32
+{
+  "workload": "json-schema",
+  "variant": "dflash-k3-t1",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 448.095895427594,
+      "ttft_p50_ms": 37.38117849570699,
+      "ttft_p95_ms": 38.89701643638546,
+      "tpot_p50_ms": 1.7750783295952441,
+      "tpot_p95_ms": 1.8488800079102146,
+      "e2e_p95_ms": 308.57560034492053,
+      "kv_cache_usage_mean": 0.0007071275414772075,
+      "kv_cache_usage_max": 0.001368633951246201,
+      "kv_cache_tokens_peak": 504,
+      "kv_cache_size_tokens": 368615,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 3.8808049535603715,
+      "acceptance_rate": 0.9602683178534571
+    }
+  ]
+}

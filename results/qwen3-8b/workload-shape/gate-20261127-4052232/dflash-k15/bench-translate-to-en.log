@@ -1,0 +1,28 @@
+loadtest translate-to-en concurrency=1 requests=32
+{
+  "workload": "translate-to-en",
+  "variant": "dflash-k15",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 32,
+      "success_rate": 1.0,
+      "warmup_failed": 0,
+      "output_tokens_per_second": 373.098777894757,
+      "ttft_p50_ms": 26.175087987212464,
+      "ttft_p95_ms": 44.58570418646559,
+      "tpot_p50_ms": 2.4688624667801493,
+      "tpot_p95_ms": 2.919735161416557,
+      "e2e_p95_ms": 468.4412255010102,
+      "kv_cache_usage_mean": 0.0006431885818712532,
+      "kv_cache_usage_max": 0.001194493080618031,
+      "kv_cache_tokens_peak": 437,
+      "kv_cache_size_tokens": 366040,
+      "running_max": 1.0,
+      "waiting_max": 0.0,
+      "preemptions": 0.0,
+      "mean_acceptance_length": 2.916812609457093,
+      "acceptance_rate": 0.12778750729713953
+    }
+  ]
+}

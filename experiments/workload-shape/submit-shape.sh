@@ -5,7 +5,8 @@
 # SHAPE_ENV_SOURCE (environment toml, default the Apertus serving image),
 # SHAPE_JOB_NAME (workload-shape); LIMIT and STAGES pass through, and so do the
 # target settings of run-shape.sh (written into the sbatch file when set).
-# Qwen3-4B + Red Hat DSpark: experiments/workload-shape/qwen3-4b.env.
+# Qwen3-4B + Red Hat DSpark: experiments/workload-shape/qwen3-4b.env; Qwen3-8B + Red Hat
+# EAGLE-3 and DFlash: results/qwen3-8b/workload-shape/inputs/qwen-env.sh.
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "${REPO_ROOT}"
@@ -20,7 +21,7 @@ SBATCH_FILE="${RUN_DIR}/logs/submit-$(date -u +%Y%m%dT%H%M%SZ).sbatch"
 TARGET_EXPORTS=""
 for var in APERTUS_EAGLE_CONTRACT TARGET CORPUS_TOKENIZER EAGLE_HEAD DSPARK DSPARK_HF_LAYERS \
     DSPARK_OWN_VOCAB SHAPE_SAMPLED MAX_MODEL_LEN SPECULATORS_SRC SHAPE_REF_DSPARK SHAPE_REF_TARGET \
-    RAW WORKLOADS TREE_PYDEPS HF_HOME; do
+    RAW WORKLOADS TREE_PYDEPS HF_HOME CORPUS_FROM SHAPE_ARGS AGG_ARGS; do
   if [ -n "${!var+set}" ]; then TARGET_EXPORTS+="export ${var}=$(printf '%q' "${!var}")"$'\n'; fi
 done
 cat > "${SBATCH_FILE}" <<SBATCH

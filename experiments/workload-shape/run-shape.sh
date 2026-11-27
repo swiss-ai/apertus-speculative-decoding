@@ -21,7 +21,13 @@
 #   SHAPE_SAMPLED=1         add the T=1 sampled-drafting replay (1 - TV) to the aggregate;
 #   MAX_MODEL_LEN           capture engine context (default 32768);
 #   SHAPE_REF_DSPARK, SHAPE_REF_TARGET, SPECULATORS_SRC
-#                           real-checkpoint logit test against the speculators reference.
+#                           real-checkpoint logit test against the speculators reference;
+#   CORPUS_FROM             directory with an already built corpus.jsonl / corpus-measured.jsonl;
+#                           copied and checked against the frozen corpus digest instead of
+#                           rebuilding it;
+#   SHAPE_ARGS              extra apertus_tree.shape args (e.g. --eagle-format speculators
+#                           --block-format dflash --names dflash,eagle3 --depth 15 ...);
+#   AGG_ARGS                extra shape_aggregate args.
 set -euo pipefail
 RUN_DIR="$1"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -47,7 +53,10 @@ CORPUS_TOKENIZER="${CORPUS_TOKENIZER:-${APERTUS_TARGET}}"
 DSPARK_HF_LAYERS="${DSPARK_HF_LAYERS:-0,7,14,21,28}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"
 OWN_VOCAB_FLAG=""; [ "${DSPARK_OWN_VOCAB:-0}" = 1 ] && OWN_VOCAB_FLAG=--dspark-own-vocab
-SAMPLED_FLAG=""; [ "${SHAPE_SAMPLED:-0}" = 1 ] && SAMPLED_FLAG=--sampled
+SAMPLED_FLAG=""; [ "${SHAPE_SAMPLED:-0}" = 1 ] && SAMPLED_FLAG="--sampled --sampled-dtype float32"
+CORPUS_FROM="${CORPUS_FROM:-}"
+SHAPE_ARGS="${SHAPE_ARGS:-}"
+AGG_ARGS="${AGG_ARGS:-}"
 INPUTS="${REPO_ROOT}/results/8b/workload-shape/inputs"
 python3 - "${APERTUS_EAGLE_CONTRACT}" "${TARGET}" <<'PY'
 import json, sys
@@ -77,6 +86,9 @@ json.dump({
             "SLURM_JOB_ACCOUNT", "EAGLE_HEAD", "DSPARK", "RAW", "LIMIT", "STAGES", "SHAPE_IMAGE",
             "APERTUS_EAGLE_CONTRACT", "TARGET", "CORPUS_TOKENIZER", "DSPARK_HF_LAYERS",
             "DSPARK_OWN_VOCAB", "SHAPE_SAMPLED", "MAX_MODEL_LEN", "SPECULATORS_SRC")},
+    **({"target_env": {k: os.environ.get(k) for k in ("TARGET", "APERTUS_EAGLE_CONTRACT",
+        "CORPUS_FROM", "SHAPE_ARGS", "AGG_ARGS", "MAX_MODEL_LEN")}}
+       if os.environ.get("CORPUS_FROM") or os.environ.get("SHAPE_ARGS") else {}),
 }, open(os.path.join(run, f"provenance-{job}.json"), "w"), indent=1)
 PY
 if git rev-parse --git-dir > /dev/null 2>&1; then
@@ -90,6 +102,29 @@ export DSPARK TARGET
 PYTHONPATH="${PYTHONPATH}${SPECULATORS_SRC:+:${SPECULATORS_SRC}}" \
 python3 -m pytest -q -rsP tests/test_shape.py > "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt" 2>&1 \
   || { cat "${RUN_DIR}/logs/pytest-${SLURM_JOB_ID:-local}.txt"; exit 1; }
+
+if [[ " ${STAGES} " == *" inputs "* ]] && [ ! -s "${RUN_DIR}/inputs/corpus-measured.jsonl" ] \
+    && [ -n "${CORPUS_FROM}" ]; then
+  stamp "stage inputs (copy ${CORPUS_FROM})"
+  cp "${CORPUS_FROM}/corpus.jsonl" "${CORPUS_FROM}/corpus-measured.jsonl" "${RUN_DIR}/inputs/"
+  python3 - "${INPUTS}/corpus-manifest.json" "${RUN_DIR}/inputs" "${NG}" <<'PY'
+import hashlib, json, sys
+from pathlib import Path
+frozen, d, n = json.loads(Path(sys.argv[1]).read_text()), Path(sys.argv[2]), int(sys.argv[3])
+digest = hashlib.sha256((d / "corpus.jsonl").read_bytes()).hexdigest()
+if digest != frozen["corpus_sha256"]:
+    sys.exit(f"corpus digest {digest} != frozen {frozen['corpus_sha256']}")
+# The measured rows are the corpus without its pre-warm rows, in order.
+rows = (d / "corpus.jsonl").read_text().splitlines(keepends=True)
+measured = "".join(r for r in rows if json.loads(r)["workload"] != "prewarm")
+if (d / "corpus-measured.jsonl").read_text() != measured:
+    sys.exit("corpus-measured.jsonl is not the corpus without its pre-warm rows")
+lines = measured.splitlines(keepends=True)
+for i in range(n):
+    (d / f"corpus-shard-{i}.jsonl").write_text("".join(lines[i::n]))
+print(json.dumps({"corpus_sha256": digest, "measured_rows": len(lines)}))
+PY
+fi
 
 if [[ " ${STAGES} " == *" inputs "* ]] && [ ! -s "${RUN_DIR}/inputs/corpus-measured.jsonl" ]; then
   stamp "stage inputs"
@@ -137,7 +172,7 @@ if [[ " ${STAGES} " == *" shape "* ]]; then
     CUDA_VISIBLE_DEVICES=${i} python3 -m apertus_tree.shape \
       --capture "${RUN_DIR}"/captures/shard-*.json --prompts "${RUN_DIR}/inputs/corpus-measured.jsonl" \
       ${EAGLE_HEAD:+--eagle-head "${EAGLE_HEAD}"} --dspark "${DSPARK}" --shard "${i}" --num-shards "${NG}" \
-      --dspark-hf-layers "${DSPARK_HF_LAYERS}" ${OWN_VOCAB_FLAG} \
+      --dspark-hf-layers "${DSPARK_HF_LAYERS}" ${OWN_VOCAB_FLAG} ${SHAPE_ARGS} \
       --output "${out}" > "${RUN_DIR}/logs/shape-${i}.log" 2>&1 &
     pids+=($!)
   done
@@ -150,7 +185,7 @@ if [[ " ${STAGES} " == *" aggregate "* ]]; then
   stamp "stage aggregate"
   python3 -m apertus_tree.shape_aggregate "${RUN_DIR}"/shape/shard-*.npz --suite "${INPUTS}/suite.yaml" \
     --output "${RUN_DIR}/aggregate.json" --sequences "${RUN_DIR}/sequences.csv" \
-    ${SAMPLED_FLAG}
+    ${SAMPLED_FLAG} ${AGG_ARGS}
 fi
 wait
 stamp "done"

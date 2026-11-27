@@ -1,0 +1,27 @@
+{
+ "started": "2026-11-27T09:56:41Z",
+ "git_revision": "",
+ "source_revision": "fabc7d1a73b0f5fc612463caac47ab848682d68a",
+ "git_branch": "",
+ "git_dirty": "",
+ "env": {
+  "SLURM_JOB_ID": "4052231",
+  "SLURM_JOB_NODELIST": "nid006219",
+  "SLURM_JOB_PARTITION": "normal",
+  "SLURM_JOB_ACCOUNT": "d_research_serving",
+  "EAGLE_HEAD": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-8b/models/RedHatAI--Qwen3-8B-speculator.eagle3",
+  "DSPARK": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-8b/models/RedHatAI--Qwen3-8B-speculator.dflash",
+  "RAW": null,
+  "LIMIT": "0",
+  "STAGES": "inputs capture shape aggregate",
+  "SHAPE_IMAGE": "/capstor/store/cscs/swissai/infra01/container-images/ci/vllm_nvidia_alps-arm64.sqsh"
+ },
+ "target_env": {
+  "TARGET": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-8b/models/Qwen--Qwen3-8B",
+  "APERTUS_EAGLE_CONTRACT": "/iopsstor/scratch/cscs/faruk_zahiragic/spec-exp/workload-shape-qwen3-8b/code-fabc7d1a73b0/targets/qwen3-8b/contract.json",
+  "CORPUS_FROM": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape/runs/full-20261122/inputs",
+  "SHAPE_ARGS": "--eagle-format speculators --block-format dflash --names dflash,eagle3 --depth 15 --dspark-hf-layers 1,9,17,25,33",
+  "AGG_ARGS": "--sampled",
+  "MAX_MODEL_LEN": null
+ }
+}

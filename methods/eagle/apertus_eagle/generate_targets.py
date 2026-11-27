@@ -33,6 +33,7 @@ from apertus_eagle.renderer import (
     ASSISTANT_START_ID,
     BOS_ID,
     chat_template_token_ids,
+    coerce_token_ids,
     prepare_serving_messages,
 )
 
@@ -115,6 +116,30 @@ def render_prompt(
     if ids[-1] != ASSISTANT_START_ID:
         raise ValueError(f"generation prompt ends with {ids[-1]}, not <|assistant_start|>")
     return ids
+
+
+def render_row(contract: dict[str, Any], tokenizer: Any, row: dict[str, Any]) -> list[int]:
+    """Prompt token ids of a corpus row for the contract's target.
+
+    Apertus contracts (no ``target.prompt_render``) use ``render_prompt``. A contract
+    with ``prompt_render: chat_template`` (other targets, e.g. Qwen3) renders the
+    model's own chat template with the row's ``chat_template_kwargs`` over the
+    contract's, then encodes without special tokens, as vLLM's chat endpoint does.
+    """
+    target = contract.get("target") or {}
+    mode = target.get("prompt_render", "apertus")
+    if mode == "apertus":
+        prompt_format = (target.get("tokens") or {}).get("prompt_format", "apertus")
+        return render_prompt(tokenizer, prompt_messages(row), prompt_format)
+    if mode != "chat_template":
+        raise ValueError(f"unknown prompt_render {mode!r}")
+    kwargs = {**(target.get("chat_template_kwargs") or {}), **(row.get("chat_template_kwargs") or {})}
+    text = tokenizer.apply_chat_template(
+        prompt_messages(row), tokenize=False, add_generation_prompt=True, **kwargs
+    )
+    if isinstance(text, (list, tuple)):
+        text = text[0]
+    return coerce_token_ids(tokenizer.encode(str(text), add_special_tokens=False))
 
 
 def main(argv: list[str] | None = None) -> None:

@@ -1,0 +1,108 @@
+{
+  "schema_version": 2,
+  "stage": "qwen3-8b",
+  "recorded_at": "2026-11-27T09:37:59+00:00",
+  "recorded_on_host": "clariden-ln001",
+  "status": "contract_recorded",
+  "purpose": "workload-shape replay (apertus_tree.shape); not a training contract",
+  "source": {
+    "authorized_checkpoint": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-8b/models/Qwen--Qwen3-8B",
+    "hf_id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "config_sha256": "f7c4eadfbbf522470667b797a3c89be2524832d2d599797248dc304fff447c30",
+    "tokenizer_json_sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+    "tokenizer_config_sha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+    "chat_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+    "chat_template_source": "tokenizer_config.json",
+    "generation_config_sha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2",
+    "weight_manifest": {
+      "files": [
+        {
+          "name": "model-00001-of-00005.safetensors",
+          "bytes": 3996250744,
+          "sha256": "31d6a825ae35f11fb85b195b4c42c146c051e446433125a215336abdf95cbf5f"
+        },
+        {
+          "name": "model-00002-of-00005.safetensors",
+          "bytes": 3993160032,
+          "sha256": "5991236cea6fe21f3d43cab0f0e84448734fbbe0789816202989f2ddc9d18282"
+        },
+        {
+          "name": "model-00003-of-00005.safetensors",
+          "bytes": 3959604768,
+          "sha256": "c5185c4794be2d8a9784d5753c9922db38df478ce11f9ed0b415b7304d896836"
+        },
+        {
+          "name": "model-00004-of-00005.safetensors",
+          "bytes": 3187841392,
+          "sha256": "b5ee7de71fbf17db3d5704e0c8f2bc7d005ca9e1d7ca2aeb19827b0cfcaa917a"
+        },
+        {
+          "name": "model-00005-of-00005.safetensors",
+          "bytes": 1244659840,
+          "sha256": "20c2d6366ab85c90786ccdd829cd2b9e7d30ef3b2ebbb998280e7e4014b542ff"
+        }
+      ],
+      "hashed": true,
+      "manifest_sha256": "10a8b251b85f7328a77a2d63d052f16d613a842f067b4785bb9ee1734bf03b13"
+    },
+    "weight_manifest_sha256": "10a8b251b85f7328a77a2d63d052f16d613a842f067b4785bb9ee1734bf03b13"
+  },
+  "target": {
+    "identity": {
+      "model_id": "Qwen/Qwen3-8B",
+      "path": "/iopsstor/scratch/cscs/faruk_zahiragic/workload-shape-qwen3-8b/models/Qwen--Qwen3-8B",
+      "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+      "config_sha256": "f7c4eadfbbf522470667b797a3c89be2524832d2d599797248dc304fff447c30",
+      "tokenizer_sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+      "chat_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "weight_manifest_sha256": "10a8b251b85f7328a77a2d63d052f16d613a842f067b4785bb9ee1734bf03b13"
+    },
+    "architecture": "Qwen3ForCausalLM",
+    "model_type": "qwen3",
+    "precision": "bfloat16",
+    "prompt_render": "chat_template",
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    },
+    "text": {
+      "hidden_size": 4096,
+      "intermediate_size": 12288,
+      "num_hidden_layers": 36,
+      "num_attention_heads": 32,
+      "num_key_value_heads": 8,
+      "head_dim": 128,
+      "vocab_size": 151936,
+      "rms_norm_eps": 1e-06,
+      "rope_theta": 1000000,
+      "rope_scaling": null,
+      "tie_word_embeddings": false,
+      "max_position_embeddings": 40960
+    },
+    "eagle": {
+      "default_aux_hidden_state_layer_ids": [
+        2,
+        18,
+        33
+      ],
+      "hf_decoder_layer_aux_ids": [
+        1,
+        17,
+        32
+      ],
+      "convention": "vLLM id k = residual stream entering decoder layer k = output of HF decoder layer k-1 (Qwen2Model.forward); vLLM's default for EAGLE-3 heads without eagle_aux_hidden_state_layer_ids"
+    },
+    "tokens": {
+      "bos_token_id": 151643,
+      "eos_token_id": [
+        151645,
+        151643
+      ],
+      "generation_eos_token_id": [
+        151645,
+        151643
+      ],
+      "pad_token_id": 151643
+    }
+  }
+}
