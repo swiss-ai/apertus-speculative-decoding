@@ -89,28 +89,10 @@ def prompt_messages(row: dict[str, Any]) -> list[dict[str, Any]]:
     return filtered
 
 
-# Qwen3's template ends a thinking-off generation prompt with an empty think block.
-QWEN3_GENERATION_SUFFIX = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
-
-
-def render_prompt(
-    tokenizer: Any, messages: list[dict[str, Any]], prompt_format: str = "apertus"
-) -> list[int]:
-    """Thinking-off generation prompt in the target's own chat template.
-
-    ``prompt_format`` comes from the contract (``target.tokens.prompt_format``):
-    ``apertus`` (default) or ``qwen3``.
-    """
+def render_prompt(tokenizer: Any, messages: list[dict[str, Any]]) -> list[int]:
     ids = chat_template_token_ids(
         tokenizer, messages, add_generation_prompt=True, enable_thinking=False
     )
-    if prompt_format == "qwen3":
-        suffix = tokenizer.encode(QWEN3_GENERATION_SUFFIX, add_special_tokens=False)
-        if len(ids) <= len(suffix) or list(ids[-len(suffix) :]) != list(suffix):
-            raise ValueError("Qwen3 prompt does not end with a thinking-off assistant header")
-        return ids
-    if prompt_format != "apertus":
-        raise ValueError(f"unknown prompt_format {prompt_format!r}")
     if not ids or ids[0] != BOS_ID or (len(ids) > 1 and ids[1] == BOS_ID):
         raise ValueError("rendered prompt must start with exactly one BOS")
     if ids[-1] != ASSISTANT_START_ID:
@@ -122,22 +104,29 @@ def render_row(contract: dict[str, Any], tokenizer: Any, row: dict[str, Any]) ->
     """Prompt token ids of a corpus row for the contract's target.
 
     Apertus contracts (no ``target.prompt_render``) use ``render_prompt``. A contract
-    with ``prompt_render: chat_template`` (other targets, e.g. Qwen3) renders the
-    model's own chat template with the row's ``chat_template_kwargs`` over the
-    contract's, then encodes without special tokens, as vLLM's chat endpoint does.
+    with ``prompt_render: chat_template`` (other targets, e.g. Qwen3; written by
+    ``experiments/workload-shape/qwen3_contract.py``) renders the model's own chat
+    template, thinking off unless the contract's or the row's ``chat_template_kwargs``
+    say otherwise (the row's win), then encodes without special tokens, as vLLM's chat
+    endpoint does. The hand-written Qwen3-4B contract spells the same rendering
+    ``target.tokens.prompt_format: qwen3``.
     """
     target = contract.get("target") or {}
-    mode = target.get("prompt_render", "apertus")
+    legacy = (target.get("tokens") or {}).get("prompt_format")
+    mode = target.get("prompt_render") or ("chat_template" if legacy == "qwen3" else "apertus")
     if mode == "apertus":
-        prompt_format = (target.get("tokens") or {}).get("prompt_format", "apertus")
-        return render_prompt(tokenizer, prompt_messages(row), prompt_format)
+        return render_prompt(tokenizer, prompt_messages(row))
     if mode != "chat_template":
         raise ValueError(f"unknown prompt_render {mode!r}")
-    kwargs = {**(target.get("chat_template_kwargs") or {}), **(row.get("chat_template_kwargs") or {})}
+    kwargs = {
+        "enable_thinking": False,
+        **(target.get("chat_template_kwargs") or {}),
+        **(row.get("chat_template_kwargs") or {}),
+    }
     text = tokenizer.apply_chat_template(
         prompt_messages(row), tokenize=False, add_generation_prompt=True, **kwargs
     )
-    if isinstance(text, (list, tuple)):
+    if isinstance(text, list | tuple):
         text = text[0]
     return coerce_token_ids(tokenizer.encode(str(text), add_special_tokens=False))
 
