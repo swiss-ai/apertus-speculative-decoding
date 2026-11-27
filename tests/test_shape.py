@@ -27,6 +27,21 @@ def test_walk_counts_leading_matches_and_jumps():
     assert agg.walk(match, 1) == [(0, 1), (2, 0), (3, 1), (5, 0), (6, 1)]
 
 
+def test_sampled_acceptance_chains_one_minus_tv():
+    nan = np.nan
+    tv = np.array(
+        [
+            [0.0] * 7,  # target == drafter: every depth accepted
+            [1.0] * 7,  # disjoint: nothing accepted
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [0.0, 0.0, nan, nan, nan, nan, nan],  # sequence ends after depth 2
+        ]
+    )
+    assert agg.sampled_acceptance(tv, 3).tolist() == [4.0, 1.0, 1.875, 3.0]
+    assert agg.sampled_acceptance(tv, 7)[0] == 8.0
+    assert agg.sampled_acceptance(tv, 1).tolist() == [2.0, 1.0, 1.5, 2.0]
+
+
 def test_dist_metrics_identities():
     torch.manual_seed(0)
     logits = torch.randn(4, 50)
