@@ -14,7 +14,12 @@ directory name, is wrong from the second epoch on:
   hard links (no copy, survives the ring's renames and pruning) under
   ``checkpoints/epochs/epoch-<N>/``, with that epoch's validation metrics
   written there every epoch, not only when the loss improves.
+- validation does not check the stop deadline, so a link can end during an
+  epoch's validation; the resume then starts the next epoch and that epoch's
+  validation would never run. A resume from an end-of-epoch save whose archive
+  has no ``val_metrics.json`` validates that epoch first (same weights).
 """
+import faulthandler
 import json
 import os
 from pathlib import Path
@@ -80,6 +85,12 @@ def install(Trainer, Checkpointer, log=print):
         self._resume_local_step = skip
         self._resume_global_step = global_step
         self.global_step = global_step
+        self._beverin_pending_val = None
+        if skip == 0 and epoch >= 1:
+            archive = Path(self.checkpointer.path) / "epochs" / ("epoch-%d" % (epoch - 1))
+            if (archive / "training_state.json").is_file() and not (
+                    archive / "val_metrics.json").exists():
+                self._beverin_pending_val = epoch - 1
         if _rank0(self):
             log("BEVERIN_MULTI_EPOCH_RESUME " + json.dumps({
                 "saved": state, "epoch": epoch, "skip_local_steps": skip,
@@ -125,6 +136,30 @@ def install(Trainer, Checkpointer, log=print):
         return metrics
 
     Trainer.val_epoch = val_epoch
+
+    original_run = Trainer.run_training
+
+    def _barrier(self):
+        if getattr(self, "is_distributed", False):
+            import torch.distributed as dist
+            dist.barrier()
+
+    def run_training(self):
+        pending = getattr(self, "_beverin_pending_val", None)
+        if pending is not None and getattr(self, "val_loader", None) is not None:
+            if _rank0(self):
+                log("BEVERIN_PENDING_VALIDATION " + json.dumps({"epoch": pending}))
+            faulthandler.cancel_dump_traceback_later()
+            _barrier(self)
+            metrics = self.val_epoch(pending)
+            _barrier(self)
+            if hasattr(self, "maybe_update_best"):
+                self.maybe_update_best(pending, metrics)
+                _barrier(self)
+        self._beverin_pending_val = None
+        return original_run(self)
+
+    Trainer.run_training = run_training
 
     # Per-epoch val metrics and checkpoint_best point at the ring head.
     Checkpointer.val_metrics_path = lambda self, epoch: Path(self.path) / "0" / "val_metrics.json"

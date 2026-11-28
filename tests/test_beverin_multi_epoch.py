@@ -42,12 +42,14 @@ class Checkpointer:
 class Trainer:
     """Speculators' resume and epoch loop, reduced to what the ring changes."""
 
-    def __init__(self, root, num_epochs, stop_at=None):
+    def __init__(self, root, num_epochs, stop_at=None, kill_in_val=None):
         self.checkpointer = Checkpointer(root)
         self.resume_from_checkpoint = True
         self.is_distributed = False
-        self.num_epochs, self.stop_at = num_epochs, stop_at
+        self.val_loader = object()
+        self.num_epochs, self.stop_at, self.kill_in_val = num_epochs, stop_at, kill_in_val
         self.trained = []  # (epoch, local_step)
+        self.validated = []  # epochs, in order
 
     def setup_trainer(self):
         # Speculators: the epoch is the highest integer directory, which is always 0.
@@ -76,10 +78,16 @@ class Trainer:
                   "weights-at-%d" % self.global_step)
 
     def val_epoch(self, epoch):
+        if epoch == self.kill_in_val:  # the link's time limit hits during validation
+            raise SystemExit(0)
+        self.validated.append(epoch)
         return {"loss_epoch": 1.0 / (epoch + 1), "eal_epoch": 4.0 + epoch}
 
     def run(self):
         self.setup_trainer()
+        self.run_training()
+
+    def run_training(self):
         for epoch in range(self.current_epoch, self.num_epochs):
             self.train_epoch(epoch)
             self.maybe_save_checkpoint(epoch)
@@ -138,6 +146,33 @@ class MultiEpochTest(unittest.TestCase):
         integer_dirs = sorted(p.name for p in self.root.iterdir() if p.name.isdigit())
         self.assertEqual(integer_dirs, ["0"])
         self.assertEqual(Path(str((self.root / "checkpoint_best").readlink())), Path("0"))
+
+    def test_validation_cut_off_by_the_time_limit_runs_on_resume(self):
+        first = self.trainer(num_epochs=3, kill_in_val=1)
+        with self.assertRaises(SystemExit):
+            first.run()
+        self.assertFalse((self.root / "epochs/epoch-1/val_metrics.json").exists())
+        second = self.trainer(num_epochs=3)
+        second.run()
+        self.assertEqual(first.validated + second.validated, [0, 1, 2])
+        self.assertEqual(second.trained[0], (2, 1))  # epoch 1 is not retrained
+        self.assertEqual(json.loads(
+            (self.root / "epochs/epoch-1/val_metrics.json").read_text())["eal_epoch"], 5.0)
+
+    def test_last_epoch_validation_cut_off_runs_on_resume(self):
+        first = self.trainer(num_epochs=2, kill_in_val=1)
+        with self.assertRaises(SystemExit):
+            first.run()
+        second = self.trainer(num_epochs=2)
+        second.run()
+        self.assertEqual(second.trained, [])
+        self.assertEqual(second.validated, [1])
+
+    def test_resume_with_validation_done_does_not_revalidate(self):
+        self.trainer(num_epochs=2).run()
+        again = self.trainer(num_epochs=2)
+        again.run()
+        self.assertEqual(again.validated, [])
 
     def test_archive_refuses_a_mid_epoch_save(self):
         ring_save(self.root, 1, 3, 8, "w")
