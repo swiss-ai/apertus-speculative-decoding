@@ -1,0 +1,79 @@
+{
+  "executed_branch": "experiment/public-hybrid-queue-pressure",
+  "executed_commit": "978eb0193b4eff7a5158294e2ebc892ae1447ceb",
+  "source_files": {
+    "experiments/public-hybrid-recovery/arm.sh": {
+      "original_sha256": "987a242b564f81c3ec2f266bddefb5e0491148212fac10278f5873b6ce072474",
+      "published_sha256": "987a242b564f81c3ec2f266bddefb5e0491148212fac10278f5873b6ce072474"
+    },
+    "experiments/public-hybrid-recovery/environment.toml": {
+      "original_sha256": "2a92023249467c88f93dc776c18c9afbaf659c51b53ae0a74dbd65c2f302f7fe",
+      "published_sha256": "2a92023249467c88f93dc776c18c9afbaf659c51b53ae0a74dbd65c2f302f7fe"
+    },
+    "experiments/public-hybrid-recovery/prompts.py": {
+      "original_sha256": "58af3dcdd73b9ad50ac9d0fc44d834a34526d1fdf6df34cb220e9ba613df4bf3",
+      "published_sha256": "58af3dcdd73b9ad50ac9d0fc44d834a34526d1fdf6df34cb220e9ba613df4bf3"
+    },
+    "experiments/public-hybrid-recovery/run.sh": {
+      "original_sha256": "7efb3553d7244f4f6c9929b928689f98537d2644a895f2df9f390cc00d57c396",
+      "published_sha256": "7efb3553d7244f4f6c9929b928689f98537d2644a895f2df9f390cc00d57c396"
+    },
+    "experiments/public-hybrid-recovery/submit.sh": {
+      "original_sha256": "0120ac7b7de4c302bad42cc914b9b65359eac71b84be1540c5cd67e4b45f4a32",
+      "published_sha256": "ae029bc049c89bee5cadebb66a4d78c8a92a2eeeb80618f5c5e97d5411283b26"
+    },
+    "experiments/public-queue-pressure/cache_budget.py": {
+      "original_sha256": "677d54c0cfe37dbb5cb779b489ea60007a0766e004b5fe0dc11f251683172aa2",
+      "published_sha256": "677d54c0cfe37dbb5cb779b489ea60007a0766e004b5fe0dc11f251683172aa2"
+    },
+    "experiments/public-queue-pressure/configure.sh": {
+      "original_sha256": "245ddb52e87b856d9256d1eb68f217170eee6ffc1ac48f01623e320bcbab6eda",
+      "published_sha256": "245ddb52e87b856d9256d1eb68f217170eee6ffc1ac48f01623e320bcbab6eda"
+    },
+    "experiments/public-queue-pressure/groups.py": {
+      "original_sha256": "2a71392d195bec6d8c00a2b1cb8efd32b2e76731814a4f0e1c42790f3f7cdc31",
+      "published_sha256": "2a71392d195bec6d8c00a2b1cb8efd32b2e76731814a4f0e1c42790f3f7cdc31"
+    }
+  },
+  "submit_changes": "The archived submit.sh additionally accepts the archive branch name and resolves the remote SSH user for the CSCS IOPS scratch path. The node-side launch and workload code are byte-identical.",
+  "original_analysis_commit": "ed319ef8d5a966cac585dbbe76060187fd6d3689",
+  "analysis_script": {
+    "path": "experiments/public-queue-pressure/summarize.py",
+    "original_sha256": "7675ea062fedd7a2eab27f2a5201032b574e237a3d9580c47d547790bb596cf3",
+    "published_sha256": "28d0114614ea853e78fd4a2fbc0c9ab3d99fa42aab8d4b515f78d7ce84adf474"
+  },
+  "original_files_sha256": {
+    "job-4060288.json": "5e5df9aacde07807d5bcafa2e213a43a7256d792dedcdec3f3c7aa393d171083",
+    "job-4060290.json": "4733edb7e6805104d97b0f205940c2120f7280f8351f90ec1d987f4a4e1c0f44",
+    "job-4060288.tar.gz": "60435099fb8a114368363cbf6e1d3072795fa729db171cb3bb848692351e5683",
+    "job-4060290.tar.gz": "2141ab363a1e6bfe82a263226fa8c3f2c46259f107d8703d32fa80d80ff9ff09",
+    "allocations.psv": "7c4182690c82e015ae4559fd5a7c66a293fa557cbc4cbe32e4b23a402480932e"
+  },
+  "original_manifest_sha256": "125e3394cbecc9d59cbd75a5d4377896ddf8ab6eb075d33c7510ed7364f3af6b",
+  "durable_originals": {
+    "system": "CSCS Clariden",
+    "location": "project-store results-archive/qwen35-queue-pressure-20261128",
+    "manifest": "SHA256SUMS"
+  },
+  "jobs": {
+    "4060288": {
+      "rotation": 0,
+      "gpus": 4,
+      "seconds": 244,
+      "status": "COMPLETED"
+    },
+    "4060290": {
+      "rotation": 1,
+      "gpus": 4,
+      "seconds": 232,
+      "status": "COMPLETED"
+    }
+  },
+  "accelerator": "NVIDIA GH200",
+  "allocated_gpu_hours": 0.5288888888888889,
+  "token_vector_hash_encoding": "SHA-256 of ASCII JSON array of decimal IDs, comma separated without whitespace or trailing newline.",
+  "engine": {
+    "version": "SGLang 0.5.20",
+    "container_sha256": "397b09c95ed6f06a7bb44cd8d76da4b788bb0bcc6a343d529be6fa73109dd1f8"
+  }
+}
