@@ -147,12 +147,19 @@ def install(Trainer, Checkpointer, log=print):
     def run_training(self):
         pending = getattr(self, "_beverin_pending_val", None)
         if pending is not None and getattr(self, "val_loader", None) is not None:
+            config = getattr(self, "config", None)
+            total = getattr(config, "num_epochs", None) or getattr(self, "num_epochs", "?")
             if _rank0(self):
                 log("BEVERIN_PENDING_VALIDATION " + json.dumps({"epoch": pending}))
+                # train-node.sh's stall monitor allows 4 h only after this line
+                # (the trainer's own wording); without it the limit is 45 min.
+                log("Validation epoch %d/%s started" % (pending + 1, total))
             faulthandler.cancel_dump_traceback_later()
             _barrier(self)
             metrics = self.val_epoch(pending)
             _barrier(self)
+            if _rank0(self):
+                log("Validation epoch %d/%s completed" % (pending + 1, total))
             if hasattr(self, "maybe_update_best"):
                 self.maybe_update_best(pending, metrics)
                 _barrier(self)

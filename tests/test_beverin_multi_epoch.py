@@ -159,6 +159,23 @@ class MultiEpochTest(unittest.TestCase):
         self.assertEqual(json.loads(
             (self.root / "epochs/epoch-1/val_metrics.json").read_text())["eal_epoch"], 5.0)
 
+    def test_pending_validation_logs_the_stall_monitor_start_line(self):
+        first = self.trainer(num_epochs=3, kill_in_val=1)
+        with self.assertRaises(SystemExit):
+            first.run()
+        lines = []
+
+        class T(Trainer):
+            pass
+
+        install(T, self.C, log=lines.append)
+        second = T(self.root, num_epochs=3)
+        second.checkpointer = self.C(self.root)
+        second.run()
+        self.assertIn("Validation epoch 2/3 started", lines)
+        self.assertLess(lines.index("Validation epoch 2/3 started"),
+                        lines.index("Validation epoch 2/3 completed"))
+
     def test_last_epoch_validation_cut_off_runs_on_resume(self):
         first = self.trainer(num_epochs=2, kill_in_val=1)
         with self.assertRaises(SystemExit):
