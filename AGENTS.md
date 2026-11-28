@@ -14,6 +14,34 @@
   running job uses the existing checkout. Keep the branch and commit associated
   with each run in its provenance; preserve the exact code used by existing runs.
 
+## Running and archiving experiments
+
+- Record the question, controls, expected outcome and decision rule before
+  launching. Follow the experiment's plan and [measurement protocol](docs/protocol.md).
+  If a study is exploratory, say so when reporting its results.
+- Give each independently executing workstream its own branch and checkout.
+  Brief its owner on the plan, dependencies, deliverables, provenance and
+  reporting rules. The coordinator shares findings that unblock other owners.
+  Resolve settings from launch scripts, logs or a small test before asking a
+  colleague for a missing artifact or access.
+- On Clariden, sync the intended commit into the matching checkout and verify
+  its revision before submission. Use login nodes for orchestration and run
+  benchmarks, including their clients, inside compute allocations.
+- Before extending training, inspect the saved summary, checkpoint and last
+  completed step. After a config change, inspect the first follow-up job for
+  a resume and new steps. For serving and evaluation, verify completion from
+  server logs and the expected cells and requests. Label projected progress
+  as a projection.
+- Stage paths explicitly. After each logical change, run the applicable
+  checks (`pytest`, `ruff check .`, and `bash -n` for shell scripts), commit it
+  and push the task branch to `origin` for archival. Promote it to `main` only
+  when asked. Check the branch history as well as the files before pushing to
+  a public repository.
+- Keep restricted SFT prompts and answers, FinePDFs documents and captures
+  containing them on the cluster. Preserve original run records with their
+  checksums in project storage. Publish shareable measurements, configurations,
+  commands and hashes so a reader can reproduce the comparison.
+
 ## Slack action items
 
 When the user refers to the "action items canvas", they mean [Spec Decoding Sync: Prioritized Actions and Owners](https://swissai-initiative.slack.com/docs/T0627JS49GT/F0C6431UBTP) (canvas ID: `F0C6431UBTP`) in Slack channel [#swiss-ai-spec-decode](https://swissai-initiative.slack.com/archives/C0C2QMYCQ5B) (channel ID: `C0C2QMYCQ5B`).
@@ -25,6 +53,10 @@ post a results message to [#swiss-ai-spec-decode](https://swissai-initiative.sla
 (channel ID: `C0C2QMYCQ5B`). Post once per experiment, after the write-up and
 results are committed and pushed, so the message can link to them. Split it
 into a short top-level message and the details in its thread:
+
+Use the Slack app. When the campaign plan calls for approval, prepare both
+drafts for the user and send each after approval. Update the action-items
+canvas only on request.
 
 **Top-level message (short; most people read only this):**
 
